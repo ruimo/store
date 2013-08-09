@@ -5,14 +5,14 @@ create table Site (
   siteId bigint not null,
   locale smallint not null,
   siteName varchar(32) not null unique,
-  constraint pkSite primary key (id)
+  constraint pkSite primary key (siteId)
 );
 
 create sequence SiteSeq start with 1;
 
 create table Item (
   itemId bigint not null,
-  constraint pkItem primary key (id)
+  constraint pkItem primary key (itemId)
 );
 
 create sequence ItemSeq start with 1;
@@ -33,8 +33,8 @@ create table SiteItem (
 );
 
 create table Category (
-  id bigint not null,
-  constraint pkCategory primary key (id)
+  categoryId bigint not null,
+  constraint pkCategory primary key (categoryId)
 );
 
 create sequence CategorySeq start with 1;
@@ -73,14 +73,14 @@ create table TaxHistory (
   taxId bigint not null references Tax on delete cascade,
   taxType smallint not null,
   rate decimal(5,3) not null,
-  # Exclusive
-  validUntil not null timestamp,
+  -- Exclusive
+  validUntil timestamp not null,
   constraint pkTaxHistory primary key(taxHistoryId)
 );
 
 create sequence TaxHistorySeq start with 1;
 
-create index ixTaxHistory1 on TaxHistory (expirationDate);
+create index ixTaxHistory1 on TaxHistory (validUntil);
 
 create table ItemPrice (
   itemPriceId bigint not null,
@@ -96,16 +96,16 @@ create sequence ItemPriceSeq start with 1;
 create table ItemPriceHistory (
   itemPriceHistoryId bigint not null,
   itemPriceId bigint not null references ItemPrice on delete cascade,
-  taxId bigint not null reference Tax on delete cascade,
+  taxId bigint not null references Tax on delete cascade,
   unitPrice decimal(15,2) not null,
-  # Exclusive
-  validUntil not null timestamp,
+  -- Exclusive
+  validUntil timestamp not null,
   constraint pkItemPriceHistory primary key (itemPriceHistoryId)
 );
 
 create sequence ItemPriceHistorySeq start with 1;
 
-create table Transaction (
+create table TransactionHeader (
   transactionId bigint not null,
   siteId bigint not null,
   transactionTime timestamp not null,
@@ -116,13 +116,22 @@ create table Transaction (
   constraint pkTransaction primary key (transactionId)
 );
 
-create sequence TransactionSeq start with 1;
+create sequence TransactionHeaderSeq start with 1;
+
+create table TransactionShipping (
+  transactionShippingId bigint not null,
+  transactionId bigint not null references TransactionHeader on delete cascade,
+  amount decimal(15,2) not null,
+  constraint pkTransactionShipping primary key (transactionShippingId)
+);
+
+create sequence TransactionShippingSeq start with 1;
 
 create table TransactionItem (
   transactionItemId bigint not null,
-  transactionId bigint not null reference Transaction on delete cascade,
+  transactionId bigint not null references TransactionHeader on delete cascade,
   itemPriceHistoryId bigint not null,
-  transactionShippingId bigint not null reference TransactionShipping on delete cascade,
+  transactionShippingId bigint not null references TransactionShipping on delete cascade,
   quantity decimal(15,2) not null,
   amount decimal(15,2) not null,
   constraint pkTransactionItem primary key (transactionItemId)
@@ -132,7 +141,7 @@ create sequence TransactionItemSeq start with 1;
 
 create table TransactionTax (
   transactionTaxId bigint not null,
-  transactionId bigint not null reference Transaction on delete cascade,
+  transactionId bigint not null references TransactionHeader on delete cascade,
   taxHistoryId bigint not null,
   targetAmount decimal(15,2) not null,
   amount decimal(15,2) not null,
@@ -141,18 +150,9 @@ create table TransactionTax (
 
 create sequence TransactionTaxSeq start with 1;
 
-create table TransactionShipping (
-  transactionShippingId bigint not null,
-  transactionId bigint not null reference Transaction on delete cascade,
-  amount decimal(15,2) not null,
-  constraint pkTransactionShipping primary key (transactionShippingId)
-);
-
-create sequence TransactionShippingSeq start with 1;
-
 create table TransactionCreditTender (
   transactionCreditTenderId bigint not null,
-  transactionId bigint not null reference Transaction on delete cascade,
+  transactionId bigint not null references TransactionHeader on delete cascade,
   amount decimal(15,2) not null,
   constraint pkTransactionCreditTender primary key (transactionCreditTenderId)
 );
@@ -161,42 +161,4 @@ create sequence TransactionCreditTenderSeq start with 1;
 
 # --- !Downs
 
-set referential_integrity false;
-
-drop table if exists Item;
-
-drop table if exists ItemName;
-
-drop table if exists Site;
-
-drop table if exists Category;
-
-drop table if exists CategoryName;
-
-drop table if exists CategoryPath;
-
-drop table if exists SiteCategory;
-
-drop table if exists ItemPrice;
-
-drop table if exists ItemPriceHistory;
-
-drop table if exists Tax;
-
-drop table if exists TaxHistory;
-
-set referential_integrity true;
-
-drop sequence if exists SiteSeq;
-
-drop sequence if exists ItemSeq;
-
-drop sequence if exists CategorySeq;
-
-drop sequence if exists ItemPriceSeq;
-
-drop sequence if exists ItemPriceHistorySeq;
-
-drop sequence if exists TaxSeq;
-
-drop sequence if exists TaxHistorySeq;
+# No down script. Recreate database before reloading 1.sql.
