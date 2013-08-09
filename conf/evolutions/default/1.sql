@@ -161,4 +161,4 @@ create sequence TransactionCreditTenderSeq start with 1;
 
 # --- !Downs
 
-# No down script. Recreate database before reloading 1.sql.
+-- No down script. Recreate database before reloading 1.sql.
