@@ -1,173 +1,173 @@
 # --- First database schema
 
 # --- !Ups
-create table Locale (
-  localeId bigint not null,
+create table locale (
+  locale_id bigint not null,
   lang varchar(8) not null,
   country varchar(3),
-  constraint pkLocale primary key (localeId),
+  constraint pk_locale primary key (locale_id),
   unique (lang, country)
 );
 
-insert into Locale (localeId, lang) values (1, 'ja');
+insert into locale (locale_id, lang) values (1, 'ja');
 
-create table Site (
-  siteId bigint not null,
-  localeId bigint not null references Locale,
-  siteName varchar(32) not null unique,
-  constraint pkSite primary key (siteId)
+create table site (
+  site_id bigint not null,
+  locale_id bigint not null references locale,
+  site_name varchar(32) not null unique,
+  constraint pk_site primary key (site_id)
 );
 
-create sequence SiteSeq start with 1;
+create sequence site_seq start with 1;
 
-create table Item (
-  itemId bigint not null,
-  constraint pkItem primary key (itemId)
+create table item (
+  item_id bigint not null,
+  constraint pk_item primary key (item_id)
 );
 
-create sequence ItemSeq start with 1;
+create sequence item_seq start with 1;
 
-create table ItemName (
-  localeId bigint not null references Locale,
-  itemName text not null,
-  itemId bigint not null references Item on delete cascade,
-  constraint pkItemName primary key (localeId, itemId)
+create table item_name (
+  locale_id bigint not null references locale,
+  item_name text not null,
+  item_id bigint not null references item on delete cascade,
+  constraint pk_item_name primary key (locale_id, item_id)
 );
 
-create index ixItemName1 on ItemName (itemId);
+create index ix_item_name1 on item_name (item_id);
 
-create table SiteItem (
-  itemId bigint not null references Item on delete cascade,
-  siteId bigint not null references Site on delete cascade,
-  constraint pkSiteItem primary key (itemId, siteId)
+create table site_item (
+  item_id bigint not null references item on delete cascade,
+  site_id bigint not null references site on delete cascade,
+  constraint pk_site_item primary key (item_id, site_id)
 );
 
-create table Category (
-  categoryId bigint not null,
-  constraint pkCategory primary key (categoryId)
+create table category (
+  category_id bigint not null,
+  constraint pk_category primary key (category_id)
 );
 
-create sequence CategorySeq start with 1;
+create sequence category_seq start with 1;
 
-create table CategoryName (
-  localeId bigint not null references Locale,
-  categoryName varchar(32) not null,
-  categoryId bigint not null references Category on delete cascade,
-  constraint pkCategoryName primary key (localeId, categoryId)
+create table category_name (
+  locale_id bigint not null references locale,
+  category_name varchar(32) not null,
+  category_id bigint not null references category on delete cascade,
+  constraint pk_category_name primary key (locale_id, category_id)
 );
 
-create index ixCategoryName1 on CategoryName(categoryId);
+create index ix_category_name1 on category_name(category_id);
 
-create table CategoryPath (
-  ancestor bigint not null references Category on delete cascade,
-  descendant bigint not null references Category on delete cascade,
-  pathLength smallint not null,
+create table category_path (
+  ancestor bigint not null references category on delete cascade,
+  descendant bigint not null references category on delete cascade,
+  path_length smallint not null,
   primary key (ancestor, descendant)
 );
 
-create table SiteCategory (
-  categoryId bigint not null references Category on delete cascade,
-  siteId bigint not null references Site on delete cascade,
-  constraint pkSiteCategory primary key (categoryId, siteId)
+create table site_category (
+  category_id bigint not null references category on delete cascade,
+  site_id bigint not null references site on delete cascade,
+  constraint pk_site_category primary key (category_id, site_id)
 );
 
-create table Tax (
-  taxId bigint not null,
-  constraint pkTax primary key(taxId)
+create table tax (
+  tax_id bigint not null,
+  constraint pk_tax primary key(tax_id)
 );
 
-create sequence TaxSeq start with 1;
+create sequence tax_seq start with 1;
 
-create table TaxHistory (
-  taxHistoryId bigint not null,
-  taxId bigint not null references Tax on delete cascade,
-  taxType smallint not null,
+create table tax_history (
+  tax_history_id bigint not null,
+  tax_id bigint not null references tax on delete cascade,
+  tax_type smallint not null,
   rate decimal(5,3) not null,
   -- Exclusive
-  validUntil timestamp not null,
-  constraint pkTaxHistory primary key(taxHistoryId)
+  valid_until timestamp not null,
+  constraint pk_tax_history primary key(tax_history_id)
 );
 
-create sequence TaxHistorySeq start with 1;
+create sequence tax_history_seq start with 1;
 
-create index ixTaxHistory1 on TaxHistory (validUntil);
+create index ix_tax_history1 on tax_history (valid_until);
 
-create table ItemPrice (
-  itemPriceId bigint not null,
-  siteId bigint not null references Site on delete cascade,
-  itemId bigint not null references Item on delete cascade,
+create table item_price (
+  item_price_id bigint not null,
+  site_id bigint not null references site on delete cascade,
+  item_id bigint not null references item on delete cascade,
   currency varchar(3) not null,
-  constraint pkItemPrice primary key (itemPriceId),
-  unique (siteId, itemId)
+  constraint pk_item_price primary key (item_price_id),
+  unique (site_id, item_id)
 );
 
-create sequence ItemPriceSeq start with 1;
+create sequence item_price_seq start with 1;
 
-create table ItemPriceHistory (
-  itemPriceHistoryId bigint not null,
-  itemPriceId bigint not null references ItemPrice on delete cascade,
-  taxId bigint not null references Tax on delete cascade,
-  unitPrice decimal(15,2) not null,
+create table item_price_history (
+  item_price_history_id bigint not null,
+  item_price_id bigint not null references item_price on delete cascade,
+  tax_id bigint not null references tax on delete cascade,
+  unit_price decimal(15,2) not null,
   -- Exclusive
-  validUntil timestamp not null,
-  constraint pkItemPriceHistory primary key (itemPriceHistoryId)
+  valid_until timestamp not null,
+  constraint pk_item_price_history primary key (item_price_history_id)
 );
 
-create sequence ItemPriceHistorySeq start with 1;
+create sequence item_price_history_seq start with 1;
 
-create table TransactionHeader (
-  transactionId bigint not null,
-  siteId bigint not null,
-  transactionTime timestamp not null,
+create table transaction_header (
+  transaction_id bigint not null,
+  site_id bigint not null,
+  transaction_time timestamp not null,
   currency varchar(3) not null,
-  totalAmount decimal(15,2) not null,
-  taxAmount decimal(15,2) not null,
-  transactionType smallint not null,
-  constraint pkTransaction primary key (transactionId)
+  total_amount decimal(15,2) not null,
+  tax_amount decimal(15,2) not null,
+  transaction_type smallint not null,
+  constraint pk_transaction primary key (transaction_id)
 );
 
-create sequence TransactionHeaderSeq start with 1;
+create sequence transaction_header_seq start with 1;
 
-create table TransactionShipping (
-  transactionShippingId bigint not null,
-  transactionId bigint not null references TransactionHeader on delete cascade,
+create table transaction_shipping (
+  transaction_shipping_id bigint not null,
+  transaction_id bigint not null references transaction_header on delete cascade,
   amount decimal(15,2) not null,
-  constraint pkTransactionShipping primary key (transactionShippingId)
+  constraint pk_transaction_shipping primary key (transaction_shipping_id)
 );
 
-create sequence TransactionShippingSeq start with 1;
+create sequence transaction_shipping_seq start with 1;
 
-create table TransactionItem (
-  transactionItemId bigint not null,
-  transactionId bigint not null references TransactionHeader on delete cascade,
-  itemPriceHistoryId bigint not null,
-  transactionShippingId bigint not null references TransactionShipping on delete cascade,
+create table transaction_item (
+  transaction_item_id bigint not null,
+  transaction_id bigint not null references transaction_header on delete cascade,
+  item_price_history_id bigint not null,
+  transaction_shipping_id bigint not null references transaction_shipping on delete cascade,
   quantity decimal(15,2) not null,
   amount decimal(15,2) not null,
-  constraint pkTransactionItem primary key (transactionItemId)
+  constraint pk_transaction_item primary key (transaction_item_id)
 );
 
-create sequence TransactionItemSeq start with 1;
+create sequence transaction_item_seq start with 1;
 
-create table TransactionTax (
-  transactionTaxId bigint not null,
-  transactionId bigint not null references TransactionHeader on delete cascade,
-  taxHistoryId bigint not null,
-  targetAmount decimal(15,2) not null,
+create table transaction_tax (
+  transaction_tax_id bigint not null,
+  transaction_id bigint not null references transaction_header on delete cascade,
+  tax_history_id bigint not null,
+  target_amount decimal(15,2) not null,
   amount decimal(15,2) not null,
-  constraint pkTransactionTax primary key (transactionTaxId)
+  constraint pk_transaction_tax primary key (transaction_tax_id)
 );
 
-create sequence TransactionTaxSeq start with 1;
+create sequence transaction_tax_seq start with 1;
 
-create table TransactionCreditTender (
-  transactionCreditTenderId bigint not null,
-  transactionId bigint not null references TransactionHeader on delete cascade,
+create table transaction_credit_tender (
+  transaction_credit_tender_id bigint not null,
+  transaction_id bigint not null references transaction_header on delete cascade,
   amount decimal(15,2) not null,
-  constraint pkTransactionCreditTender primary key (transactionCreditTenderId)
+  constraint pk_transaction_credit_tender primary key (transaction_credit_tender_id)
 );
 
-create sequence TransactionCreditTenderSeq start with 1;
+create sequence transaction_credit_tender_seq start with 1;
 
 # --- !Downs
 

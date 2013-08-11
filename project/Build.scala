@@ -3,7 +3,6 @@ import Keys._
 import play.Project._
 
 object ApplicationBuild extends Build {
-
   val appName         = "store"
   val appVersion      = "1.0-SNAPSHOT"
 
@@ -14,9 +13,7 @@ object ApplicationBuild extends Build {
     anorm
   )
 
-
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    // Add your own project settings here      
+    scalacOptions ++= Seq("-feature")
   )
-
 }
