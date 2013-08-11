@@ -1,0 +1,27 @@
+#!/bin/sh -x
+
+mkdir -p ${STORE_STAGE_HOME}
+file=${RELEASE_DIR}/store/store-${STORE_STAGE_VERSION}.zip
+cd ${STORE_STAGE_HOME}
+for r in `find . -name RUNNING_PID`; do
+  kill `cat $r`
+done
+sleep 30
+rm -rf store-*
+unzip -q ${file}
+cd store-${STORE_STAGE_VERSION}
+chmod +x start
+
+cnt=0
+while [ ! -e RUNNING_PID ]; do
+    BUILD_ID=donotKillMe nohup ./start -Dconfig.resource=stage.conf -DapplyEvolutions.default=true -Djava.net.preferIPv4Stack=true >stdout 2>stderr &
+
+    cnt=$((cnt+1))
+    if [ $cnt -gt 10 ]
+    then
+        echo "Cannot start applicaiont!"
+        exit 1
+    fi
+    
+    sleep 30
+done
