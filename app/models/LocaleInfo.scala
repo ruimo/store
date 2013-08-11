@@ -19,7 +19,7 @@ object LocaleInfo {
     get[Pk[Long]]("locale.locale_id") ~
     get[String]("locale.lang") ~
     get[Option[String]]("locale.country") map {
-      case id~lang~country => models.LocaleInfo(id, lang, country)
+      case id~lang~country => LocaleInfo(id, lang, country)
     }
   }
 
