@@ -1,9 +1,19 @@
 # --- First database schema
 
 # --- !Ups
+create table Locale (
+  localeId bigint not null,
+  lang varchar(8) not null,
+  country varchar(3),
+  constraint pkLocale primary key (localeId),
+  unique (lang, country)
+);
+
+insert into Locale (localeId, lang) values (1, 'ja');
+
 create table Site (
   siteId bigint not null,
-  locale smallint not null,
+  localeId bigint not null references Locale,
   siteName varchar(32) not null unique,
   constraint pkSite primary key (siteId)
 );
@@ -18,10 +28,10 @@ create table Item (
 create sequence ItemSeq start with 1;
 
 create table ItemName (
-  locale smallint not null,
+  localeId bigint not null references Locale,
   itemName text not null,
   itemId bigint not null references Item on delete cascade,
-  constraint pkItemName primary key (locale, itemId)
+  constraint pkItemName primary key (localeId, itemId)
 );
 
 create index ixItemName1 on ItemName (itemId);
@@ -40,10 +50,10 @@ create table Category (
 create sequence CategorySeq start with 1;
 
 create table CategoryName (
-  locale smallint not null,
+  localeId bigint not null references Locale,
   categoryName varchar(32) not null,
   categoryId bigint not null references Category on delete cascade,
-  constraint pkCategoryName primary key (locale, categoryId)
+  constraint pkCategoryName primary key (localeId, categoryId)
 );
 
 create index ixCategoryName1 on CategoryName(categoryId);
