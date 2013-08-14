@@ -2,13 +2,10 @@ package models
 
 import anorm._
 import anorm.{NotAssigned, Pk}
-import anorm.SqlParser._
+import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-
-case class Foo(i: Int) {
-}
 
 case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) extends NotNull {
   assert(pathLength >= 0 && pathLength <= Short.MaxValue, "length(= " + pathLength + ") is invalid.")
@@ -22,9 +19,22 @@ case class Category(id: Pk[Long] = NotAssigned) extends NotNull
 
 object Category {
   val simple = {
-    get[Pk[Long]]("category.category_id") map {
+    SqlParser.get[Pk[Long]]("category.category_id") map {
       case id => Category(id)
     }
+  }
+
+  def root: Seq[Category] = DB.withConnection { implicit conn =>
+    SQL(
+      """
+      select * from category c
+      where not exists (
+        select 'X' from category_path p
+        where c.category_id = p.descendant
+        and c.category_id <> p.ancestor
+      )
+      """
+    ).as(Category.simple *)
   }
 
   def createNew(
@@ -38,7 +48,7 @@ object Category {
       """
     ).executeUpdate()
 
-    val categoryId = SQL("select currval('category_seq')").as(scalar[Long].single)
+    val categoryId = SQL("select currval('category_seq')").as(SqlParser.scalar[Long].single)
 
     names.foreach { e =>
       SQL(
@@ -117,22 +127,61 @@ object Category {
 
 object CategoryName {
   val simple = {
-    get[Long]("category_name.locale_id") ~
-    get[Long]("category_name.category_id") ~
-    get[String]("category_name.category_name") map {
+    SqlParser.get[Long]("category_name.locale_id") ~
+    SqlParser.get[Long]("category_name.category_id") ~
+    SqlParser.get[String]("category_name.category_name") map {
       case localeId~categoryId~categoryName =>
         CategoryName(LocaleInfo(localeId), categoryId, categoryName)
     }
   }
+
+  def get(locale: LocaleInfo, category: Category): String = get(locale, category.id.get)
+  def get(locale: LocaleInfo, categoryId: Long): String = DB.withConnection { implicit conn => {
+    SQL(
+      """
+      select category_name
+      from category_name
+      where category_id = {category_id}
+      and locale_id = {locale_id}
+      """
+    ).on(
+      'category_id -> categoryId,
+      'locale_id -> locale.id
+    ).as(SqlParser.scalar[String].single)
+  }}
 }
 
 object CategoryPath {
   val simple = {
-    get[Long]("category_path.ancestor") ~
-    get[Long]("category_path.descendant") ~
-    get[Int]("category_path.path_length") map {
+    SqlParser.get[Long]("category_path.ancestor") ~
+    SqlParser.get[Long]("category_path.descendant") ~
+    SqlParser.get[Int]("category_path.path_length") map {
       case ancestor~descendant~pathLength =>
         CategoryPath(ancestor, descendant, pathLength)
     }
   }
+
+  def parent(category: Category): Option[Category] = parent(category.id.get)
+  def parent(categoryId: Long): Option[Category] = { DB.withConnection { implicit conn =>
+    SQL(
+      """
+      select ancestor from category_path
+      where descendant = {category_id}
+      and ancestor <> {category_id}
+      """
+    ).on(
+      'category_id -> categoryId
+    ).as(
+      SqlParser.scalar[Pk[Long]].singleOpt
+    ).map(Category(_))
+  }}
+
+  def children(category: Category, depth: Int = 1): Seq[Category] = children(category.id.get, depth)
+  def children(categoryId: Long, depth: Int = 1): Seq[Category] = { DB.withConnection { implicit conn =>
+    SQL(
+      """
+      select 
+      """
+    )
+  }}
 }
