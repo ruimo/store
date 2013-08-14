@@ -21,8 +21,16 @@ create table site (
 
 create sequence site_seq start with 1;
 
+create table category (
+  category_id bigint not null,
+  constraint pk_category primary key (category_id)
+);
+
+create sequence category_seq start with 1;
+
 create table item (
   item_id bigint not null,
+  category_id bigint not null references category,
   constraint pk_item primary key (item_id)
 );
 
@@ -42,13 +50,6 @@ create table site_item (
   site_id bigint not null references site on delete cascade,
   constraint pk_site_item primary key (item_id, site_id)
 );
-
-create table category (
-  category_id bigint not null,
-  constraint pk_category primary key (category_id)
-);
-
-create sequence category_seq start with 1;
 
 create table category_name (
   locale_id bigint not null references locale,

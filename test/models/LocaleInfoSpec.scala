@@ -9,7 +9,7 @@ import play.api.Play.current
 import anorm.Id
 import java.util.Locale
 
-class ApplicationSpec extends Specification {
+class LocaleInfoSpec extends Specification {
   "LocaleInfo" should {
     "Japaness locale should exists." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
