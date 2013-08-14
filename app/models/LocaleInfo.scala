@@ -1,7 +1,7 @@
 package models
 
 import anorm._
-import anorm.SqlParser._
+import anorm.SqlParser
 import java.util.Locale
 import play.api.Play.current
 import play.api.db._
@@ -15,22 +15,27 @@ case class LocaleInfo(id: Pk[Long] = NotAssigned, lang: String, country: Option[
 }
 
 object LocaleInfo {
+  lazy val ja = apply(1L)
+  lazy val en = apply(2L)
+
   val simple = {
-    get[Pk[Long]]("locale.locale_id") ~
-    get[String]("locale.lang") ~
-    get[Option[String]]("locale.country") map {
+    SqlParser.get[Pk[Long]]("locale.locale_id") ~
+    SqlParser.get[String]("locale.lang") ~
+    SqlParser.get[Option[String]]("locale.country") map {
       case id~lang~country => LocaleInfo(id, lang, country)
     }
   }
 
-  lazy val registry: Map[Long, Locale] = DB.withConnection { implicit conn =>
+  lazy val registry: Map[Long, LocaleInfo] = DB.withConnection { implicit conn =>
     SQL("select * from locale")
       .as(LocaleInfo.simple *)
-      .map(r => r.id.get -> r.toLocale)
+      .map(r => r.id.get -> r)
       .toMap
   }
 
-  def apply(id: Long): Option[Locale] = registry.get(id)
+  def apply(id: Long): LocaleInfo = get(id).get
+
+  def get(id: Long): Option[LocaleInfo] = registry.get(id)
 
   def insert(locale: LocaleInfo) = DB.withConnection { implicit conn =>
     SQL(

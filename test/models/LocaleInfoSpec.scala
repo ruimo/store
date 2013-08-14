@@ -13,9 +13,7 @@ class ApplicationSpec extends Specification {
   "LocaleInfo" should {
     "Japaness locale should exists." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        DB.withConnection { implicit conn =>
-          LocaleInfo(1L).get === new Locale("ja")
-        }
+        LocaleInfo(1L).toLocale === new Locale("ja")
       }
     }
   }
