@@ -14,64 +14,64 @@ class CategorySpec extends Specification {
     "Create new category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         val cat = Category.createNew(
-          Map(LocaleInfo.ja -> "植木", LocaleInfo.en -> "Plant")
+          Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
         )
 
         val root = Category.root
         root.size === 1
         root.head === cat
 
-        CategoryName.get(LocaleInfo.ja, cat) === "植木"
-        CategoryName.get(LocaleInfo.en, cat) === "Plant"
+        CategoryName.get(LocaleInfo.Ja, cat) === "植木"
+        CategoryName.get(LocaleInfo.En, cat) === "Plant"
 
         CategoryPath.parent(cat) === None
         CategoryPath.children(cat).size === 0
 
-        CategoryPath.childrenNames(cat, LocaleInfo.ja).size === 0
-        CategoryPath.childrenNames(cat, LocaleInfo.en).size === 0
+        CategoryPath.childrenNames(cat, LocaleInfo.Ja).size === 0
+        CategoryPath.childrenNames(cat, LocaleInfo.En).size === 0
       }
     }
 
     "Parent child category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         val parent = Category.createNew(
-          Map(LocaleInfo.ja -> "植木", LocaleInfo.en -> "Plant")
+          Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
         )
         val child = Category.createNew(
           parent,
-          Map(LocaleInfo.ja -> "果樹", LocaleInfo.en -> "Fruit Tree")
+          Map(LocaleInfo.Ja -> "果樹", LocaleInfo.En -> "Fruit Tree")
         )
 
         val root = Category.root
         root.size === 1
         root.head === parent
 
-        CategoryName.get(LocaleInfo.ja, parent) === "植木"
-        CategoryName.get(LocaleInfo.en, parent) === "Plant"
-        CategoryName.get(LocaleInfo.ja, child) === "果樹"
-        CategoryName.get(LocaleInfo.en, child) === "Fruit Tree"
+        CategoryName.get(LocaleInfo.Ja, parent) === "植木"
+        CategoryName.get(LocaleInfo.En, parent) === "Plant"
+        CategoryName.get(LocaleInfo.Ja, child) === "果樹"
+        CategoryName.get(LocaleInfo.En, child) === "Fruit Tree"
 
         CategoryPath.parent(parent) === None
         CategoryPath.children(parent).size === 1
         CategoryPath.parent(child) === Some(parent)
         CategoryPath.children(child).size === 0
 
-        val jaChildNames = CategoryPath.childrenNames(parent, LocaleInfo.ja)
+        val jaChildNames = CategoryPath.childrenNames(parent, LocaleInfo.Ja)
         jaChildNames.size === 1
         val (jaCat, jaName) = jaChildNames.head
         jaCat === child
-        jaName.locale === LocaleInfo.ja
+        jaName.locale === LocaleInfo.Ja
         jaName.name === "果樹"
 
-        val enChildNames = CategoryPath.childrenNames(parent, LocaleInfo.en)
+        val enChildNames = CategoryPath.childrenNames(parent, LocaleInfo.En)
         enChildNames.size === 1
         val (enCat, enName) = enChildNames.head
         enCat === child
-        enName.locale === LocaleInfo.en
+        enName.locale === LocaleInfo.En
         enName.name === "Fruit Tree"
 
-        CategoryPath.childrenNames(child, LocaleInfo.ja).size === 0
-        CategoryPath.childrenNames(child, LocaleInfo.en).size === 0
+        CategoryPath.childrenNames(child, LocaleInfo.Ja).size === 0
+        CategoryPath.childrenNames(child, LocaleInfo.En).size === 0
       }
     }
   }

@@ -61,7 +61,7 @@ object Category {
           ({locale_id}, {category_name}, {category_id})
         """
       ).on(
-        'locale_id -> e._1.id.get,
+        'locale_id -> e._1.id,
         'category_name -> e._2,
         'category_id -> categoryId
       ).executeUpdate()

@@ -38,12 +38,21 @@ create sequence item_seq start with 1;
 
 create table item_name (
   locale_id bigint not null references locale,
-  item_name text not null,
   item_id bigint not null references item on delete cascade,
+  item_name text not null,
   constraint pk_item_name primary key (locale_id, item_id)
 );
 
 create index ix_item_name1 on item_name (item_id);
+
+create table item_description (
+  locale_id bigint not null references locale,
+  item_description text not null,
+  item_id bigint not null references item on delete cascade,
+  constraint pk_item_description primary key (locale_id, item_id)
+);
+
+create index ix_item_description1 on item_description (item_id);
 
 create table site_item (
   item_id bigint not null references item on delete cascade,
@@ -66,6 +75,10 @@ create table category_path (
   path_length smallint not null,
   primary key (ancestor, descendant)
 );
+
+create index ix_category_path1 on category_path(ancestor);
+create index ix_category_path2 on category_path(descendant);
+create index ix_category_path3 on category_path(path_length);
 
 create table site_category (
   category_id bigint not null references category on delete cascade,
@@ -98,17 +111,27 @@ create table item_price (
   item_price_id bigint not null,
   site_id bigint not null references site on delete cascade,
   item_id bigint not null references item on delete cascade,
-  currency varchar(3) not null,
   constraint pk_item_price primary key (item_price_id),
   unique (site_id, item_id)
 );
 
 create sequence item_price_seq start with 1;
 
+create table currency (
+  currency_id bigint not null,
+  -- ISO 4217
+  currency_code varchar(3) not null,
+  constraint pk_currency primary key (currency_id)
+);
+
+insert into currency (currency_id, currency_code) values (1, 'JPY');
+insert into currency (currency_id, currency_code) values (2, 'USD');
+
 create table item_price_history (
   item_price_history_id bigint not null,
   item_price_id bigint not null references item_price on delete cascade,
   tax_id bigint not null references tax on delete cascade,
+  currency_id bigint not null references currency on delete cascade,
   unit_price decimal(15,2) not null,
   -- Exclusive
   valid_until timestamp not null,
@@ -121,7 +144,7 @@ create table transaction_header (
   transaction_id bigint not null,
   site_id bigint not null,
   transaction_time timestamp not null,
-  currency varchar(3) not null,
+  currency_id bigint not null references currency on delete cascade,
   total_amount decimal(15,2) not null,
   tax_amount decimal(15,2) not null,
   transaction_type smallint not null,
