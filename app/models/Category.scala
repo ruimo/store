@@ -37,6 +37,8 @@ object Category {
     ).as(Category.simple *)
   }
 
+  def createNew(names: Map[LocaleInfo, String]): Category = createNew(None, names)
+  def createNew(parent: Category, names: Map[LocaleInfo, String]): Category = createNew(Some(parent), names)
   def createNew(
     parent: Option[Category], names: Map[LocaleInfo, String]
   ): Category = DB.withTransaction { implicit conn => {
@@ -113,7 +115,7 @@ object Category {
           (ancestor, descendant, path_length)
           select ancestor, {category_id}, path_length + 1
           from category_path
-          where descendant = {parent}
+          where descendant = {descendant}
         """
       ).on(
         'descendant -> cat.id.get,
@@ -139,10 +141,8 @@ object CategoryName {
   def get(locale: LocaleInfo, categoryId: Long): String = DB.withConnection { implicit conn => {
     SQL(
       """
-      select category_name
-      from category_name
-      where category_id = {category_id}
-      and locale_id = {locale_id}
+      select category_name from category_name
+      where category_id = {category_id} and locale_id = {locale_id}
       """
     ).on(
       'category_id -> categoryId,
@@ -161,13 +161,22 @@ object CategoryPath {
     }
   }
 
-  def parent(category: Category): Option[Category] = parent(category.id.get)
-  def parent(categoryId: Long): Option[Category] = { DB.withConnection { implicit conn =>
+  val child = {
+    SqlParser.get[Pk[Long]]("category_path.descendant") map {
+      case descendant => Category(descendant)
+    }
+  }
+
+  val withName = child ~ CategoryName.simple map {
+    case cat~name => (cat, name)
+  }
+
+  def parent(category: Category): Option[Category] = parentById(category.id.get)
+  def parentById(categoryId: Long): Option[Category] = { DB.withConnection { implicit conn =>
     SQL(
       """
       select ancestor from category_path
-      where descendant = {category_id}
-      and ancestor <> {category_id}
+      where descendant = {category_id} and ancestor <> {category_id}
       """
     ).on(
       'category_id -> categoryId
@@ -176,12 +185,36 @@ object CategoryPath {
     ).map(Category(_))
   }}
 
-  def children(category: Category, depth: Int = 1): Seq[Category] = children(category.id.get, depth)
-  def children(categoryId: Long, depth: Int = 1): Seq[Category] = { DB.withConnection { implicit conn =>
+  def children(category: Category, depth: Int = 1): Seq[Category] = childrenById(category.id.get, depth)
+  def childrenById(categoryId: Long, depth: Int = 1): Seq[Category] = { DB.withConnection { implicit conn =>
     SQL(
       """
-      select 
+      select * from category_path
+      where ancestor = {ancestor} and path_length = {path_length}
       """
-    )
+    ).on(
+      'ancestor -> categoryId,
+      'path_length -> depth
+    ).as(child *)
   }}
+
+  def childrenNames(category: Category, locale: LocaleInfo, depth: Int = 1):
+    Seq[(Category, CategoryName)] = childrenNamesById(category.id.get, locale, depth)
+  def childrenNamesById(categoryId: Long, locale: LocaleInfo, depth: Int = 1):
+    Seq[(Category, CategoryName)] = { DB.withConnection { implicit conn =>
+      SQL(
+        """
+        select * from category_path inner join category_name
+          on category_path.descendant = category_name.category_id
+        where category_path.ancestor = {ancestor}
+          and category_path.path_length = {path_length}
+          and category_name.locale_id = {locale_id}
+        """
+      ).on(
+        'ancestor -> categoryId,
+        'path_length -> depth,
+        'locale_id -> locale.id
+      ).as(withName *)
+    }
+  }
 }
