@@ -99,7 +99,8 @@ create table tax_history (
   tax_type smallint not null,
   rate decimal(5,3) not null,
   -- Exclusive
-  valid_until timestamp not null,
+  valid_until timestamp not null unique,
+  constraint tax_history_check1 check (tax_type in (0,1, 2)),
   constraint pk_tax_history primary key(tax_history_id)
 );
 
@@ -134,7 +135,7 @@ create table item_price_history (
   currency_id bigint not null references currency on delete cascade,
   unit_price decimal(15,2) not null,
   -- Exclusive
-  valid_until timestamp not null,
+  valid_until timestamp not null unique,
   constraint pk_item_price_history primary key (item_price_history_id)
 );
 
@@ -193,6 +194,30 @@ create table transaction_credit_tender (
 );
 
 create sequence transaction_credit_tender_seq start with 1;
+
+create table user (
+  user_id bigint not null,
+  user_name varchar(20) not null unique,
+  first_name varchar(32) not null,
+  last_name varchar(32) not null,
+  email varchar(255) not null,
+  password_hash varchar(256) not null,
+  salt bigint not null,
+  deleted boolean not null,
+  user_role smallint not null,
+  constraint user_user_role_check1 check (user_role in (0,1)),
+  constraint pk_user primary key (user_id)
+);
+
+create sequence user_seq start with 1;
+
+create table site_user (
+  site_id bigint not null,
+  user_id bigint not null,
+  user_role smallint not null,
+  constraint site_user_user_role_check1 check (user_role in (0,1)),
+  constraint pk_site_user primary key (site_id, user_id)
+);
 
 # --- !Downs
 
