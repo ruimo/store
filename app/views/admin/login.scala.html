@@ -1,0 +1,21 @@
+@(myForm: Form[models.LoginUser])(implicit token: play.filters.csrf.CSRF.Token)
+@import play.filters.csrf.CSRF.Token._
+
+@main(Messages("loginTitle")) {
+  <h1>@Messages("loginTitle")</h1>
+
+@helper.form(action = helper.CSRF(routes.Admin.login()), 'id -> "loginForm") {
+    @helper.inputText(
+      myForm("userName"),
+      '_label -> "ユーザ名(英数)", 'size -> 20
+    )
+
+    @helper.inputPassword(
+      myForm("password"),
+      '_label -> "パスワード", 'size -> 20
+    )
+
+    <input type="submit" value="ログイン">
+}
+}
+

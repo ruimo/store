@@ -143,7 +143,7 @@ create sequence item_price_history_seq start with 1;
 
 create table transaction_header (
   transaction_id bigint not null,
-  site_id bigint not null,
+  site_id bigint not null references site on delete cascade,
   transaction_time timestamp not null,
   currency_id bigint not null references currency on delete cascade,
   total_amount decimal(15,2) not null,
@@ -195,8 +195,8 @@ create table transaction_credit_tender (
 
 create sequence transaction_credit_tender_seq start with 1;
 
-create table user (
-  user_id bigint not null,
+create table store_user (
+  store_user_id bigint not null,
   user_name varchar(20) not null unique,
   first_name varchar(32) not null,
   last_name varchar(32) not null,
@@ -206,17 +206,17 @@ create table user (
   deleted boolean not null,
   user_role smallint not null,
   constraint user_user_role_check1 check (user_role in (0,1)),
-  constraint pk_user primary key (user_id)
+  constraint pk_user primary key (store_user_id)
 );
 
 create sequence user_seq start with 1;
 
 create table site_user (
-  site_id bigint not null,
-  user_id bigint not null,
+  site_id bigint not null references site on delete cascade,
+  store_user_id bigint not null references store_user on delete cascade,
   user_role smallint not null,
   constraint site_user_user_role_check1 check (user_role in (0,1)),
-  constraint pk_site_user primary key (site_id, user_id)
+  constraint pk_site_user primary key (site_id, store_user_id)
 );
 
 # --- !Downs
