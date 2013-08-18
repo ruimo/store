@@ -1,0 +1,41 @@
+@(myForm: Form[models.FirstSetup])(implicit token: play.filters.csrf.CSRF.Token)
+@import play.filters.csrf.CSRF.Token._
+
+@main(Messages("firstSetupTitle")) {
+  <h1>@Messages("firstSetupGuide")</h1>
+
+  @helper.form(action = helper.CSRF(routes.Admin.firstSetup()), 'id -> "firstSetupForm") {
+    @helper.inputText(
+      myForm("userName"),
+      '_label -> Messages("userName"), 'size -> 20
+    )
+
+    @helper.inputText(
+      myForm("firstName"),
+      '_label -> Messages("firstName"), 'size -> 20
+    )
+
+    @helper.inputText(
+      myForm("lastName"),
+      '_label -> Messages("lastName"), 'size -> 20
+    )
+
+    @helper.inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
+    )
+
+    @helper.inputPassword(
+      myForm("password"),
+      '_label -> Messages("password"), 'size -> 20
+    )
+
+    @helper.inputPassword(
+      myForm("passwordConfirm"),
+      '_label -> (Messages("password") + "(" + Messages("confirm") + ")"), 'size -> 20
+    )
+
+    <input type="submit" value="ログイン">
+  }
+}
+

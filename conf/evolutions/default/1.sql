@@ -209,7 +209,7 @@ create table store_user (
   constraint pk_user primary key (store_user_id)
 );
 
-create sequence user_seq start with 1;
+create sequence store_user_seq start with 1;
 
 create table site_user (
   site_id bigint not null references site on delete cascade,

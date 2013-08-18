@@ -7,7 +7,10 @@ GET     /                           controllers.Application.index
 
 # Admin
 GET     /admin                      controllers.Admin.index
-GET     /admin/login                controllers.Admin.login
+GET     /admin/startFirstSetup      controllers.Admin.startFirstSetup
+POST    /admin/firstSetup           controllers.Admin.firstSetup
+GET     /admin/startLogin           controllers.Admin.startLogin
+POST    /admin/login                controllers.Admin.login
 
 
 # Map static resources from the /public folder to the /assets URL path

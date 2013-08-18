@@ -1,2 +1,14 @@
+constraint.email=xxx@yyy.zzz
+
 adminTitle=Admin Site
 loginTitle=Login
+firstSetupTitle=First setup
+firstSetupGuide=Register administrator
+
+userName=User Name
+password=password
+login=login
+firstName=First name
+lastName=Last name
+email=email
+confirm=confirm

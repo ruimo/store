@@ -5,3 +5,51 @@
 
 #mynavileft{padding:1em 1em; 2em; 1em;}
 #mynaviright{padding:1em 1em; 2em; 1em;}
+
+.info {
+    font-weight: bold;
+}
+
+dd.error {
+    color: red;
+    font-weight: bold;
+}
+
+dl.error {
+    background-color: MistyRose;
+}
+
+form dl {
+    padding: 5px;
+}
+
+form dl dt {
+    margin: 3px;
+    background-color: Honeydew;
+    padding: 3px;
+}
+
+form dl.error dt {
+    background-color: Coral;
+}
+
+.globalMessage, .globalErrorMessage, .menuItem {
+    padding: 10px;
+    margin-bottom: 5px;
+}
+
+.menuItem {
+    margin-left: 20px;
+    background: AliceBlue;
+    border-left: 10px solid blue;
+}
+
+.globalMessage {
+    background: AliceBlue;
+}
+
+.globalErrorMessage {
+    background: MistyRose;
+    color: red;
+    font-weight: bold;
+}
