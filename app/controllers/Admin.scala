@@ -5,6 +5,8 @@ import play.api.mvc._
 import play.filters.csrf.CSRF.Token._
 
 object Admin extends Controller with NeedLogin {
+  private val logger = Logger(getClass)
+
   def startFirstSetup = Action { implicit request =>
     Ok(views.html.admin.firstSetup(firstSetupForm))
   }
@@ -14,10 +16,11 @@ object Admin extends Controller with NeedLogin {
       formWithErrors =>
         BadRequest(views.html.admin.firstSetup(formWithErrors)),
       firstSetup => {
+        val createdUser = firstSetup.save
         Redirect(routes.Admin.index).flashing("message" -> "Welcome")
       }
     )
-  }}
+    }}
 
   def startLogin = Action { implicit request =>
     Ok(views.html.admin.login(loginForm))

@@ -13,7 +13,7 @@ format.real=Real
 
 # --- Errors
 error.invalid=値が不適切です。
-error.required=入力してください。
+error.required=入力必須です。
 error.number=数値を入力してください。
 error.real=数値を入力してください。
 error.real.precision=Real number value with no more than {0} digit(s) including {1} decimal(s) expected
@@ -34,8 +34,12 @@ firstSetupGuide=管理ユーザを登録してください
 
 userName=ユーザ名
 password=パスワード
+password.confirm=パスワード(確認)
 login=ログイン
 firstName=姓
 lastName=名
 email=メールアドレス
 confirm=確認
+register=登録
+confirmPasswordDoesNotMatch=確認パスワードが合っていません。
+inputError=入力に間違いがあります

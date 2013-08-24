@@ -201,7 +201,7 @@ create table store_user (
   first_name varchar(32) not null,
   last_name varchar(32) not null,
   email varchar(255) not null,
-  password_hash varchar(256) not null,
+  password_hash bigint not null,
   salt bigint not null,
   deleted boolean not null,
   user_role smallint not null,

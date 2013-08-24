@@ -6,6 +6,7 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models.{StoreUser, FirstSetup, LoginUser}
+import play.api.i18n.Messages
 
 trait NeedLogin {
   val LoginUserKey = "loginUser"
@@ -20,9 +21,13 @@ trait NeedLogin {
       "firstName" -> text.verifying(nonEmpty),
       "lastName" -> text.verifying(nonEmpty),
       "email" -> email.verifying(nonEmpty),
-      "password" -> text.verifying(nonEmpty),
-      "passwordConfirm" -> text.verifying(nonEmpty)
-    )(FirstSetup.apply)(FirstSetup.unapply)
+      "password" -> tuple(
+        "main" -> text(minLength = 8),
+        "confirm" -> text
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      )
+    )(FirstSetup.fromForm)(FirstSetup.toForm)
   )
 
   val loginForm = Form(

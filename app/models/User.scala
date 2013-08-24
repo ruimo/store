@@ -28,10 +28,10 @@ object StoreUser {
     SqlParser.get[String]("store_user.first_name") ~
     SqlParser.get[String]("store_user.last_name") ~
     SqlParser.get[String]("store_user.email") ~
-    SqlParser.get[Long]("store_user.passwordHash") ~
+    SqlParser.get[Long]("store_user.password_hash") ~
     SqlParser.get[Long]("store_user.salt") ~
     SqlParser.get[Boolean]("store_user.deleted") ~
-    SqlParser.get[Int]("store_user.user_role") map {
+    SqlParser.get[Short]("store_user.user_role") map {
       case id~userName~firstName~lastName~email~passwordHash~salt~deleted~userRole => StoreUser(
         id, userName, firstName, lastName, email, passwordHash, salt, deleted, UserRole.byIndex(userRole)
       )
@@ -41,6 +41,14 @@ object StoreUser {
   def count = DB.withConnection { implicit conn =>
     SQL("select count(*) from store_user").as(SqlParser.scalar[Long].single)
   }
+
+  def find(id: Long): StoreUser = DB.withConnection { implicit conn => {
+    SQL(
+      "select * from store_user where store_user_id = {id}"
+    ).on(
+      'id -> id
+    ).as(StoreUser.simple.single)
+  }}
 
   def create(
     userName: String, firstName: String, lastName: String,

@@ -7,8 +7,11 @@ firstSetupGuide=Register administrator
 
 userName=User Name
 password=password
+password.confirm=password(confirm)
 login=login
 firstName=First name
 lastName=Last name
 email=email
-confirm=confirm
+register=register
+confirmPasswordDoesNotMatch=Passwords don't match.
+inputError=Input error.
