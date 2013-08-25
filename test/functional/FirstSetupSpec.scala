@@ -10,7 +10,7 @@ class FirstSetupSpec extends Specification {
   "FirstSetup" should {
     "First setup screen is shown if no user found." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         browser.goTo("http://localhost:3333/admin")
         browser.title === Messages("firstSetupTitle")
       }
@@ -18,7 +18,7 @@ class FirstSetupSpec extends Specification {
 
     "First setup create user." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         browser.goTo("http://localhost:3333/admin")
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
