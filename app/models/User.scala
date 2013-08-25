@@ -50,6 +50,12 @@ object StoreUser {
     ).as(StoreUser.simple.single)
   }}
 
+  def all: Seq[StoreUser] = DB.withConnection { implicit conn => {
+    SQL(
+      "select * from store_user"
+    ).as(StoreUser.simple *)
+  }}
+
   def create(
     userName: String, firstName: String, lastName: String,
     email: String, passwordHash: Long, salt: Long, userRole: UserRole

@@ -4,6 +4,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable._
 import play.api.i18n.Messages
+import models.{UserRole, StoreUser}
 
 class FirstSetupSpec extends Specification {
   "FirstSetup" should {
@@ -29,6 +30,17 @@ class FirstSetupSpec extends Specification {
 
         browser.submit("input[type='submit']")
         browser.title === Messages("loginTitle")
+
+        val list = StoreUser.all
+        list.size === 1
+        val user = list.head
+
+        user.deleted === false
+        user.email === "ruimo@ruimo.com"
+        user.firstName === "firstname"
+        user.lastName === "lastname"
+        user.userName === "username"
+        user.userRole === UserRole.ADMIN
       }
     }
   }
