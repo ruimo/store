@@ -45,7 +45,7 @@ object Category {
     SQL(
       """
       insert into category values (
-        (select next value for category_seq)
+        (select nextval('category_seq'))
       )
       """
     ).executeUpdate()

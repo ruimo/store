@@ -59,7 +59,7 @@ object StoreUser {
       insert into store_user (
         store_user_id, user_name, first_name, last_name, email, password_hash, salt, deleted, user_role
       ) values (
-        (select next value for store_user_seq),
+        (select nextval('store_user_seq')),
         {user_name}, {first_name}, {last_name}, {email}, {password_hash}, {salt}, false, {user_role}
       )
       """

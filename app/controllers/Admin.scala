@@ -3,8 +3,10 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.filters.csrf.CSRF.Token._
+import helpers.{RandomTokenGenerator, TokenGenerator}
 
 object Admin extends Controller with NeedLogin {
+  implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
   private val logger = Logger(getClass)
 
   def startFirstSetup = Action { implicit request =>
