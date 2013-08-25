@@ -4,7 +4,7 @@ import java.security.MessageDigest
 import com.google.common.primitives.Longs
 
 object PasswordHash {
-  def generate(password: String, salt: Long) = {
+  def generate(password: String, salt: Long): Long = {
     val md = createSha1Encoder
     md.update(Longs.toByteArray(salt));
     md.update(password.getBytes("utf-8"))
