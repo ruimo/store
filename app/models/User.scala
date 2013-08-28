@@ -6,6 +6,7 @@ import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
+import helpers.PasswordHash
 
 case class StoreUser(
   id: Pk[Long] = NotAssigned,
@@ -18,7 +19,10 @@ case class StoreUser(
   salt: Long,
   deleted: Boolean,
   userRole: UserRole
-)
+) {
+  def passwordMatch(password: String): Boolean =
+    PasswordHash.generate(password, salt) == passwordHash
+}
 
 case class SiteUser(siteId: Long, storeUserId: Long, userRole: UserRole)
 

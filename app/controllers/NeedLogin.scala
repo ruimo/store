@@ -12,6 +12,7 @@ import helpers.PasswordHash
 
 trait NeedLogin extends Controller with HasLogger {
   val LoginUserKey = "loginUser"
+  val SessionTimeout = 5 * 60 * 1000
 
   case class LoginSession(userId: Long, expireTime: Long) {
     def withExpireTime(newExpireTime: Long) = LoginSession(userId, newExpireTime)
@@ -70,15 +71,16 @@ trait NeedLogin extends Controller with HasLogger {
     StoreUser.findByUserName(user.userName) match {
       case None => onLoginUserNotFound(form)
       case Some(rec) => {
-        val passwordHash = PasswordHash.generate(user.password, rec.salt)
-        if (passwordHash != rec.passwordHash) {
-          logger.error("Password doesnot match. input: " + passwordHash + ", record: " + rec.passwordHash)
-          BadRequest(views.html.admin.login(form.withGlobalError(Messages("cannotLogin"))))
-        }
-        else {
+        if (rec.passwordMatch(user.password)) {
           Redirect(routes.Admin.index).flashing(
             "message" -> "Welcome"
-          )
+          ).withSession {
+            (LoginUserKey, LoginSession(rec.id.get, System.currentTimeMillis + SessionTimeout).toSessionString)
+          }
+        }
+        else {
+          logger.error("Password doesnot match.")
+          BadRequest(views.html.admin.login(form.withGlobalError(Messages("cannotLogin"))))
         }
       }
     }
