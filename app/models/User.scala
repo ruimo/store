@@ -14,7 +14,7 @@ case class StoreUser(
   middleName: Option[String],
   lastName: String,
   email: String,
-  paswordHash: Long,
+  passwordHash: Long,
   salt: Long,
   deleted: Boolean,
   userRole: UserRole
@@ -33,7 +33,7 @@ object StoreUser {
     SqlParser.get[Long]("store_user.password_hash") ~
     SqlParser.get[Long]("store_user.salt") ~
     SqlParser.get[Boolean]("store_user.deleted") ~
-    SqlParser.get[Short]("store_user.user_role") map {
+    SqlParser.get[Int]("store_user.user_role") map {
       case id~userName~firstName~middleName~lastName~email~passwordHash~salt~deleted~userRole => StoreUser(
         id, userName, firstName, middleName, lastName, email, passwordHash, salt, deleted, UserRole.byIndex(userRole)
       )

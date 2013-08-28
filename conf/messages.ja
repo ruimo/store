@@ -43,3 +43,4 @@ confirm=確認
 register=登録
 confirmPasswordDoesNotMatch=確認パスワードが合っていません。
 inputError=入力に間違いがあります
+cannotLogin=ログインできませんでした。入力を確認してください。

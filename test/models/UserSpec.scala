@@ -25,6 +25,23 @@ class UserSpec extends Specification {
         StoreUser.count === 1
       }
     }
+
+    "User can be queried by username" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        val user1 = StoreUser.create(
+          "userName", "firstName", Some("middleName"), "lastName", "email",
+          1L, 2L, UserRole.ADMIN
+        )
+
+        val user2 = StoreUser.create(
+          "userName2", "firstName2", None, "lastName2", "email2",
+          1L, 2L, UserRole.ADMIN
+        )
+
+        StoreUser.findByUserName("userName").get === user1
+        StoreUser.findByUserName("userName2").get === user2
+      }
+    }
   }
 }
 

@@ -7,8 +7,10 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models.{StoreUser, FirstSetup, LoginUser}
 import play.api.i18n.Messages
+import play.api.templates.Html
+import helpers.PasswordHash
 
-trait NeedLogin extends Controller {
+trait NeedLogin extends Controller with HasLogger {
   val LoginUserKey = "loginUser"
 
   case class LoginSession(userId: Long, expireTime: Long) {
@@ -51,14 +53,39 @@ trait NeedLogin extends Controller {
   }
 
   def login = Action { implicit request => {
-    loginForm.bindFromRequest.fold(
-      formWithErrors =>
-        BadRequest(views.html.admin.login(formWithErrors)),
-      user => {
-        Redirect(routes.Admin.index).flashing(
-          "message" -> "Welcome"
-        )
-      }
+    val form = loginForm.bindFromRequest
+
+    form.bindFromRequest.fold(
+      onValidationErrorInLogin,
+      user => tryLogin(user, form)
     )
   }}
+
+  def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
+    logger.error("Validation error in NeedLogin.login.")
+    BadRequest(views.html.admin.login(form))
+  }
+
+  def tryLogin(user: LoginUser, form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
+    StoreUser.findByUserName(user.userName) match {
+      case None => onLoginUserNotFound(form)
+      case Some(rec) => {
+        val passwordHash = PasswordHash.generate(user.password, rec.salt)
+        if (passwordHash != rec.passwordHash) {
+          logger.error("Password doesnot match. input: " + passwordHash + ", record: " + rec.passwordHash)
+          BadRequest(views.html.admin.login(form.withGlobalError(Messages("cannotLogin"))))
+        }
+        else {
+          Redirect(routes.Admin.index).flashing(
+            "message" -> "Welcome"
+          )
+        }
+      }
+    }
+  }
+
+  def onLoginUserNotFound(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
+    logger.error("User '" + form.data("userName") + "' not found.")
+    BadRequest(views.html.admin.login(form.withGlobalError(Messages("cannotLogin"))))
+  }
 }

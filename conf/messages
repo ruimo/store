@@ -15,3 +15,4 @@ email=email
 register=register
 confirmPasswordDoesNotMatch=Passwords don''t match.
 inputError=Input error.
+cannotLogin=Cannot login. Please check input.

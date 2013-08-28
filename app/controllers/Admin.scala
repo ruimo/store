@@ -9,10 +9,10 @@ import play.filters.csrf.CSRF.Token._
 import helpers.{RandomTokenGenerator, TokenGenerator}
 import play.api.data.validation.Constraints._
 import models.FirstSetup
+import controllers.I18n.I18nAware
 
-object Admin extends Controller with NeedLogin {
+object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
-  private val logger = Logger(getClass)
 
   def firstSetupForm(implicit lang: Lang) = Form(
     mapping(
@@ -30,9 +30,9 @@ object Admin extends Controller with NeedLogin {
     )(FirstSetup.fromForm)(FirstSetup.toForm)
   )
 
-  def startFirstSetup = Action { implicit request =>
+  def startFirstSetup = Action { implicit request => {
     Ok(views.html.admin.firstSetup(firstSetupForm))
-  }
+  }}
 
   def firstSetup = Action { implicit request => {
     firstSetupForm.bindFromRequest.fold(

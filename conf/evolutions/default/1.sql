@@ -72,7 +72,7 @@ create index ix_category_name1 on category_name(category_id);
 create table category_path (
   ancestor bigint not null references category on delete cascade,
   descendant bigint not null references category on delete cascade,
-  path_length smallint not null,
+  path_length integer not null,
   primary key (ancestor, descendant)
 );
 
@@ -96,7 +96,7 @@ create sequence tax_seq start with 1;
 create table tax_history (
   tax_history_id bigint not null,
   tax_id bigint not null references tax on delete cascade,
-  tax_type smallint not null,
+  tax_type integer not null,
   rate decimal(5,3) not null,
   -- Exclusive
   valid_until timestamp not null unique,
@@ -148,7 +148,7 @@ create table transaction_header (
   currency_id bigint not null references currency on delete cascade,
   total_amount decimal(15,2) not null,
   tax_amount decimal(15,2) not null,
-  transaction_type smallint not null,
+  transaction_type integer not null,
   constraint pk_transaction primary key (transaction_id)
 );
 
@@ -205,7 +205,7 @@ create table store_user (
   password_hash bigint not null,
   salt bigint not null,
   deleted boolean not null,
-  user_role smallint not null,
+  user_role integer not null,
   constraint user_user_role_check1 check (user_role in (0,1)),
   constraint pk_user primary key (store_user_id)
 );
@@ -215,7 +215,7 @@ create sequence store_user_seq start with 1;
 create table site_user (
   site_id bigint not null references site on delete cascade,
   store_user_id bigint not null references store_user on delete cascade,
-  user_role smallint not null,
+  user_role integer not null,
   constraint site_user_user_role_check1 check (user_role in (0,1)),
   constraint pk_site_user primary key (site_id, store_user_id)
 );

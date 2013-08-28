@@ -3,15 +3,17 @@ package functional
 import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable._
-import play.api.i18n.Messages
+import play.api.i18n.{Lang, Messages}
 import models.{UserRole, StoreUser}
+import play.api.Play
+import play.api.Play.current
 
 class FirstSetupSpec extends Specification {
   "FirstSetup" should {
     "First setup screen is shown if no user found." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin")
+        browser.goTo("http://localhost:3333/admin?lang=ja")
         browser.title === Messages("firstSetupTitle")
       }
     }
@@ -19,7 +21,7 @@ class FirstSetupSpec extends Specification {
     "First setup create user." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin")
+        browser.goTo("http://localhost:3333/admin?lang=ja")
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
@@ -47,7 +49,7 @@ class FirstSetupSpec extends Specification {
     "Minimum length error." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin")
+        browser.goTo("http://localhost:3333/admin?lang=ja")
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
@@ -71,7 +73,7 @@ class FirstSetupSpec extends Specification {
     "Confirmation password does not match." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin")
+        browser.goTo("http://localhost:3333/admin?lang=ja")
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
