@@ -1,4 +1,4 @@
-@(myForm: Form[models.FirstSetup])(implicit token: play.filters.csrf.CSRF.Token)
+@(myForm: Form[models.FirstSetup])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang)
 
 @main(Messages("firstSetupTitle")) {
   <h1>@Messages("firstSetupGuide")</h1>

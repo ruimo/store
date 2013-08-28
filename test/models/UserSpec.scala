@@ -19,7 +19,7 @@ class UserSpec extends Specification {
     "User count should reflect the number of records in the table" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         StoreUser.create(
-          "userName", "firstName", "lastName", "email",
+          "userName", "firstName", Some("middleName"), "lastName", "email",
           1L, 2L, UserRole.ADMIN
         )
         StoreUser.count === 1

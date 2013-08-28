@@ -43,6 +43,50 @@ class FirstSetupSpec extends Specification {
         user.userRole === UserRole.ADMIN
       }
     }
+
+    "Minimum length error." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+        browser.goTo("http://localhost:3333/admin")
+        browser.title === Messages("firstSetupTitle")
+        browser.fill("#userName").`with`("usern")
+        browser.fill("#firstName").`with`("")
+        browser.fill("#lastName").`with`("")
+        browser.fill("#email").`with`("")
+        browser.fill("#password_main").`with`("")
+        browser.fill("#password_confirm").`with`("12345678")
+
+        browser.submit("input[type='submit']")
+        browser.title === Messages("firstSetupTitle")
+
+        browser.$(".globalErrorMessage").getText === Messages("inputError")
+        browser.$("#userName_field dd.error").getText === Messages("error.minLength", 6)
+        browser.$("#firstName_field dd.error").getText === Messages("error.required")
+        browser.$("#email_field dd.error").getTexts().get(1) === Messages("error.required")
+        browser.$("#email_field dd.error").getTexts().get(0) === Messages("error.email")
+        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", 8)
+      }
+    }
+
+    "Confirmation password does not match." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+        browser.goTo("http://localhost:3333/admin")
+        browser.title === Messages("firstSetupTitle")
+        browser.fill("#userName").`with`("username")
+        browser.fill("#firstName").`with`("firstname")
+        browser.fill("#lastName").`with`("lastname")
+        browser.fill("#email").`with`("ruimo@ruimo.com")
+        browser.fill("#password_main").`with`("12345678")
+        browser.fill("#password_confirm").`with`("12345679")
+
+        browser.submit("input[type='submit']")
+        browser.title === Messages("firstSetupTitle")
+
+        browser.$(".globalErrorMessage").getText === Messages("inputError")
+        browser.$("#password_confirm_field dd.error").getText === Messages("confirmPasswordDoesNotMatch")
+      }
+    }
   }
 }
 

@@ -11,6 +11,7 @@ case class StoreUser(
   id: Pk[Long] = NotAssigned,
   userName: String,
   firstName: String,
+  middleName: Option[String],
   lastName: String,
   email: String,
   paswordHash: Long,
@@ -26,14 +27,15 @@ object StoreUser {
     SqlParser.get[Pk[Long]]("store_user.store_user_id") ~
     SqlParser.get[String]("store_user.user_name") ~
     SqlParser.get[String]("store_user.first_name") ~
+    SqlParser.get[Option[String]]("store_user.middle_name") ~
     SqlParser.get[String]("store_user.last_name") ~
     SqlParser.get[String]("store_user.email") ~
     SqlParser.get[Long]("store_user.password_hash") ~
     SqlParser.get[Long]("store_user.salt") ~
     SqlParser.get[Boolean]("store_user.deleted") ~
     SqlParser.get[Short]("store_user.user_role") map {
-      case id~userName~firstName~lastName~email~passwordHash~salt~deleted~userRole => StoreUser(
-        id, userName, firstName, lastName, email, passwordHash, salt, deleted, UserRole.byIndex(userRole)
+      case id~userName~firstName~middleName~lastName~email~passwordHash~salt~deleted~userRole => StoreUser(
+        id, userName, firstName, middleName, lastName, email, passwordHash, salt, deleted, UserRole.byIndex(userRole)
       )
     }
   }
@@ -50,6 +52,14 @@ object StoreUser {
     ).as(StoreUser.simple.single)
   }}
 
+  def findByUserName(userName: String): Option[StoreUser] = DB.withConnection { implicit conn => {
+    SQL(
+      "select * from store_user where user_name = {user_name}"
+    ).on(
+      'user_name -> userName
+    ).as(StoreUser.simple.singleOpt)
+  }}
+
   def all: Seq[StoreUser] = DB.withConnection { implicit conn => {
     SQL(
       "select * from store_user"
@@ -57,21 +67,22 @@ object StoreUser {
   }}
 
   def create(
-    userName: String, firstName: String, lastName: String,
+    userName: String, firstName: String, middleName: Option[String], lastName: String,
     email: String, passwordHash: Long, salt: Long, userRole: UserRole
   ): StoreUser = DB.withConnection { implicit conn => {
     SQL(
       """
       insert into store_user (
-        store_user_id, user_name, first_name, last_name, email, password_hash, salt, deleted, user_role
+        store_user_id, user_name, first_name, middle_name, last_name, email, password_hash, salt, deleted, user_role
       ) values (
         (select nextval('store_user_seq')),
-        {user_name}, {first_name}, {last_name}, {email}, {password_hash}, {salt}, false, {user_role}
+        {user_name}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash}, {salt}, false, {user_role}
       )
       """
     ).on(
       'user_name -> userName,
       'first_name -> firstName,
+      'middle_name -> middleName,
       'last_name -> lastName,
       'email -> email,
       'password_hash -> passwordHash,
@@ -80,7 +91,7 @@ object StoreUser {
     ).executeUpdate()
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
-    StoreUser(Id(storeUserId), userName, firstName, lastName, email, passwordHash, salt,  false, userRole)
+    StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash, salt,  false, userRole)
   }}
 }
 

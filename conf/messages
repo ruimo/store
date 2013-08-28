@@ -13,5 +13,5 @@ firstName=First name
 lastName=Last name
 email=email
 register=register
-confirmPasswordDoesNotMatch=Passwords don't match.
+confirmPasswordDoesNotMatch=Passwords don''t match.
 inputError=Input error.

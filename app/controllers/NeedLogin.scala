@@ -8,27 +8,20 @@ import play.api.data.validation.Constraints._
 import models.{StoreUser, FirstSetup, LoginUser}
 import play.api.i18n.Messages
 
-trait NeedLogin {
+trait NeedLogin extends Controller {
   val LoginUserKey = "loginUser"
 
   case class LoginSession(userId: Long, expireTime: Long) {
     def withExpireTime(newExpireTime: Long) = LoginSession(userId, newExpireTime)
+    def toSessionString = userId + ";" + expireTime
   }
 
-  val firstSetupForm = Form(
-    mapping(
-      "userName" -> text.verifying(nonEmpty),
-      "firstName" -> text.verifying(nonEmpty),
-      "lastName" -> text.verifying(nonEmpty),
-      "email" -> email.verifying(nonEmpty),
-      "password" -> tuple(
-        "main" -> text(minLength = 8),
-        "confirm" -> text
-      ).verifying(
-        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
-      )
-    )(FirstSetup.fromForm)(FirstSetup.toForm)
-  )
+  object LoginSession {
+    def apply(sessionString: String): LoginSession = {
+      val args = sessionString.split(';').map(_.toLong)
+      LoginSession(args(0), args(1))
+    }
+  }
 
   val loginForm = Form(
     mapping(
@@ -38,10 +31,7 @@ trait NeedLogin {
   )
 
   def loginSession(request: RequestHeader): Option[LoginSession] =
-    request.session.get(LoginUserKey).map { sessionString => {
-      val parsed = sessionString.split(';').map(_.toLong)
-      LoginSession(parsed(0), parsed(1))
-    }}
+    request.session.get(LoginUserKey).map { sessionString: String => LoginSession(sessionString) }
 
   def onUnauthorized(request: RequestHeader) = StoreUser.count match {
     case 0 => 
@@ -55,4 +45,20 @@ trait NeedLogin {
       Action(request => f(user)(request))
     }
   }
+
+  def startLogin = Action { implicit request =>
+    Ok(views.html.admin.login(loginForm))
+  }
+
+  def login = Action { implicit request => {
+    loginForm.bindFromRequest.fold(
+      formWithErrors =>
+        BadRequest(views.html.admin.login(formWithErrors)),
+      user => {
+        Redirect(routes.Admin.index).flashing(
+          "message" -> "Welcome"
+        )
+      }
+    )
+  }}
 }

@@ -1,4 +1,4 @@
-@(myForm: Form[models.LoginUser])(implicit token: play.filters.csrf.CSRF.Token)
+@(myForm: Form[models.LoginUser])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang)
 
 @main(Messages("loginTitle")) {
   <h1>@Messages("loginTitle")</h1>

@@ -197,9 +197,10 @@ create sequence transaction_credit_tender_seq start with 1;
 
 create table store_user (
   store_user_id bigint not null,
-  user_name varchar(20) not null unique,
-  first_name varchar(32) not null,
-  last_name varchar(32) not null,
+  user_name varchar(64) not null unique,
+  first_name varchar(64) not null,
+  middle_name varchar(64),
+  last_name varchar(64) not null,
   email varchar(255) not null,
   password_hash bigint not null,
   salt bigint not null,
