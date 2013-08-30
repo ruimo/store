@@ -16,13 +16,13 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
 
   def firstSetupForm(implicit lang: Lang) = Form(
     mapping(
-      "userName" -> text.verifying(minLength(6)),
+      "userName" -> text.verifying(userNameConstraint: _*),
       "firstName" -> text.verifying(nonEmpty),
       "middleName" -> optional(text),
       "lastName" -> text.verifying(nonEmpty),
       "email" -> email.verifying(nonEmpty),
       "password" -> tuple(
-        "main" -> text(minLength = 8),
+        "main" -> text.verifying(userNameConstraint: _*),
         "confirm" -> text
       ).verifying(
         Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2

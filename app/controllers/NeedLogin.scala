@@ -11,6 +11,8 @@ import play.api.templates.Html
 import helpers.PasswordHash
 
 trait NeedLogin extends Controller with HasLogger {
+  val userNameConstraint = List(minLength(6), maxLength(24))
+  val passwordConstraint = List(minLength(6), maxLength(24))
   val LoginUserKey = "loginUser"
   val SessionTimeout = 5 * 60 * 1000
 

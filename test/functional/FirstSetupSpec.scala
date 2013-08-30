@@ -13,7 +13,8 @@ class FirstSetupSpec extends Specification {
     "First setup screen is shown if no user found." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin?lang=ja")
+        implicit val lang = Lang("ja")
+        browser.goTo("http://localhost:3333/admin?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
       }
     }
@@ -21,6 +22,7 @@ class FirstSetupSpec extends Specification {
     "First setup create user." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+        implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333/admin?lang=ja")
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
@@ -49,7 +51,8 @@ class FirstSetupSpec extends Specification {
     "Minimum length error." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin?lang=ja")
+        implicit val lang = Lang("ja")
+        browser.goTo("http://localhost:3333/admin?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
@@ -66,14 +69,15 @@ class FirstSetupSpec extends Specification {
         browser.$("#firstName_field dd.error").getText === Messages("error.required")
         browser.$("#email_field dd.error").getTexts().get(1) === Messages("error.required")
         browser.$("#email_field dd.error").getTexts().get(0) === Messages("error.email")
-        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", 8)
+        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", 6)
       }
     }
 
     "Confirmation password does not match." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
-        browser.goTo("http://localhost:3333/admin?lang=ja")
+        implicit val lang = Lang("ja")
+        browser.goTo("http://localhost:3333/admin?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
