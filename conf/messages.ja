@@ -33,6 +33,8 @@ firstSetupTitle=初期ユーザ登録
 firstSetupGuide=管理ユーザを登録してください
 itemMaintenanceTitle=商品管理
 createItemMenu=商品登録
+createNewItemMenu=新規商品追加
+editItemMenu=商品情報変更
 
 userName=ユーザ名
 password=パスワード

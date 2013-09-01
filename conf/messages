@@ -5,6 +5,8 @@ loginTitle=Login
 firstSetupTitle=First setup
 firstSetupGuide=Register administrator
 itemMaintenanceTitle=Item Maintenance
+createNewItemMenu=Create new item
+editItemMenu=Edit item
 
 createItemMenu=Create Item
 

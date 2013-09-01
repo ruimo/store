@@ -52,5 +52,13 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   def itemMaintenance = isAuthenticated { loginSession => implicit request =>
     Ok(views.html.admin.itemMaintenance())
   }
+
+  def createNewItem = isAuthenticated { loginSession => implicit request =>
+    Ok(views.html.admin.createNewItem())
+  }
+
+  def editItem = isAuthenticated { loginSession => implicit request =>
+    Ok(views.html.admin.editItem())
+  }
 }
 

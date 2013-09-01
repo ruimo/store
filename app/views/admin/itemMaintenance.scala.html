@@ -1,7 +1,18 @@
-@()(implicit token: play.filters.csrf.CSRF.Token, lang: Lang)
+@()(implicit lang: Lang)
 
 @main(Messages("itemMaintenanceTitle")) {
   <h1>@Messages("itemMaintenanceTitle")</h1>
 
+  <div class="menuItem">
+    <a href="@routes.Admin.createNewItem()">
+      @Messages("createNewItemMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.Admin.editItem()">
+      @Messages("editItemMenu")
+    </a>
+  </div>
 }
 
