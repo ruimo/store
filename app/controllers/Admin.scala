@@ -40,25 +40,13 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
         BadRequest(views.html.admin.firstSetup(formWithErrors)),
       firstSetup => {
         val createdUser = firstSetup.save
-        Redirect(routes.Admin.index).flashing("message" -> "Welcome")
+        Redirect(routes.Admin.index).flashing("message" -> Messages("welcome"))
       }
     )
   }}
   
   def index = isAuthenticated { loginSession => implicit request =>
     Ok(views.html.admin.index())
-  }
-
-  def itemMaintenance = isAuthenticated { loginSession => implicit request =>
-    Ok(views.html.admin.itemMaintenance())
-  }
-
-  def createNewItem = isAuthenticated { loginSession => implicit request =>
-    Ok(views.html.admin.createNewItem())
-  }
-
-  def editItem = isAuthenticated { loginSession => implicit request =>
-    Ok(views.html.admin.editItem())
   }
 }
 

@@ -1,10 +1,22 @@
-@()(implicit lang: Lang)
+@()(implicit lang: Lang, flash: play.api.mvc.Flash)
 
 @main(Messages("adminTitle")) {
   <h1>@Messages("adminTitle")</h1>
 
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
   <div class="menuItem">
-    <a href="@routes.Admin.itemMaintenance()">
+    <a href="@routes.CategoryMaintenance.index()">
+      @Messages("categoryMaintenanceTitle")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.ItemMaintenance.index()">
       @Messages("itemMaintenanceTitle")
     </a>
   </div>

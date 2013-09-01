@@ -54,7 +54,7 @@ form dl.error dt {
     font-weight: bold;
 }
 
-.globalMessage, .globalErrorMessage, .menuItem {
+.globalMessage, .globalErrorMessage, .menuItem, .message {
     padding: 10px;
     margin-bottom: 5px;
 }
@@ -63,4 +63,9 @@ form dl.error dt {
     margin-left: 20px;
     background: lightcyan;
     border-left: 10px solid darkgreen;
+}
+
+.message {
+    margin-left: 10px;
+    background: lightcyan;
 }

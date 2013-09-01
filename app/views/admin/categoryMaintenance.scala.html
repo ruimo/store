@@ -1,0 +1,18 @@
+@()(implicit lang: Lang)
+
+@main(Messages("categoryMaintenanceTitle")) {
+  <h1>@Messages("categoryMaintenanceTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.CategoryMaintenance.startCreateNewCategory()">
+      @Messages("createNewCategoryMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.CategoryMaintenance.editCategory()">
+      @Messages("editCategoryMenu")
+    </a>
+  </div>
+}
+

@@ -5,6 +5,8 @@ import anorm.SqlParser
 import java.util.Locale
 import play.api.Play.current
 import play.api.db._
+import play.api.i18n.{Messages, Lang}
+import scala.collection.mutable.{HashMap => MutableMap}
 import scala.language.postfixOps
 
 case class LocaleInfo(id: Long, lang: String, country: Option[String] = None) extends NotNull {
@@ -12,6 +14,14 @@ case class LocaleInfo(id: Long, lang: String, country: Option[String] = None) ex
     case None => new Locale(lang)
     case Some(c) => new Locale(lang, c)
   }
+
+  def matchExactly(l: Lang): Boolean =
+    matchLanguage(l) && (country match {
+      case None => true
+      case Some(c) => c == l.country
+    })
+
+  def matchLanguage(l: Lang): Boolean = lang == l.language
 }
 
 object LocaleInfo {
@@ -32,6 +42,22 @@ object LocaleInfo {
       .map(r => r.id -> r)
       .toMap
   }
+
+  lazy val byLang: Map[Lang, LocaleInfo] =
+    registry.values.foldLeft(new MutableMap[Lang, LocaleInfo]) {
+      (map, e) => {map.put(new Lang(e.lang, e.country.getOrElse("")), e); map}
+    }.toMap
+
+  def localeTable(implicit lang: Lang) = registry.values.map {
+    e => e.id.toString -> Messages("lang." + e.lang)
+  }.toSeq
+
+  def getDefault(implicit lang: Lang): LocaleInfo =
+    byLang.get(lang).orElse {
+      byLang.get(new Lang(lang.language))
+    }.getOrElse {
+      LocaleInfo.En
+    }
 
   def apply(id: Long): LocaleInfo = get(id).get
 

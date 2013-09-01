@@ -6,13 +6,19 @@ firstSetupTitle=First setup
 firstSetupGuide=Register administrator
 itemMaintenanceTitle=Item Maintenance
 createNewItemMenu=Create new item
+createNewCategoryMenu=Create new category
 editItemMenu=Edit item
+editCategoryMenu=Edit category
 createNewItemTitle=Create new item
+createNewCategoryTitle=Create new category
 editItemTitle=Edit item
+categoryMaintenanceTitle=Category Maintenance
 
 createItemMenu=Create Item
 
 userName=User Name
+itemName=Item Name
+categoryName=Category Name
 password=password
 password.confirm=password(confirm)
 login=login
@@ -23,3 +29,12 @@ register=register
 confirmPasswordDoesNotMatch=Passwords don''t match.
 inputError=Input error.
 cannotLogin=Cannot login. Please check input.
+price=Price
+welcome=Welcome
+itemIsCreated=Item is created.
+categoryIsCreated=Category is created.
+itemDescription=Description
+language=Language
+
+lang.ja=Japanese
+lang.en=English

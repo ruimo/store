@@ -1,0 +1,36 @@
+@(myForm: Form[models.CreateCategory], langTable: Seq[(String, String)])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+
+@import helper._
+
+@main(Messages("createNewCategoryTitle")) {
+  <h1>@Messages("createNewCategoryTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @helper.form(action = helper.CSRF(routes.CategoryMaintenance.createNewCategory()), 'id -> "createNewCategoryForm") {
+    @select(
+      myForm("langId"), 
+      langTable, 
+      '_label -> Messages("language"),
+      '_showConstraints -> false
+    )
+
+    @helper.inputText(
+      myForm("categoryName"),
+      '_label -> Messages("categoryName"), 'size -> 24, 'maxlength -> 32
+    )
+
+    <input type="submit" value=@Messages("register")>
+  }
+}
+
