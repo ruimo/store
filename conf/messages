@@ -7,6 +7,8 @@ firstSetupGuide=Register administrator
 itemMaintenanceTitle=Item Maintenance
 createNewItemMenu=Create new item
 editItemMenu=Edit item
+createNewItemTitle=Create new item
+editItemTitle=Edit item
 
 createItemMenu=Create Item
 

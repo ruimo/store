@@ -35,6 +35,8 @@ itemMaintenanceTitle=商品管理
 createItemMenu=商品登録
 createNewItemMenu=新規商品追加
 editItemMenu=商品情報変更
+createNewItemTitle=新規商品追加
+editItemTitle=商品情報変更
 
 userName=ユーザ名
 password=パスワード
