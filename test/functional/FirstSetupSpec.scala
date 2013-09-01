@@ -14,7 +14,7 @@ class FirstSetupSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333/admin?lang=" + lang.code)
+        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
       }
     }
@@ -23,7 +23,7 @@ class FirstSetupSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333/admin?lang=ja")
+        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
@@ -52,7 +52,7 @@ class FirstSetupSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333/admin?lang=" + lang.code)
+        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
@@ -67,9 +67,29 @@ class FirstSetupSpec extends Specification {
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#userName_field dd.error").getText === Messages("error.minLength", 6)
         browser.$("#firstName_field dd.error").getText === Messages("error.required")
-        browser.$("#email_field dd.error").getTexts().get(1) === Messages("error.required")
-        browser.$("#email_field dd.error").getTexts().get(0) === Messages("error.email")
+        browser.$("#email_field dd.error").getText === Messages("error.email")
         browser.$("#password_main_field dd.error").getText === Messages("error.minLength", 6)
+      }
+    }
+
+    "Invalid email error." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+        implicit val lang = Lang("ja")
+        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
+        browser.title === Messages("firstSetupTitle")
+        browser.fill("#userName").`with`("userName")
+        browser.fill("#firstName").`with`("firstName")
+        browser.fill("#lastName").`with`("lastName")
+        browser.fill("#email").`with`("ruimo")
+        browser.fill("#password_main").`with`("password")
+        browser.fill("#password_confirm").`with`("password")
+
+        browser.submit("input[type='submit']")
+        browser.title === Messages("firstSetupTitle")
+
+        browser.$(".globalErrorMessage").getText === Messages("inputError")
+        browser.$("#email_field dd.error").getText === Messages("error.email")
       }
     }
 
@@ -77,7 +97,7 @@ class FirstSetupSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333/admin?lang=" + lang.code)
+        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")

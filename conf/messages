@@ -4,6 +4,9 @@ adminTitle=Admin Site
 loginTitle=Login
 firstSetupTitle=First setup
 firstSetupGuide=Register administrator
+itemMaintenanceTitle=Item Maintenance
+
+createItemMenu=Create Item
 
 userName=User Name
 password=password

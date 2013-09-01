@@ -17,10 +17,10 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   def firstSetupForm(implicit lang: Lang) = Form(
     mapping(
       "userName" -> text.verifying(userNameConstraint: _*),
-      "firstName" -> text.verifying(nonEmpty),
+      "firstName" -> text.verifying(firstNameConstraint: _*),
       "middleName" -> optional(text),
-      "lastName" -> text.verifying(nonEmpty),
-      "email" -> email.verifying(nonEmpty),
+      "lastName" -> text.verifying(lastNameConstraint: _*),
+      "email" -> email.verifying(emailConstraint: _*),
       "password" -> tuple(
         "main" -> text.verifying(userNameConstraint: _*),
         "confirm" -> text
@@ -47,6 +47,10 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   
   def index = isAuthenticated { loginSession => implicit request =>
     Ok(views.html.admin.index())
+  }
+
+  def itemMaintenance = isAuthenticated { loginSession => implicit request =>
+    Ok(views.html.admin.itemMaintenance())
   }
 }
 

@@ -13,6 +13,10 @@ import helpers.PasswordHash
 trait NeedLogin extends Controller with HasLogger {
   val userNameConstraint = List(minLength(6), maxLength(24))
   val passwordConstraint = List(minLength(6), maxLength(24))
+  val firstNameConstraint = List(nonEmpty, maxLength(32))
+  val lastNameConstraint = List(nonEmpty, maxLength(32))
+  val emailConstraint = List(maxLength(255))
+
   val LoginUserKey = "loginUser"
   val SessionTimeout = 5 * 60 * 1000
 
@@ -39,10 +43,14 @@ trait NeedLogin extends Controller with HasLogger {
     request.session.get(LoginUserKey).map { sessionString: String => LoginSession(sessionString) }
 
   def onUnauthorized(request: RequestHeader) = StoreUser.count match {
-    case 0 => 
+    case 0 =>  {
+      logger.info("User table empty. Go to first setup page.")
       Results.Redirect(routes.Admin.startFirstSetup)
-    case _ =>
+    }
+    case _ => {
+      logger.info("User table is not empty. Go to login page.")
       Results.Redirect(routes.Admin.startLogin)
+    }
   }
 
   def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result) = {

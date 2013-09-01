@@ -31,6 +31,8 @@ adminTitle=管理サイト
 loginTitle=ログイン
 firstSetupTitle=初期ユーザ登録
 firstSetupGuide=管理ユーザを登録してください
+itemMaintenanceTitle=商品管理
+createItemMenu=商品登録
 
 userName=ユーザ名
 password=パスワード

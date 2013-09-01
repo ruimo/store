@@ -53,3 +53,14 @@ form dl.error dt {
     color: red;
     font-weight: bold;
 }
+
+.globalMessage, .globalErrorMessage, .menuItem {
+    padding: 10px;
+    margin-bottom: 5px;
+}
+
+.menuItem {
+    margin-left: 20px;
+    background: lightcyan;
+    border-left: 10px solid darkgreen;
+}
