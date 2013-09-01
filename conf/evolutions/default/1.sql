@@ -36,6 +36,13 @@ create table item (
 
 create sequence item_seq start with 1;
 
+create table item_numeric_metadata (
+  item_id bigint not null,
+  metadata_type integer not null,
+  metadata bigint,
+  constraint pk_item_numeric_metadata primary key (item_id, metadata_type)
+);
+
 create table item_name (
   locale_id bigint not null references locale,
   item_id bigint not null references item on delete cascade,
