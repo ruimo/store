@@ -5,12 +5,13 @@ create table locale (
   locale_id bigint not null,
   lang varchar(8) not null,
   country varchar(3) not null default '',
+  precedence integer not null,
   constraint pk_locale primary key (locale_id),
   unique (lang, country)
 );
 
-insert into locale (locale_id, lang) values (1, 'ja');
-insert into locale (locale_id, lang) values (2, 'en');
+insert into locale (locale_id, lang, precedence) values (1, 'ja', 2);
+insert into locale (locale_id, lang, precedence) values (2, 'en', 1);
 
 create table site (
   site_id bigint not null,

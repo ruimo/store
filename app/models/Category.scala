@@ -37,6 +37,37 @@ object Category {
     ).as(Category.simple *)
   }
 
+  val withName = Category.simple ~ CategoryName.simple map {
+    case cat~name => (cat, name)
+  }
+
+  def list(page: Int = 0, pageSize: Int = 10, locale: LocaleInfo): Page[(Category, CategoryName)] = {
+    val offset = pageSize * page
+    DB.withConnection { implicit conn =>
+      val resultList = SQL(
+        """
+        select * from category
+        inner join category_name on category.category_id = category_name.category_id
+        where locale_id = {localeId}
+        order by category_name.category_name
+        limit {pageSize} offset {offset}
+        """
+      ).on(
+        'localeId -> locale.id,
+        'pageSize -> pageSize,
+        'offset -> offset
+      ).as(withName *)
+
+      val count = SQL(
+        """
+        select count(*) from category
+        """
+      ).as(SqlParser.scalar[Long].single)
+
+      Page(resultList, page, offset, count)
+    }
+  }
+
   def createNew(names: Map[LocaleInfo, String]): Category = createNew(None, names)
   def createNew(parent: Category, names: Map[LocaleInfo, String]): Category = createNew(Some(parent), names)
   def createNew(

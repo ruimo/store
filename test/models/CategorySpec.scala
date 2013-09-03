@@ -32,6 +32,49 @@ class CategorySpec extends Specification {
       }
     }
 
+    "List category" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        val cat = Category.createNew(
+          Map(LocaleInfo.Ja -> "うえき", LocaleInfo.En -> "Plant")
+        )
+
+        val cat2 = Category.createNew(
+          Map(LocaleInfo.Ja -> "はな", LocaleInfo.En -> "Flower")
+        )
+
+        val cat3 = Category.createNew(
+          Map(LocaleInfo.Ja -> "きゅうこん", LocaleInfo.En -> "Bulb")
+        )
+
+        val page1 = Category.list(0, 10, LocaleInfo.Ja)
+        page1.page === 0
+        page1.offset === 0
+        page1.total === 3
+        page1.list(0)._2.name === "うえき"
+        page1.list(1)._2.name === "きゅうこん"
+        page1.list(2)._2.name === "はな"
+        page1.prev === None
+        page1.next === None
+
+        val page2 = Category.list(0, 2, LocaleInfo.Ja)
+        page2.page === 0
+        page2.offset === 0
+        page2.total === 3
+        page2.list(0)._2.name === "うえき"
+        page2.list(1)._2.name === "きゅうこん"
+        page2.prev === None
+        page2.next === Some(1)
+
+        val page3 = Category.list(1, 2, LocaleInfo.Ja)
+        page3.page === 1
+        page3.offset === 2
+        page3.total === 3
+        page3.list(0)._2.name === "はな"
+        page3.prev === Some(0)
+        page3.next === None
+      }
+    }
+
     "Parent child category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         val parent = Category.createNew(

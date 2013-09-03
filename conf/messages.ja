@@ -41,6 +41,9 @@ createNewItemTitle=新規商品追加
 createNewCategoryTitle=新規カテゴリ追加
 editItemTitle=商品情報変更
 categoryMaintenanceTitle=カテゴリ管理
+editCategoryTitle=カテゴリ情報変更
+
+backTo={0}へ戻る
 
 userName=ユーザ名
 itemName=商品名

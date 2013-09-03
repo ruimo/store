@@ -40,6 +40,6 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
   }
 
   def editCategory = isAuthenticated { loginSession => implicit request => {
-    Ok(views.html.admin.categoryMaintenance())
+    Ok(views.html.admin.editCategory())
   }}
 }

@@ -13,6 +13,9 @@ createNewItemTitle=Create new item
 createNewCategoryTitle=Create new category
 editItemTitle=Edit item
 categoryMaintenanceTitle=Category Maintenance
+editCategoryTitle=Edit category
+
+backTo=Back to {0}
 
 createItemMenu=Create Item
 
