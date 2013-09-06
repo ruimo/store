@@ -2,6 +2,9 @@ package models
 
 import org.specs2.mutable._
 
+import anorm._
+import anorm.{NotAssigned, Pk}
+import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
@@ -10,9 +13,25 @@ import anorm.Id
 import java.util.Locale
 
 class CategorySpec extends Specification {
+  def removePreloadedRecords() {
+    DB.withConnection { implicit conn =>
+      SQL("delete from item_numeric_metadata").executeUpdate()
+      SQL("delete from item_description").executeUpdate()
+      SQL("delete from site_item").executeUpdate()
+      SQL("delete from item_name").executeUpdate()
+      SQL("delete from item").executeUpdate()
+      SQL("delete from category_name").executeUpdate()
+      SQL("delete from category_path").executeUpdate()
+      SQL("delete from site_category").executeUpdate()
+      SQL("delete from category").executeUpdate()
+    }
+  }
+
   "Category" should {
     "Create new category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        removePreloadedRecords()
+
         val cat = Category.createNew(
           Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
         )
@@ -34,6 +53,8 @@ class CategorySpec extends Specification {
 
     "List category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        removePreloadedRecords()
+
         val cat = Category.createNew(
           Map(LocaleInfo.Ja -> "うえき", LocaleInfo.En -> "Plant")
         )
@@ -77,6 +98,8 @@ class CategorySpec extends Specification {
 
     "Parent child category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        removePreloadedRecords()
+
         val parent = Category.createNew(
           Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
         )
