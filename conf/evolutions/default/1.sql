@@ -143,8 +143,9 @@ create table item_price_history (
   currency_id bigint not null references currency on delete cascade,
   unit_price decimal(15,2) not null,
   -- Exclusive
-  valid_until timestamp not null unique,
-  constraint pk_item_price_history primary key (item_price_history_id)
+  valid_until timestamp not null,
+  constraint pk_item_price_history primary key (item_price_history_id),
+  unique (item_price_id, valid_until)
 );
 
 create sequence item_price_history_seq start with 1;
