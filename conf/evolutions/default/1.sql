@@ -20,14 +20,14 @@ create table site (
   constraint pk_site primary key (site_id)
 );
 
-create sequence site_seq start with 1;
+create sequence site_seq start with 1000;
 
 create table category (
   category_id bigint not null,
   constraint pk_category primary key (category_id)
 );
 
-create sequence category_seq start with 1;
+create sequence category_seq start with 1000;
 
 create table item (
   item_id bigint not null,
@@ -35,7 +35,7 @@ create table item (
   constraint pk_item primary key (item_id)
 );
 
-create sequence item_seq start with 1;
+create sequence item_seq start with 1000;
 
 create table item_numeric_metadata (
   item_id bigint not null references item,
@@ -99,7 +99,7 @@ create table tax (
   constraint pk_tax primary key(tax_id)
 );
 
-create sequence tax_seq start with 1;
+create sequence tax_seq start with 1000;
 
 create table tax_history (
   tax_history_id bigint not null,
@@ -112,7 +112,7 @@ create table tax_history (
   constraint pk_tax_history primary key(tax_history_id)
 );
 
-create sequence tax_history_seq start with 1;
+create sequence tax_history_seq start with 1000;
 
 create index ix_tax_history1 on tax_history (valid_until);
 
@@ -124,7 +124,7 @@ create table item_price (
   unique (site_id, item_id)
 );
 
-create sequence item_price_seq start with 1;
+create sequence item_price_seq start with 1000;
 
 create table currency (
   currency_id bigint not null,
@@ -148,7 +148,7 @@ create table item_price_history (
   unique (item_price_id, valid_until)
 );
 
-create sequence item_price_history_seq start with 1;
+create sequence item_price_history_seq start with 1000;
 
 create table transaction_header (
   transaction_id bigint not null,
@@ -161,7 +161,7 @@ create table transaction_header (
   constraint pk_transaction primary key (transaction_id)
 );
 
-create sequence transaction_header_seq start with 1;
+create sequence transaction_header_seq start with 1000;
 
 create table transaction_shipping (
   transaction_shipping_id bigint not null,
@@ -170,7 +170,7 @@ create table transaction_shipping (
   constraint pk_transaction_shipping primary key (transaction_shipping_id)
 );
 
-create sequence transaction_shipping_seq start with 1;
+create sequence transaction_shipping_seq start with 1000;
 
 create table transaction_item (
   transaction_item_id bigint not null,
@@ -182,7 +182,7 @@ create table transaction_item (
   constraint pk_transaction_item primary key (transaction_item_id)
 );
 
-create sequence transaction_item_seq start with 1;
+create sequence transaction_item_seq start with 1000;
 
 create table transaction_tax (
   transaction_tax_id bigint not null,
@@ -193,7 +193,7 @@ create table transaction_tax (
   constraint pk_transaction_tax primary key (transaction_tax_id)
 );
 
-create sequence transaction_tax_seq start with 1;
+create sequence transaction_tax_seq start with 1000;
 
 create table transaction_credit_tender (
   transaction_credit_tender_id bigint not null,
@@ -202,7 +202,7 @@ create table transaction_credit_tender (
   constraint pk_transaction_credit_tender primary key (transaction_credit_tender_id)
 );
 
-create sequence transaction_credit_tender_seq start with 1;
+create sequence transaction_credit_tender_seq start with 1000;
 
 create table store_user (
   store_user_id bigint not null,
@@ -219,7 +219,7 @@ create table store_user (
   constraint pk_user primary key (store_user_id)
 );
 
-create sequence store_user_seq start with 1;
+create sequence store_user_seq start with 1000;
 
 create table site_user (
   site_id bigint not null references site on delete cascade,
