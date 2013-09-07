@@ -55,9 +55,10 @@ create index ix_item_name1 on item_name (item_id);
 
 create table item_description (
   locale_id bigint not null references locale,
-  item_description text not null,
+  description text not null,
   item_id bigint not null references item on delete cascade,
-  constraint pk_item_description primary key (locale_id, item_id)
+  site_id bigint not null references site on delete cascade,
+  constraint pk_item_description primary key (locale_id, item_id, site_id)
 );
 
 create index ix_item_description1 on item_description (item_id);
