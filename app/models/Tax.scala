@@ -17,6 +17,18 @@ object Tax {
       case id => Tax(id)
     }
   }
+
+  def createNew(): Tax = DB.withConnection { implicit conn => {
+    SQL("insert into tax (tax_id) values (select nextval('tax_seq'))").executeUpdate()
+
+    val taxId = SQL("select currval('tax_seq')").as(SqlParser.scalar[Long].single)
+
+    Tax(Id(taxId))
+  }}
+
+  def list: Seq[Tax] = DB.withConnection { implicit conn => {
+    SQL("select * from tax order by tax_id").as(Tax.simple *)
+  }}
 }
 
 object TaxHistory {

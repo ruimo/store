@@ -43,6 +43,24 @@ class ItemSpec extends Specification {
       }
     }
 
+    "item price." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        val cat1 = Category.createNew(
+          Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+        )
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val item1 = Item.createNew(cat1)
+
+        ItemPrice.get(site1, item1) === None
+
+        val price1 = ItemPrice.createNew(site1, item1)
+        val saved1 = ItemPrice.get(site1, item1).get
+        saved1 === price1
+      }
+    }
+
     "List item." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         import LocaleInfo._

@@ -160,6 +160,33 @@ object ItemPrice {
       case id~siteId~itemId => ItemPrice(id, siteId, itemId)
     }
   }
+
+  def createNew(site: Site, item: Item): ItemPrice = DB.withConnection { implicit conn => {
+    SQL(
+      """
+      insert into item_price (item_price_id, site_id, item_id)
+      values ((select nextval('item_price_seq')), {siteId}, {itemId})
+      """
+    ).on(
+      'siteId -> site.id.get,
+      'itemId -> item.id.get
+    ).executeUpdate()
+
+    val itemPriceId = SQL("select currval('item_price_seq')").as(SqlParser.scalar[Long].single)
+
+    ItemPrice(Id(itemPriceId), site.id.get, item.id.get)
+  }}
+
+  def get(site: Site, item: Item): Option[ItemPrice] = DB.withConnection { implicit conn => {
+    SQL(
+      "select * from item_price where item_id = {itemId} and site_id = {siteId}"
+    ).on(
+      'itemId -> item.id.get,
+      'siteId -> site.id.get
+    ).as(
+      ItemPrice.simple.singleOpt
+    )
+  }}
 }
 
 object ItemPriceHistory {
