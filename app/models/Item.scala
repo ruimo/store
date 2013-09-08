@@ -25,7 +25,9 @@ case class ItemPriceHistory(
   validUntil: Long
 ) extends NotNull
 
-case class ItemNumericMetadata(id: Pk[Long] = NotAssigned, metadataType: Int, metadata: Long) extends NotNull
+case class ItemNumericMetadata(
+  id: Pk[Long] = NotAssigned, itemId: Long, metadataType: Int, metadata: Long
+) extends NotNull
 
 case class SiteItem(itemId: Long, siteId: Long) extends NotNull
 
@@ -59,10 +61,14 @@ object Item {
     )
   }
 
-  def list(siteId: Long, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10):
+  def list(site: Site, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10):
+    Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
+    listBySiteId(site.id.get, locale, queryString, page, pageSize)
+
+  def listBySiteId(siteId: Long, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10):
     Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
   DB.withConnection { implicit conn => {
-    SQL(
+    val itemTable = SQL(
       """
       select * from item
       inner join item_name on item.item_id = item_name.item_id
@@ -76,9 +82,17 @@ object Item {
       and site_item.site_id = {siteId}
       """
     ).on(
-      'localeId -> locale.id,
+      'localeId -> siteId,
       'siteId -> siteId
     ).as(listParser *)
+
+    itemTable.map {e => {
+      val itemId = e._1.id.get
+      val itemPriceId = e._4.id.get
+
+      val priceHistory = ItemPriceHistory.at(itemPriceId)
+    }}
+
 
     List()
   }}
@@ -201,16 +215,110 @@ object ItemPriceHistory {
         => ItemPriceHistory(id, itemPriceId, taxId, CurrencyInfo(currencyId), unitPrice, validUntil.getTime)
     }
   }
+
+  def createNew(itemPrice: ItemPrice, tax: Tax, currency: CurrencyInfo, unitPrice: BigDecimal, validUntil: Long)
+    : ItemPriceHistory = DB.withConnection { implicit conn =>
+  {
+    SQL(
+      """
+      insert into item_price_history(
+        item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until
+      ) values (
+        (select nextval('item_price_history_seq')),
+        {itemPriceId}, {taxId}, {currencyId}, {unitPrice}, {validUntil}
+      )
+      """
+    ).on(
+      'itemPriceId -> itemPrice.id.get,
+      'taxId -> tax.id.get,
+      'currencyId -> currency.id,
+      'unitPrice -> unitPrice.bigDecimal,
+      'validUntil -> new java.sql.Timestamp(validUntil)
+    ).executeUpdate()
+
+    val id = SQL("select currval('item_price_history_seq')").as(SqlParser.scalar[Long].single)
+
+    ItemPriceHistory(Id(id), itemPrice.id.get, tax.id.get, currency, unitPrice, validUntil)
+  }}
+
+  def list(itemPrice: ItemPrice): Seq[ItemPriceHistory] = DB.withConnection { implicit conn =>
+    SQL(
+      "select * from item_price_history where item_price_id = {itemPriceId}"
+    ).on(
+      'itemPriceId -> itemPrice.id.get
+    ).as(
+      ItemPriceHistory.simple *
+    )
+  }
+
+  def at(itemPriceId: Long, now: Long = System.currentTimeMillis):
+    ItemPriceHistory = DB.withConnection { implicit conn => 
+  {
+    SQL(
+      """
+      select * from item_price_history
+      where item_price_id = {itemPriceId}
+      and {now} < valid_until
+      order by valid_until
+      limit 1
+      """
+    ).on(
+      'itemPriceId -> itemPriceId,
+      'now -> new java.sql.Timestamp(now)
+    ).as(
+      ItemPriceHistory.simple.single
+    )
+  }}
 }
 
 object ItemNumericMetadata {
   val simple = {
-    SqlParser.get[Pk[Long]]("item_numeric_metadata.item_id") ~
+    SqlParser.get[Pk[Long]]("item_numeric_metadata.item_numeric_metadata_id") ~
+    SqlParser.get[Long]("item_numeric_metadata.item_id") ~
     SqlParser.get[Int]("item_numeric_metadata.metadata_type") ~
     SqlParser.get[Long]("item_numeric_metadata.metadata") map {
-      case id~metadata_type~metadata => ItemNumericMetadata(id, metadata_type, metadata)
+      case id~itemId~metadata_type~metadata => ItemNumericMetadata(id, itemId, metadata_type, metadata)
     }
   }
+
+  def createNew(item: Item, metadataType: MetadataType, metadata: Long):
+    ItemNumericMetadata = DB.withConnection { implicit conn =>
+  {
+    SQL(
+      """
+      insert into item_numeric_metadata(item_numeric_metadata_id, item_id, metadata_type, metadata)
+      values (
+        (select nextval('item_numeric_metadata_seq')),
+        {itemId}, {metadataType}, {metadata}
+     )
+      """
+    ).on(
+      'itemId -> item.id.get,
+      'metadataType -> metadataType.ordinal,
+      'metadata -> metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    ItemNumericMetadata(Id(id), item.id.get, metadataType.ordinal, metadata)
+  }}
+
+  def apply(item: Item, metadataType: MetadataType):
+    ItemNumericMetadata = DB.withConnection { implicit conn =>
+  {
+    SQL(
+      """
+      select * from item_numeric_metadata
+      where item_id = {itemId}
+      and metadata_type = {metadataType}
+      """
+    ).on(
+      'itemId -> item.id.get,
+      'metadataType -> metadataType.ordinal
+    ).as(
+      ItemNumericMetadata.simple.single
+    )
+  }}
 }
 
 object SiteItem {
