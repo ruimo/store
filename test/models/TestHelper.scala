@@ -16,6 +16,8 @@ object TestHelper {
       SQL("delete from category_path").executeUpdate()
       SQL("delete from site_category").executeUpdate()
       SQL("delete from category").executeUpdate()
+      SQL("delete from site").executeUpdate()
+      SQL("delete from tax").executeUpdate()
     }
   }
 }
