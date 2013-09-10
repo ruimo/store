@@ -187,6 +187,7 @@ class ItemSpec extends Specification {
         val height5 = ItemNumericMetadata.createNew(item5, MetadataType.HEIGHT, 500)
 
         val list1 = Item.list(site1, LocaleInfo.Ja, "")
+        println("list1 = " + list1)
       }
     }
   }

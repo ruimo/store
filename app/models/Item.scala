@@ -6,7 +6,7 @@ import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-import collection.immutable.IntMap
+import collection.immutable.{HashMap, IntMap}
 
 case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
 
@@ -61,12 +61,16 @@ object Item {
     )
   }
 
-  def list(site: Site, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10):
-    Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
-    listBySiteId(site.id.get, locale, queryString, page, pageSize)
+  def list(
+    site: Site, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
+    now: Long = System.currentTimeMillis
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
+    listBySiteId(site.id.get, locale, queryString, page, pageSize, now)
 
-  def listBySiteId(siteId: Long, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10):
-    Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
+  def listBySiteId(
+    siteId: Long, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
+    now: Long = System.currentTimeMillis
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
   DB.withConnection { implicit conn => {
     val itemTable = SQL(
       """
@@ -89,8 +93,9 @@ object Item {
     itemTable.map {e => {
       val itemId = e._1.id.get
       val itemPriceId = e._4.id.get
+      val priceHistory = ItemPriceHistory.at(itemPriceId, now)
 
-      val priceHistory = ItemPriceHistory.at(itemPriceId)
+      
     }}
 
 
@@ -319,6 +324,18 @@ object ItemNumericMetadata {
       ItemNumericMetadata.simple.single
     )
   }}
+
+  def all(item: Item): Map[MetadataType, ItemNumericMetadata] = DB.withConnection { implicit conn =>
+    SQL(
+      "select * from item_numeric_metadata where item_id = {itemId} "
+    ).on(
+      'itemId -> item.id.get
+    ).as(
+      ItemNumericMetadata.simple *
+    ).foldLeft(new HashMap[MetadataType, ItemNumericMetadata]) {
+      (map, e) => map.updated(MetadataType.byIndex(e.metadataType), e)
+    }
+  }
 }
 
 object SiteItem {
