@@ -6,6 +6,7 @@ import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
+import play.api.i18n.Lang
 
 case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) extends NotNull {
   assert(pathLength >= 0 && pathLength <= Short.MaxValue, "length(= " + pathLength + ") is invalid.")
@@ -22,6 +23,27 @@ object Category {
     SqlParser.get[Pk[Long]]("category.category_id") map {
       case id => Category(id)
     }
+  }
+
+  def tableForDropDown(implicit lang: Lang): Seq[(String, String)] = {
+    val locale = LocaleInfo.byLang(lang)
+
+    DB.withConnection { implicit conn => {
+      SQL(
+        """
+        select * from category
+        inner join category_name on category.category_id = category_name.category_id
+        where locale_id = {localeId}
+        order by category_name.category_name
+        """
+      ).on(
+        'localeId -> locale.id
+      ).as(
+        withName *
+      ).map {
+        e => e._1.id.get.toString -> e._2.name
+      }
+    }}
   }
 
   def root: Seq[Category] = DB.withConnection { implicit conn =>

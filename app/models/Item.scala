@@ -62,15 +62,49 @@ object Item {
   }
 
   def list(
+    locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
+    now: Long = System.currentTimeMillis
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
+  DB.withConnection { implicit conn => {
+    val itemTable = SQL(
+      """
+      select * from item
+      inner join item_name on item.item_id = item_name.item_id
+      inner join item_description on item.item_id = item_description.item_id
+      inner join item_price on item.item_id = item_price.item_id
+      inner join site_item on item.item_id = site_item.item_id
+      where item_name.locale_id = {localeId}
+      and item_description.locale_id = {localeId}
+      and item_name.item_name like {query}
+      order by item_name.item_name
+      limit {pageSize} offset {offset}
+      """
+    ).on(
+      'localeId -> locale.id,
+      'query -> ("%" + queryString + "%"),
+      'pageSize -> pageSize,
+      'offset -> page * pageSize
+    ).as(listParser *)
+
+    itemTable.map {e => {
+      val itemId = e._1.id.get
+      val itemPriceId = e._4.id.get
+      val priceHistory = ItemPriceHistory.at(itemPriceId, now)
+      val metadata = ItemNumericMetadata.allById(itemId)
+      (e._1, e._2, e._3, e._4, priceHistory, metadata)
+    }}
+  }}
+
+  def listBySite(
     site: Site, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
     listBySiteId(site.id.get, locale, queryString, page, pageSize, now)
 
   def listBySiteId(
     siteId: Long, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, IntMap[ItemNumericMetadata])] =
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
   DB.withConnection { implicit conn => {
     val itemTable = SQL(
       """
@@ -84,22 +118,25 @@ object Item {
       and item_description.site_id = {siteId}
       and item_price.site_id = {siteId}
       and site_item.site_id = {siteId}
+      and item_name.item_name like {query}
+      order by item_name.item_name
+      limit {pageSize} offset {offset}
       """
     ).on(
-      'localeId -> siteId,
-      'siteId -> siteId
+      'localeId -> locale.id,
+      'siteId -> siteId,
+      'query -> ("%" + queryString + "%"),
+      'pageSize -> pageSize,
+      'offset -> page * pageSize
     ).as(listParser *)
 
     itemTable.map {e => {
       val itemId = e._1.id.get
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
-
-      
+      val metadata = ItemNumericMetadata.allById(itemId)
+      (e._1, e._2, e._3, e._4, priceHistory, metadata)
     }}
-
-
-    List()
   }}
 }
 
@@ -295,7 +332,7 @@ object ItemNumericMetadata {
       values (
         (select nextval('item_numeric_metadata_seq')),
         {itemId}, {metadataType}, {metadata}
-     )
+      )
       """
     ).on(
       'itemId -> item.id.get,
@@ -325,11 +362,13 @@ object ItemNumericMetadata {
     )
   }}
 
-  def all(item: Item): Map[MetadataType, ItemNumericMetadata] = DB.withConnection { implicit conn =>
+  def all(item: Item): Map[MetadataType, ItemNumericMetadata] = allById(item.id.get)
+
+  def allById(itemId: Long): Map[MetadataType, ItemNumericMetadata] = DB.withConnection { implicit conn =>
     SQL(
       "select * from item_numeric_metadata where item_id = {itemId} "
     ).on(
-      'itemId -> item.id.get
+      'itemId -> itemId
     ).as(
       ItemNumericMetadata.simple *
     ).foldLeft(new HashMap[MetadataType, ItemNumericMetadata]) {

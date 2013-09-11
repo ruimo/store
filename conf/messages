@@ -7,18 +7,25 @@ firstSetupGuide=Register administrator
 itemMaintenanceTitle=Item Maintenance
 createNewItemMenu=Create new item
 createNewCategoryMenu=Create new category
+createNewTaxMenu=Create new tax
+createNewTaxTitle=Create new tax
 editItemMenu=Edit item
 editCategoryMenu=Edit category
+editTaxMenu=Edit tax
 createNewItemTitle=Create new item
 createNewCategoryTitle=Create new category
 editItemTitle=Edit item
 categoryMaintenanceTitle=Category Maintenance
+taxMaintenanceTitle=Category Maintenance
 editCategoryTitle=Edit category
+taxType=Type
+taxRate=Tax Rate
 
 backTo=Back to {0}
 
 createItemMenu=Create Item
 
+category=Category
 userName=User Name
 itemName=Item Name
 categoryName=Category Name
@@ -36,8 +43,16 @@ price=Price
 welcome=Welcome
 itemIsCreated=Item is created.
 categoryIsCreated=Category is created.
+taxIsCreated=Tax is created.
 itemDescription=Description
 language=Language
 
 lang.ja=Japanese
 lang.en=English
+
+tax.OUTER_TAX=Outer tax
+tax.INNER_TAX=Inner tax
+tax.NON_TAX=Non tax
+
+format.real=
+taxName=Tax name

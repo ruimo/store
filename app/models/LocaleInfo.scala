@@ -48,7 +48,7 @@ object LocaleInfo {
       (map, e) => {map.put(new Lang(e.lang, e.country.getOrElse("")), e); map}
     }.toMap
 
-  def localeTable(implicit lang: Lang) = registry.values.map {
+  def localeTable(implicit lang: Lang): Seq[(String, String)] = registry.values.map {
     e => e.id.toString -> Messages("lang." + e.lang)
   }.toSeq
 

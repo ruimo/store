@@ -35,16 +35,23 @@ itemMaintenanceTitle=商品管理
 createItemMenu=商品登録
 createNewItemMenu=新規商品追加
 createNewCategoryMenu=新規カテゴリ追加
+createNewTaxMenu=新規課税レコード追加
+createNewTaxTitle=新規課税レコード追加
 editItemMenu=商品情報変更
 editCategoryMenu=カテゴリ情報変更
+editTaxMenu=課税情報変更
 createNewItemTitle=新規商品追加
 createNewCategoryTitle=新規カテゴリ追加
 editItemTitle=商品情報変更
 categoryMaintenanceTitle=カテゴリ管理
+taxMaintenanceTitle=課税管理
 editCategoryTitle=カテゴリ情報変更
+taxType=課税タイプ
+taxRate=税率
 
 backTo={0}へ戻る
 
+category=カテゴリ
 userName=ユーザ名
 itemName=商品名
 categoryName=カテゴリ名
@@ -63,8 +70,17 @@ price=価格
 welcome=セットアップが完了しました。
 itemIsCreated=商品が登録されました。
 categoryIsCreated=カテゴリが登録されました。
+taxIsCreated=課税レコードが登録されました。
 itemDescription=商品詳細
 language=言語
 
 lang.ja=日本語
 lang.en=英語
+
+tax.OUTER_TAX=外税
+tax.INNER_TAX=内税
+tax.NON_TAX=非課税
+
+format.real=
+error.real.precision=最大{0}桁、うち小数点以下{1}桁で入力してください。
+taxName=課税名称

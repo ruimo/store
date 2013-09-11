@@ -22,5 +22,10 @@ GET     /admin/startCreateNewCategory controllers.CategoryMaintenance.startCreat
 POST    /admin/createNewCategory      controllers.CategoryMaintenance.createNewCategory
 GET     /admin/editCategory           controllers.CategoryMaintenance.editCategory
 
+GET     /admin/taxMaintenance         controllers.TaxMaintenance.index
+GET     /admin/startCreateNewTax      controllers.TaxMaintenance.startCreateNewTax
+POST    /admin/createNewTax           controllers.TaxMaintenance.createNewTax
+GET     /admin/editTax                controllers.TaxMaintenance.editTax
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                 controllers.Assets.at(path="/public", file)

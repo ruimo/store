@@ -106,15 +106,23 @@ create table tax (
 
 create sequence tax_seq start with 1000;
 
+create table tax_name (
+  tax_id bigint not null references tax on delete cascade,
+  locale_id bigint not null references locale,
+  tax_name varchar(32) not null,
+  unique (tax_id, locale_id)
+);
+
 create table tax_history (
   tax_history_id bigint not null,
   tax_id bigint not null references tax on delete cascade,
   tax_type integer not null,
   rate decimal(5,3) not null,
   -- Exclusive
-  valid_until timestamp not null unique,
+  valid_until timestamp not null,
   constraint tax_history_check1 check (tax_type in (0,1, 2)),
-  constraint pk_tax_history primary key(tax_history_id)
+  constraint pk_tax_history primary key(tax_history_id),
+  unique (tax_id, valid_until)
 );
 
 create sequence tax_history_seq start with 1000;

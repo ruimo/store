@@ -1,0 +1,18 @@
+@()(implicit lang: Lang)
+
+@main(Messages("taxMaintenanceTitle")) {
+  <h1>@Messages("categoryMaintenanceTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.TaxMaintenance.startCreateNewTax()">
+      @Messages("createNewTaxMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.TaxMaintenance.editTax()">
+      @Messages("editTaxMenu")
+    </a>
+  </div>
+}
+

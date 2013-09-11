@@ -1,4 +1,6 @@
-@(myForm: Form[models.CreateItem])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+@(myForm: Form[models.CreateItem], langTable: Seq[(String, String)], categoryTable: Seq[(String, String)])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+
+@import helper._
 
 @main(Messages("createNewItemTitle")) {
   <h1>@Messages("createNewItemTitle")</h1>
@@ -16,6 +18,20 @@
   }
 
   @helper.form(action = helper.CSRF(routes.ItemMaintenance.createNewItem()), 'id -> "createNewItemForm") {
+    @select(
+      myForm("langId"), 
+      langTable, 
+      '_label -> Messages("language"),
+      '_showConstraints -> false
+    )
+
+    @select(
+      myForm("categoryId"), 
+      categoryTable, 
+      '_label -> Messages("category"),
+      '_showConstraints -> false
+    )
+
     @helper.inputText(
       myForm("itemName"),
       '_label -> Messages("itemName"), 'size -> 24, 'maxlength -> 32
