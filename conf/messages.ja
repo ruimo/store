@@ -84,3 +84,6 @@ tax.NON_TAX=非課税
 format.real=
 error.real.precision=最大{0}桁、うち小数点以下{1}桁で入力してください。
 taxName=課税名称
+
+search.placeholder=商品名で検索...
+search.button.title=検索

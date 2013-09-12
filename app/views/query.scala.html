@@ -1,4 +1,4 @@
-@(message: String)
+@(message: String, queryString: String, list: Seq[(models.Item, models.ItemName, models.ItemDescription, models.ItemPrice, models.ItemPriceHistory, Map[models.MetadataType, models.ItemNumericMetadata])])
 
 @main("Functional Store") {
 <div id="my_header"><h1>Functional Store</h1></div>
@@ -35,10 +35,17 @@
 <div id="my_contents">
   <div id="mymain">
     <div class="contents">
-      @helper.form(action=routes.ItemQuery.query("")) {
-        <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">
+      @helper.form(action=routes.ItemQuery.query(queryString)) {
+        <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
         <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
       }
+
+      <br>
+      <table>
+        @list.map { e =>
+          <td>@e._2.name</td>
+        }
+      </table>
     </div>
   </div>
 </div>

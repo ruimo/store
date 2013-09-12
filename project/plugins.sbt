@@ -11,6 +11,6 @@ addSbtPlugin("play" % "sbt-plugin" % "2.1.3")
 
 resolvers += Classpaths.typesafeResolver
 
-resolvers += "scct-github-repository" at "http://mtkopone.github.com/scct/maven-repo"
+resolvers += "scct-github-repository" at "http://mtkopone.github.io/scct/maven-repo"
 
 addSbtPlugin("reaktor" % "sbt-scct" % "0.2-SNAPSHOT")

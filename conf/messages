@@ -56,3 +56,6 @@ tax.NON_TAX=Non tax
 
 format.real=
 taxName=Tax name
+
+search.placeholder=Input seatch text...
+search.button.title=Search
