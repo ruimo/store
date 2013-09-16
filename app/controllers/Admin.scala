@@ -3,6 +3,7 @@ package controllers
 import play.api.data.Forms._
 import play.api._
 import data.Form
+import db.DB
 import i18n.{Lang, Messages}
 import play.api.mvc._
 import play.filters.csrf.CSRF.Token._
@@ -10,6 +11,7 @@ import helpers.{RandomTokenGenerator, TokenGenerator}
 import play.api.data.validation.Constraints._
 import models.FirstSetup
 import controllers.I18n.I18nAware
+import play.api.Play.current
 
 object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
@@ -38,10 +40,10 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
     firstSetupForm.bindFromRequest.fold(
       formWithErrors =>
         BadRequest(views.html.admin.firstSetup(formWithErrors)),
-      firstSetup => {
+      firstSetup => DB.withConnection { implicit conn => {
         val createdUser = firstSetup.save
         Redirect(routes.Admin.index).flashing("message" -> Messages("welcome"))
-      }
+      }}
     )
   }}
   

@@ -1,4 +1,11 @@
-@(message: String, queryString: String, list: Seq[(models.Item, models.ItemName, models.ItemDescription, models.ItemPrice, models.ItemPriceHistory, Map[models.MetadataType, models.ItemNumericMetadata])])
+@(message: String,
+  queryString: String,
+  list: Seq[(models.Item,
+             models.ItemName,
+             models.ItemDescription,
+             models.Site,
+             models.ItemPriceHistory,
+             Map[models.MetadataType, models.ItemNumericMetadata])])
 
 @main("Functional Store") {
 <div id="my_header"><h1>Functional Store</h1></div>
@@ -44,6 +51,8 @@
       <table>
         @list.map { e =>
           <td>@e._2.name</td>
+          <td>@e._4.name</td>
+          <td>@e._5.unitPrice</td>
         }
       </table>
     </div>

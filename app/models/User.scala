@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import helpers.PasswordHash
+import java.sql.Connection
 
 case class StoreUser(
   id: Pk[Long] = NotAssigned,
@@ -44,36 +45,32 @@ object StoreUser {
     }
   }
 
-  def count = DB.withConnection { implicit conn =>
+  def count(implicit conn: Connection) = 
     SQL("select count(*) from store_user").as(SqlParser.scalar[Long].single)
-  }
 
-  def find(id: Long): StoreUser = DB.withConnection { implicit conn => {
+  def find(id: Long)(implicit conn: Connection): StoreUser =
     SQL(
       "select * from store_user where store_user_id = {id}"
     ).on(
       'id -> id
     ).as(StoreUser.simple.single)
-  }}
-
-  def findByUserName(userName: String): Option[StoreUser] = DB.withConnection { implicit conn => {
+  
+  def findByUserName(userName: String)(implicit conn: Connection): Option[StoreUser] =
     SQL(
       "select * from store_user where user_name = {user_name}"
     ).on(
       'user_name -> userName
     ).as(StoreUser.simple.singleOpt)
-  }}
 
-  def all: Seq[StoreUser] = DB.withConnection { implicit conn => {
+  def all(implicit conn: Connection): Seq[StoreUser] =
     SQL(
       "select * from store_user"
     ).as(StoreUser.simple *)
-  }}
 
   def create(
     userName: String, firstName: String, middleName: Option[String], lastName: String,
     email: String, passwordHash: Long, salt: Long, userRole: UserRole
-  ): StoreUser = DB.withConnection { implicit conn => {
+  )(implicit conn: Connection): StoreUser = {
     SQL(
       """
       insert into store_user (
@@ -96,7 +93,7 @@ object StoreUser {
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
     StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash, salt,  false, userRole)
-  }}
+  }
 }
 
 object SiteUser {

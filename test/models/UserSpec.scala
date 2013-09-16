@@ -12,34 +12,40 @@ class UserSpec extends Specification {
   "User" should {
     "User count should be zero when table is empty" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        StoreUser.count === 0
+        DB.withConnection { implicit conn => {
+          StoreUser.count === 0
+        }}
       }
     }
 
     "User count should reflect the number of records in the table" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        StoreUser.create(
-          "userName", "firstName", Some("middleName"), "lastName", "email",
-          1L, 2L, UserRole.ADMIN
-        )
-        StoreUser.count === 1
+        DB.withConnection { implicit conn => {
+          StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN
+          )
+          StoreUser.count === 1
+        }}
       }
     }
 
     "User can be queried by username" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        val user1 = StoreUser.create(
-          "userName", "firstName", Some("middleName"), "lastName", "email",
-          1L, 2L, UserRole.ADMIN
-        )
+        DB.withConnection { implicit conn => {
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN
+          )
 
-        val user2 = StoreUser.create(
-          "userName2", "firstName2", None, "lastName2", "email2",
-          1L, 2L, UserRole.ADMIN
-        )
+          val user2 = StoreUser.create(
+            "userName2", "firstName2", None, "lastName2", "email2",
+            1L, 2L, UserRole.ADMIN
+          )
 
-        StoreUser.findByUserName("userName").get === user1
-        StoreUser.findByUserName("userName2").get === user2
+          StoreUser.findByUserName("userName").get === user1
+          StoreUser.findByUserName("userName2").get === user2
+        }}
       }
     }
   }

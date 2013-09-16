@@ -45,8 +45,14 @@
     <input type="submit" value=@Messages("register")>
   }
 
+  <br>
   <a href="@routes.TaxMaintenance.index()">
     @Messages("backTo", Messages("taxMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
   </a>
 }
 

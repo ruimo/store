@@ -5,13 +5,17 @@ import play.api.test.Helpers._
 import org.specs2.mutable._
 import play.api.i18n.{Lang, Messages}
 import models.{UserRole, StoreUser}
+import play.api.db.DB
+import play.api.Play.current
 
 class LoginSpec extends Specification {
   // password == password
-  def createTestUser() = StoreUser.create(
-    "administrator", "Admin", None, "Manager", "admin@abc.com", 
-    4151208325021896473L, -1106301469931443100L, UserRole.ADMIN
-  )
+  def createTestUser() = DB.withConnection { implicit conn => {
+    StoreUser.create(
+      "administrator", "Admin", None, "Manager", "admin@abc.com",
+      4151208325021896473L, -1106301469931443100L, UserRole.ADMIN
+    )
+  }}
 
   "Login" should {
     "Login screen is shown if not logged in." in {

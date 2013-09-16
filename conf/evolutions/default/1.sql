@@ -49,21 +49,29 @@ create table item_numeric_metadata (
 create sequence item_numeric_metadata_seq start with 1000;
 
 create table item_name (
+  item_name_id bigint not null,
   locale_id bigint not null references locale,
   item_id bigint not null references item on delete cascade,
   item_name text not null,
-  constraint pk_item_name primary key (locale_id, item_id)
+  constraint pk_item_name primary key (item_name_id),
+  unique (locale_id, item_id)
 );
+
+create sequence item_name_seq start with 1000;
 
 create index ix_item_name1 on item_name (item_id);
 
 create table item_description (
+  item_description_id bigint not null,
   locale_id bigint not null references locale,
   description text not null,
   item_id bigint not null references item on delete cascade,
   site_id bigint not null references site on delete cascade,
-  constraint pk_item_description primary key (locale_id, item_id, site_id)
+  constraint pk_item_description primary key (item_description_id),
+  unique (locale_id, item_id, site_id)
 );
+
+create sequence item_description_seq start with 1000;
 
 create index ix_item_description1 on item_description (item_id);
 

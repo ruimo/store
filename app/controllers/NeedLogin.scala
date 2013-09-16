@@ -9,6 +9,8 @@ import models.{StoreUser, FirstSetup, LoginUser}
 import play.api.i18n.Messages
 import play.api.templates.Html
 import helpers.PasswordHash
+import play.api.db.DB
+import play.api.Play.current
 
 trait NeedLogin extends Controller with HasLogger {
   val userNameConstraint = List(minLength(6), maxLength(24))
@@ -42,16 +44,18 @@ trait NeedLogin extends Controller with HasLogger {
   def loginSession(request: RequestHeader): Option[LoginSession] =
     request.session.get(LoginUserKey).map { sessionString: String => LoginSession(sessionString) }
 
-  def onUnauthorized(request: RequestHeader) = StoreUser.count match {
-    case 0 =>  {
-      logger.info("User table empty. Go to first setup page.")
-      Results.Redirect(routes.Admin.startFirstSetup)
+  def onUnauthorized(request: RequestHeader) = DB.withConnection { implicit conn => {
+    StoreUser.count match {
+      case 0 =>  {
+        logger.info("User table empty. Go to first setup page.")
+        Results.Redirect(routes.Admin.startFirstSetup)
+      }
+      case _ => {
+        logger.info("User table is not empty. Go to login page.")
+        Results.Redirect(routes.Admin.startLogin)
+      }
     }
-    case _ => {
-      logger.info("User table is not empty. Go to login page.")
-      Results.Redirect(routes.Admin.startLogin)
-    }
-  }
+  }}
 
   def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result) = {
     Authenticated(loginSession, onUnauthorized) { user =>
@@ -77,7 +81,9 @@ trait NeedLogin extends Controller with HasLogger {
     BadRequest(views.html.admin.login(form))
   }
 
-  def tryLogin(user: LoginUser, form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
+  def tryLogin(
+    user: LoginUser, form: Form[LoginUser]
+  )(implicit request: Request[AnyContent]) = DB.withConnection { implicit conn => {
     StoreUser.findByUserName(user.userName) match {
       case None => onLoginUserNotFound(form)
       case Some(rec) => {
@@ -94,7 +100,7 @@ trait NeedLogin extends Controller with HasLogger {
         }
       }
     }
-  }
+  }}
 
   def onLoginUserNotFound(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
     logger.error("User '" + form.data("userName") + "' not found.")

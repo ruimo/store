@@ -69,3 +69,38 @@ form dl.error dt {
     margin-left: 10px;
     background: lightcyan;
 }
+
+.itemHeader {
+    background: blue;
+    color: white;
+}
+
+.itemTableHeaderId {
+    width: 10%;
+}
+
+.itemTableHeaderItemName {
+    width: 40%;
+}
+
+.itemTableHeaderSiteName {
+    width: 30%;
+}
+
+.itemTableHeaderPrice {
+    width: 20%;
+}
+
+.itemTablePrice {
+    text-align: right;
+}
+
+.itemTable {
+    width: 90%;
+}
+
+.error {
+    background: PapayaWhip;
+    color: red;
+    font-weight: bold;
+}

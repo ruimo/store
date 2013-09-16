@@ -6,6 +6,7 @@ import java.util.{Currency, Locale}
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
+import java.sql.Connection
 
 case class CurrencyInfo(id: Long, currencyCode: String) extends NotNull {
   def toCurrency: Currency = Currency.getInstance(currencyCode)
@@ -30,4 +31,13 @@ object CurrencyInfo {
   def apply(id: Long): CurrencyInfo = get(id).get
 
   def get(id: Long): Option[CurrencyInfo] = registry.get(id)
+  
+  def tableForDropDown(implicit conn: Connection): Seq[(String, String)] =
+    SQL(
+      "select * from currency order by currency_code"
+    ).as(
+      simple *
+    ).map {
+      e => e.id.toString -> e.currencyCode
+    }
 }

@@ -1,8 +1,8 @@
-@(myForm: Form[models.CreateCategory], langTable: Seq[(String, String)])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+@(myForm: Form[models.CreateSite], langTable: Seq[(String, String)])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
 
 @import helper._
 
-@main(Messages("createNewCategoryTitle")) {
+@main(Messages("createNewSiteTitle")) {
   <h1>@Messages("createNewCategoryTitle")</h1>
 
   @if(myForm.hasErrors) {
@@ -17,7 +17,7 @@
     </div>
   }
 
-  @helper.form(action = helper.CSRF(routes.CategoryMaintenance.createNewCategory()), 'id -> "createNewCategoryForm") {
+  @helper.form(action = helper.CSRF(routes.SiteMaintenance.createNewSite()), 'id -> "createNewSiteForm") {
     @select(
       myForm("langId"), 
       langTable, 
@@ -26,16 +26,16 @@
     )
 
     @helper.inputText(
-      myForm("categoryName"),
-      '_label -> Messages("categoryName"), 'size -> 24, 'maxlength -> 32
+      myForm("siteName"),
+      '_label -> Messages("siteName"), 'size -> 24, 'maxlength -> 32
     )
 
     <input type="submit" value=@Messages("register")>
   }
 
   <br>
-  <a href="@routes.CategoryMaintenance.index()">
-    @Messages("backTo", Messages("categoryMaintenanceTitle"))
+  <a href="@routes.SiteMaintenance.index()">
+    @Messages("backTo", Messages("siteMaintenanceTitle"))
   </a>
 
   <br>

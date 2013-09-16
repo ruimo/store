@@ -18,14 +18,47 @@ class SiteSpec extends Specification {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         TestHelper.removePreloadedRecords()
 
-        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
-        val site2 = Site.createNew(LocaleInfo.En, "Shop2")
+        DB.withConnection { implicit conn => {
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.En, "Shop2")
 
-        val list = Site.listByName()
-        list.size === 2
-        list(0).name === "Shop2"
-        list(1).name === "商店1"
+          val list = Site.listByName()
+          list.size === 2
+          list(0).name === "Shop2"
+          list(1).name === "商店1"
+        }}
       }      
+    }
+
+    "Can create dropdown items." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => {
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.En, "Shop2")
+          
+          val list = Site.tableForDropDown
+          list.size === 2
+          list(0)._1 === site2.id.get.toString
+          list(0)._2 === site2.name
+
+          list(1)._1 === site1.id.get.toString
+          list(1)._2 === site1.name
+        }}        
+      }      
+    }
+
+    "Can retrieve record by id." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => {
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+
+          site1 === Site(site1.id.get)
+        }}
+      }
     }
   }
 }

@@ -35,26 +35,36 @@ itemMaintenanceTitle=商品管理
 createItemMenu=商品登録
 createNewItemMenu=新規商品追加
 createNewCategoryMenu=新規カテゴリ追加
+createNewSiteMenu=新規店舗追加
 createNewTaxMenu=新規課税レコード追加
 createNewTaxTitle=新規課税レコード追加
 editItemMenu=商品情報変更
 editCategoryMenu=カテゴリ情報変更
+editSiteMenu=店舗情報変更
 editTaxMenu=課税情報変更
 createNewItemTitle=新規商品追加
 createNewCategoryTitle=新規カテゴリ追加
+createNewSiteTitle=新規店舗追加
 editItemTitle=商品情報変更
+changeItemTitle=商品変更
 categoryMaintenanceTitle=カテゴリ管理
 taxMaintenanceTitle=課税管理
+siteMaintenanceTitle=店舗管理
 editCategoryTitle=カテゴリ情報変更
+editSiteTitle=店舗情報変更
 taxType=課税タイプ
 taxRate=税率
 
 backTo={0}へ戻る
 
+site=店舗
+siteItem=取扱店舗
 category=カテゴリ
 userName=ユーザ名
 itemName=商品名
+itemDescription=商品説明
 categoryName=カテゴリ名
+siteName=店舗名
 password=パスワード
 password.confirm=パスワード(確認)
 login=ログイン
@@ -69,14 +79,18 @@ cannotLogin=ログインできませんでした。入力を確認してくだ�
 price=価格
 welcome=セットアップが完了しました。
 itemIsCreated=商品が登録されました。
+itemIsUpdated=商品が変更されました。
 categoryIsCreated=カテゴリが登録されました。
+siteIsCreated=店舗が登録されました。
 taxIsCreated=課税レコードが登録されました。
 itemDescription=商品詳細
 language=言語
+item=商品
 
 lang.ja=日本語
 lang.en=英語
 
+tax=課税
 tax.OUTER_TAX=外税
 tax.INNER_TAX=内税
 tax.NON_TAX=非課税
@@ -87,3 +101,10 @@ taxName=課税名称
 
 search.placeholder=商品名で検索...
 search.button.title=検索
+currency=通貨
+
+add=追加
+update=変更
+remove=削除
+
+unique.constraint.violation=重複しています

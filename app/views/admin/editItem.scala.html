@@ -1,7 +1,46 @@
-@()(implicit lang: Lang)
+@(queryString: String,
+  list: Seq[(models.Item,
+             models.ItemName,
+             models.ItemDescription,
+             models.Site,
+             models.ItemPriceHistory,
+             Map[models.MetadataType, models.ItemNumericMetadata])])(implicit lang: Lang)
 
-@main(Messages("createNewItemTitle")) {
-  <h1>@Messages("createNewItemTitle")</h1>
+@main(Messages("editItemTitle")) {
+  <h1>@Messages("editItemTitle")</h1>
 
+  @helper.form(action=routes.ItemMaintenance.editItem()) {
+    <input type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
+    <input type="submit" value="@Messages("search.button.title")">
+  }
+
+  <br>
+
+  <table class="itemTable">
+    <tr>
+      <th class="itemTableHeaderId itemHeader">id</th>
+      <th class="itemTableHeaderItemName itemHeader">@Messages("itemName")</th>
+      <th class="itemTableHeaderSiteName itemHeader">@Messages("site")</th>
+      <th class="itemTableHeaderPrice itemHeader">@Messages("price")</th>
+    </tr>
+
+    @list.map { e =>
+    <tr>
+      <td class="itemTableItemName"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get)">@e._1.id</a></td>
+      <td class="itemTableItemName">@e._2.name</td>
+      <td class="itemTableSiteName">@e._4.name</td>
+      <td class="itemTablePrice">@e._5.unitPrice</td>
+    </tr>
+    }
+  </table>
+
+  <br>
+  <a href="@routes.ItemMaintenance.index()">
+    @Messages("backTo", Messages("itemMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
 }
-

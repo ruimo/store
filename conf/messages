@@ -7,17 +7,23 @@ firstSetupGuide=Register administrator
 itemMaintenanceTitle=Item Maintenance
 createNewItemMenu=Create new item
 createNewCategoryMenu=Create new category
+createNewSiteMenu=Create new Store
 createNewTaxMenu=Create new tax
 createNewTaxTitle=Create new tax
 editItemMenu=Edit item
 editCategoryMenu=Edit category
+editSiteMenu=Edit store
 editTaxMenu=Edit tax
 createNewItemTitle=Create new item
 createNewCategoryTitle=Create new category
+createNewSiteTitle=Create new store
 editItemTitle=Edit item
+changeItemTitle=Change item
 categoryMaintenanceTitle=Category Maintenance
 taxMaintenanceTitle=Category Maintenance
+siteMaintenanceTitle=Store Maintenance
 editCategoryTitle=Edit category
+editSiteTitle=Edit Store
 taxType=Type
 taxRate=Tax Rate
 
@@ -25,9 +31,12 @@ backTo=Back to {0}
 
 createItemMenu=Create Item
 
+site=Store
+siteItem=Stores selling this item
 category=Category
 userName=User Name
 itemName=Item Name
+itemDescription=Item Description
 categoryName=Category Name
 password=password
 password.confirm=password(confirm)
@@ -42,14 +51,18 @@ cannotLogin=Cannot login. Please check input.
 price=Price
 welcome=Welcome
 itemIsCreated=Item is created.
+itemIsUpdated=Item is updated.
 categoryIsCreated=Category is created.
+siteIsCreated=Store is created.
 taxIsCreated=Tax is created.
 itemDescription=Description
 language=Language
+item=Item
 
 lang.ja=Japanese
 lang.en=English
 
+tax=Tax
 tax.OUTER_TAX=Outer tax
 tax.INNER_TAX=Inner tax
 tax.NON_TAX=Non tax
@@ -59,3 +72,10 @@ taxName=Tax name
 
 search.placeholder=Input seatch text...
 search.button.title=Search
+currency=Currency
+
+add=Add
+update=Update
+remove=Remove
+
+unique.constraint.violation=Duplicated

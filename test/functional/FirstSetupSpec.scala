@@ -7,6 +7,7 @@ import play.api.i18n.{Lang, Messages}
 import models.{UserRole, StoreUser}
 import play.api.Play
 import play.api.Play.current
+import play.api.db.DB
 
 class FirstSetupSpec extends Specification {
   "FirstSetup" should {
@@ -21,7 +22,7 @@ class FirstSetupSpec extends Specification {
 
     "First setup create user." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn => {
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("firstSetupTitle")
@@ -45,7 +46,7 @@ class FirstSetupSpec extends Specification {
         user.lastName === "lastname"
         user.userName === "username"
         user.userRole === UserRole.ADMIN
-      }
+      }}}
     }
 
     "Minimum length error." in {

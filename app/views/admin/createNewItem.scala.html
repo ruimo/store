@@ -1,4 +1,10 @@
-@(myForm: Form[models.CreateItem], langTable: Seq[(String, String)], categoryTable: Seq[(String, String)])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+@(myForm: Form[models.CreateItem],
+  langTable: Seq[(String, String)],
+  categoryTable: Seq[(String, String)],
+  siteTable: Seq[(String, String)],
+  taxTable: Seq[(String, String)],
+  currencyTable: Seq[(String, String)]
+)(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
 
 @import helper._
 
@@ -26,6 +32,13 @@
     )
 
     @select(
+      myForm("siteId"), 
+      siteTable, 
+      '_label -> Messages("site"),
+      '_showConstraints -> false
+    )
+
+    @select(
       myForm("categoryId"), 
       categoryTable, 
       '_label -> Messages("category"),
@@ -35,6 +48,20 @@
     @helper.inputText(
       myForm("itemName"),
       '_label -> Messages("itemName"), 'size -> 24, 'maxlength -> 32
+    )
+
+    @select(
+      myForm("taxId"), 
+      taxTable, 
+      '_label -> Messages("tax"),
+      '_showConstraints -> false
+    )
+
+    @select(
+      myForm("currencyId"), 
+      currencyTable, 
+      '_label -> Messages("currency"),
+      '_showConstraints -> false
     )
 
     @helper.inputText(
@@ -50,5 +77,14 @@
 
     <input type="submit" value=@Messages("register")>
   }
-}
 
+  <br>
+  <a href="@routes.ItemMaintenance.index()">
+    @Messages("backTo", Messages("itemMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}

@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.{Messages, Lang}
+import java.sql.Connection
 
 case class Tax(id: Pk[Long] = NotAssigned) extends NotNull
 
@@ -21,17 +22,30 @@ object Tax {
     }
   }
 
-  def createNew(): Tax = DB.withConnection { implicit conn => {
+  val withName = Tax.simple ~ TaxName.simple map {
+    case tax~name => (tax, name)
+  }
+
+  def apply(id: Long)(implicit conn: Connection): Tax =
+    SQL(
+      "select * from tax where tax_id = {id}"
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
+  def createNew(implicit conn: Connection): Tax = {
     SQL("insert into tax (tax_id) values ((select nextval('tax_seq')))").executeUpdate()
 
     val taxId = SQL("select currval('tax_seq')").as(SqlParser.scalar[Long].single)
 
     Tax(Id(taxId))
-  }}
+  }
 
-  def list: Seq[Tax] = DB.withConnection { implicit conn => {
-    SQL("select * from tax order by tax_id").as(Tax.simple *)
-  }}
+  def list(implicit conn: Connection): Seq[Tax] = SQL(
+    "select * from tax order by tax_id"
+  ).as(Tax.simple *)
 
   val allTaxType = classOf[TaxType].getEnumConstants().toList
 
@@ -40,6 +54,25 @@ object Tax {
 
     allTaxType.map {
       e => e.ordinal.toString -> Messages("tax." + e)
+    }
+  }
+
+  def tableForDropDown(implicit lang: Lang, conn: Connection): Seq[(String, String)] = {
+    val locale = LocaleInfo.byLang(lang)
+
+    SQL(
+      """
+      select * from tax
+      inner join tax_name on tax.tax_id = tax_name.tax_id
+      where tax_name.locale_id = {localeId}
+      order by tax_name.tax_name
+      """
+    ).on(
+      'localeId -> locale.id
+    ).as(
+      withName *
+    ).map {
+      e => e._1.id.get.toString -> e._2.taxName
     }
   }
 }
@@ -54,7 +87,7 @@ object TaxName {
     }
   }
 
-  def createNew(tax: Tax, locale:LocaleInfo, name: String): TaxName = DB.withConnection { implicit conn =>
+  def createNew(tax: Tax, locale: LocaleInfo, name: String)(implicit conn: Connection): TaxName = {
     SQL(
       """
       insert into tax_name (tax_id, locale_id, tax_name)
@@ -82,9 +115,9 @@ object TaxHistory {
     }
   }
 
-  def createNew(tax: Tax, taxType: TaxType, rate: BigDecimal, validUntil: Long)
-    : TaxHistory = DB.withConnection { implicit conn => 
-  {
+  def createNew(
+    tax: Tax, taxType: TaxType, rate: BigDecimal, validUntil: Long
+  )(implicit conn: Connection) : TaxHistory = {
     SQL(
       """
       insert into tax_history (tax_history_id, tax_id, tax_type, rate, valid_until)
@@ -100,5 +133,5 @@ object TaxHistory {
     val id = SQL("select currval('tax_history_seq')").as(SqlParser.scalar[Long].single)
 
     TaxHistory(Id(id), tax.id.get, taxType, rate, validUntil)
-  }}
+  }
 }

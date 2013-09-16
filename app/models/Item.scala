@@ -3,10 +3,13 @@ package models
 import anorm._
 import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
+import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{HashMap, IntMap}
+import java.sql.Connection
+import play.api.data.Form
 
 case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
 
@@ -39,7 +42,69 @@ object Item {
     }
   }
 
-  def createNew(category: Category): Item = DB.withConnection { implicit conn => {
+  val itemQuerySql = """
+      select * from item
+      inner join item_name on item.item_id = item_name.item_id
+      inner join item_description on item.item_id = item_description.item_id
+      inner join item_price on item.item_id = item_price.item_id
+      inner join site_item on item.item_id = site_item.item_id
+      inner join site on site_item.site_id = site.site_id
+      where item_name.locale_id = {localeId}
+      and item_description.locale_id = {localeId}
+      and item_name.item_name like {query}
+      order by item_name.item_name
+  """;
+
+  val itemParser = Item.simple~ItemName.simple~ItemDescription.simple~ItemPrice.simple~Site.simple map {
+    case item~itemName~itemDescription~itemPrice~site => (
+      item, itemName, itemDescription, itemPrice, site
+    )
+  }
+
+  def apply(id: Long)(implicit conn: Connection): Item =
+    SQL(
+      "select * from item where item_id = {id}"
+    ).on(
+      'id -> id
+    ).as(simple.single)
+
+  def itemInfo(
+    id: Long, locale: LocaleInfo,
+    now: Long = System.currentTimeMillis
+  )(
+    implicit conn: Connection
+  ): (Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata]) = {
+    val item = SQL(
+      """
+      select * from item
+      inner join item_name on item.item_id = item_name.item_id
+      inner join item_description on item.item_id = item_description.item_id
+      inner join item_price on item.item_id = item_price.item_id
+      inner join site_item on item.item_id = site_item.item_id
+      inner join site on site_item.site_id = site.site_id
+      where item.item_id= {id}
+      and item_name.locale_id = {localeId}
+      and item_description.locale_id = {localeId}
+      order by item_name.item_name
+      """
+    ).on(
+      'id -> id,
+      'localeId -> locale.id
+    ).as(
+      itemParser.single
+    )
+
+    val itemId = item._1.id.get
+    val itemPriceId = item._4.id.get
+    val priceHistory = ItemPriceHistory.at(itemPriceId, now)
+    val metadata = ItemNumericMetadata.allById(itemId)
+
+    (item._1, item._2, item._3, item._5, priceHistory, metadata)
+  }
+
+  def createNew(category: Category)(implicit conn: Connection): Item = createNew(category.id.get)
+
+  def createNew(categoryId: Long)(implicit conn: Connection): Item = {
     SQL(
       """
       insert into item values (
@@ -47,32 +112,28 @@ object Item {
       )
       """
     ).on(
-      'categoryId -> category.id
+      'categoryId -> categoryId
     ).executeUpdate()
 
     val itemId = SQL("select currval('item_seq')").as(SqlParser.scalar[Long].single)
 
-    Item(Id(itemId), category.id.get)
-  }}
-
-  val listParser = Item.simple~ItemName.simple~ItemDescription.simple~ItemPrice.simple~SiteItem.simple map {
-    case item~itemName~itemDescription~itemPrice~siteItem => (
-      item, itemName, itemDescription, itemPrice, siteItem
-    )
+    Item(Id(itemId), categoryId)
   }
 
   def list(
     locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
-  DB.withConnection { implicit conn => {
-    val itemTable = SQL(
+  )(
+    implicit conn: Connection
+  ): Seq[(Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
+    SQL(
       """
       select * from item
       inner join item_name on item.item_id = item_name.item_id
       inner join item_description on item.item_id = item_description.item_id
       inner join item_price on item.item_id = item_price.item_id
       inner join site_item on item.item_id = site_item.item_id
+      inner join site on site_item.site_id = site.site_id
       where item_name.locale_id = {localeId}
       and item_description.locale_id = {localeId}
       and item_name.item_name like {query}
@@ -84,35 +145,39 @@ object Item {
       'query -> ("%" + queryString + "%"),
       'pageSize -> pageSize,
       'offset -> page * pageSize
-    ).as(listParser *)
-
-    itemTable.map {e => {
+    ).as(
+      itemParser *
+    ).map {e => {
       val itemId = e._1.id.get
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
-      (e._1, e._2, e._3, e._4, priceHistory, metadata)
+
+      (e._1, e._2, e._3, e._5, priceHistory, metadata)
     }}
-  }}
 
   def listBySite(
     site: Site, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis
+  )(
+    implicit conn: Connection
   ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
     listBySiteId(site.id.get, locale, queryString, page, pageSize, now)
 
   def listBySiteId(
     siteId: Long, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
-  DB.withConnection { implicit conn => {
-    val itemTable = SQL(
+  )(
+    implicit conn: Connection
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])]  =
+    SQL(
       """
       select * from item
       inner join item_name on item.item_id = item_name.item_id
       inner join item_description on item.item_id = item_description.item_id
       inner join item_price on item.item_id = item_price.item_id
       inner join site_item on item.item_id = site_item.item_id
+      inner join site on site.site_id = site_item.site_id
       where item_name.locale_id = {localeId}
       and item_description.locale_id = {localeId}
       and item_description.site_id = {siteId}
@@ -128,16 +193,35 @@ object Item {
       'query -> ("%" + queryString + "%"),
       'pageSize -> pageSize,
       'offset -> page * pageSize
-    ).as(listParser *)
-
-    itemTable.map {e => {
+    ).as(
+      itemParser *
+    ).map { e => {
       val itemId = e._1.id.get
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
       (e._1, e._2, e._3, e._4, priceHistory, metadata)
     }}
-  }}
+
+  def createItem(prototype: CreateItem)(implicit conn: Connection) {
+    val item = Item.createNew(prototype.categoryId)
+    val name = ItemName.createNew(item, Map(LocaleInfo(prototype.localeId) -> prototype.itemName))
+    val site = Site(prototype.siteId)
+    val desc = ItemDescription.createNew(item, site, prototype.description)
+    val price = ItemPrice.createNew(site, item)
+    val tax = Tax(prototype.taxId)
+    val priceHistory = ItemPriceHistory.createNew(price, tax, prototype.currency, prototype.price, Until.Ever)
+    val siteItem = SiteItem.createNew(site, item)
+  }
+
+  def changeCategory(itemId: Long, categoryId: Long)(implicit conn: Connection) {
+    SQL(
+      "update item set category_id = {categoryId} where item_id = {itemId}"
+    ).on(
+      'itemId -> itemId,
+      'categoryId -> categoryId
+    ).executeUpdate()
+  }
 }
 
 object ItemName {
@@ -149,34 +233,92 @@ object ItemName {
     }
   }
 
-  def createNew(item: Item, names: Map[LocaleInfo, String]): Map[LocaleInfo, ItemName] = DB.withConnection {
-    implicit conn => {
-      names.transform { (k, v) => {
-        SQL(
-          """
-          insert into item_name (locale_id, item_id, item_name)
-          values ({localeId}, {itemId}, {itemName})
-          """
-        ).on(
-          'localeId -> k.id,
-          'itemId -> item.id.get,
-          'itemName -> v
-        ).executeUpdate()
-
-        ItemName(k.id, item.id.get, v)
-      }}
-    }
+  def createNew(
+    item: Item, names: Map[LocaleInfo, String]
+  )(implicit conn: Connection): Map[LocaleInfo, ItemName] = {
+    names.transform { (k, v) => {
+      SQL(
+        """
+        insert into item_name (item_name_id, locale_id, item_id, item_name)
+        values (
+          (select nextval('item_name_seq')),
+          {localeId}, {itemId}, {itemName}
+        )
+        """
+      ).on(
+        'localeId -> k.id,
+        'itemId -> item.id.get,
+        'itemName -> v
+      ).executeUpdate()
+      
+      ItemName(k.id, item.id.get, v)
+    }}
   }
 
-  def list(item: Item): Map[LocaleInfo, ItemName] = DB.withConnection { implicit conn => {
+  def list(item: Item)(implicit conn: Connection): Map[LocaleInfo, ItemName] = list(item.id.get)
+
+  def list(itemId: Long)(implicit conn: Connection): Map[LocaleInfo, ItemName] = {
     SQL(
       "select * from item_name where item_id = {itemId}"
     ).on(
-      'itemId -> item.id.get
+      'itemId -> itemId
     ).as(simple *).map { e =>
       LocaleInfo(e.localeId) -> e
     }.toMap
-  }}
+  }
+
+  def add(itemId: Long, localeId: Long, itemName: String)(implicit conn: Connection) {
+    SQL(
+      """
+      insert into item_name (item_name_id, item_id, locale_id, item_name)
+      values (
+        (select nextval('item_name_seq')),
+        {itemId}, {localeId}, {itemName}
+      )
+      """
+    ).on(
+      'itemId -> itemId,
+      'localeId -> localeId,
+      'itemName -> itemName
+    ).executeUpdate()
+  }
+
+  def remove(id: Long)(implicit conn: Connection) {
+    SQL(
+      "delete from item_name where item_name_id = {id}"
+    )
+    .on(
+      'id -> id
+    ).executeUpdate()
+  }
+
+  def remove(itemId: Long, localeId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from item_name
+      where item_id = {itemId}
+      and locale_id = {localeId}
+      and (select count(*) from item_name where item_id = {itemId}) > 1
+      """
+    )
+    .on(
+      'itemId -> itemId,
+      'localeId -> localeId
+    ).executeUpdate()
+  }
+
+  def update(itemId: Long, localeId: Long, itemName: String)(implicit conn: Connection) {
+    SQL(
+      """
+      update item_name set item_name = {itemName}
+      where item_id = {itemId} and locale_id = {localeId}
+      """
+    ).on(
+      'itemName -> itemName,
+      'itemId -> itemId,
+      'localeId -> localeId
+    ).executeUpdate()
+  }
 }
 
 object ItemDescription {
@@ -189,22 +331,89 @@ object ItemDescription {
     }
   }
 
-  def createNew(item: Item, site: Site, description: String): ItemDescription = DB.withConnection {
-    implicit conn => {
-      SQL(
-        """
-        insert into item_description (locale_id, item_id, site_id, description)
-        values ({localeId}, {itemId}, {siteId}, {description})
-        """
-      ).on(
-        'localeId -> site.localeId,
-        'itemId -> item.id.get,
-        'siteId -> site.id.get,
-        'description -> description
-      ).executeUpdate()
+  def createNew(
+    item: Item, site: Site, description: String
+  )(implicit conn: Connection): ItemDescription = {
+    SQL(
+      """
+      insert into item_description (item_description_id, locale_id, item_id, site_id, description)
+      values (
+        (select nextval('item_description_seq')),
+        {localeId}, {itemId}, {siteId}, {description}
+      )
+      """
+    ).on(
+      'localeId -> site.localeId,
+      'itemId -> item.id.get,
+      'siteId -> site.id.get,
+      'description -> description
+    ).executeUpdate()
 
-      ItemDescription(site.localeId, item.id.get, site.id.get, description)
-    }
+    ItemDescription(site.localeId, item.id.get, site.id.get, description)
+  }
+
+  def list(item: Item)(implicit conn: Connection): Seq[(Long, LocaleInfo, ItemDescription)] = list(item.id.get)
+
+  def list(itemId: Long)(implicit conn: Connection): Seq[(Long, LocaleInfo, ItemDescription)] =
+    SQL(
+      """
+      select * from item_description
+      inner join site on site.site_id = item_description.site_id
+      where item_id = {itemId}
+      order by site.site_name, item_description.locale_id
+      """
+    ).on(
+      'itemId -> itemId
+    ).as(simple *).map { e =>
+      (e.siteId, LocaleInfo(e.localeId), e)
+    }.toSeq
+
+  def add(siteId: Long, itemId: Long, localeId: Long, itemDescription: String)(implicit conn: Connection) {
+    SQL(
+      """
+      insert into item_description (item_description_id, site_id, item_id, locale_id, description)
+      values (
+        (select nextval('item_description_seq')),
+        {siteId}, {itemId}, {localeId}, {itemDescription}
+      )
+      """
+    ).on(
+      'siteId -> siteId,
+      'itemId -> itemId,
+      'localeId -> localeId,
+      'itemDescription -> itemDescription
+    ).executeUpdate()
+  }
+
+  def remove(siteId: Long, itemId: Long, localeId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from item_description
+      where site_id = {siteId}
+      and item_id = {itemId}
+      and locale_id = {localeId}
+      and (select count(*) from item_description where item_id = {itemId}) > 1
+      """
+    )
+    .on(
+      'siteId -> siteId,
+      'itemId -> itemId,
+      'localeId -> localeId
+    ).executeUpdate()
+  }
+
+  def update(siteId: Long, itemId: Long, localeId: Long, itemDescription: String)(implicit conn: Connection) {
+    SQL(
+      """
+      update item_description set description = {itemDescription}
+      where site_id = {siteId} and item_id = {itemId} and locale_id = {localeId}
+      """
+    ).on(
+      'itemDescription -> itemDescription,
+      'siteId -> siteId,
+      'itemId -> itemId,
+      'localeId -> localeId
+    ).executeUpdate()
   }
 }
 
@@ -217,7 +426,7 @@ object ItemPrice {
     }
   }
 
-  def createNew(site: Site, item: Item): ItemPrice = DB.withConnection { implicit conn => {
+  def createNew(site: Site, item: Item)(implicit conn: Connection): ItemPrice = {
     SQL(
       """
       insert into item_price (item_price_id, site_id, item_id)
@@ -231,9 +440,9 @@ object ItemPrice {
     val itemPriceId = SQL("select currval('item_price_seq')").as(SqlParser.scalar[Long].single)
 
     ItemPrice(Id(itemPriceId), site.id.get, item.id.get)
-  }}
+  }
 
-  def get(site: Site, item: Item): Option[ItemPrice] = DB.withConnection { implicit conn => {
+  def get(site: Site, item: Item)(implicit conn: Connection): Option[ItemPrice] = {
     SQL(
       "select * from item_price where item_id = {itemId} and site_id = {siteId}"
     ).on(
@@ -242,7 +451,7 @@ object ItemPrice {
     ).as(
       ItemPrice.simple.singleOpt
     )
-  }}
+  }
 }
 
 object ItemPriceHistory {
@@ -258,9 +467,9 @@ object ItemPriceHistory {
     }
   }
 
-  def createNew(itemPrice: ItemPrice, tax: Tax, currency: CurrencyInfo, unitPrice: BigDecimal, validUntil: Long)
-    : ItemPriceHistory = DB.withConnection { implicit conn =>
-  {
+  def createNew(
+    itemPrice: ItemPrice, tax: Tax, currency: CurrencyInfo, unitPrice: BigDecimal, validUntil: Long
+  )(implicit conn: Connection) : ItemPriceHistory = {
     SQL(
       """
       insert into item_price_history(
@@ -281,36 +490,32 @@ object ItemPriceHistory {
     val id = SQL("select currval('item_price_history_seq')").as(SqlParser.scalar[Long].single)
 
     ItemPriceHistory(Id(id), itemPrice.id.get, tax.id.get, currency, unitPrice, validUntil)
-  }}
-
-  def list(itemPrice: ItemPrice): Seq[ItemPriceHistory] = DB.withConnection { implicit conn =>
-    SQL(
-      "select * from item_price_history where item_price_id = {itemPriceId}"
-    ).on(
-      'itemPriceId -> itemPrice.id.get
-    ).as(
-      ItemPriceHistory.simple *
-    )
   }
 
-  def at(itemPriceId: Long, now: Long = System.currentTimeMillis):
-    ItemPriceHistory = DB.withConnection { implicit conn => 
-  {
-    SQL(
-      """
-      select * from item_price_history
-      where item_price_id = {itemPriceId}
-      and {now} < valid_until
-      order by valid_until
-      limit 1
-      """
-    ).on(
-      'itemPriceId -> itemPriceId,
-      'now -> new java.sql.Timestamp(now)
-    ).as(
-      ItemPriceHistory.simple.single
-    )
-  }}
+  def list(itemPrice: ItemPrice)(implicit conn: Connection): Seq[ItemPriceHistory] = SQL(
+    "select * from item_price_history where item_price_id = {itemPriceId}"
+  ).on(
+    'itemPriceId -> itemPrice.id.get
+  ).as(
+    ItemPriceHistory.simple *
+  )
+
+  def at(
+    itemPriceId: Long, now: Long = System.currentTimeMillis
+  )(implicit conn: Connection): ItemPriceHistory = SQL(
+    """
+    select * from item_price_history
+    where item_price_id = {itemPriceId}
+    and {now} < valid_until
+    order by valid_until
+    limit 1
+    """
+  ).on(
+    'itemPriceId -> itemPriceId,
+    'now -> new java.sql.Timestamp(now)
+  ).as(
+    ItemPriceHistory.simple.single
+  )
 }
 
 object ItemNumericMetadata {
@@ -323,9 +528,9 @@ object ItemNumericMetadata {
     }
   }
 
-  def createNew(item: Item, metadataType: MetadataType, metadata: Long):
-    ItemNumericMetadata = DB.withConnection { implicit conn =>
-  {
+  def createNew(
+    item: Item, metadataType: MetadataType, metadata: Long
+  )(implicit conn: Connection): ItemNumericMetadata = {
     SQL(
       """
       insert into item_numeric_metadata(item_numeric_metadata_id, item_id, metadata_type, metadata)
@@ -343,37 +548,33 @@ object ItemNumericMetadata {
     val id = SQL("select currval('item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
     ItemNumericMetadata(Id(id), item.id.get, metadataType.ordinal, metadata)
-  }}
+  }
 
-  def apply(item: Item, metadataType: MetadataType):
-    ItemNumericMetadata = DB.withConnection { implicit conn =>
-  {
-    SQL(
-      """
-      select * from item_numeric_metadata
-      where item_id = {itemId}
-      and metadata_type = {metadataType}
-      """
-    ).on(
-      'itemId -> item.id.get,
-      'metadataType -> metadataType.ordinal
-    ).as(
-      ItemNumericMetadata.simple.single
-    )
-  }}
+  def apply(
+    item: Item, metadataType: MetadataType
+  )(implicit conn: Connection): ItemNumericMetadata = SQL(
+    """
+    select * from item_numeric_metadata
+    where item_id = {itemId}
+    and metadata_type = {metadataType}
+    """
+  ).on(
+    'itemId -> item.id.get,
+    'metadataType -> metadataType.ordinal
+  ).as(
+    ItemNumericMetadata.simple.single
+  )
 
-  def all(item: Item): Map[MetadataType, ItemNumericMetadata] = allById(item.id.get)
+  def all(item: Item)(implicit conn: Connection): Map[MetadataType, ItemNumericMetadata] = allById(item.id.get)
 
-  def allById(itemId: Long): Map[MetadataType, ItemNumericMetadata] = DB.withConnection { implicit conn =>
-    SQL(
-      "select * from item_numeric_metadata where item_id = {itemId} "
-    ).on(
-      'itemId -> itemId
-    ).as(
-      ItemNumericMetadata.simple *
-    ).foldLeft(new HashMap[MetadataType, ItemNumericMetadata]) {
-      (map, e) => map.updated(MetadataType.byIndex(e.metadataType), e)
-    }
+  def allById(itemId: Long)(implicit conn: Connection): Map[MetadataType, ItemNumericMetadata] = SQL(
+    "select * from item_numeric_metadata where item_id = {itemId} "
+  ).on(
+    'itemId -> itemId
+  ).as(
+    ItemNumericMetadata.simple *
+  ).foldLeft(new HashMap[MetadataType, ItemNumericMetadata]) {
+    (map, e) => map.updated(MetadataType.byIndex(e.metadataType), e)
   }
 }
 
@@ -385,12 +586,42 @@ object SiteItem {
     }
   }
 
-  def createNew(site: Site, item: Item): SiteItem = DB.withConnection { implicit conn => {
-    SQL("insert into site_item (item_id, site_id) values ({itemId}, {siteId})").on(
-      'itemId -> item.id.get,
-      'siteId -> site.id.get
+  val withSite = Site.simple ~ SiteItem.simple map {
+    case site~siteItem => (site, siteItem)
+  }
+
+  def list(itemId: Long)(implicit conn: Connection): Seq[(Site, SiteItem)] =
+    SQL(
+      """
+      select * from site_item
+      inner join site on site_item.site_id = site.site_id
+      where site_item.item_id = {itemId}
+      """
+    ).on(
+      'itemId -> itemId
+    ).as(
+      withSite *
+    )
+
+  def createNew(site: Site, item: Item)(implicit conn: Connection): SiteItem = add(item.id.get, site.id.get)
+
+  def add(itemId: Long, siteId: Long)(implicit conn: Connection): SiteItem = {
+    SQL(
+      "insert into site_item (item_id, site_id) values ({itemId}, {siteId})"
+    ).on(
+      'itemId -> itemId,
+      'siteId -> siteId
     ).executeUpdate()
 
-    SiteItem(item.id.get, site.id.get)
-  }}
+    SiteItem(itemId, siteId)
+  }
+
+  def remove(itemId: Long, siteId: Long)(implicit conn: Connection) {
+    SQL(
+      "delete from site_item where item_id = {itemId} and site_id = {siteId}"
+    ).on(
+      'itemId -> itemId,
+      'siteId -> siteId
+    ).executeUpdate()
+  }
 }

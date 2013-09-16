@@ -1,0 +1,245 @@
+@(
+  id: Long,
+  siteMap: Map[Long, Site],
+  langTable: Seq[(String, String)],
+  itemNameTable: Form[ChangeItemNameTable],
+  newItemNameForm: Form[ChangeItemName],
+  siteNameTable: Seq[(String, String)],
+  siteItemTable: Seq[(Site, SiteItem)],
+  newSiteItem: Form[ChangeSiteItem],
+  updateCategoryForm: Form[ChangeItemCategory],
+  categoryTable: Seq[(String, String)],
+  itemDescriptionTable: Form[ChangeItemDescriptionTable],
+  newItemDescriptionForm: Form[ChangeItemDescription]
+)(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+
+@import helper._
+
+@nameForm(field: Field) = {
+  <tr>
+    <td>
+      <button type="button"
+              onclick="location.href='@routes.ItemMaintenance.removeItemName(id, field("localeId").value.get.toLong)';">
+        @Messages("remove")
+      </button>
+
+      @Messages("lang." + LocaleInfo(field("localeId").value.get.toLong).lang)
+      <div style="display: none;">
+      @inputText(field("localeId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      </div>
+    </td>
+    <td>
+      @inputText(
+        field("itemName"), '_label -> ""
+      )(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+  </tr>
+}
+
+@descriptionForm(field: Field) = {
+  <tr>
+    <td>
+      <button type="button"
+              onclick="location.href='@routes.ItemMaintenance.removeItemDescription(field("siteId").value.get.toLong, id, field("localeId").value.get.toLong)';">
+        @Messages("remove")
+      </button>
+      @{siteMap.get(field("siteId").value.get.toLong).map { _.name }.getOrElse("-")}
+      <div style="float: right;">
+      @inputText(field("siteId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      </div>
+    </td>
+    <td>
+      @Messages("lang." + LocaleInfo(field("localeId").value.get.toLong).lang)
+      <div style="display: none;">
+      @inputText(field("localeId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      </div>
+    </td>
+    <td>
+      @textarea(
+        field("itemDescription"), '_label -> "",
+        'rows -> 5, 'cols -> 40
+      )(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+  </tr>
+}
+
+@main(Messages("changeItemTitle")) {
+<h1>@Messages("changeItemTitle")</h1>
+  <h2>@Messages("item") Id: @id</h2>
+
+  <h2>@Messages("itemName")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(id))) {
+      <tr class="itemHeader" >
+        <th>@Messages("language")</th>
+        <th>@Messages("itemName")</th>
+      </tr>
+
+      @repeat(itemNameTable("itemNames")) { name => @nameForm(name) }
+
+      <tr>
+        <td colspan="2">
+          <input style="float: right;" type="submit" value=@Messages("update")>
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemName(id))) {
+      <tr>
+        <td>
+          @select(
+            newItemNameForm("localeId"), 
+            langTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            newItemNameForm("itemName"), '_label -> ""
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
+  <h2>@Messages("siteItem")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    <tr class="itemHeader" >
+      <th>@Messages("site")</th>
+    </tr>
+  
+    @siteItemTable.map { e =>
+      <tr>
+        <td>
+          <button type="button"
+                  onclick="location.href='@routes.ItemMaintenance.removeSiteItem(id, e._1.id.get)';">
+            @Messages("remove")
+          </button>
+          @e._1.name
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItem(id))) {
+      <tr>
+        <td>
+          @select(
+            newSiteItem("siteId"),
+            siteNameTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
+  <h2>@Messages("category")</h2>
+  
+  @form(action = helper.CSRF(routes.ItemMaintenance.updateItemCategory(id))) {
+    @select(
+      updateCategoryForm("categoryId"), 
+      categoryTable, 
+      '_label -> Messages("category"),
+      '_showConstraints -> false
+    )
+
+    <input type="submit" value=@Messages("update")>
+  }
+
+  <h2>@Messages("itemDescription")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemDescription(id))) {
+      <tr class="itemHeader" >
+        <th>@Messages("site")</th>
+        <th>@Messages("language")</th>
+        <th>@Messages("itemDescription")</th>
+      </tr>
+
+      @repeat(itemDescriptionTable("itemDescriptions")) { description => @descriptionForm(description) }
+
+      <tr>
+        <td colspan="3">
+          <input style="float: right;" type="submit" value=@Messages("update")>
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemDescription(id))) {
+      <tr>
+        <td>
+          @select(
+            newItemDescriptionForm("siteId"), 
+            siteNameTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @select(
+            newItemDescriptionForm("localeId"), 
+            langTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @textarea(
+            newItemDescriptionForm("itemDescription"), '_label -> "",
+            'rows -> 5, 'cols -> 40
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="3">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
+  <br>
+  <a href="@routes.ItemMaintenance.index()">
+    @Messages("backTo", Messages("itemMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}

@@ -8,6 +8,7 @@ import play.api.db._
 import play.api.i18n.{Messages, Lang}
 import scala.collection.mutable.{HashMap => MutableMap}
 import scala.language.postfixOps
+import java.sql.Connection
 
 case class LocaleInfo(id: Long, lang: String, country: Option[String] = None) extends NotNull {
   def toLocale: Locale = country match {
@@ -63,17 +64,15 @@ object LocaleInfo {
 
   def get(id: Long): Option[LocaleInfo] = registry.get(id)
 
-  def insert(locale: LocaleInfo) = DB.withConnection { implicit conn =>
-    SQL(
-      """
-      insert into locale values (
-        {id}, {lang}, {country}
+  def insert(locale: LocaleInfo)(implicit conn: Connection) = SQL(
+    """
+    insert into locale values (
+    {id}, {lang}, {country}
       )
-      """
-    ).on(
-      'id -> locale.id,
-      'lang -> locale.lang,
-      'country -> locale.country
-    ).executeUpdate()
-  }
+    """
+  ).on(
+    'id -> locale.id,
+    'lang -> locale.lang,
+    'country -> locale.country
+  ).executeUpdate()
 }

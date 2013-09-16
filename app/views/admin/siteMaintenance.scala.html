@@ -1,0 +1,22 @@
+@()(implicit lang: Lang)
+
+@main(Messages("siteMaintenanceTitle")) {
+  <h1>@Messages("siteMaintenanceTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.SiteMaintenance.startCreateNewSite()">
+      @Messages("createNewSiteMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.SiteMaintenance.editSite()">
+      @Messages("editSiteMenu")
+    </a>
+  </div>
+
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}
+

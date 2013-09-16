@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.Lang
+import java.sql.Connection
 
 case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) extends NotNull {
   assert(pathLength >= 0 && pathLength <= Short.MaxValue, "length(= " + pathLength + ") is invalid.")
@@ -25,76 +26,72 @@ object Category {
     }
   }
 
-  def tableForDropDown(implicit lang: Lang): Seq[(String, String)] = {
+  def tableForDropDown(implicit lang: Lang, conn: Connection): Seq[(String, String)] = {
     val locale = LocaleInfo.byLang(lang)
 
-    DB.withConnection { implicit conn => {
-      SQL(
-        """
-        select * from category
-        inner join category_name on category.category_id = category_name.category_id
-        where locale_id = {localeId}
-        order by category_name.category_name
-        """
-      ).on(
-        'localeId -> locale.id
-      ).as(
-        withName *
-      ).map {
-        e => e._1.id.get.toString -> e._2.name
-      }
-    }}
-  }
-
-  def root: Seq[Category] = DB.withConnection { implicit conn =>
     SQL(
       """
-      select * from category c
-      where not exists (
-        select 'X' from category_path p
-        where c.category_id = p.descendant
-        and c.category_id <> p.ancestor
-      )
+      select * from category
+      inner join category_name on category.category_id = category_name.category_id
+      where locale_id = {localeId}
+      order by category_name.category_name
       """
-    ).as(Category.simple *)
+    ).on(
+      'localeId -> locale.id
+    ).as(
+      withName *
+    ).map {
+      e => e._1.id.get.toString -> e._2.name
+    }
   }
+
+  def root(implicit conn: Connection): Seq[Category] = SQL(
+    """
+    select * from category c
+    where not exists (
+    select 'X' from category_path p
+    where c.category_id = p.descendant
+    and c.category_id <> p.ancestor
+      )
+    """
+  ).as(Category.simple *)
 
   val withName = Category.simple ~ CategoryName.simple map {
     case cat~name => (cat, name)
   }
 
-  def list(page: Int = 0, pageSize: Int = 10, locale: LocaleInfo): Page[(Category, CategoryName)] = {
+  def list(
+    page: Int = 0, pageSize: Int = 10, locale: LocaleInfo
+  )(implicit conn: Connection): Page[(Category, CategoryName)] = {
     val offset = pageSize * page
-    DB.withConnection { implicit conn =>
-      val resultList = SQL(
-        """
-        select * from category
-        inner join category_name on category.category_id = category_name.category_id
-        where locale_id = {localeId}
-        order by category_name.category_name
-        limit {pageSize} offset {offset}
-        """
-      ).on(
-        'localeId -> locale.id,
-        'pageSize -> pageSize,
-        'offset -> offset
-      ).as(withName *)
+    val resultList = SQL(
+      """
+      select * from category
+      inner join category_name on category.category_id = category_name.category_id
+      where locale_id = {localeId}
+      order by category_name.category_name
+      limit {pageSize} offset {offset}
+      """
+    ).on(
+      'localeId -> locale.id,
+      'pageSize -> pageSize,
+      'offset -> offset
+    ).as(withName *)
 
-      val count = SQL(
-        """
-        select count(*) from category
-        """
-      ).as(SqlParser.scalar[Long].single)
+    val count = SQL(
+      """
+      select count(*) from category
+      """
+    ).as(SqlParser.scalar[Long].single)
 
-      Page(resultList, page, offset, count)
-    }
+    Page(resultList, page, offset, count)
   }
 
-  def createNew(names: Map[LocaleInfo, String]): Category = createNew(None, names)
-  def createNew(parent: Category, names: Map[LocaleInfo, String]): Category = createNew(Some(parent), names)
+  def createNew(names: Map[LocaleInfo, String])(implicit conn: Connection): Category = createNew(None, names)
+  def createNew(parent: Category, names: Map[LocaleInfo, String])(implicit conn: Connection): Category = createNew(Some(parent), names)
   def createNew(
     parent: Option[Category], names: Map[LocaleInfo, String]
-  ): Category = DB.withTransaction { implicit conn => {
+  )(implicit conn: Connection): Category = {
     SQL(
       """
       insert into category values (
@@ -177,7 +174,7 @@ object Category {
     }}
 
     Category(Id(categoryId))
-  }}
+  }
 }
 
 object CategoryName {
@@ -190,8 +187,8 @@ object CategoryName {
     }
   }
 
-  def get(locale: LocaleInfo, category: Category): String = get(locale, category.id.get)
-  def get(locale: LocaleInfo, categoryId: Long): String = DB.withConnection { implicit conn => {
+  def get(locale: LocaleInfo, category: Category)(implicit conn: Connection): String = get(locale, category.id.get)
+  def get(locale: LocaleInfo, categoryId: Long)(implicit conn: Connection): String = 
     SQL(
       """
       select category_name from category_name
@@ -201,7 +198,6 @@ object CategoryName {
       'category_id -> categoryId,
       'locale_id -> locale.id
     ).as(SqlParser.scalar[String].single)
-  }}
 }
 
 object CategoryPath {
@@ -224,8 +220,8 @@ object CategoryPath {
     case cat~name => (cat, name)
   }
 
-  def parent(category: Category): Option[Category] = parentById(category.id.get)
-  def parentById(categoryId: Long): Option[Category] = { DB.withConnection { implicit conn =>
+  def parent(category: Category)(implicit conn: Connection): Option[Category] = parentById(category.id.get)
+  def parentById(categoryId: Long)(implicit conn: Connection): Option[Category] = 
     SQL(
       """
       select ancestor from category_path
@@ -236,10 +232,11 @@ object CategoryPath {
     ).as(
       SqlParser.scalar[Pk[Long]].singleOpt
     ).map(Category(_))
-  }}
 
-  def children(category: Category, depth: Int = 1): Seq[Category] = childrenById(category.id.get, depth)
-  def childrenById(categoryId: Long, depth: Int = 1): Seq[Category] = { DB.withConnection { implicit conn =>
+  def children(
+    category: Category, depth: Int = 1
+  )(implicit conn: Connection): Seq[Category] = childrenById(category.id.get, depth)
+  def childrenById(categoryId: Long, depth: Int = 1)(implicit conn: Connection): Seq[Category] = 
     SQL(
       """
       select * from category_path
@@ -249,25 +246,26 @@ object CategoryPath {
       'ancestor -> categoryId,
       'path_length -> depth
     ).as(child *)
-  }}
 
-  def childrenNames(category: Category, locale: LocaleInfo, depth: Int = 1):
-    Seq[(Category, CategoryName)] = childrenNamesById(category.id.get, locale, depth)
-  def childrenNamesById(categoryId: Long, locale: LocaleInfo, depth: Int = 1):
-    Seq[(Category, CategoryName)] = { DB.withConnection { implicit conn =>
-      SQL(
-        """
-        select * from category_path inner join category_name
-          on category_path.descendant = category_name.category_id
-        where category_path.ancestor = {ancestor}
-          and category_path.path_length = {path_length}
-          and category_name.locale_id = {locale_id}
-        """
-      ).on(
-        'ancestor -> categoryId,
-        'path_length -> depth,
-        'locale_id -> locale.id
-      ).as(withName *)
-    }
-  }
+  def childrenNames(
+    category: Category, locale: LocaleInfo, depth: Int = 1
+  )(implicit conn: Connection): Seq[(Category, CategoryName)] =
+    childrenNamesById(category.id.get, locale, depth)
+
+  def childrenNamesById(
+    categoryId: Long, locale: LocaleInfo, depth: Int = 1
+  )(implicit conn: Connection): Seq[(Category, CategoryName)] =
+    SQL(
+      """
+      select * from category_path inner join category_name
+      on category_path.descendant = category_name.category_id
+      where category_path.ancestor = {ancestor}
+      and category_path.path_length = {path_length}
+      and category_name.locale_id = {locale_id}
+      """
+    ).on(
+      'ancestor -> categoryId,
+      'path_length -> depth,
+      'locale_id -> locale.id
+    ).as(withName *)
 }

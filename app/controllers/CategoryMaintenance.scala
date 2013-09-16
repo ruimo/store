@@ -7,6 +7,8 @@ import controllers.I18n.I18nAware
 import play.api.data.Form
 import models.{LocaleInfo, CreateCategory}
 import play.api.i18n.Messages
+import play.api.db.DB
+import play.api.Play.current
 
 object CategoryMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createCategoryForm = Form(
@@ -30,8 +32,8 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
         logger.error("Validation error in CategoryMaintenance.createNewCategory.")
         BadRequest(views.html.admin.createNewCategory(formWithErrors, LocaleInfo.localeTable))
       },
-      newCategory => {
-        newCategory.save()
+      newCategory => DB.withConnection { implicit conn =>
+        newCategory.save
         Redirect(
           routes.CategoryMaintenance.startCreateNewCategory
         ).flashing("message" -> Messages("categoryIsCreated"))
