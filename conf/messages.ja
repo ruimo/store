@@ -62,6 +62,7 @@ siteItem=取扱店舗
 category=カテゴリ
 userName=ユーザ名
 itemName=商品名
+itemPrice=価格
 itemDescription=商品説明
 categoryName=カテゴリ名
 siteName=店舗名
@@ -86,6 +87,7 @@ taxIsCreated=課税レコードが登録されました。
 itemDescription=商品詳細
 language=言語
 item=商品
+validUntil=有効期限(この日を含まず)
 
 lang.ja=日本語
 lang.en=英語
@@ -108,3 +110,6 @@ update=変更
 remove=削除
 
 unique.constraint.violation=重複しています
+
+error.date=日付の形式が不正です
+format.date=日付の形式は(''{0}'')です

@@ -35,6 +35,10 @@ GET     /admin/startCreateNewCategory controllers.CategoryMaintenance.startCreat
 POST    /admin/createNewCategory      controllers.CategoryMaintenance.createNewCategory
 GET     /admin/editCategory           controllers.CategoryMaintenance.editCategory
 
+POST    /admin/addItemPrice          controllers.ItemMaintenance.addItemPrice(id: Long)
+POST    /admin/changeItemPrice       controllers.ItemMaintenance.changeItemPrice(id: Long)
+GET     /admin/removeItemPrice       controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
+
 GET     /admin/siteMaintenance        controllers.SiteMaintenance.index
 GET     /admin/startCreateNewSite     controllers.SiteMaintenance.startCreateNewSite
 POST    /admin/createNewSite          controllers.SiteMaintenance.createNewSite

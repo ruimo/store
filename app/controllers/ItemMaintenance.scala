@@ -12,6 +12,7 @@ import play.api.Play.current
 import models.CreateItem
 import org.postgresql.util.PSQLException
 import java.sql.SQLException
+import org.joda.time.DateTime
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createItemForm = Form(
@@ -45,7 +46,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def createNewItem = isAuthenticated { loginSession => implicit request =>
     createItemForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.createNewItem.")
+        logger.error("Validation error in ItemMaintenance.createNewItem." + formWithErrors + ".")
         BadRequest(
           DB.withConnection { implicit conn =>
             views.html.admin.createNewItem(
@@ -77,6 +78,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
+  def taxTable(implicit lang: Lang): Seq[(String, String)] = DB.withConnection { implicit conn =>
+    Tax.tableForDropDown
+  }
+
+  def currencyTable: Seq[(String, String)] = DB.withConnection { implicit conn =>
+    CurrencyInfo.tableForDropDown
+  }
+
   def startChangeItem(id: Long) = isAuthenticated { loginSession => implicit request =>
     Ok(views.html.admin.changeItem(
       id,
@@ -90,7 +99,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       createItemCategoryForm(id),
       createCategoryTable,
       createItemDescriptionTable(id),
-      addItemDescriptionForm
+      addItemDescriptionForm,
+      createItemPriceTable(id),
+      addItemPriceForm,
+      taxTable,
+      currencyTable,
+      createSiteTable(id)
     ))
   }
 
@@ -125,7 +139,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def changeItemName(id: Long) = isAuthenticated { loginSession => implicit request =>
     changeItemNameForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItem.")
+        logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
             id,
@@ -139,7 +153,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
             createItemCategoryForm(id),
             createCategoryTable,
             createItemDescriptionTable(id),
-            addItemDescriptionForm
+            addItemDescriptionForm,
+            createItemPriceTable(id),
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(id)
           )
         )
       },
@@ -155,7 +174,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def addItemName(id: Long) = isAuthenticated { loginSession => implicit request =>
     addItemNameForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItem.")
+        logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
             id,
@@ -169,7 +188,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
             createItemCategoryForm(id),
             createCategoryTable,
             createItemDescriptionTable(id),
-            addItemDescriptionForm
+            addItemDescriptionForm,
+            createItemPriceTable(id),
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(id)
           )
         )
       },
@@ -196,7 +220,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                 createItemCategoryForm(id),
                 createCategoryTable,
                 createItemDescriptionTable(id),
-                addItemDescriptionForm
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id)
               )
             )
           }
@@ -227,6 +256,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
+  def createSiteTable(id: Long): Seq[(String, String)] = {
+    DB.withConnection { implicit conn => {
+      Site.tableForDropDown(id)
+    }}
+  }    
+
   def createSiteItemTable(itemId: Long): Seq[(Site, SiteItem)] = {
     DB.withConnection { implicit conn => {
       SiteItem.list(itemId)
@@ -236,7 +271,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def addSiteItem(id: Long) = isAuthenticated { loginSession => implicit request =>
     addSiteItemForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addSiteItem.")
+        logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
             id,
@@ -250,7 +285,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
             createItemCategoryForm(id),
             createCategoryTable,
             createItemDescriptionTable(id),
-            addItemDescriptionForm
+            addItemDescriptionForm,
+            createItemPriceTable(id),
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(id)
           )
         )
       },
@@ -277,7 +317,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                 createItemCategoryForm(id),
                 createCategoryTable,
                 createItemDescriptionTable(id),
-                addItemDescriptionForm
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id)
               )
             )
           }
@@ -318,7 +363,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def updateItemCategory(id: Long) = isAuthenticated { loginSession => implicit request =>
     updateCategoryForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.updateItemCategory.")
+        logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
             id,
@@ -332,7 +377,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
             formWithErrors,
             createCategoryTable,
             createItemDescriptionTable(id),
-            addItemDescriptionForm
+            addItemDescriptionForm,
+            createItemPriceTable(id),
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(id)
           )
         )
       },
@@ -378,7 +428,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def changeItemDescription(id: Long) = isAuthenticated { loginSession => implicit request =>
     changeItemDescriptionForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItem.")
+        logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
             id,
@@ -392,7 +442,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
             createItemCategoryForm(id),
             createCategoryTable,
             formWithErrors,
-            addItemDescriptionForm
+            addItemDescriptionForm,
+            createItemPriceTable(id),
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(id)
           )
         )
       },
@@ -408,7 +463,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def addItemDescription(id: Long) = isAuthenticated { loginSession => implicit request =>
     addItemDescriptionForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItem.")
+        logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
             id,
@@ -422,7 +477,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
             createItemCategoryForm(id),
             createCategoryTable,
             createItemDescriptionTable(id),
-            formWithErrors
+            formWithErrors,
+            createItemPriceTable(id),
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(id)
           )
         )
       },
@@ -452,7 +512,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                 addItemDescriptionForm
                   .fill(newItem)
                   .withError("localeId", "unique.constraint.violation")
-                  .withError("siteId", "unique.constraint.violation")
+                  .withError("siteId", "unique.constraint.violation"),
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id)
               )
             )
           }
@@ -466,6 +531,160 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   ) = isAuthenticated { loginSession => implicit request =>
     DB.withConnection { implicit conn =>
       ItemDescription.remove(siteId, itemId, localeId)
+    }
+
+    Redirect(
+      routes.ItemMaintenance.startChangeItem(itemId)
+    )
+  }
+
+  val changeItemPriceForm = Form(
+    mapping(
+      "itemPrices" -> seq(
+        mapping(
+          "siteId" -> longNumber,
+          "itemPriceId" -> longNumber,
+          "itemPriceHistoryId" -> longNumber,
+          "taxId" -> longNumber,
+          "currencyId" -> longNumber,
+          "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+          "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
+        ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
+      )
+    ) (ChangeItemPriceTable.apply)(ChangeItemPriceTable.unapply)
+  )
+
+  val addItemPriceForm = Form(
+    mapping(
+      "siteId" -> longNumber,
+      "itemPriceId" -> ignored(0L),
+      "itemPriceHistoryId" -> ignored(0L),
+      "taxId" -> longNumber,
+      "currencyId" -> longNumber,
+      "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
+    ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
+  )
+
+  def createItemPriceTable(itemId: Long): Form[ChangeItemPriceTable] = {
+    DB.withConnection { implicit conn => {
+      val histories = ItemPriceHistory.listByItemId(itemId).map {
+        e => ChangeItemPrice(
+          e._1.siteId, e._2.itemPriceId, e._2.id.get, e._2.taxId, 
+          e._2.currency.id, e._2.unitPrice, new DateTime(e._2.validUntil)
+        )
+      }.toSeq
+
+      changeItemPriceForm.fill(ChangeItemPriceTable(histories))
+    }}
+  }
+
+  def changeItemPrice(itemId: Long) = isAuthenticated { loginSession => implicit request =>
+    changeItemPriceForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            itemId,
+            siteListAsMap,
+            LocaleInfo.localeTable,
+            createItemNameTable(itemId),
+            addItemNameForm,
+            createSiteTable,
+            createSiteItemTable(itemId),
+            addSiteItemForm,
+            createItemCategoryForm(itemId),
+            createCategoryTable,
+            createItemDescriptionTable(itemId),
+            addItemDescriptionForm,
+            formWithErrors,
+            addItemPriceForm,
+            taxTable,
+            currencyTable,
+            createSiteTable(itemId)
+          )
+        )
+      },
+      newPrice => {
+        newPrice.update()
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(itemId)
+        ).flashing("message" -> Messages("itemIsUpdated"))
+      }
+    )
+  }
+
+  def addItemPrice(itemId: Long) = isAuthenticated { loginSession => implicit request =>
+    addItemPriceForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            itemId,
+            siteListAsMap,
+            LocaleInfo.localeTable,
+            createItemNameTable(itemId),
+            addItemNameForm,
+            createSiteTable,
+            createSiteItemTable(itemId),
+            addSiteItemForm,
+            createItemCategoryForm(itemId),
+            createCategoryTable,
+            createItemDescriptionTable(itemId),
+            addItemDescriptionForm,
+            createItemPriceTable(itemId),
+            formWithErrors,
+            taxTable,
+            currencyTable,
+            createSiteTable(itemId)
+          )
+        )
+      },
+      newHistory => {
+        try {
+          newHistory.add(itemId)
+
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(itemId)
+          ).flashing("message" -> Messages("itemIsUpdated"))
+        }
+        catch {
+          case e: UniqueConstraintException => {
+            BadRequest(
+              views.html.admin.changeItem(
+                itemId,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(itemId),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(itemId),
+                addSiteItemForm,
+                createItemCategoryForm(itemId),
+                createCategoryTable,
+                createItemDescriptionTable(itemId),
+                addItemDescriptionForm,
+                createItemPriceTable(itemId),
+                addItemPriceForm
+                  .fill(newHistory)
+                  .withError("siteId", "unique.constraint.violation")
+                  .withError("validUntil", "unique.constraint.violation"),
+                taxTable,
+                currencyTable,
+                createSiteTable(itemId)
+              )
+            )
+          }
+        }
+      }
+    )
+  }
+
+  def removeItemPrice(
+    itemId: Long, siteId: Long, itemPriceHistoryId: Long
+  ) = isAuthenticated { loginSession => implicit request =>
+    DB.withConnection { implicit conn =>
+      ItemPriceHistory.remove(itemId, siteId, itemPriceHistoryId)
     }
 
     Redirect(

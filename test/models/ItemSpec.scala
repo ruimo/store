@@ -64,7 +64,7 @@ class ItemSpec extends Specification {
           
           ItemPrice.get(site1, item1) === None
 
-          val price1 = ItemPrice.createNew(site1, item1)
+          val price1 = ItemPrice.createNew(item1, site1)
           val saved1 = ItemPrice.get(site1, item1).get
           saved1 === price1
         }}
@@ -81,7 +81,7 @@ class ItemSpec extends Specification {
           )
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val item1 = Item.createNew(cat1)
-          val price1 = ItemPrice.createNew(site1, item1)
+          val price1 = ItemPrice.createNew(item1, site1)
           val tax = Tax.createNew
       
           import java.sql.Date.{valueOf => date}
@@ -193,11 +193,11 @@ class ItemSpec extends Specification {
         ItemDescription.createNew(item4, site2, "桃説明")
         ItemDescription.createNew(item5, site1, "もみじ説明")
 
-        val price1 = ItemPrice.createNew(site1, item1)
-        val price2 = ItemPrice.createNew(site2, item2)
-        val price3 = ItemPrice.createNew(site1, item3)
-        val price4 = ItemPrice.createNew(site2, item4)
-        val price5 = ItemPrice.createNew(site1, item5)
+        val price1 = ItemPrice.createNew(item1, site1)
+        val price2 = ItemPrice.createNew(item2, site2)
+        val price3 = ItemPrice.createNew(item3, site1)
+        val price4 = ItemPrice.createNew(item4, site2)
+        val price5 = ItemPrice.createNew(item5, site1)
 
         ItemPriceHistory.createNew(
           price1, tax, CurrencyInfo.Jpy, BigDecimal(100), date("2013-01-02")

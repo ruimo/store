@@ -2,15 +2,20 @@
   id: Long,
   siteMap: Map[Long, Site],
   langTable: Seq[(String, String)],
-  itemNameTable: Form[ChangeItemNameTable],
+  itemNameTableForm: Form[ChangeItemNameTable],
   newItemNameForm: Form[ChangeItemName],
   siteNameTable: Seq[(String, String)],
   siteItemTable: Seq[(Site, SiteItem)],
-  newSiteItem: Form[ChangeSiteItem],
+  newSiteItemForm: Form[ChangeSiteItem],
   updateCategoryForm: Form[ChangeItemCategory],
   categoryTable: Seq[(String, String)],
-  itemDescriptionTable: Form[ChangeItemDescriptionTable],
-  newItemDescriptionForm: Form[ChangeItemDescription]
+  itemDescriptionTableForm: Form[ChangeItemDescriptionTable],
+  newItemDescriptionForm: Form[ChangeItemDescription],
+  itemPriceTableForm: Form[ChangeItemPriceTable],
+  newItemPriceForm: Form[ChangeItemPrice],
+  taxTable: Seq[(String, String)],
+  currencyTable: Seq[(String, String)],
+  itemInSiteTable: Seq[(String, String)]
 )(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
 
 @import helper._
@@ -32,7 +37,7 @@
     </td>
     <td>
       @inputText(
-        field("itemName"), '_label -> ""
+        field("itemName")
       )(
         helper.FieldConstructor(simpleField.f), implicitly
       )
@@ -73,6 +78,59 @@
   </tr>
 }
 
+@priceForm(field: Field) = {
+  <tr>
+    <td>
+      <div style="display: none;">
+      @inputText(field("itemPriceId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      @inputText(field("itemPriceHistoryId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      </div>
+      <button type="button"
+              onclick="location.href='@routes.ItemMaintenance.removeItemPrice(id, field("siteId").value.get.toLong, field("itemPriceHistoryId").value.get.toLong)';">
+        @Messages("remove")
+      </button>
+      @{siteMap.get(field("siteId").value.get.toLong).map { _.name }.getOrElse("-")}
+      <div style="float: right;">
+      @inputText(field("siteId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      </div>
+    </td>
+    <td>
+      @select(
+        field("taxId"),
+        taxTable,
+        '_showConstraints -> false
+      )(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+    <td>
+      @select(
+        field("currencyId"),
+        currencyTable,
+        '_showConstraints -> false
+      )(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+    <td>
+      @inputText(field("itemPrice"))(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+    <td>
+      @inputText(field("validUntil"))(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+  </tr>
+}
+
 @main(Messages("changeItemTitle")) {
 <h1>@Messages("changeItemTitle")</h1>
   <h2>@Messages("item") Id: @id</h2>
@@ -81,12 +139,12 @@
 
   <table style="margin-left: 20px; width: 70%;">
     @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(id))) {
-      <tr class="itemHeader" >
+      <tr class="itemHeader">
         <th>@Messages("language")</th>
         <th>@Messages("itemName")</th>
       </tr>
 
-      @repeat(itemNameTable("itemNames")) { name => @nameForm(name) }
+      @repeat(itemNameTableForm("itemNames")) { name => @nameForm(name) }
 
       <tr>
         <td colspan="2">
@@ -126,7 +184,7 @@
   <h2>@Messages("siteItem")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
-    <tr class="itemHeader" >
+    <tr class="itemHeader">
       <th>@Messages("site")</th>
     </tr>
   
@@ -146,7 +204,7 @@
       <tr>
         <td>
           @select(
-            newSiteItem("siteId"),
+            newSiteItemForm("siteId"),
             siteNameTable,
             '_showConstraints -> false
           )(
@@ -176,17 +234,99 @@
     <input type="submit" value=@Messages("update")>
   }
 
+  <h2>@Messages("itemPrice")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemPrice(id))) {
+      <tr class="itemHeader">
+        <th>@Messages("site")</th>
+        <th>@Messages("tax")</th>
+        <th>@Messages("currency")</th>
+        <th>@Messages("price")</th>
+        <th>@Messages("validUntil")</th>
+      </tr>
+
+      @repeat(itemPriceTableForm("itemPrices")) { price => @priceForm(price) }
+
+      <tr>
+        <td colspan="5">
+          <input style="float: right;" type="submit" value=@Messages("update")>
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemPrice(id))) {
+      <tr>
+        <td>
+          <div style="display: none;">
+            @inputText(newItemPriceForm("itemPriceId"), 'type -> "hidden")(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+            @inputText(newItemPriceForm("itemPriceHistoryId"), 'type -> "hidden")(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </div>
+          @select(
+            newItemPriceForm("siteId"), 
+            itemInSiteTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @select(
+            newItemPriceForm("taxId"), 
+            taxTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @select(
+            newItemPriceForm("currencyId"), 
+            currencyTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            newItemPriceForm("itemPrice")
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            newItemPriceForm("validUntil")
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="5">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
   <h2>@Messages("itemDescription")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
     @form(action = helper.CSRF(routes.ItemMaintenance.changeItemDescription(id))) {
-      <tr class="itemHeader" >
+      <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("language")</th>
         <th>@Messages("itemDescription")</th>
       </tr>
 
-      @repeat(itemDescriptionTable("itemDescriptions")) { description => @descriptionForm(description) }
+      @repeat(itemDescriptionTableForm("itemDescriptions")) { description => @descriptionForm(description) }
 
       <tr>
         <td colspan="3">

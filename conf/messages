@@ -36,6 +36,7 @@ siteItem=Stores selling this item
 category=Category
 userName=User Name
 itemName=Item Name
+itemPrice=Price
 itemDescription=Item Description
 categoryName=Category Name
 password=password
@@ -58,6 +59,7 @@ taxIsCreated=Tax is created.
 itemDescription=Description
 language=Language
 item=Item
+validUntil=Valid until(exclusive)
 
 lang.ja=Japanese
 lang.en=English
@@ -79,3 +81,6 @@ update=Update
 remove=Remove
 
 unique.constraint.violation=Duplicated
+
+error.date=Invalid date format
+format.date=Date (''{0}'')

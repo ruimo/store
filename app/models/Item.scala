@@ -10,6 +10,7 @@ import scala.language.postfixOps
 import collection.immutable.{HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
+import org.joda.time.DateTime
 
 case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
 
@@ -131,8 +132,8 @@ object Item {
       select * from item
       inner join item_name on item.item_id = item_name.item_id
       inner join item_description on item.item_id = item_description.item_id
-      inner join item_price on item.item_id = item_price.item_id
-      inner join site_item on item.item_id = site_item.item_id
+      inner join item_price on item.item_id = item_price.item_id 
+      inner join site_item on item.item_id = site_item.item_id and item_price.site_id = site_item.site_id
       inner join site on site_item.site_id = site.site_id
       where item_name.locale_id = {localeId}
       and item_description.locale_id = {localeId}
@@ -176,7 +177,7 @@ object Item {
       inner join item_name on item.item_id = item_name.item_id
       inner join item_description on item.item_id = item_description.item_id
       inner join item_price on item.item_id = item_price.item_id
-      inner join site_item on item.item_id = site_item.item_id
+      inner join site_item on item.item_id = site_item.item_id and item_price.site_id = site_item.site_id
       inner join site on site.site_id = site_item.site_id
       where item_name.locale_id = {localeId}
       and item_description.locale_id = {localeId}
@@ -208,7 +209,7 @@ object Item {
     val name = ItemName.createNew(item, Map(LocaleInfo(prototype.localeId) -> prototype.itemName))
     val site = Site(prototype.siteId)
     val desc = ItemDescription.createNew(item, site, prototype.description)
-    val price = ItemPrice.createNew(site, item)
+    val price = ItemPrice.createNew(item, site)
     val tax = Tax(prototype.taxId)
     val priceHistory = ItemPriceHistory.createNew(price, tax, prototype.currency, prototype.price, Until.Ever)
     val siteItem = SiteItem.createNew(site, item)
@@ -426,20 +427,23 @@ object ItemPrice {
     }
   }
 
-  def createNew(site: Site, item: Item)(implicit conn: Connection): ItemPrice = {
+  def createNew(item: Item, site: Site)(implicit conn: Connection): ItemPrice =
+    add(item.id.get, site.id.get)
+
+  def add(itemId: Long, siteId: Long)(implicit conn: Connection): ItemPrice = {
     SQL(
       """
       insert into item_price (item_price_id, site_id, item_id)
       values ((select nextval('item_price_seq')), {siteId}, {itemId})
       """
     ).on(
-      'siteId -> site.id.get,
-      'itemId -> item.id.get
+      'siteId -> siteId,
+      'itemId -> itemId
     ).executeUpdate()
 
     val itemPriceId = SQL("select currval('item_price_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemPrice(Id(itemPriceId), site.id.get, item.id.get)
+    ItemPrice(Id(itemPriceId), siteId, itemId)
   }
 
   def get(site: Site, item: Item)(implicit conn: Connection): Option[ItemPrice] = {
@@ -492,6 +496,59 @@ object ItemPriceHistory {
     ItemPriceHistory(Id(id), itemPrice.id.get, tax.id.get, currency, unitPrice, validUntil)
   }
 
+  def update(
+    id: Long, taxId: Long, currencyId: Long, unitPrice: BigDecimal, validUntil: DateTime
+  )(implicit conn: Connection) {
+    SQL(
+      """
+      update item_price_history
+      set tax_id = {taxId},
+      currency_id = {currencyId},
+      unit_price = {unitPrice},
+      valid_until = {validUntil}
+      where item_price_history_id = {id}
+      """
+    ).on(
+      'taxId -> taxId,
+      'currencyId -> currencyId,
+      'unitPrice -> unitPrice.bigDecimal,
+      'validUntil -> new java.sql.Timestamp(validUntil.getMillis),
+      'id -> id
+    ).executeUpdate()
+  }
+
+  def add(
+    itemId: Long, siteId: Long, taxId: Long, currencyId: Long, unitPrice: BigDecimal, validUntil: DateTime
+  )(implicit conn: Connection) {
+    val priceId = SQL(
+      """
+      select item_price_id from item_price
+      where site_id = {siteId}
+      and item_id = {itemId}
+      """
+    ).on(
+      'siteId -> siteId,
+      'itemId -> itemId
+    ).as(SqlParser.scalar[Long].single)
+
+    SQL(
+      """
+      insert into item_price_history
+      (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
+      values (
+        (select nextval('item_price_history_seq')),
+        {itemPriceId}, {taxId}, {currencyId}, {unitPrice}, {validUntil}
+      )
+      """
+    ).on(
+      'itemPriceId -> priceId,
+      'taxId -> taxId,
+      'currencyId -> currencyId,
+      'unitPrice -> unitPrice.bigDecimal,
+      'validUntil -> new java.sql.Timestamp(validUntil.getMillis)
+    ).executeUpdate()
+  }
+
   def list(itemPrice: ItemPrice)(implicit conn: Connection): Seq[ItemPriceHistory] = SQL(
     "select * from item_price_history where item_price_id = {itemPriceId}"
   ).on(
@@ -516,6 +573,44 @@ object ItemPriceHistory {
   ).as(
     ItemPriceHistory.simple.single
   )
+
+  val withItemPrice = ItemPrice.simple~simple map {
+    case price~priceHistory => (price, priceHistory)
+  }
+
+  def listByItemId(itemId: Long)(implicit conn: Connection): Seq[(ItemPrice, ItemPriceHistory)] =
+    SQL(
+      """
+      select * from item_price_history
+      inner join item_price on item_price_history.item_price_id = item_price.item_price_id
+      inner join site on site.site_id = item_price.site_id
+      where item_price.item_id = {itemId}
+      order by site.site_name, item_price_history.valid_until
+      """
+    ).on(
+      'itemId -> itemId
+    ).as(
+      withItemPrice *
+    ).toSeq
+
+  def remove(itemId: Long, siteId: Long, id: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from item_price_history
+      where item_price_history_id = {id}
+      and (
+        select count(*) from item_price_history
+        inner join item_price on item_price_history.item_price_id = item_price.item_price_id
+        where item_price.item_id = {itemId}
+        and item_price.site_id = {siteId}
+      ) > 1
+      """
+    ).on(
+      'id -> id,
+      'itemId -> itemId,
+      'siteId -> siteId
+    ).executeUpdate()
+  }
 }
 
 object ItemNumericMetadata {

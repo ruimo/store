@@ -68,6 +68,20 @@ object Site {
       e => e.id.toString -> e.name
     }
 
+  def tableForDropDown(itemId: Long)(implicit conn: Connection): Seq[(String, String)] =
+    SQL(
+      """
+      select * from site
+      inner join site_item on site.site_id = site_item.site_id
+      where site_item.item_id = {itemId}
+      order by site_name
+      """
+    ).on(
+      'itemId -> itemId
+    ).as(simple *).map {
+      e => e.id.toString -> e.name
+    }
+
   def listAsMap(implicit conn: Connection): Map[Long, Site] =
     SQL(
       "select * from site order by site_name"

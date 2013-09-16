@@ -2,30 +2,32 @@ package models
 
 import play.api.db.DB
 import play.api.Play.current
+import org.joda.time.DateTime
 
 case class ChangeItemPriceTable(
   itemPrices: Seq[ChangeItemPrice]
 ) {
-  def update(itemId: Long) {
+  def update() {
     itemPrices.foreach {
-      _.update(itemId)
+      _.update()
     }
   }
 }
 
 case class ChangeItemPrice(
-  siteId: Long, localeId: Long, itemPrice: BigDecimal
+  siteId: Long, itemPriceId: Long, itemPriceHistoryId: Long, taxId: Long,
+  currencyId: Long, unitPrice: BigDecimal, validUntil: DateTime
 ) {
-  def update(itemId: Long) {
+  def update() {
     DB.withTransaction { implicit conn =>
-//      ItemPrice.update(siteId, itemId, localeId, itemPrice)
+      ItemPriceHistory.update(itemPriceHistoryId, taxId, currencyId, unitPrice, validUntil)
     }
   }
 
   def add(itemId: Long) {
     ExceptionMapper.mapException {
       DB.withTransaction { implicit conn =>
-//        ItemPrice.add(siteId, itemId, localeId, itemPrice)
+        ItemPriceHistory.add(itemId, siteId, taxId, currencyId, unitPrice, validUntil)
       }
     }
   }

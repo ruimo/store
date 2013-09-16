@@ -14,6 +14,7 @@ case class ChangeSiteItem(
     ExceptionMapper.mapException {
       DB.withTransaction { implicit conn =>
         SiteItem.add(itemId, siteId)
+        ItemPrice.add(itemId, siteId)
       }
     }
   }
