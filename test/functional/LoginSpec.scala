@@ -36,7 +36,7 @@ class LoginSpec extends Specification {
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("loginTitle")
 
-        browser.submit("input[type='submit']")
+        browser.submit("#loginButton")
         browser.title === Messages("loginTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
@@ -55,7 +55,7 @@ class LoginSpec extends Specification {
 
         browser.fill("#userName").`with`("administrator")
         browser.fill("#password").`with`("password")
-        browser.submit("input[type='submit']")
+        browser.submit("#loginButton")
         browser.title === Messages("adminTitle")
       }
     }

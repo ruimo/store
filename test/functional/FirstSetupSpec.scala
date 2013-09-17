@@ -33,7 +33,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_main").`with`("12345678")
         browser.fill("#password_confirm").`with`("12345678")
 
-        browser.submit("input[type='submit']")
+        browser.submit("#registerFirstUser")
         browser.title === Messages("loginTitle")
 
         val list = StoreUser.all
@@ -62,7 +62,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_main").`with`("")
         browser.fill("#password_confirm").`with`("12345678")
 
-        browser.submit("input[type='submit']")
+        browser.submit("#registerFirstUser")
         browser.title === Messages("firstSetupTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
@@ -86,7 +86,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_main").`with`("password")
         browser.fill("#password_confirm").`with`("password")
 
-        browser.submit("input[type='submit']")
+        browser.submit("#registerFirstUser")
         browser.title === Messages("firstSetupTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
@@ -107,7 +107,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_main").`with`("12345678")
         browser.fill("#password_confirm").`with`("12345679")
 
-        browser.submit("input[type='submit']")
+        browser.submit("#registerFirstUser")
         browser.title === Messages("firstSetupTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
