@@ -30,10 +30,14 @@ case class ItemPriceHistory(
 ) extends NotNull
 
 case class ItemNumericMetadata(
-  id: Pk[Long] = NotAssigned, itemId: Long, metadataType: Int, metadata: Long
+  id: Pk[Long] = NotAssigned, itemId: Long, metadataType: ItemNumericMetadataType, metadata: Long
 ) extends NotNull
 
 case class SiteItem(itemId: Long, siteId: Long) extends NotNull
+
+case class SiteItemNumericMetadata(
+  id: Pk[Long] = NotAssigned, siteId: Long, itemId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
+) extends NotNull
 
 object Item {
   val simple = {
@@ -74,7 +78,7 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): (Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata]) = {
+  ): (Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata]) = {
     val item = SQL(
       """
       select * from item
@@ -126,7 +130,7 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
+  ): Seq[(Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])] =
     SQL(
       """
       select * from item
@@ -162,7 +166,7 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])] =
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])] =
     listBySiteId(site.id.get, locale, queryString, page, pageSize, now)
 
   def listBySiteId(
@@ -170,7 +174,7 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[MetadataType, ItemNumericMetadata])]  =
+  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])]  =
     SQL(
       """
       select * from item
@@ -619,12 +623,12 @@ object ItemNumericMetadata {
     SqlParser.get[Long]("item_numeric_metadata.item_id") ~
     SqlParser.get[Int]("item_numeric_metadata.metadata_type") ~
     SqlParser.get[Long]("item_numeric_metadata.metadata") map {
-      case id~itemId~metadata_type~metadata => ItemNumericMetadata(id, itemId, metadata_type, metadata)
+      case id~itemId~metadata_type~metadata => ItemNumericMetadata(id, itemId, ItemNumericMetadataType.byIndex(metadata_type), metadata)
     }
   }
 
   def createNew(
-    item: Item, metadataType: MetadataType, metadata: Long
+    item: Item, metadataType: ItemNumericMetadataType, metadata: Long
   )(implicit conn: Connection): ItemNumericMetadata = {
     SQL(
       """
@@ -642,11 +646,11 @@ object ItemNumericMetadata {
 
     val id = SQL("select currval('item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemNumericMetadata(Id(id), item.id.get, metadataType.ordinal, metadata)
+    ItemNumericMetadata(Id(id), item.id.get, ItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
   }
 
   def apply(
-    item: Item, metadataType: MetadataType
+    item: Item, metadataType: ItemNumericMetadataType
   )(implicit conn: Connection): ItemNumericMetadata = SQL(
     """
     select * from item_numeric_metadata
@@ -660,16 +664,80 @@ object ItemNumericMetadata {
     ItemNumericMetadata.simple.single
   )
 
-  def all(item: Item)(implicit conn: Connection): Map[MetadataType, ItemNumericMetadata] = allById(item.id.get)
+  def all(item: Item)(implicit conn: Connection): Map[ItemNumericMetadataType, ItemNumericMetadata] = allById(item.id.get)
 
-  def allById(itemId: Long)(implicit conn: Connection): Map[MetadataType, ItemNumericMetadata] = SQL(
+  def allById(itemId: Long)(implicit conn: Connection): Map[ItemNumericMetadataType, ItemNumericMetadata] = SQL(
     "select * from item_numeric_metadata where item_id = {itemId} "
   ).on(
     'itemId -> itemId
   ).as(
     ItemNumericMetadata.simple *
-  ).foldLeft(new HashMap[MetadataType, ItemNumericMetadata]) {
-    (map, e) => map.updated(MetadataType.byIndex(e.metadataType), e)
+  ).foldLeft(new HashMap[ItemNumericMetadataType, ItemNumericMetadata]) {
+    (map, e) => map.updated(e.metadataType, e)
+  }
+}
+
+object SiteItemNumericMetadata {
+  val simple = {
+    SqlParser.get[Pk[Long]]("site_item_numeric_metadata.site_item_numeric_metadata_id") ~
+    SqlParser.get[Long]("site_item_numeric_metadata.site_id") ~
+    SqlParser.get[Long]("site_item_numeric_metadata.item_id") ~
+    SqlParser.get[Int]("site_item_numeric_metadata.metadata_type") ~
+    SqlParser.get[Long]("site_item_numeric_metadata.metadata") map {
+      case id~siteId~itemId~metadataType~metadata =>
+        SiteItemNumericMetadata(id, siteId, itemId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
+    }
+  }
+
+  def createNew(
+    siteId: Long, itemId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
+  )(implicit conn: Connection): SiteItemNumericMetadata = {
+    SQL(
+      """
+      insert into site_item_numeric_metadata(
+        site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata
+      ) values (
+        (select nextval('site_item_numeric_metadata_seq')),
+        {siteId}, {itemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'siteId -> siteId,
+      'itemId -> itemId,
+      'metadataType -> metadataType.ordinal,
+      'metadata -> metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('site_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    SiteItemNumericMetadata(Id(id), siteId, itemId, metadataType, metadata)
+  }
+
+  def apply(
+    siteId: Long, itemId: Long, metadataType: SiteItemNumericMetadataType
+  )(implicit conn: Connection): SiteItemNumericMetadata = SQL(
+    """
+    select * from site_item_numeric_metadata
+    where site_id = {siteId} and item_id = {itemId}
+    and metadata_type = {metadataType}
+    """
+  ).on(
+    'siteId -> siteId,
+    'itemId -> itemId,
+    'metadataType -> metadataType.ordinal
+  ).as(
+    SiteItemNumericMetadata.simple.single
+  )
+
+  def all(siteId: Long, itemId: Long)(implicit conn: Connection): Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = SQL(
+    "select * from site_item_numeric_metadata where site_id = {siteId} and item_id = {itemId}"
+  ).on(
+    'siteId -> siteId,
+    'itemId -> itemId
+  ).as(
+    SiteItemNumericMetadata.simple *
+  ).foldLeft(new HashMap[SiteItemNumericMetadataType, SiteItemNumericMetadata]) {
+    (map, e) => map.updated(e.metadataType, e)
   }
 }
 

@@ -48,6 +48,18 @@ create table item_numeric_metadata (
 
 create sequence item_numeric_metadata_seq start with 1000;
 
+create table site_item_numeric_metadata (
+  site_item_numeric_metadata_id bigint not null,
+  site_id bigint not null references site,
+  item_id bigint not null references item,
+  metadata_type integer not null,
+  metadata bigint,
+  constraint pk_site_item_numeric_metadata primary key (site_item_numeric_metadata_id),
+  unique (site_id, item_id, metadata_type)
+);
+
+create sequence site_item_numeric_metadata_seq start with 1000;
+
 create table item_name (
   item_name_id bigint not null,
   locale_id bigint not null references locale,

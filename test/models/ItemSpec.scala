@@ -112,17 +112,13 @@ class ItemSpec extends Specification {
           val item1 = Item.createNew(cat1)
           val item2 = Item.createNew(cat1)
 
-          ItemNumericMetadata.createNew(item1, MetadataType.HEIGHT, 100)
-          ItemNumericMetadata.createNew(item1, MetadataType.STOCK, 200)
-        
-          ItemNumericMetadata.createNew(item2, MetadataType.HEIGHT, 1000)
-          ItemNumericMetadata.createNew(item2, MetadataType.STOCK, 2000)
+          ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 100)
 
-          ItemNumericMetadata(item1, MetadataType.HEIGHT).metadata === 100
-          ItemNumericMetadata(item1, MetadataType.STOCK).metadata === 200
+          ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 1000)
 
-          ItemNumericMetadata(item2, MetadataType.HEIGHT).metadata === 1000
-          ItemNumericMetadata(item2, MetadataType.STOCK).metadata === 2000
+          ItemNumericMetadata(item1, ItemNumericMetadataType.HEIGHT).metadata === 100
+
+          ItemNumericMetadata(item2, ItemNumericMetadataType.HEIGHT).metadata === 1000
         }}
       }
     }
@@ -138,21 +134,17 @@ class ItemSpec extends Specification {
           val item1 = Item.createNew(cat1)
           val item2 = Item.createNew(cat1)
 
-          ItemNumericMetadata.createNew(item1, MetadataType.HEIGHT, 100)
-          ItemNumericMetadata.createNew(item1, MetadataType.STOCK, 200)
-        
-          ItemNumericMetadata.createNew(item2, MetadataType.HEIGHT, 1000)
-          ItemNumericMetadata.createNew(item2, MetadataType.STOCK, 2000)
+          ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 100)
+
+          ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 1000)
 
           val map1 = ItemNumericMetadata.all(item1)
-          map1.size === 2
-          map1(MetadataType.HEIGHT).metadata === 100
-          map1(MetadataType.STOCK).metadata === 200
+          map1.size === 1
+          map1(ItemNumericMetadataType.HEIGHT).metadata === 100
 
           val map2 = ItemNumericMetadata.all(item2)
-          map2.size === 2
-          map2(MetadataType.HEIGHT).metadata === 1000
-          map2(MetadataType.STOCK).metadata === 2000
+          map2.size === 1
+          map2(ItemNumericMetadataType.HEIGHT).metadata === 1000
         }}
       }
     }
@@ -234,11 +226,11 @@ class ItemSpec extends Specification {
           price5, tax, CurrencyInfo.Jpy, BigDecimal(2001), date("9999-12-31")
         )
 
-        val height1 = ItemNumericMetadata.createNew(item1, MetadataType.HEIGHT, 100)
-        val height2 = ItemNumericMetadata.createNew(item2, MetadataType.HEIGHT, 200)
-        val height3 = ItemNumericMetadata.createNew(item3, MetadataType.HEIGHT, 300)
-        val height4 = ItemNumericMetadata.createNew(item4, MetadataType.HEIGHT, 400)
-        val height5 = ItemNumericMetadata.createNew(item5, MetadataType.HEIGHT, 500)
+        val height1 = ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 100)
+        val height2 = ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 200)
+        val height3 = ItemNumericMetadata.createNew(item3, ItemNumericMetadataType.HEIGHT, 300)
+        val height4 = ItemNumericMetadata.createNew(item4, ItemNumericMetadataType.HEIGHT, 400)
+        val height5 = ItemNumericMetadata.createNew(item5, ItemNumericMetadataType.HEIGHT, 500)
       }}
     }
 
@@ -278,9 +270,9 @@ class ItemSpec extends Specification {
           list1(2)._5.currency === CurrencyInfo.Jpy
           list1(2)._5.unitPrice === BigDecimal(501)
 
-          list1(0)._6(MetadataType.HEIGHT).metadata === 500
-          list1(1)._6(MetadataType.HEIGHT).metadata === 100
-          list1(2)._6(MetadataType.HEIGHT).metadata === 300
+          list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+          list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+          list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
         }}
       }
     }
@@ -335,11 +327,11 @@ class ItemSpec extends Specification {
           list1(4)._5.currency === CurrencyInfo.Jpy
           list1(4)._5.unitPrice === BigDecimal(301)
 
-          list1(0)._6(MetadataType.HEIGHT).metadata === 500
-          list1(1)._6(MetadataType.HEIGHT).metadata === 100
-          list1(2)._6(MetadataType.HEIGHT).metadata === 400
-          list1(3)._6(MetadataType.HEIGHT).metadata === 300
-          list1(4)._6(MetadataType.HEIGHT).metadata === 200
+          list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+          list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+          list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 400
+          list1(3)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
+          list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
         }}
       }
     }
