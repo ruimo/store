@@ -130,7 +130,11 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(Item, ItemName, ItemDescription, Site, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])] =
+  ): Seq[(
+    Item, ItemName, ItemDescription, Site, ItemPriceHistory, 
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+  )] =
     SQL(
       """
       select * from item
@@ -157,8 +161,9 @@ object Item {
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
+      val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-      (e._1, e._2, e._3, e._5, priceHistory, metadata)
+      (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
     }}
 
   def listBySite(
