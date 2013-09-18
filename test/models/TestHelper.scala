@@ -8,6 +8,7 @@ object TestHelper {
   def removePreloadedRecords() {
     DB.withConnection { implicit conn =>
       SQL("delete from item_numeric_metadata").executeUpdate()
+      SQL("delete from site_item_numeric_metadata").executeUpdate()
       SQL("delete from item_description").executeUpdate()
       SQL("delete from site_item").executeUpdate()
       SQL("delete from item_name").executeUpdate()
