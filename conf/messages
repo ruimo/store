@@ -84,3 +84,6 @@ unique.constraint.violation=Duplicated
 
 error.date=Invalid date format
 format.date=Date (''{0}'')
+purchase=Purchase
+
+shopping.cart=Shopping cart

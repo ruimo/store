@@ -113,3 +113,5 @@ unique.constraint.violation=重複しています
 
 error.date=日付の形式が不正です
 format.date=日付の形式は(''{0}'')です
+purchase=カートに入れる
+shopping.cart=ショッピングカート

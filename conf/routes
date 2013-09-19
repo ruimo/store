@@ -20,7 +20,7 @@ GET     /admin/startChangeItem        controllers.ItemMaintenance.startChangeIte
 
 POST    /admin/changeItemName         controllers.ItemMaintenance.changeItemName(id: Long)
 POST    /admin/addItemName            controllers.ItemMaintenance.addItemName(id: Long)
-GET     /admin/removeItemName        controllers.ItemMaintenance.removeItemName(itemId: Long, localeId: Long)
+GET     /admin/removeItemName         controllers.ItemMaintenance.removeItemName(itemId: Long, localeId: Long)
 
 POST    /admin/addSiteItem            controllers.ItemMaintenance.addSiteItem(id: Long)
 GET     /admin/removeSiteItem         controllers.ItemMaintenance.removeSiteItem(itemId: Long, siteId: Long)
@@ -35,9 +35,9 @@ GET     /admin/startCreateNewCategory controllers.CategoryMaintenance.startCreat
 POST    /admin/createNewCategory      controllers.CategoryMaintenance.createNewCategory
 GET     /admin/editCategory           controllers.CategoryMaintenance.editCategory
 
-POST    /admin/addItemPrice          controllers.ItemMaintenance.addItemPrice(id: Long)
-POST    /admin/changeItemPrice       controllers.ItemMaintenance.changeItemPrice(id: Long)
-GET     /admin/removeItemPrice       controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
+POST    /admin/addItemPrice           controllers.ItemMaintenance.addItemPrice(id: Long)
+POST    /admin/changeItemPrice        controllers.ItemMaintenance.changeItemPrice(id: Long)
+GET     /admin/removeItemPrice        controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
 
 GET     /admin/siteMaintenance        controllers.SiteMaintenance.index
 GET     /admin/startCreateNewSite     controllers.SiteMaintenance.startCreateNewSite
@@ -50,6 +50,7 @@ POST    /admin/createNewTax           controllers.TaxMaintenance.createNewTax
 GET     /admin/editTax                controllers.TaxMaintenance.editTax
 
 GET     /query                        controllers.ItemQuery.query(q)
+GET     /addToCart                    controllers.Purchase.addToCart(siteId: Long, itemId: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                 controllers.Assets.at(path="/public", file)

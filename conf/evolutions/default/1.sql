@@ -255,12 +255,31 @@ create table store_user (
 create sequence store_user_seq start with 1000;
 
 create table site_user (
+  site_user_id bigint not null,
   site_id bigint not null references site on delete cascade,
   store_user_id bigint not null references store_user on delete cascade,
   user_role integer not null,
+  constraint pk_site_user primary key (site_user_id),
   constraint site_user_user_role_check1 check (user_role in (0,1)),
-  constraint pk_site_user primary key (site_id, store_user_id)
+  unique (site_id, store_user_id)
 );
+
+create sequence site_user_seq start with 1000;
+
+create table shopping_cart (
+  shopping_cart_id bigint not null,
+  store_user_id bigint not null references store_user on delete cascade,
+  seq integer not null,
+  site_id bigint not null references site on delete cascade,
+  item_id bigint not null references item on delete cascade,
+  quantity integer not null,
+  constraint pk_shopping_cart primary key (shopping_cart_id),
+  unique(store_user_id, seq)
+);
+
+create index ix_shopping_cart1 on shopping_cart (item_id);
+
+create sequence shopping_cart_seq start with 1000;
 
 # --- !Downs
 

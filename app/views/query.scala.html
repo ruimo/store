@@ -6,7 +6,10 @@
              models.Site,
              models.ItemPriceHistory,
              Map[models.ItemNumericMetadataType, models.ItemNumericMetadata],
-             Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata])])
+             Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata])]
+)(implicit lang: Lang)
+
+@import helper._
 
 @main("Functional Store") {
 <div id="my_header"><h1>Functional Store</h1></div>
@@ -55,6 +58,12 @@
             <td>@e._2.name</td>
             <td>@e._4.name</td>
             <td>@e._5.unitPrice</td>
+            <td>
+              <button type="button" 
+                      onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
+                @Messages("purchase")
+              </button>
+            </td>
           </tr>
         }
       </table>
