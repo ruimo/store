@@ -1,46 +1,8 @@
-@(message: String)(implicit lang: Lang)
+@()(implicit lang: Lang)
 
 @main("Functional Store") {
-<div id="my_header"><h1>Functional Store</h1></div>
-
-<div id="my_navi_1">
-<div id="mynavileft">
-<ul>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-
-</ul>
-</div>
-</div>
-
-
-<div id="my_navi_2">
-
-<div id="mynaviright">
-<ul>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-
-</ul>
-</div>
-</div>
-<div id="my_contents">
-  <div id="mymain">
-    <div class="contents">
-      @helper.form(action=routes.ItemQuery.query("")) {
-        <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">
-        <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
-      }
-    </div>
-  </div>
-</div>
-<div id="my_footer"><p>FOOTER</p></div>
+  @helper.form(action=routes.ItemQuery.query("")) {
+    <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">
+    <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
+  }
 }

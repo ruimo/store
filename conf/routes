@@ -51,6 +51,10 @@ GET     /admin/editTax                controllers.TaxMaintenance.editTax
 
 GET     /query                        controllers.ItemQuery.query(q)
 GET     /addToCart                    controllers.Purchase.addToCart(siteId: Long, itemId: Long)
+GET     /showShoppingCart             controllers.Purchase.showShoppingCart
+GET     /changeItemQuantity           controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
+GET     /deleteItemFromCart           controllers.Purchase.deleteItemFromCart(cartId: Long ?= 0)
+GET     /clearShoppingCart            controllers.Purchase.clear()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                 controllers.Assets.at(path="/public", file)

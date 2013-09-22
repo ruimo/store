@@ -7,6 +7,7 @@ import play.api.Play.current
 import org.specs2.mock._
 import play.api.mvc.Session
 import controllers.{Admin, NeedLogin}
+import models.LoginSession
 
 class NeedLoginSpec extends Specification {
   "NeedLogin" should {
@@ -15,7 +16,7 @@ class NeedLoginSpec extends Specification {
         val now = 234L
 
         val req = FakeRequest().withSession((Admin.LoginUserKey, "123;234"))
-        Admin.loginSessionWithTime(req, now) === Some(Admin.LoginSession(123L, 234L))
+        Admin.loginSessionWithTime(req, now) === Some(LoginSession(123L, 234L))
       }
     }
 

@@ -1,4 +1,40 @@
-@()
+@(list: Seq[(
+    ShoppingCartItem, ItemName, ItemDescription, Site, ItemPriceHistory,
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+)])(implicit lang: Lang)
 
 @main(Messages("shopping.cart")) {
+  <table style="width: 80%;">
+    <tr>
+      <th>@Messages("itemName")</th>
+      <th>@Messages("site")</th>
+      <th>@Messages("unitPrice")</th>
+      <th>
+        @Messages("quantity")
+        <form action="@routes.Purchase.clear()" style="display: inline;">
+          <input type="submit" value="@Messages("remove.all")">
+        </form>
+      </th>
+    </tr>
+
+    @list.map { e =>
+      <tr>
+        <td>@e._2.name</td>
+        <td>@e._4.name</td>
+        <td>@e._5.unitPrice</td>
+        <td>
+          <form action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
+            <input type="hidden" name="cartId" value="@e._1.id.get">
+            <input type="text" name="quantity" value="@e._1.quantity">
+            <input type="submit" value="@Messages("update")">
+          </form>
+          <form action="@routes.Purchase.deleteItemFromCart()" style="display: inline;">
+            <input type="hidden" name="cartId" value="@e._1.id.get">
+            <input type="submit" value="@Messages("remove")">
+          </form>
+        </td>
+      </tr>
+    }
+  </table>
 }

@@ -115,3 +115,6 @@ error.date=日付の形式が不正です
 format.date=日付の形式は(''{0}'')です
 purchase=カートに入れる
 shopping.cart=ショッピングカート
+unitPrice=単価
+quantity=個数
+remove.all=全て削除

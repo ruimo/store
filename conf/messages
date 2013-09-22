@@ -87,3 +87,6 @@ format.date=Date (''{0}'')
 purchase=Purchase
 
 shopping.cart=Shopping cart
+unitPrice=Unit Price
+quantity=Quantity
+remove.all=Remove all

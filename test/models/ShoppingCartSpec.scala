@@ -105,6 +105,36 @@ class ShoppingCartSpec extends Specification {
         }}
       }
     }
+
+    "changeQuantity will change quantity." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          TestHelper.removePreloadedRecords()
+          val tax = Tax.createNew
+
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+          )
+
+          import models.LocaleInfo.{Ja, En}
+          val site1 = Site.createNew(Ja, "商店1")
+          val cat1 = Category.createNew(Map(Ja -> "植木", En -> "Plant"))
+          val item1 = Item.createNew(cat1)
+
+          SiteItem.createNew(site1, item1)
+
+          val cart1 = ShoppingCart.addItem(user1.id.get, site1.id.get, item1.id.get, 2)
+
+          cart1.storeUserId === user1.id.get
+          cart1.sequenceNumber === 1
+          cart1.itemId === item1.id.get
+          cart1.quantity === 2
+
+          ShoppingCart.changeQuantity(cart1.id.get, user1.id.get, 5)
+          ShoppingCart(cart1.id.get).quantity === 5
+        }}
+      }
+    }
   }
 }
 

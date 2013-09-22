@@ -12,63 +12,32 @@
 @import helper._
 
 @main("Functional Store") {
-<div id="my_header"><h1>Functional Store</h1></div>
+  @helper.form(action=routes.ItemQuery.query(queryString)) {
+    <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
+    <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
+  }
 
-<div id="my_navi_1">
-<div id="mynavileft">
-<ul>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
+  <br>
+  <table style="width: 80%;">
+    <tr>
+      <th>@Messages("itemName")</th>
+      <th>@Messages("site")</th>
+      <th>@Messages("unitPrice")</th>
+      <th></th>
+    </tr>
 
-</ul>
-</div>
-</div>
-
-
-<div id="my_navi_2">
-
-<div id="mynaviright">
-<ul>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-
-</ul>
-</div>
-</div>
-<div id="my_contents">
-  <div id="mymain">
-    <div class="contents">
-      @helper.form(action=routes.ItemQuery.query(queryString)) {
-        <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
-        <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
-      }
-
-      <br>
-      <table style="width: 80%;">
-        @list.map { e =>
-          <tr>
-            <td>@e._2.name</td>
-            <td>@e._4.name</td>
-            <td>@e._5.unitPrice</td>
-            <td>
-              <button type="button" 
-                      onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
-                @Messages("purchase")
-              </button>
-            </td>
-          </tr>
-        }
-      </table>
-    </div>
-  </div>
-</div>
-<div id="my_footer"><p>FOOTER</p></div>
+    @list.map { e =>
+      <tr>
+        <td>@e._2.name</td>
+        <td>@e._4.name</td>
+        <td>@e._5.unitPrice</td>
+        <td>
+          <button type="button" 
+                  onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
+            @Messages("purchase")
+          </button>
+        </td>
+      </tr>
+    }
+  </table>
 }

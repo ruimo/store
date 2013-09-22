@@ -57,17 +57,20 @@ object ShoppingCart {
     ShoppingCartItem(Id(id), userId, seq, siteId, itemId, quantity)
   }
 
-  def remove(id: Long)(implicit conn: Connection) {
+  def remove(id: Long, userId: Long)(implicit conn: Connection): Int =
     SQL(
-      "delete from shopping_card where shopping_cart_id = {id}"
+      """
+      delete from shopping_cart
+      where shopping_cart_id = {id} and store_user_id = {userId}
+      """
     ).on(
-      'id -> id
+      'id -> id,
+      'userId -> userId
     ).executeUpdate()
-  }
 
   def removeForUser(userId: Long)(implicit conn: Connection) {
     SQL(
-      "delete from shopping_cart where user_id = {id}"
+      "delete from shopping_cart where store_user_id = {id}"
     ).on(
       'id -> userId
     ).executeUpdate()
@@ -118,4 +121,24 @@ object ShoppingCart {
 
       (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
     }
+
+  def changeQuantity(id: Long, userId: Long, quantity: Int)(implicit conn: Connection): Int = {
+    SQL(
+      """
+      update shopping_cart set quantity = {quantity}
+      where shopping_cart_id = {id} and store_user_id = {userId}
+      """
+    ).on(
+      'quantity -> quantity,
+      'id ->id,
+      'userId -> userId
+    ).executeUpdate()
+  }
+
+  def apply(id: Long)(implicit conn: Connection): ShoppingCartItem =
+    SQL(
+      "select * from shopping_cart where shopping_cart_id = {id}"
+    ).on(
+      'id -> id
+    ).as(simple.single)
 }

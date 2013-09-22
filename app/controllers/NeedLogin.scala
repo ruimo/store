@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import models.{StoreUser, FirstSetup, LoginUser}
+import models.{LoginSession, StoreUser, FirstSetup, LoginUser}
 import play.api.i18n.Messages
 import play.api.templates.Html
 import helpers.PasswordHash
@@ -21,18 +21,6 @@ trait NeedLogin extends Controller with HasLogger {
 
   val LoginUserKey = "loginUser"
   val SessionTimeout = 5 * 60 * 1000
-
-  case class LoginSession(userId: Long, expireTime: Long) {
-    def withExpireTime(newExpireTime: Long) = LoginSession(userId, newExpireTime)
-    def toSessionString = userId + ";" + expireTime
-  }
-
-  object LoginSession {
-    def apply(sessionString: String): LoginSession = {
-      val args = sessionString.split(';').map(_.toLong)
-      LoginSession(args(0), args(1))
-    }
-  }
 
   val loginForm = Form(
     mapping(
