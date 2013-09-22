@@ -9,7 +9,7 @@ GET     /                             controllers.Application.index
 GET     /admin                        controllers.Admin.index
 GET     /admin/startFirstSetup        controllers.Admin.startFirstSetup
 POST    /admin/firstSetup             controllers.Admin.firstSetup
-GET     /admin/startLogin             controllers.Admin.startLogin
+GET     /admin/startLogin             controllers.Admin.startLogin(uriOnLoginSuccess: String)
 POST    /admin/login                  controllers.Admin.login
 
 GET     /admin/itemMaintenance        controllers.ItemMaintenance.index

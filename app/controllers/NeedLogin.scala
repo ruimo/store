@@ -37,12 +37,19 @@ trait NeedLogin extends Controller with HasLogger {
   val loginForm = Form(
     mapping(
       "userName" -> text.verifying(nonEmpty),
-      "password" -> text.verifying(nonEmpty)
+      "password" -> text.verifying(nonEmpty),
+      "uri" -> text
     )(LoginUser.apply)(LoginUser.unapply)
   )
 
-  def loginSession(request: RequestHeader): Option[LoginSession] =
-    request.session.get(LoginUserKey).map { sessionString: String => LoginSession(sessionString) }
+  def loginSession(request: RequestHeader): Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
+
+  def loginSessionWithTime(request: RequestHeader, now: Long): Option[LoginSession] =
+    request.session.get(LoginUserKey).flatMap {
+      sessionString =>
+        val s = LoginSession(sessionString)
+        if (s.expireTime < now) None else Some(s)
+    }
 
   def onUnauthorized(request: RequestHeader) = DB.withConnection { implicit conn => {
     StoreUser.count match {
@@ -52,7 +59,7 @@ trait NeedLogin extends Controller with HasLogger {
       }
       case _ => {
         logger.info("User table is not empty. Go to login page.")
-        Results.Redirect(routes.Admin.startLogin)
+        Results.Redirect(routes.Admin.startLogin(request.uri))
       }
     }
   }}
@@ -63,8 +70,8 @@ trait NeedLogin extends Controller with HasLogger {
     }
   }
 
-  def startLogin = Action { implicit request =>
-    Ok(views.html.admin.login(loginForm))
+  def startLogin(uriOnLoginSuccess: String) = Action { implicit request =>
+    Ok(views.html.admin.login(loginForm, uriOnLoginSuccess))
   }
 
   def login = Action { implicit request => {
@@ -78,7 +85,7 @@ trait NeedLogin extends Controller with HasLogger {
 
   def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
     logger.error("Validation error in NeedLogin.login.")
-    BadRequest(views.html.admin.login(form))
+    BadRequest(views.html.admin.login(form, form("uri").value.get))
   }
 
   def tryLogin(
@@ -88,7 +95,7 @@ trait NeedLogin extends Controller with HasLogger {
       case None => onLoginUserNotFound(form)
       case Some(rec) => {
         if (rec.passwordMatch(user.password)) {
-          Redirect(routes.Admin.index).flashing(
+          Redirect(user.uri).flashing(
             "message" -> "Welcome"
           ).withSession {
             (LoginUserKey, LoginSession(rec.id.get, System.currentTimeMillis + SessionTimeout).toSessionString)
@@ -96,7 +103,10 @@ trait NeedLogin extends Controller with HasLogger {
         }
         else {
           logger.error("Password doesnot match.")
-          BadRequest(views.html.admin.login(form.withGlobalError(Messages("cannotLogin"))))
+          BadRequest(views.html.admin.login(
+            form.withGlobalError(Messages("cannotLogin")),
+            form("uri").value.get
+          ))
         }
       }
     }
@@ -104,6 +114,9 @@ trait NeedLogin extends Controller with HasLogger {
 
   def onLoginUserNotFound(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
     logger.error("User '" + form.data("userName") + "' not found.")
-    BadRequest(views.html.admin.login(form.withGlobalError(Messages("cannotLogin"))))
+    BadRequest(views.html.admin.login(
+      form.withGlobalError(Messages("cannotLogin")),
+      form("uri").value.get
+    ))
   }
 }

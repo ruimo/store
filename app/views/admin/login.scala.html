@@ -1,4 +1,4 @@
-@(myForm: Form[models.LoginUser])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang)
+@(myForm: Form[models.LoginUser], uri: String)(implicit token: play.filters.csrf.CSRF.Token, lang: Lang)
 
 @main(Messages("loginTitle")) {
   <h1>@Messages("loginTitle")</h1>
@@ -25,6 +25,8 @@
       myForm("password"),
       '_label -> Messages("password"), 'size -> 20
     )
+
+    <input type="hidden" name="uri" value="@uri">
 
     <input type="submit" id="loginButton" value='@Messages("login")'>
   }
