@@ -15,6 +15,8 @@
 }
 
 @main(Messages("enter.shipping.address")) {
+  <h1>@Messages("enter.shipping.address")</h1>
+
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">
       @Messages("inputError")
