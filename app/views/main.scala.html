@@ -5,11 +5,17 @@
 )
 
 @loginLink() = {
-  <a href="@routes.Admin.startLogin(request.uri)">@Messages("login")</a>
+  <button type="button" id="loginButton"
+          onclick="location.href='@routes.Admin.startLogin(request.uri)';">
+    @Messages("login")
+  </button>
 }
 
 @logoffLink() = {
-  <a href="@routes.Admin.logoff(request.uri)">@Messages("logoff")</a>
+  <button type="button" id="loginButton"
+          onclick="location.href='@routes.Admin.logoff(request.uri)';">
+    @Messages("logoff")
+  </button>
 }
 
 <!DOCTYPE html>

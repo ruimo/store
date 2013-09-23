@@ -7,6 +7,7 @@ import play.api.i18n.{Lang, Messages}
 import models.{UserRole, StoreUser}
 import play.api.db.DB
 import play.api.Play.current
+import java.util.concurrent.TimeUnit
 
 class LoginSpec extends Specification {
   // password == password
@@ -36,7 +37,7 @@ class LoginSpec extends Specification {
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("loginTitle")
 
-        browser.submit("#loginButton")
+        browser.$("#doLoginButton").click()
         browser.title === Messages("loginTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
@@ -55,7 +56,7 @@ class LoginSpec extends Specification {
 
         browser.fill("#userName").`with`("administrator")
         browser.fill("#password").`with`("password")
-        browser.submit("#loginButton")
+        browser.click("#doLoginButton")
         browser.title === Messages("adminTitle")
       }
     }
