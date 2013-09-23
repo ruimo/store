@@ -1,21 +1,5 @@
 @(
-  id: Long,
-  siteMap: Map[Long, Site],
-  langTable: Seq[(String, String)],
-  itemNameTableForm: Form[ChangeItemNameTable],
-  newItemNameForm: Form[ChangeItemName],
-  siteNameTable: Seq[(String, String)],
-  siteItemTable: Seq[(Site, SiteItem)],
-  newSiteItemForm: Form[ChangeSiteItem],
-  updateCategoryForm: Form[ChangeItemCategory],
-  categoryTable: Seq[(String, String)],
-  itemDescriptionTableForm: Form[ChangeItemDescriptionTable],
-  newItemDescriptionForm: Form[ChangeItemDescription],
-  itemPriceTableForm: Form[ChangeItemPriceTable],
-  newItemPriceForm: Form[ChangeItemPrice],
-  taxTable: Seq[(String, String)],
-  currencyTable: Seq[(String, String)],
-  itemInSiteTable: Seq[(String, String)]
+  c: ChangeItem
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -30,7 +14,7 @@
   <tr>
     <td>
       <button type="button"
-              onclick="location.href='@routes.ItemMaintenance.removeItemName(id, field("localeId").value.get.toLong)';">
+              onclick="location.href='@routes.ItemMaintenance.removeItemName(c.id, field("localeId").value.get.toLong)';">
         @Messages("remove")
       </button>
 
@@ -51,14 +35,41 @@
   </tr>
 }
 
+@itemMetadataForm(field: Field) = {
+  @if(field("metadataType").value.isDefined) {
+    <tr>
+      <td>
+        <button type="button"
+                onclick="location.href='@routes.ItemMaintenance.removeItemMetadata(c.id, field("metadataType").value.get.toInt)';">
+          @Messages("remove")
+        </button>
+
+        @ItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt)
+        <div style="display: none;">
+        @inputText(field("metadataType"), 'type -> "hidden")(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+        </div>
+      </td>
+      <td>
+        @inputText(
+          field("metadata")
+        )(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+      </td>
+    </tr>
+  }
+}
+
 @descriptionForm(field: Field) = {
   <tr>
     <td>
       <button type="button"
-              onclick="location.href='@routes.ItemMaintenance.removeItemDescription(field("siteId").value.get.toLong, id, field("localeId").value.get.toLong)';">
+              onclick="location.href='@routes.ItemMaintenance.removeItemDescription(field("siteId").value.get.toLong, c.id, field("localeId").value.get.toLong)';">
         @Messages("remove")
       </button>
-      @{siteMap.get(field("siteId").value.get.toLong).map { _.name }.getOrElse("-")}
+      @{c.siteMap.get(field("siteId").value.get.toLong).map { _.name }.getOrElse("-")}
       <div style="float: right;">
       @inputText(field("siteId"), 'type -> "hidden")(
         helper.FieldConstructor(simpleField.f), implicitly
@@ -96,10 +107,10 @@
       )
       </div>
       <button type="button"
-              onclick="location.href='@routes.ItemMaintenance.removeItemPrice(id, field("siteId").value.get.toLong, field("itemPriceHistoryId").value.get.toLong)';">
+              onclick="location.href='@routes.ItemMaintenance.removeItemPrice(c.id, field("siteId").value.get.toLong, field("itemPriceHistoryId").value.get.toLong)';">
         @Messages("remove")
       </button>
-      @{siteMap.get(field("siteId").value.get.toLong).map { _.name }.getOrElse("-")}
+      @{c.siteMap.get(field("siteId").value.get.toLong).map { _.name }.getOrElse("-")}
       <div style="float: right;">
       @inputText(field("siteId"), 'type -> "hidden")(
         helper.FieldConstructor(simpleField.f), implicitly
@@ -109,7 +120,7 @@
     <td>
       @select(
         field("taxId"),
-        taxTable,
+        c.taxTable,
         '_showConstraints -> false
       )(
         helper.FieldConstructor(simpleField.f), implicitly
@@ -118,7 +129,7 @@
     <td>
       @select(
         field("currencyId"),
-        currencyTable,
+        c.currencyTable,
         '_showConstraints -> false
       )(
         helper.FieldConstructor(simpleField.f), implicitly
@@ -139,18 +150,18 @@
 
 @main(Messages("changeItemTitle")) {
 <h1>@Messages("changeItemTitle")</h1>
-  <h2>@Messages("item") Id: @id</h2>
+  <h2>@Messages("item") Id: @c.id</h2>
 
   <h2>@Messages("itemName")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(c.id))) {
       <tr class="itemHeader">
         <th>@Messages("language")</th>
         <th>@Messages("itemName")</th>
       </tr>
 
-      @repeat(itemNameTableForm("itemNames")) { name => @nameForm(name) }
+      @repeat(c.itemNameTableForm("itemNames")) { name => @nameForm(name) }
 
       <tr>
         <td colspan="2">
@@ -159,12 +170,12 @@
       </tr>
     }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemName(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemName(c.id))) {
       <tr>
         <td>
           @select(
-            newItemNameForm("localeId"), 
-            langTable,
+            c.newItemNameForm("localeId"), 
+            c.langTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -172,7 +183,7 @@
         </td>
         <td>
           @inputText(
-            newItemNameForm("itemName"), '_label -> ""
+            c.newItemNameForm("itemName"), '_label -> ""
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )
@@ -194,11 +205,11 @@
       <th>@Messages("site")</th>
     </tr>
   
-    @siteItemTable.map { e =>
+    @c.siteItemTable.map { e =>
       <tr>
         <td>
           <button type="button"
-                  onclick="location.href='@routes.ItemMaintenance.removeSiteItem(id, e._1.id.get)';">
+                  onclick="location.href='@routes.ItemMaintenance.removeSiteItem(c.id, e._1.id.get)';">
             @Messages("remove")
           </button>
           @e._1.name
@@ -206,12 +217,12 @@
       </tr>
     }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItem(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItem(c.id))) {
       <tr>
         <td>
           @select(
-            newSiteItemForm("siteId"),
-            siteNameTable,
+            c.newSiteItemForm("siteId"),
+            c.siteNameTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -229,10 +240,10 @@
 
   <h2>@Messages("category")</h2>
   
-  @form(action = helper.CSRF(routes.ItemMaintenance.updateItemCategory(id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.updateItemCategory(c.id))) {
     @select(
-      updateCategoryForm("categoryId"), 
-      categoryTable, 
+      c.updateCategoryForm("categoryId"), 
+      c.categoryTable, 
       '_label -> Messages("category"),
       '_showConstraints -> false
     )
@@ -240,10 +251,58 @@
     <input type="submit" value=@Messages("update")>
   }
 
+  <h2>@Messages("itemMetadata")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemMetadata(c.id))) {
+      <tr class="itemHeader">
+        <th>@Messages("itemMetadataType")</th>
+        <th>@Messages("itemMetadata")</th>
+      </tr>
+
+      @repeat(c.itemMetadataTableForm("itemMetadatas")) { metadata => @itemMetadataForm(metadata) }
+
+      @if(! c.itemMetadataTableForm("itemMetadatas").indexes.isEmpty) {
+        <tr>
+          <td colspan="2">
+            <input style="float: right;" type="submit" value=@Messages("update")>
+          </td>
+        </tr>
+      }
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemMetadata(c.id))) {
+      <tr>
+        <td>
+          @select(
+            c.newItemMetadataForm("metadataType"), 
+            c.itemMetadataTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newItemNameForm("metadata"), '_label -> ""
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
   <h2>@Messages("itemPrice")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemPrice(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemPrice(c.id))) {
       <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("tax")</th>
@@ -252,7 +311,7 @@
         <th>@Messages("validUntil")</th>
       </tr>
 
-      @repeat(itemPriceTableForm("itemPrices")) { price => @priceForm(price) }
+      @repeat(c.itemPriceTableForm("itemPrices")) { price => @priceForm(price) }
 
       <tr>
         <td colspan="5">
@@ -261,20 +320,20 @@
       </tr>
     }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemPrice(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemPrice(c.id))) {
       <tr>
         <td>
           <div style="display: none;">
-            @inputText(newItemPriceForm("itemPriceId"), 'type -> "hidden")(
+            @inputText(c.newItemPriceForm("itemPriceId"), 'type -> "hidden")(
               helper.FieldConstructor(simpleField.f), implicitly
             )
-            @inputText(newItemPriceForm("itemPriceHistoryId"), 'type -> "hidden")(
+            @inputText(c.newItemPriceForm("itemPriceHistoryId"), 'type -> "hidden")(
               helper.FieldConstructor(simpleField.f), implicitly
             )
           </div>
           @select(
-            newItemPriceForm("siteId"), 
-            itemInSiteTable,
+            c.newItemPriceForm("siteId"), 
+            c.itemInSiteTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -282,8 +341,8 @@
         </td>
         <td>
           @select(
-            newItemPriceForm("taxId"), 
-            taxTable,
+            c.newItemPriceForm("taxId"), 
+            c.taxTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -291,8 +350,8 @@
         </td>
         <td>
           @select(
-            newItemPriceForm("currencyId"), 
-            currencyTable,
+            c.newItemPriceForm("currencyId"), 
+            c.currencyTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -300,14 +359,14 @@
         </td>
         <td>
           @inputText(
-            newItemPriceForm("itemPrice")
+            c.newItemPriceForm("itemPrice")
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )
         </td>
         <td>
           @inputText(
-            newItemPriceForm("validUntil")
+            c.newItemPriceForm("validUntil")
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )
@@ -325,14 +384,14 @@
   <h2>@Messages("itemDescription")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemDescription(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemDescription(c.id))) {
       <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("language")</th>
         <th>@Messages("itemDescription")</th>
       </tr>
 
-      @repeat(itemDescriptionTableForm("itemDescriptions")) { description => @descriptionForm(description) }
+      @repeat(c.itemDescriptionTableForm("itemDescriptions")) { description => @descriptionForm(description) }
 
       <tr>
         <td colspan="3">
@@ -341,12 +400,12 @@
       </tr>
     }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemDescription(id))) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.addItemDescription(c.id))) {
       <tr>
         <td>
           @select(
-            newItemDescriptionForm("siteId"), 
-            siteNameTable,
+            c.newItemDescriptionForm("siteId"), 
+            c.siteNameTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -354,8 +413,8 @@
         </td>
         <td>
           @select(
-            newItemDescriptionForm("localeId"), 
-            langTable,
+            c.newItemDescriptionForm("localeId"), 
+            c.langTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -363,7 +422,7 @@
         </td>
         <td>
           @textarea(
-            newItemDescriptionForm("itemDescription"), '_label -> "",
+            c.newItemDescriptionForm("itemDescription"), '_label -> "",
             'rows -> 5, 'cols -> 40
           )(
             helper.FieldConstructor(simpleField.f), implicitly

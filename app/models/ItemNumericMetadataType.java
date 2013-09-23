@@ -8,4 +8,8 @@ public enum ItemNumericMetadataType {
     public static ItemNumericMetadataType byIndex(int index) {
         return byIndex[index];
     }
+
+    public static ItemNumericMetadataType[] all() {
+        return ItemNumericMetadataType.class.getEnumConstants();
+    }
 }

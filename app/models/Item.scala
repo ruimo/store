@@ -628,12 +628,17 @@ object ItemNumericMetadata {
     SqlParser.get[Long]("item_numeric_metadata.item_id") ~
     SqlParser.get[Int]("item_numeric_metadata.metadata_type") ~
     SqlParser.get[Long]("item_numeric_metadata.metadata") map {
-      case id~itemId~metadata_type~metadata => ItemNumericMetadata(id, itemId, ItemNumericMetadataType.byIndex(metadata_type), metadata)
+      case id~itemId~metadata_type~metadata =>
+        ItemNumericMetadata(id, itemId, ItemNumericMetadataType.byIndex(metadata_type), metadata)
     }
   }
 
   def createNew(
     item: Item, metadataType: ItemNumericMetadataType, metadata: Long
+  )(implicit conn: Connection): ItemNumericMetadata = add(item.id.get, metadataType, metadata)
+
+  def add(
+    itemId: Long, metadataType: ItemNumericMetadataType, metadata: Long
   )(implicit conn: Connection): ItemNumericMetadata = {
     SQL(
       """
@@ -644,14 +649,14 @@ object ItemNumericMetadata {
       )
       """
     ).on(
-      'itemId -> item.id.get,
+      'itemId -> itemId,
       'metadataType -> metadataType.ordinal,
       'metadata -> metadata
     ).executeUpdate()
 
     val id = SQL("select currval('item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemNumericMetadata(Id(id), item.id.get, ItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
+    ItemNumericMetadata(Id(id), itemId, ItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
   }
 
   def apply(
@@ -679,6 +684,33 @@ object ItemNumericMetadata {
     ItemNumericMetadata.simple *
   ).foldLeft(new HashMap[ItemNumericMetadataType, ItemNumericMetadata]) {
     (map, e) => map.updated(e.metadataType, e)
+  }
+
+  def update(itemId: Long, metadataType: ItemNumericMetadataType, metadata: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      update item_numeric_metadata set metadata = {metadata}
+      where item_id = {itemId} and metadata_type = {metadataType}
+      """
+    ).on(
+      'metadata -> metadata,
+      'itemId -> itemId,
+      'metadataType -> metadataType.ordinal
+    ).executeUpdate()
+  }
+
+  def remove(itemId: Long, metadataType: Int)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from item_numeric_metadata
+      where item_id = {itemId}
+      and metadata_type = {metadataType}
+      """
+    )
+    .on(
+      'itemId -> itemId,
+      'metadataType -> metadataType
+    ).executeUpdate()
   }
 }
 

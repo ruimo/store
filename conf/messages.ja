@@ -135,3 +135,5 @@ tel1=電話番号1
 tel2=電話番号2
 tel3=電話番号3
 finalize.transaction=購入する
+itemMetadata=値
+itemMetadataType=商品情報
