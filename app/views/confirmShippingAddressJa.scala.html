@@ -25,8 +25,8 @@
     @list.map { e =>
       <tr class="itemTableBody">
         <td>@e._2.name</td>
-        <td>@e._1.quantity</td>
-        <td>@amount(e._5.unitPrice * e._1.quantity)</td>
+        <td style="text-align: right;">@e._1.quantity</td>
+        <td style="text-align: right;">@amount(e._5.unitPrice * e._1.quantity)</td>
       </tr>
     }
   </table>
