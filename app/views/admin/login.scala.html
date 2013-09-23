@@ -1,4 +1,11 @@
-@(myForm: Form[models.LoginUser], uri: String)(implicit token: play.filters.csrf.CSRF.Token, lang: Lang)
+@(
+  myForm: Form[models.LoginUser], uri: String
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @main(Messages("loginTitle")) {
   <h1>@Messages("loginTitle")</h1>

@@ -183,11 +183,29 @@ create table item_price_history (
 
 create sequence item_price_history_seq start with 1000;
 
+create table store_user (
+  store_user_id bigint not null,
+  user_name varchar(64) not null unique,
+  first_name varchar(64) not null,
+  middle_name varchar(64),
+  last_name varchar(64) not null,
+  email varchar(255) not null,
+  password_hash bigint not null,
+  salt bigint not null,
+  deleted boolean not null,
+  user_role integer not null,
+  constraint user_user_role_check1 check (user_role in (0,1)),
+  constraint pk_user primary key (store_user_id)
+);
+
+create sequence store_user_seq start with 1000;
+
 create table transaction_header (
   transaction_id bigint not null,
-  site_id bigint not null references site on delete cascade,
+  site_id bigint not null references site,
+  store_user_id bigint not null references store_user,
   transaction_time timestamp not null,
-  currency_id bigint not null references currency on delete cascade,
+  currency_id bigint not null references currency,
   total_amount decimal(15,2) not null,
   tax_amount decimal(15,2) not null,
   transaction_type integer not null,
@@ -196,10 +214,37 @@ create table transaction_header (
 
 create sequence transaction_header_seq start with 1000;
 
+create table address (
+  address_id bigint not null,
+  country_code integer not null,
+  first_name varchar(64) not null,
+  middle_name varchar(64) not null,
+  last_name varchar(64) not null,
+  first_name_kana varchar(64) not null,
+  last_name_kana varchar(64) not null,
+  zip1 varchar(32) not null,
+  zip2 varchar(32) not null,
+  zip3 varchar(32) not null,
+  prefecture integer not null,
+  address1 varchar(256) not null,
+  address2 varchar(256) not null,
+  address3 varchar(256) not null,
+  address4 varchar(256) not null,
+  address5 varchar(256) not null,
+  tel1 varchar(32) not null,
+  tel2 varchar(32) not null,
+  tel3 varchar(32) not null,
+
+  constraint pk_address primary key (address_id)
+);
+
+create sequence address_seq start with 1000;
+
 create table transaction_shipping (
   transaction_shipping_id bigint not null,
   transaction_id bigint not null references transaction_header on delete cascade,
   amount decimal(15,2) not null,
+  address_id bigint not null references address,
   constraint pk_transaction_shipping primary key (transaction_shipping_id)
 );
 
@@ -237,23 +282,6 @@ create table transaction_credit_tender (
 
 create sequence transaction_credit_tender_seq start with 1000;
 
-create table store_user (
-  store_user_id bigint not null,
-  user_name varchar(64) not null unique,
-  first_name varchar(64) not null,
-  middle_name varchar(64),
-  last_name varchar(64) not null,
-  email varchar(255) not null,
-  password_hash bigint not null,
-  salt bigint not null,
-  deleted boolean not null,
-  user_role integer not null,
-  constraint user_user_role_check1 check (user_role in (0,1)),
-  constraint pk_user primary key (store_user_id)
-);
-
-create sequence store_user_seq start with 1000;
-
 create table site_user (
   site_user_id bigint not null,
   site_id bigint not null references site on delete cascade,
@@ -280,6 +308,17 @@ create table shopping_cart (
 create index ix_shopping_cart1 on shopping_cart (item_id);
 
 create sequence shopping_cart_seq start with 1000;
+
+create table shipping_address_history (
+  shipping_address_history_id bigint not null,
+  store_user_id bigint not null references store_user on delete cascade,
+  address_id bigint not null references address on delete cascade,
+  updated_time timestamp not null,
+  constraint pk_shipping_address_history primary key (shipping_address_history_id),
+  unique(store_user_id, address_id, updated_time)
+);
+
+create sequence shipping_address_history_seq start with 1000;
 
 # --- !Downs
 

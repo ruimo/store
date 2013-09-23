@@ -1,4 +1,8 @@
-@()(implicit lang: Lang)
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @main("Functional Store") {
   @helper.form(action=routes.ItemQuery.query("")) {

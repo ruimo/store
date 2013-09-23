@@ -7,7 +7,11 @@
              models.ItemPriceHistory,
              Map[models.ItemNumericMetadataType, models.ItemNumericMetadata],
              Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata])]
-)(implicit lang: Lang)
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @import helper._
 
@@ -30,7 +34,7 @@
       <tr>
         <td>@e._2.name</td>
         <td>@e._4.name</td>
-        <td>@e._5.unitPrice</td>
+        <td>@{ if (loginSession.isDefined) amount(e._5.unitPrice) else "-" }</td>
         <td>
           <button type="button" 
                   onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">

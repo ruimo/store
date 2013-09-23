@@ -30,7 +30,11 @@ trait NeedLogin extends Controller with HasLogger {
     )(LoginUser.apply)(LoginUser.unapply)
   )
 
-  def loginSession(request: RequestHeader): Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
+  implicit def loginSession(implicit request: RequestHeader):
+    Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
+
+  def retrieveLoginSession(request: RequestHeader) = loginSession(request)
+
 
   def loginSessionWithTime(request: RequestHeader, now: Long): Option[LoginSession] =
     request.session.get(LoginUserKey).flatMap {
@@ -43,18 +47,20 @@ trait NeedLogin extends Controller with HasLogger {
     StoreUser.count match {
       case 0 =>  {
         logger.info("User table empty. Go to first setup page.")
-        Results.Redirect(routes.Admin.startFirstSetup)
+        Redirect(routes.Admin.startFirstSetup)
       }
       case _ => {
         logger.info("User table is not empty. Go to login page.")
-        Results.Redirect(routes.Admin.startLogin(request.uri))
+        Redirect(routes.Admin.startLogin(request.uri))
       }
     }
   }}
 
   def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result) = {
-    Authenticated(loginSession, onUnauthorized) { user =>
-      Action(request => f(user)(request))
+    Authenticated(retrieveLoginSession, onUnauthorized) { user =>
+      Action(request => f(user)(request).withSession(
+        request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+      ))
     }
   }
 
@@ -70,6 +76,10 @@ trait NeedLogin extends Controller with HasLogger {
       user => tryLogin(user, form)
     )
   }}
+
+  def logoff(uriOnLogoffSuccess: String) = Action { implicit request =>
+    Redirect(uriOnLogoffSuccess).withSession(session - LoginUserKey)
+  }
 
   def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
     logger.error("Validation error in NeedLogin.login.")

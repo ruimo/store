@@ -11,6 +11,7 @@ GET     /admin/startFirstSetup        controllers.Admin.startFirstSetup
 POST    /admin/firstSetup             controllers.Admin.firstSetup
 GET     /admin/startLogin             controllers.Admin.startLogin(uriOnLoginSuccess: String)
 POST    /admin/login                  controllers.Admin.login
+GET     /admin/logoff                 controllers.Admin.logoff(uriOnLogoffSuccess: String)
 
 GET     /admin/itemMaintenance        controllers.ItemMaintenance.index
 GET     /admin/startCreateNewItem     controllers.ItemMaintenance.startCreateNewItem
@@ -55,6 +56,11 @@ GET     /showShoppingCart             controllers.Purchase.showShoppingCart
 GET     /changeItemQuantity           controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
 GET     /deleteItemFromCart           controllers.Purchase.deleteItemFromCart(cartId: Long ?= 0)
 GET     /clearShoppingCart            controllers.Purchase.clear()
+
+GET     /startEnterShippingAddress    controllers.Shipping.startEnterShippingAddress()
+POST    /enterShippingAddressJa       controllers.Shipping.enterShippingAddressJa()
+GET     /confirmShippingAddressJa     controllers.Shipping.confirmShippingAddressJa()
+POST    /finalizeTransaction          controllers.Shipping.finalizeTransaction()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                 controllers.Assets.at(path="/public", file)

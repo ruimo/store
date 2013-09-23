@@ -1,6 +1,6 @@
 #my_navi_1 {float:left; width:150px; background-color:#d6d6bb;}
 #my_navi_2 {float:right; width:150px; background-color:#d6d6bb;}
-#my_contents {margin:0 150px;background-color:#ddd6bb;}
+#my_contents {margin:0 150px;}
 #my_footer {clear:both;}
 
 #mynavileft{padding:0.1em 0.1em 0.1em 0.1em;}
@@ -103,4 +103,35 @@ form dl.error dt {
     background: PapayaWhip;
     color: red;
     font-weight: bold;
+}
+
+table.itemTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
+tr.itemTableHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
+tr.itemTableBody {
+    background-color: white;
+}
+
+.shippingAddress {
+    width: 500px;
+    cell-spacing: 1px;
+    vertical-align: top;
+    background-color: DarkGreen;
+}
+
+.shippingTableHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
+.shippingTableBody {
+    vertical-align: top;
+    background-color: White;
 }

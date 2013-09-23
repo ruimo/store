@@ -40,7 +40,8 @@ object ShoppingCart {
         (select coalesce(max(seq), 0) + 1 from shopping_cart where store_user_id = {userId}),
         {siteId},
         {itemId},
-        {quantity})
+        {quantity}
+      )
       """
     ).on(
       'userId ->userId,

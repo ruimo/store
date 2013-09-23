@@ -1,4 +1,8 @@
-@()(implicit lang: Lang)
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @main(Messages("editTaxTitle")) {
 <h1>@Messages("editTaxTitle")</h1>

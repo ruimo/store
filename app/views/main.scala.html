@@ -1,4 +1,16 @@
-@(title: String)(content: Html)(implicit lang: Lang)
+@(title: String)(content: Html)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@loginLink() = {
+  <a href="@routes.Admin.startLogin(request.uri)">@Messages("login")</a>
+}
+
+@logoffLink() = {
+  <a href="@routes.Admin.logoff(request.uri)">@Messages("logoff")</a>
+}
 
 <!DOCTYPE html>
 
@@ -17,10 +29,12 @@
     <ul>
       <li><a href="/">TOP</a></li>
       <li><a href="/showShoppingCart">@Messages("shopping.cart")</a></li>
-      <li>MENU</li>
-      <li>MENU</li>
-      <li>MENU</li>
-      <li>MENU</li>
+      <li>
+        @{loginSession match {
+          case None => loginLink()
+          case Some(login) => logoffLink()
+        }}
+      </li>
     </ul>
   </div>
 </div>

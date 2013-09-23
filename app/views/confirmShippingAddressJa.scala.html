@@ -1,0 +1,112 @@
+@(
+  list: Seq[(
+    ShoppingCartItem, ItemName, ItemDescription, Site, ItemPriceHistory,
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+  )],
+  address: Address
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@import helper._
+
+@main(Messages("confirm.shipping.address")) {
+  <h1>お買い上げ商品</h1>
+  <table class="itemTable" border="0">
+    <tr class="itemTableHeader">
+      <th>@Messages("itemName")</th>
+      <th>@Messages("quantity")</th>
+      <th>@Messages("subtotal")</th>
+    </tr>
+
+    @list.map { e =>
+      <tr class="itemTableBody">
+        <td>@e._2.name</td>
+        <td>@e._1.quantity</td>
+        <td>@amount(e._5.unitPrice * e._1.quantity)</td>
+      </tr>
+    }
+  </table>
+
+  <h1>送料</h1>
+  <table style="width: 90%;">
+  </table>
+
+  <h1>送付先</h1>
+  <table class="shippingAddress">
+    <tr class="shippingTableHeader">
+      <th colspan="2">送付先</th>
+    </tr>
+    @if(address.hasName) {
+      <tr class="shippingTableBody">
+        <td>お名前</td><td>@address.firstName @address.lastName</td>
+      </tr>
+    }
+    @if(address.hasKanaName) {
+      <tr class="shippingTableBody">
+        <td>フリガナ</td><td>@address.firstNameKana @address.lastNameKana</td>
+      </tr>
+    }
+    @if(address.hasZip) {
+      <tr class="shippingTableBody">
+        <td>〒</td><td>@address.zip1 - @address.zip2</td>
+      </tr>
+    }
+    <tr class="shippingTableBody">
+      <td>ご住所</td>
+      <td>
+        @if(! address.prefecture.isUnknown) {
+          @address.prefecture<br>
+        }
+
+        @if(!address.address1.isEmpty) {
+          @address.address1<br>
+        }
+
+        @if(!address.address2.isEmpty) {
+          @address.address2<br>
+        }
+
+        @if(!address.address3.isEmpty) {
+          @address.address3<br>
+        }
+
+        @if(!address.address4.isEmpty) {
+          @address.address4<br>
+        }
+
+        @if(!address.address5.isEmpty) {
+          @address.address5<br>
+        }
+      </td>
+    </tr>
+    @if(!address.tel1.isEmpty) {
+      <tr class="shippingTableBody">
+        <td>TEL</td><td>@address.tel1</td>
+      </tr>
+    }
+    @if(!address.tel2.isEmpty) {
+      <tr class="shippingTableBody">
+        <td></td><td>@address.tel2</td>
+      </tr>
+    }
+    @if(!address.tel3.isEmpty) {
+      <tr class="shippingTableBody">
+        <td></td><td>@address.tel3</td>
+      </tr>
+    }
+  </table>
+
+  <br>
+  <a href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
+  <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+
+  <br>
+  <br>
+  @helper.form(action = helper.CSRF(routes.Shipping.finalizeTransaction()), 'id -> "finalizeTransactionForm") {
+    <input type="submit" value="@Messages("finalize.transaction")">
+  }
+}

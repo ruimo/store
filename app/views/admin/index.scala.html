@@ -1,4 +1,9 @@
-@()(implicit lang: Lang, flash: play.api.mvc.Flash)
+@()(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @main(Messages("adminTitle")) {
   <h1>@Messages("adminTitle")</h1>

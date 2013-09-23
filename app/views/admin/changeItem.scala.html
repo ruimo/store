@@ -16,7 +16,13 @@
   taxTable: Seq[(String, String)],
   currencyTable: Seq[(String, String)],
   itemInSiteTable: Seq[(String, String)]
-)(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @import helper._
 

@@ -1,4 +1,8 @@
-@()(implicit lang: Lang)
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[models.LoginSession]
+)
 
 @main(Messages("categoryMaintenanceTitle")) {
   <h1>@Messages("categoryMaintenanceTitle")</h1>

@@ -6,7 +6,12 @@
              models.ItemPriceHistory,
              Map[models.ItemNumericMetadataType, models.ItemNumericMetadata],
              Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata]
-  )])(implicit lang: Lang)
+  )]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @main(Messages("editItemTitle")) {
   <h1>@Messages("editItemTitle")</h1>

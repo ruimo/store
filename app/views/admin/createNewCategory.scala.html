@@ -1,4 +1,12 @@
-@(myForm: Form[models.CreateCategory], langTable: Seq[(String, String)])(implicit token: play.filters.csrf.CSRF.Token, lang: Lang, flash: play.api.mvc.Flash)
+@(
+  myForm: Form[models.CreateCategory], langTable: Seq[(String, String)]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
 
 @import helper._
 
