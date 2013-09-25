@@ -1,12 +1,13 @@
 @(message: String,
   queryString: String,
-  list: Seq[(models.Item,
-             models.ItemName,
-             models.ItemDescription,
-             models.Site,
-             models.ItemPriceHistory,
-             Map[models.ItemNumericMetadataType, models.ItemNumericMetadata],
-             Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata])]
+  list: PagedRecords[(
+    models.Item,
+    models.ItemName,
+    models.ItemDescription,
+    models.Site,
+    models.ItemPriceHistory,
+    Map[models.ItemNumericMetadataType, models.ItemNumericMetadata],
+    Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata])]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -30,7 +31,7 @@
       <th></th>
     </tr>
 
-    @list.map { e =>
+    @list.records.map { e =>
       <tr>
         <td>@e._2.name</td>
         <td>@e._4.name</td>
@@ -44,4 +45,16 @@
       </tr>
     }
   </table>
+  <br>
+  <div style="width: 80%; text-align: right;">
+    <button type="button" disabled="@{if(list.prevPageExists) "false" else "true"}"
+            onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage - 1, list.pageSize)'">
+      &lt;
+    </button>
+    Page @{list.currentPage + 1}/@list.pageCount
+    <button type="button" disabled="@{if(list.nextPageExists) "false" else "true"}"
+            onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage + 1, list.pageSize)'">
+      &gt;
+    </button>
+  </div>
 }
