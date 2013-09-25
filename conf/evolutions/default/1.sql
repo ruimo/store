@@ -202,8 +202,8 @@ create sequence store_user_seq start with 1000;
 
 create table transaction_header (
   transaction_id bigint not null,
-  site_id bigint not null references site,
-  store_user_id bigint not null references store_user,
+  site_id bigint not null,
+  store_user_id bigint not null,
   transaction_time timestamp not null,
   currency_id bigint not null references currency,
   total_amount decimal(15,2) not null,
@@ -244,7 +244,7 @@ create table transaction_shipping (
   transaction_shipping_id bigint not null,
   transaction_id bigint not null references transaction_header on delete cascade,
   amount decimal(15,2) not null,
-  address_id bigint not null references address,
+  address_id bigint not null,
   constraint pk_transaction_shipping primary key (transaction_shipping_id)
 );
 
@@ -265,7 +265,9 @@ create sequence transaction_item_seq start with 1000;
 create table transaction_tax (
   transaction_tax_id bigint not null,
   transaction_id bigint not null references transaction_header on delete cascade,
-  tax_history_id bigint not null,
+  tax_id bigint not null,
+  tax_type integer not null,
+  rate decimal(5, 3) not null,
   target_amount decimal(15,2) not null,
   amount decimal(15,2) not null,
   constraint pk_transaction_tax primary key (transaction_tax_id)

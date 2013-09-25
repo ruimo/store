@@ -91,7 +91,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def editItem(start: Int, size: Int, q: String) = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn => {
       val list = Item.list(locale = LocaleInfo.byLang(lang), queryString = q, page = start, pageSize = size)
-      Ok(views.html.admin.editItem(q, list))
+      Ok(views.html.admin.editItem(q, list.records))
     }}
   }
 

@@ -292,7 +292,11 @@ class ItemSpec extends Specification {
 
           val time = date("2013-01-04").getTime
 
-          val list1 = Item.list(LocaleInfo.Ja, "", now = time)
+          val pages = Item.list(LocaleInfo.Ja, "", now = time)
+          pages.pageCount === 1
+          pages.currentPage === 0
+          pages.pageSize === 10
+          val list1 = pages.records
           list1.size === 5
 
           list1(0)._2.name === "もみじ"

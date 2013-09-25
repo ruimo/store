@@ -130,14 +130,12 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(
+  ): PagedRecords[(
     Item, ItemName, ItemDescription, Site, ItemPriceHistory, 
     Map[ItemNumericMetadataType, ItemNumericMetadata],
     Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
-  )] =
-    SQL(
-      """
-      select * from item
+  )] = {
+    val sqlBody = """
       inner join item_name on item.item_id = item_name.item_id
       inner join item_description on item.item_id = item_description.item_id
       inner join item_price on item.item_id = item_price.item_id 
@@ -146,6 +144,12 @@ object Item {
       where item_name.locale_id = {localeId}
       and item_description.locale_id = {localeId}
       and item_name.item_name like {query}
+    """
+
+    val list = SQL(
+      """
+      select * from item
+      """ + sqlBody + """
       order by item_name.item_name
       limit {pageSize} offset {offset}
       """
@@ -165,6 +169,18 @@ object Item {
 
       (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
     }}
+
+    val count = SQL(
+      "select count(*) from item" + sqlBody
+    ).on(
+      'localeId -> locale.id,
+      'query -> ("%" + queryString + "%")
+    ).as(
+      SqlParser.scalar[Long].single
+    )
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, list)
+  }
 
   def listBySite(
     site: Site, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,

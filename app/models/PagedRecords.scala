@@ -1,0 +1,9 @@
+package models
+
+case class PagedRecords[T] (
+  currentPage: Int,
+  pageSize: Int,
+  pageCount: Long,
+  records: Seq[T]
+)
+

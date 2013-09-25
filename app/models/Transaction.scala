@@ -33,7 +33,9 @@ case class TransactionShipping(
 case class TransactionTax(
   id: Pk[Long] = NotAssigned,
   transactionId: Long,
-  taxHistoryId: Long,
+  taxId: Long,
+  taxType: TaxType,
+  rate: BigDecimal,
   targetAmount: BigDecimal,
   amount: BigDecimal
 )
@@ -48,6 +50,21 @@ case class TransactionItem(
 )
 
 object TransactionHeader {
+  val simple = {
+    SqlParser.get[Pk[Long]]("transaction_header.transaction_id") ~
+    SqlParser.get[Long]("transaction_header.site_id") ~
+    SqlParser.get[Long]("transaction_header.store_user_id") ~
+    SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
+    SqlParser.get[Long]("transaction_header.currency_id") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_header.total_amount") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_header.tax_amount") ~
+    SqlParser.get[Int]("transaction_header.transaction_type") map {
+      case transactionId~siteId~userId~transactionTime~currencyId~totalAmount~taxAmount~transactionType =>
+        TransactionHeader(transactionId, siteId, userId, transactionTime.getTime, currencyId, totalAmount,
+                          taxAmount, TransactionType.byIndex(transactionType))
+    }
+  }
+
   def createNew(
     siteId: Long, userId: Long, currencyId: Long,
     totalAmount: BigDecimal, taxAmount: BigDecimal,
@@ -58,10 +75,10 @@ object TransactionHeader {
       """
       insert into transaction_header (
         transaction_id, site_id, store_user_id, transaction_time, 
-        currency_id, total_amount, tax_amount, transactionType
+        currency_id, total_amount, tax_amount, transaction_type
       ) values (
         (select nextval('transaction_header_seq')),
-        {siteId}, {userId}, {transactionTime}, {currencyId}}, 
+        {siteId}, {userId}, {transactionTime}, {currencyId},
         {totalAmount}, {taxAmount}, {transactionType}
       )
       """
@@ -79,9 +96,34 @@ object TransactionHeader {
 
     TransactionHeader(Id(id), siteId, userId, now, currencyId, totalAmount, taxAmount, transactionType)
   }
+
+  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionHeader] = {
+    SQL(
+      """
+      select * from transaction_header
+      order by transaction_time desc
+      limit {limit} offset {offset}
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
+    ).as(
+      simple *
+    )
+  }
 }
 
 object TransactionShipping {
+  val simple = {
+    SqlParser.get[Pk[Long]]("transaction_shipping.transaction_shipping_id") ~
+    SqlParser.get[Long]("transaction_shipping.transaction_id") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_shipping.amount") ~
+    SqlParser.get[Long]("transaction_shipping.address_id") map {
+      case id~transactionId~amount~addressId =>
+        TransactionShipping(id, transactionId, amount, addressId)
+    }
+  }
+
   def createNew(
     transactionId: Long, amount: BigDecimal, addressId: Long
   )(implicit conn: Connection): TransactionShipping = {
@@ -96,7 +138,7 @@ object TransactionShipping {
       """
     ).on(
       'transactionId -> transactionId,
-      'amount -> amount,
+      'amount -> amount.bigDecimal,
       'addressId -> addressId
     ).executeUpdate()
 
@@ -104,32 +146,77 @@ object TransactionShipping {
 
     TransactionShipping(Id(id), transactionId, amount, addressId)
   }
+
+  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionShipping] =
+    SQL(
+      """
+      select * from transaction_shipping
+      order by transaction_id
+      limit {limit} offset {offset}
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
+    ).as(
+      simple *
+    )
 }
 
 object TransactionTax {
+  val simple = {
+    SqlParser.get[Pk[Long]]("transaction_tax.transaction_tax_id") ~
+    SqlParser.get[Long]("transaction_tax.transaction_id") ~
+    SqlParser.get[Long]("transaction_tax.tax_id") ~
+    SqlParser.get[Int]("transaction_tax.tax_type") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_tax.rate") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_tax.target_amount") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_tax.amount") map {
+      case id~transactionId~taxId~taxType~rate~targetAmount~amount =>
+        TransactionTax(id, transactionId, taxId, TaxType.byIndex(taxType), rate, targetAmount, amount)
+    }
+  }
+
   def createNew(
-    transactionId: Long, taxHistoryId: Long, targetAmount: BigDecimal, amount: BigDecimal
+    transactionId: Long, taxHistoryId: Long, taxId: Long, taxType: TaxType,
+    rate: BigDecimal, targetAmount: BigDecimal, amount: BigDecimal
   )(implicit conn: Connection): TransactionTax = {
     SQL(
       """
       insert into transaction_tax (
-        transaction_tax_id, transaction_id, tax_history_id, target_amount, amount
+        transaction_tax_id, transaction_id, tax_id, tax_type, rate, target_amount, amount
       ) values (
         (select nextval('transaction_tax_seq')),
-        {transactionId}, {taxHistoryId}, {targetAmount}, {amount}
+        {transactionId}, {taxHistoryId}, {taxId}, {taxType}, {rate}, {targetAmount}, {amount}
       )
       """
     ).on(
       'transactionId -> transactionId,
       'taxHistoryId -> taxHistoryId,
-      'targetAmount -> targetAmount,
-      'amount -> amount
+      'taxId -> taxId,
+      'taxType -> taxType.ordinal,
+      'rate -> rate.bigDecimal,
+      'targetAmount -> targetAmount.bigDecimal,
+      'amount -> amount.bigDecimal
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_tax_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionTax(Id(id), transactionId, taxHistoryId, targetAmount, amount)
+    TransactionTax(Id(id), transactionId, taxId, taxType, rate, targetAmount, amount)
   }
+
+  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionTax] =
+    SQL(
+      """
+      select * from transaction_tax
+      order by transaction_id
+      limit {limit} offset {offset}
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
+    ).as(
+      simple *
+    )
 }
 
 object TransactionItem {
