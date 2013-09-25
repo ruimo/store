@@ -11,6 +11,7 @@ import java.util.Locale
 import java.util.regex.Pattern
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
+import play.api.i18n.Messages
 import helpers.Enums
 
 object Shipping extends Controller with NeedLogin with HasLogger {
@@ -33,9 +34,9 @@ object Shipping extends Controller with NeedLogin with HasLogger {
       "address3" -> text.verifying(maxLength(256)),
       "address4" -> text.verifying(maxLength(256)),
       "address5" -> text.verifying(maxLength(256)),
-      "tel1" -> text.verifying("数字で指定してください。", z => TelPattern.matcher(z).matches),
-      "tel2" -> text.verifying("数字で指定してください。", z => TelOptionPattern.matcher(z).matches),
-      "tel3" -> text.verifying("数字で指定してください。", z => TelOptionPattern.matcher(z).matches)
+      "tel1" -> text.verifying(Messages("error.number"), z => TelPattern.matcher(z).matches),
+      "tel2" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
+      "tel3" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches)
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 
