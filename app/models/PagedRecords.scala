@@ -6,7 +6,7 @@ case class PagedRecords[T] (
   pageCount: Long,
   records: Seq[T]
 ) {
-  lazy val nextPageExists = pageSize < pageCount - 1
+  lazy val nextPageExists = pageSize < pageCount
   lazy val prevPageExists = currentPage > 0
 }
 
