@@ -54,7 +54,7 @@ GET     /admin/startCreateNewTax      controllers.TaxMaintenance.startCreateNewT
 POST    /admin/createNewTax           controllers.TaxMaintenance.createNewTax
 GET     /admin/editTax                controllers.TaxMaintenance.editTax
 
-GET     /query                        controllers.ItemQuery.query(q)
+GET     /query                        controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
 GET     /addToCart                    controllers.Purchase.addToCart(siteId: Long, itemId: Long)
 GET     /showShoppingCart             controllers.Purchase.showShoppingCart
 GET     /changeItemQuantity           controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
