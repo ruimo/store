@@ -10,10 +10,9 @@ import play.api.Play.current
 class ConstraintHelperSpec extends Specification {
   "ConstraintHelper" should {
     "be able to retrieve column size (8 for LOCALE.LANG) " in {
-       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         TestHelper.removePreloadedRecords()
-        val x = ConstraintHelper.getColumnSize(null,"LOCALE","LANG")
-        //println(x)
+        val x = ConstraintHelper.getColumnSize(None,"LOCALE","LANG")
         x === 8
       }
     }
