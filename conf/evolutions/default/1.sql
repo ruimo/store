@@ -322,6 +322,30 @@ create table shipping_address_history (
 
 create sequence shipping_address_history_seq start with 1000;
 
+create table shipping_fee (
+  shipping_fee_id bigint not null,
+  site_id bigint not null references site on delete cascade,
+  item_class bigint not null,
+  box_size integer not null,
+  name varchar(32) not null,
+  constraint pk_shipping_fee primary key(shipping_fee_id),
+  unique(site_id, item_class, box_size)
+);
+
+create sequence shipping_fee_seq start with 1000;
+
+create table shipping_fee_history (
+  shipping_fee_history_id bigint not null,
+  shipping_fee_id bigint not null references shipping_fee on delete cascade,
+  fee decimal(15, 2) not null,
+  -- Exclusive
+  valid_until timestamp not null,
+  constraint pk_shipping_fee_history primary key(shipping_fee_history_id),
+  unique(shipping_fee_id, valid_until)
+);
+
+create sequence shipping_fee_history_seq start with 1000;
+
 # --- !Downs
 
 -- No down script. Recreate database before reloading 1.sql.

@@ -21,6 +21,14 @@ case class ShoppingCartItem(
   siteId: Long, itemId: Long, quantity: Int
 ) extends NotNull
 
+case class ShippingFee(
+  id: Pk[Long] = NotAssigned, siteId: Long, itemClass: Long, boxSize: Integer, name: String
+) extends NotNull
+
+case class ShippingFeeHistory(
+  id: Pk[Long] = NotAssigned, shippingFeeId: Long, fee: BigDecimal, validUntil: Long
+) extends NotNull
+
 object ShoppingCartItem {
   val simple = {
     SqlParser.get[Pk[Long]]("shopping_cart_item.shopping_cart_item_id") ~
