@@ -255,7 +255,7 @@ create table transaction_item (
   transaction_id bigint not null references transaction_header on delete cascade,
   item_price_history_id bigint not null,
   transaction_shipping_id bigint not null references transaction_shipping on delete cascade,
-  quantity decimal(15,2) not null,
+  quantity integer not null,
   amount decimal(15,2) not null,
   constraint pk_transaction_item primary key (transaction_item_id)
 );
@@ -296,20 +296,20 @@ create table site_user (
 
 create sequence site_user_seq start with 1000;
 
-create table shopping_cart (
-  shopping_cart_id bigint not null,
+create table shopping_cart_item (
+  shopping_cart_item_id bigint not null,
   store_user_id bigint not null references store_user on delete cascade,
   seq integer not null,
   site_id bigint not null references site on delete cascade,
   item_id bigint not null references item on delete cascade,
   quantity integer not null,
-  constraint pk_shopping_cart primary key (shopping_cart_id),
+  constraint pk_shopping_cart_item primary key (shopping_cart_item_id),
   unique(store_user_id, seq)
 );
 
-create index ix_shopping_cart1 on shopping_cart (item_id);
+create index ix_shopping_cart_item1 on shopping_cart_item (item_id);
 
-create sequence shopping_cart_seq start with 1000;
+create sequence shopping_cart_item_seq start with 1000;
 
 create table shipping_address_history (
   shipping_address_history_id bigint not null,

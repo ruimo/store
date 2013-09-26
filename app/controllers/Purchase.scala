@@ -3,13 +3,13 @@ package controllers
 import play.api._
 import db.DB
 import play.api.mvc._
-import models.{LocaleInfo, ShoppingCart}
+import models.{LocaleInfo, ShoppingCartItem}
 import play.api.Play.current
 
 object Purchase extends Controller with NeedLogin with HasLogger {
   def addToCart(siteId: Long, itemId: Long) = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn => {
-      val cartItem = ShoppingCart.addItem(login.userId, siteId, itemId, 1)
+      val cartItem = ShoppingCartItem.addItem(login.userId, siteId, itemId, 1)
       Redirect(routes.Purchase.showShoppingCart())
     }}
   }
@@ -18,7 +18,7 @@ object Purchase extends Controller with NeedLogin with HasLogger {
     Ok(
       views.html.shoppingCart(
         DB.withConnection { implicit conn => {
-          ShoppingCart.listItemsForUser(
+          ShoppingCartItem.listItemsForUser(
             LocaleInfo.getDefault, 
             login.userId
           )
@@ -29,7 +29,7 @@ object Purchase extends Controller with NeedLogin with HasLogger {
 
   def changeItemQuantity(cartId: Long, quantity: Int) = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn => {
-      val updateCount = ShoppingCart.changeQuantity(cartId, login.userId, quantity)
+      val updateCount = ShoppingCartItem.changeQuantity(cartId, login.userId, quantity)
       logger.info("Purchase.changeItemQuantity() updateCount = " + updateCount)
 
       Results.Redirect(routes.Purchase.showShoppingCart())
@@ -38,7 +38,7 @@ object Purchase extends Controller with NeedLogin with HasLogger {
 
   def deleteItemFromCart(cartId: Long) = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn => {
-      val updateCount = ShoppingCart.remove(cartId, login.userId)
+      val updateCount = ShoppingCartItem.remove(cartId, login.userId)
       logger.info("Purchase.deleteItemFromCart() updateCount = " + updateCount)
 
       Results.Redirect(routes.Purchase.showShoppingCart())
@@ -47,7 +47,7 @@ object Purchase extends Controller with NeedLogin with HasLogger {
 
   def clear = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn => {
-      val updateCount = ShoppingCart.removeForUser(login.userId)
+      val updateCount = ShoppingCartItem.removeForUser(login.userId)
       logger.info("Purchase.clear() updateCount = " + updateCount)
 
       Results.Redirect(routes.Purchase.showShoppingCart())

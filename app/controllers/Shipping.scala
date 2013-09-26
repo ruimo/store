@@ -81,7 +81,7 @@ object Shipping extends Controller with NeedLogin with HasLogger {
 
   def confirmShippingAddressJa = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn =>
-      val cart = ShoppingCart.listItemsForUser(
+      val cart = ShoppingCartItem.listItemsForUser(
         LocaleInfo.getDefault, 
         login.userId
       )

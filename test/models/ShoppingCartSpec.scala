@@ -59,10 +59,10 @@ class ShoppingCartSpec extends Specification {
           val ph3 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(300), date("2013-01-03"))
           val ph4 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), date("9999-12-31"))
 
-          val cart1 = ShoppingCart.addItem(user1.id.get, site1.id.get, item1.id.get, 2)
-          val cart2 = ShoppingCart.addItem(user1.id.get, site2.id.get, item2.id.get, 3)
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 2)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get, 3)
 
-          val cart3 = ShoppingCart.addItem(user2.id.get, site1.id.get, item1.id.get, 10)
+          val cart3 = ShoppingCartItem.addItem(user2.id.get, site1.id.get, item1.id.get, 10)
 
           cart1.storeUserId === user1.id.get
           cart1.sequenceNumber === 1
@@ -80,7 +80,7 @@ class ShoppingCartSpec extends Specification {
           cart3.quantity === 10
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCart.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
           list1.size === 2
           list1(0)._1 === cart1
           list1(0)._2 === name1(Ja)
@@ -95,7 +95,7 @@ class ShoppingCartSpec extends Specification {
           list1(1)._5 === ph4
 
           val time2 = date("2013-01-01").getTime
-          val list2 = ShoppingCart.listItemsForUser(Ja, user2.id.get, 0, 10, time2)
+          val list2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get, 0, 10, time2)
           list2.size === 1
           list2(0)._1 === cart3
           list2(0)._2 === name1(Ja)
@@ -123,15 +123,15 @@ class ShoppingCartSpec extends Specification {
 
           SiteItem.createNew(site1, item1)
 
-          val cart1 = ShoppingCart.addItem(user1.id.get, site1.id.get, item1.id.get, 2)
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 2)
 
           cart1.storeUserId === user1.id.get
           cart1.sequenceNumber === 1
           cart1.itemId === item1.id.get
           cart1.quantity === 2
 
-          ShoppingCart.changeQuantity(cart1.id.get, user1.id.get, 5)
-          ShoppingCart(cart1.id.get).quantity === 5
+          ShoppingCartItem.changeQuantity(cart1.id.get, user1.id.get, 5)
+          ShoppingCartItem(cart1.id.get).quantity === 5
         }}
       }
     }

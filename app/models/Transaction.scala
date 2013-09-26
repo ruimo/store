@@ -21,14 +21,14 @@ case class TransactionHeader(
   totalAmount: BigDecimal,
   taxAamount: BigDecimal,
   transactionType: TransactionType
-)
+) extends NotNull
 
 case class TransactionShipping(
   id: Pk[Long] = NotAssigned,
   transactionId: Long,
   amount: BigDecimal,
   addressId: Long
-)
+) extends NotNull
 
 case class TransactionTax(
   id: Pk[Long] = NotAssigned,
@@ -38,7 +38,7 @@ case class TransactionTax(
   rate: BigDecimal,
   targetAmount: BigDecimal,
   amount: BigDecimal
-)
+) extends NotNull
 
 case class TransactionItem(
   id: Pk[Long] = NotAssigned,
@@ -47,7 +47,7 @@ case class TransactionItem(
   transactionShippingId: Long,
   quantity: Long,
   amount: BigDecimal
-)
+) extends NotNull
 
 object TransactionHeader {
   val simple = {
@@ -186,7 +186,7 @@ object TransactionTax {
         transaction_tax_id, transaction_id, tax_id, tax_type, rate, target_amount, amount
       ) values (
         (select nextval('transaction_tax_seq')),
-        {transactionId}, {taxHistoryId}, {taxId}, {taxType}, {rate}, {targetAmount}, {amount}
+        {transactionId}, {taxId}, {taxType}, {rate}, {targetAmount}, {amount}
       )
       """
     ).on(
@@ -220,6 +220,18 @@ object TransactionTax {
 }
 
 object TransactionItem {
+  val simple = {
+    SqlParser.get[Pk[Long]]("transaction_item.transaction_item_id") ~
+    SqlParser.get[Long]("transaction_item.transaction_id") ~
+    SqlParser.get[Long]("transaction_item.item_price_history_id") ~
+    SqlParser.get[Long]("transaction_item.transaction_shipping_id") ~
+    SqlParser.get[Int]("transaction_item.quantity") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_item.amount") map {
+      case id~tranId~priceHistoryId~shipId~quantity~amount =>
+        TransactionItem(id, tranId, priceHistoryId, shipId, quantity, amount)
+    }
+  }
+
   def createNew(
     transactionId: Long, itemPriceHistoryId: Long, transactionShippingId: Long, quantity: Long, amount: BigDecimal
   )(implicit conn: Connection): TransactionItem = {
@@ -238,11 +250,25 @@ object TransactionItem {
       'itemPriceHistoryId -> itemPriceHistoryId,
       'transactionShippingId -> transactionShippingId,
       'quantity -> quantity,
-      'amount -> amount
+      'amount -> amount.bigDecimal
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
     TransactionItem(Id(id), transactionId, itemPriceHistoryId, transactionShippingId, quantity, amount)
   }
+
+  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionItem] =
+    SQL(
+      """
+      select * from transaction_item
+      order by transaction_id
+      limit {limit} offset {offset}
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
+    ).as(
+      simple *
+    )
 }
