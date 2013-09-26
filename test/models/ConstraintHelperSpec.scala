@@ -14,7 +14,7 @@ class ConstraintHelperSpec extends Specification {
         TestHelper.removePreloadedRecords()
         val x = ConstraintHelper.getColumnSize(null,"LOCALE","LANG")
         //println(x)
-        x == 8
+        x === 8
       }
     }
   }
