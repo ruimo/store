@@ -21,8 +21,6 @@ object ConstraintHelper {
     }
   }
   
-  // T.B.D. If database column size is changed without restarting
-  // aplication, this hash will keep stale data.
   val columnSizes = ParHashSet[ColumnSize]()
 
   def getColumnSize(schema: Option[String], table: String, column: String) : Int = {
@@ -34,10 +32,7 @@ object ConstraintHelper {
     }
   }
 
-
-
-
-
-
-
+  def refreshColumnSizes() = {
+    columnSizes.clear()
+  }
 }
