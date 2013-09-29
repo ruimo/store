@@ -12,6 +12,30 @@ import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
 
+case class ShoppingCartTotalEntry(
+  shoppingCartItem: ShoppingCartItem,
+  itemName: ItemName,
+  itemDescription: ItemDescription,
+  site: Site,
+  itemPriceHistory: ItemPriceHistory,
+  itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+) extends NotNull {
+  lazy val unitPrice = itemPriceHistory.unitPrice
+  lazy val quantity = shoppingCartItem.quantity
+  lazy val itemPrice = unitPrice * quantity
+}
+
+case class ShoppingCartTotal(
+  table: Seq[ShoppingCartTotalEntry]
+) extends NotNull {
+  lazy val size = table.size
+  lazy val notEmpty = (! table.isEmpty)
+  lazy val quantity = table.foldLeft(0)(_ + _.quantity)
+  lazy val total = table.foldLeft(BigDecimal(0))(_ + _.itemPrice)
+  def apply(index: Int): ShoppingCartTotalEntry = table(index)
+}
+
 case class ShoppingCart(
   items: Seq[ShoppingCartItem]
 ) extends NotNull
@@ -91,11 +115,7 @@ object ShoppingCartItem {
     locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 10, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(
-    ShoppingCartItem, ItemName, ItemDescription, Site, ItemPriceHistory,
-    Map[ItemNumericMetadataType, ItemNumericMetadata],
-    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
-  )] =
+  ): ShoppingCartTotal = ShoppingCartTotal(
     SQL(
       """
       select * from shopping_cart_item
@@ -124,8 +144,9 @@ object ShoppingCartItem {
       val metadata = ItemNumericMetadata.allById(itemId)
       val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-      (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
+      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
     }
+  )
 
   def changeQuantity(id: Long, userId: Long, quantity: Int)(implicit conn: Connection): Int = {
     SQL(

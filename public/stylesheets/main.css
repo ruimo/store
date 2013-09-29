@@ -119,6 +119,20 @@ tr.itemTableBody {
     background-color: white;
 }
 
+.shipping {
+    width: 600px;
+    cell-spacing: 1px;
+    vertical-align: top;
+    background-color: DarkGreen;
+}
+
+.salesTotal {
+    width: 600px;
+    cell-spacing: 1px;
+    vertical-align: top;
+    background-color: DarkGreen;
+}
+
 .shippingAddress {
     width: 500px;
     cell-spacing: 1px;
@@ -131,7 +145,17 @@ tr.itemTableBody {
     color: White;
 }
 
+.salesTotalHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
 .shippingTableBody {
+    vertical-align: top;
+    background-color: White;
+}
+
+.salesTotalBody {
     vertical-align: top;
     background-color: White;
 }

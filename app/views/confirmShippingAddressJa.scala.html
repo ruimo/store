@@ -1,10 +1,7 @@
 @(
-  list: Seq[(
-    ShoppingCartItem, ItemName, ItemDescription, Site, ItemPriceHistory,
-    Map[ItemNumericMetadataType, ItemNumericMetadata],
-    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
-  )],
-  address: Address
+  list: ShoppingCartTotal,
+  address: Address,
+  shippingFee: ShippingTotal
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -15,24 +12,67 @@
 
 @main(Messages("confirm.shipping.address")) {
   <h1>お買い上げ商品</h1>
-  <table class="itemTable" border="0">
-    <tr class="itemTableHeader">
-      <th>@Messages("itemName")</th>
-      <th>@Messages("quantity")</th>
-      <th>@Messages("subtotal")</th>
-    </tr>
-
-    @list.map { e =>
-      <tr class="itemTableBody">
-        <td>@e._2.name</td>
-        <td style="text-align: right;">@e._1.quantity</td>
-        <td style="text-align: right;">@amount(e._5.unitPrice * e._1.quantity)</td>
+  @if(list.notEmpty) {
+    <table class="itemTable" border="0">
+      <tr class="itemTableHeader">
+        <th>@Messages("itemName")</th>
+        <th>@Messages("quantity")</th>
+       <th>@Messages("subtotal")</th>
       </tr>
-    }
-  </table>
+
+      @list.table.map { e =>
+        <tr class="itemTableBody">
+          <td class="itemName">@e.itemName.name</td>
+          <td class="itemQuantity" style="text-align: right;">@e.shoppingCartItem.quantity</td>
+          <td class="itemPrice" style="text-align: right;">@amount(e.itemPrice)</td>
+        </tr>
+      }
+    </table>
+  }
 
   <h1>送料</h1>
-  <table style="width: 90%;">
+  @shippingFee.table.map { e =>
+    <h2 class="shippingSiteName">@e._1.name</h2>
+    <table class="shipping">
+      <tr class="itemTableHeader">
+        <th>箱</th>
+        <th>箱単価</th>
+        <th>個数</th>
+        <th>金額</th>
+      </tr>
+
+      @e._2.map { e2 =>
+        <tr class="shippingTableBody">
+          <td class="boxName">@e2._2.shippingBox.boxName</td>
+          <td class="boxUnitPrice" style="text-align: right;">@amount(e2._2.boxPrice)</td>
+          <td class="boxQuantity" style="text-align: right;">@e2._2.boxQuantity 個</td>
+          <td class="boxPrice" style="text-align: right;">@amount(e2._2.boxTotal)</td>
+        </tr>
+      }
+    </table>
+  }
+
+  <h1>合計</h1>
+  <table class="salesTotal">
+    <tr class="salesTotalHeader">
+      <th></th>
+      <th>個数</th>
+      <th>小計</th>
+    </tr>
+    <tr class="salesTotalBody">
+      <td>商品計</td>
+      <td class="itemQuantity" style="text-align: right;">@list.quantity 個</td>
+      <td class="itemPrice" style="text-align: right;">@amount(list.total)</td>
+    </tr>
+    <tr class="salesTotalBody">
+      <td>送料計</td>
+      <td class="itemQuantity" style="text-align: right;">@shippingFee.boxQuantity 個</td>
+      <td class="itemPrice" style="text-align: right;">@amount(shippingFee.boxTotal)</td>
+    </tr>
+    <tr class="salesTotalBody">
+      <td colspan="2">合計</td>
+      <td class="itemPrice" style="text-align: right;">@amount(list.total + shippingFee.boxTotal)</td>
+    </tr>
   </table>
 
   <h1>送付先</h1>

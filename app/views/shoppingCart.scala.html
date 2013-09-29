@@ -1,8 +1,6 @@
-@(list: Seq[(
-    ShoppingCartItem, ItemName, ItemDescription, Site, ItemPriceHistory,
-    Map[ItemNumericMetadataType, ItemNumericMetadata],
-    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
-)])(
+@(
+  list: ShoppingCartTotal
+)(
   implicit lang: Lang,
   request: RequestHeader,
   loginSession: Option[LoginSession]
@@ -23,24 +21,24 @@
       <th>@Messages("subtotal")</th>
     </tr>
 
-    @list.map { e =>
+    @list.table.map { e =>
       <tr>
-        <td>@e._2.name</td>
-        <td>@e._4.name</td>
-        <td>@amount(e._5.unitPrice)</td>
+        <td>@e.itemName.name</td>
+        <td>@e.site.name</td>
+        <td>@amount(e.itemPriceHistory.unitPrice)</td>
         <td>
           <form action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
-            <input type="hidden" name="cartId" value="@e._1.id.get">
-            <input type="text" name="quantity" value="@e._1.quantity">
+            <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
+            <input type="text" name="quantity" value="@e.shoppingCartItem.quantity">
             <input type="submit" value="@Messages("update")">
           </form>
           <form action="@routes.Purchase.deleteItemFromCart()" style="display: inline;">
-            <input type="hidden" name="cartId" value="@e._1.id.get">
+            <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
             <input type="submit" value="@Messages("remove")">
           </form>
         </td>
         <td>
-          @amount(e._5.unitPrice * e._1.quantity)
+          @amount(e.itemPrice)
         </td>
       </tr>
     }

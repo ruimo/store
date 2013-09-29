@@ -1,0 +1,31 @@
+@(
+  cart: Seq[ShoppingCartTotalEntry],
+  addr: Address,
+  siteId: Long,
+  itemClass: Option[Long]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@main(Messages("cannot.ship.title")) {
+  <h2>@Messages("cannot.ship")</h2>
+
+  <table class="itemTable" border="0">
+    <tr class="itemTableHeader">
+      <th>@Messages("itemName")</th>
+      <th>@Messages("site")</th>
+    </tr>
+    @cart.map { item =>
+      <tr class="itemTableBody">
+        <td>@item.itemName.name</td>
+        <td>@item.site.name</td>
+      </tr>
+    }
+  </table>
+
+  <br>
+  <a href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
+  <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+}

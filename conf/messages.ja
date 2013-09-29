@@ -137,3 +137,5 @@ tel3=電話番号3
 finalize.transaction=購入する
 itemMetadata=値
 itemMetadataType=商品情報
+cannot.ship.title = 配送不可
+cannot.ship = 申し訳ありません。これらの商品は、ご指定の場所に配送できません

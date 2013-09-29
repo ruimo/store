@@ -1,16 +1,10 @@
-delete from site where site_id < 1000;
-
-delete from category where category_id < 1000;
-
-delete from item where item_id < 1000;
-
-delete from item_numeric_metadata item_id < 1000;
+delete from item_numeric_metadata where item_numeric_metadata_id < 1000;
 
 delete from item_name where item_id < 1000;
 
 delete from item_description where item_id < 1000;
 
-delete from site_item where item_id in < 1000;
+delete from site_item where item_id < 1000;
 
 delete from category_name where category_id <1000;
 
@@ -25,6 +19,20 @@ delete from tax_history where tax_history_id < 1000;
 delete from item_price where item_price_id < 1000;
 
 delete from item_price_history where item_price_history_id < 1000;
+
+delete from shipping_fee_history where shipping_fee_history_id < 1000;
+
+delete from shipping_box where shipping_box_id < 1000;
+
+delete from shipping_fee where shipping_fee_id < 1000;
+
+delete from site_item_numeric_metadata where site_item_numeric_metadata_id < 1000;
+
+delete from item where item_id < 1000;
+
+delete from category where category_id < 1000;
+
+delete from site where site_id < 1000;
 
 insert into site (site_id, locale_id, site_name) values (1, 1, 'ハードマップ');
 insert into site (site_id, locale_id, site_name) values (2, 1, '老松通商');
@@ -228,3 +236,34 @@ insert into item_price_history (item_price_history_id, item_price_id, tax_id, cu
   values (14, 14, 1, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
   values (15, 15, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+
+insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(1, 1, 1, 10, '小箱10個口');
+insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(2, 1, 2, 3, '中箱3個口');
+insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(3, 1, 3, 1, '大箱1個口');
+
+insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(4, 2, 1, 8, '小箱8個口');
+insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(5, 2, 2, 4, '中箱4個口');
+insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(6, 2, 3, 1, '大箱1個口');
+
+-- Japan/Tokyo
+insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(1, 1, 152, 13);
+insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(2, 2, 152, 13);
+insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(3, 3, 152, 13);
+
+insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(4, 4, 152, 13);
+insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(5, 5, 152, 13);
+insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(6, 6, 152, 13);
+
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+  values(1, 1, 800, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+  values(2, 2, 1000, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+  values(3, 3, 1300, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+  values(4, 4, 900, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+  values(5, 5, 1100, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+  values(6, 6, 1500, timestamp '9999-12-31 00:00:00');
+

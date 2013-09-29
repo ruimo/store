@@ -49,6 +49,9 @@ case class TransactionItem(
   amount: BigDecimal
 ) extends NotNull
 
+object Transaction {
+}
+
 object TransactionHeader {
   val simple = {
     SqlParser.get[Pk[Long]]("transaction_header.transaction_id") ~
