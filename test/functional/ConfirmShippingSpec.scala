@@ -167,6 +167,16 @@ object ConfirmShippingSpec extends Specification {
           .getText === String.format("%1$,d円", Integer.valueOf(15 * 101))
 
         browser.find("table.itemTable")
+          .find("tr.itemTableBody", 0)
+          .find("td.siteName")
+          .getText === "商店1"
+
+        browser.find("table.itemTable")
+          .find("tr.itemTableBody", 0)
+          .find("td.itemSize")
+          .getText === Messages("item.size.1")
+
+        browser.find("table.itemTable")
           .find("tr.itemTableBody", 1)
           .find("td.itemName")
           .getText === "梅"
@@ -182,6 +192,16 @@ object ConfirmShippingSpec extends Specification {
           .getText === String.format("%1$,d円", Integer.valueOf(28 * 301))
 
         browser.find("table.itemTable")
+          .find("tr.itemTableBody", 1)
+          .find("td.siteName")
+          .getText === "商店2"
+
+        browser.find("table.itemTable")
+          .find("tr.itemTableBody", 1)
+          .find("td.itemSize")
+          .getText === Messages("item.size.1")
+
+        browser.find("table.itemTable")
           .find("tr.itemTableBody", 2)
           .find("td.itemName")
           .getText === "竹"
@@ -195,6 +215,16 @@ object ConfirmShippingSpec extends Specification {
           .find("tr.itemTableBody", 2)
           .find("td.itemPrice")
           .getText === String.format("%1$,d円", Integer.valueOf(40 * 401))
+
+        browser.find("table.itemTable")
+          .find("tr.itemTableBody", 2)
+          .find("td.siteName")
+          .getText === "商店2"
+
+        browser.find("table.itemTable")
+          .find("tr.itemTableBody", 2)
+          .find("td.itemSize")
+          .getText === Messages("item.size.2")
 
         // 送料
         browser.find("h2.shippingSiteName").size === 2

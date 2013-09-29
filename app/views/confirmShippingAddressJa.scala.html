@@ -16,15 +16,23 @@
     <table class="itemTable" border="0">
       <tr class="itemTableHeader">
         <th>@Messages("itemName")</th>
+        <th>@Messages("site")</th>
         <th>@Messages("quantity")</th>
-       <th>@Messages("subtotal")</th>
+        <th>@Messages("subtotal")</th>
+        <th>@Messages("size")</th>
       </tr>
 
       @list.table.map { e =>
         <tr class="itemTableBody">
           <td class="itemName">@e.itemName.name</td>
+          <td class="siteName">@e.site.name</td>
           <td class="itemQuantity" style="text-align: right;">@e.shoppingCartItem.quantity</td>
           <td class="itemPrice" style="text-align: right;">@amount(e.itemPrice)</td>
+          <td class="itemSize">
+            @{e.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE).map {
+              m => Messages("item.size." + m.metadata)
+            }.getOrElse("-")}
+          </td>
         </tr>
       }
     </table>

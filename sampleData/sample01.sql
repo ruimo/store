@@ -22,9 +22,9 @@ delete from item_price_history where item_price_history_id < 1000;
 
 delete from shipping_fee_history where shipping_fee_history_id < 1000;
 
-delete from shipping_box where shipping_box_id < 1000;
-
 delete from shipping_fee where shipping_fee_id < 1000;
+
+delete from shipping_box where shipping_box_id < 1000;
 
 delete from site_item_numeric_metadata where site_item_numeric_metadata_id < 1000;
 
@@ -89,6 +89,38 @@ insert into site_item_numeric_metadata
   (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (29, 1, 14, 1, 2);
 insert into site_item_numeric_metadata
   (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (30, 1, 15, 1, 2);
+
+-- Shipping size
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (31, 1, 1, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (32, 2, 2, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (33, 1, 3, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (34, 2, 4, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (35, 1, 5, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (36, 1, 6, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (37, 1, 7, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (38, 1, 8, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (39, 1, 9, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (40, 1, 10, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (41, 1, 11, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (42, 1, 12, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (43, 1, 13, 2, 2);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (44, 1, 14, 2, 1);
+insert into site_item_numeric_metadata
+  (site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata) values (45, 1, 15, 2, 2);
 
 -- Height
 insert into item_numeric_metadata (item_numeric_metadata_id, item_id, metadata_type, metadata) values (1, 1, 0, 150);
