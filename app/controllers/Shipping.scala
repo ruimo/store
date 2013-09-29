@@ -83,11 +83,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
 
   def confirmShippingAddressJa = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn =>
-      val cart = ShoppingCartItem.listItemsForUser(
-        LocaleInfo.getDefault, 
-        login.userId
-      )
-
+      val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
@@ -135,6 +131,19 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   }
 
   def finalizeTransaction = isAuthenticated { login => implicit request =>
-    Ok("Create Transaction")
+    DB.withTransaction { implicit conn =>
+      val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+      val his = ShippingAddressHistory.list(login.userId).head
+      val addr = Address.byId(his.addressId)
+      try {
+        Transaction.save(cart, addr, shippingFee(addr, cart))
+        Ok("save")
+      }
+      catch {
+        case e: CannotShippingException => {
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.siteId, e.itemClass))
+        }
+      }
+    }
   }
 }

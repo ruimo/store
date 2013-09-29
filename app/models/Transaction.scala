@@ -50,6 +50,11 @@ case class TransactionItem(
 ) extends NotNull
 
 object Transaction {
+  def save(
+    total: ShoppingCartTotal, address: Address, feeTotal: ShippingTotal
+  )(implicit conn: Connection) {
+
+  }
 }
 
 object TransactionHeader {
