@@ -105,17 +105,16 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   def cannotShip(
     cart: ShoppingCartTotal, e: CannotShippingException, addr: Address
   ): Seq[ShoppingCartTotalEntry] = {
-    cart.table.filter {
-      item =>
-        item.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE) match {
-          case None => true
-          case Some(itemClass) =>
-            e.isCannotShip(
-              item.site.id.get,
-              addr.prefecture.code,
-              itemClass.metadata
-            )
-        }
+    cart.table.filter { item =>
+      item.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE) match {
+        case None => true
+        case Some(itemClass) =>
+          e.isCannotShip(
+            item.site.id.get,
+            addr.prefecture.code,
+            itemClass.metadata
+          )
+      }
     }
   }
 
