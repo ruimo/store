@@ -83,6 +83,7 @@ object ConfirmShippingSpec extends Specification {
           user.id.get, address
         )
         val tax = Tax.createNew
+        val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         val site1 = Site.createNew(Ja, "商店1")
         val site2 = Site.createNew(Ja, "商店2")

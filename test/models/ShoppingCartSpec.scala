@@ -23,6 +23,7 @@ class ShoppingCartSpec extends Specification {
           TestHelper.removePreloadedRecords()
 
           val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val user1 = StoreUser.create(
             "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
