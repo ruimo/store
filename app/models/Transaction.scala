@@ -51,9 +51,13 @@ case class TransactionItem(
 
 object Transaction {
   def save(
-    total: ShoppingCartTotal, address: Address, feeTotal: ShippingTotal
+    total: ShoppingCartTotal, address: Address, feeTotal: ShippingTotal, currency: CurrencyInfo, userId: Long
   )(implicit conn: Connection) {
-
+    total.sites.foreach { site =>
+      val header = TransactionHeader.createNew(
+        site.id.get, userId, currency.id, total.total + feeTotal.boxTotal, total.taxAmount, TransactionType.NORMAL
+      )
+    }
   }
 }
 

@@ -154,7 +154,7 @@
 
   <br>
   <br>
-  @helper.form(action = helper.CSRF(routes.Shipping.finalizeTransaction()), 'id -> "finalizeTransactionForm") {
+  @helper.form(action = helper.CSRF(routes.Shipping.finalizeTransactionJa()), 'id -> "finalizeTransactionForm") {
     <input type="submit" value="@Messages("finalize.transaction")">
   }
 }
