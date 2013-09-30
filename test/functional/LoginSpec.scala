@@ -8,16 +8,9 @@ import models.{UserRole, StoreUser}
 import play.api.db.DB
 import play.api.Play.current
 import java.util.concurrent.TimeUnit
+import functional.Helper._
 
 class LoginSpec extends Specification {
-  // password == password
-  def createTestUser() = DB.withConnection { implicit conn => {
-    StoreUser.create(
-      "administrator", "Admin", None, "Manager", "admin@abc.com",
-      4151208325021896473L, -1106301469931443100L, UserRole.ADMIN
-    )
-  }}
-
   "Login" should {
     "Login screen is shown if not logged in." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())

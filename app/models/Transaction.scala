@@ -49,6 +49,14 @@ case class TransactionItem(
   amount: BigDecimal
 ) extends NotNull
 
+object Transaction {
+  def save(
+    total: ShoppingCartTotal, address: Address, feeTotal: ShippingTotal
+  )(implicit conn: Connection) {
+
+  }
+}
+
 object TransactionHeader {
   val simple = {
     SqlParser.get[Pk[Long]]("transaction_header.transaction_id") ~

@@ -322,14 +322,24 @@ create table shipping_address_history (
 
 create sequence shipping_address_history_seq start with 1000;
 
-create table shipping_fee (
-  shipping_fee_id bigint not null,
+create table shipping_box (
+  shipping_box_id bigint not null,
   site_id bigint not null references site on delete cascade,
   item_class bigint not null,
   box_size integer not null,
-  name varchar(32) not null,
-  constraint pk_shipping_fee primary key(shipping_fee_id),
-  unique(site_id, item_class, box_size)
+  box_name varchar(32) not null,
+  constraint pk_shipping_box primary key(shipping_box_id),
+  unique(site_id, item_class)
+);
+
+create sequence shipping_box_seq start with 1000;
+
+create table shipping_fee (
+  shipping_fee_id bigint not null,
+  shipping_box_id bigint not null references shipping_box,
+  country_code integer not null,
+  location_code integer not null,
+  constraint pk_shipping_fee primary key(shipping_fee_id)
 );
 
 create sequence shipping_fee_seq start with 1000;
@@ -343,6 +353,8 @@ create table shipping_fee_history (
   constraint pk_shipping_fee_history primary key(shipping_fee_history_id),
   unique(shipping_fee_id, valid_until)
 );
+
+create index ix_shipping_fee_history1 on shipping_fee_history (shipping_fee_id);
 
 create sequence shipping_fee_history_seq start with 1000;
 

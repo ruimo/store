@@ -13,8 +13,10 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.i18n.Messages
 import helpers.Enums
+import controllers.I18n.I18nAware
+import java.sql.Connection
 
-object Shipping extends Controller with NeedLogin with HasLogger {
+object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   val Zip1Pattern = Pattern.compile("\\d{3}")
   val Zip2Pattern = Pattern.compile("\\d{4}")
   val TelPattern = Pattern.compile("\\d+{1,32}")
@@ -81,18 +83,67 @@ object Shipping extends Controller with NeedLogin with HasLogger {
 
   def confirmShippingAddressJa = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn =>
-      val cart = ShoppingCartItem.listItemsForUser(
-        LocaleInfo.getDefault, 
-        login.userId
-      )
+      val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
-
-      Ok(views.html.confirmShippingAddressJa(cart, addr))
+      try {
+        Ok(views.html.confirmShippingAddressJa(cart, addr, shippingFee(addr, cart)))
+      }
+      catch {
+        case e: CannotShippingException => {
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.siteId, e.itemClass))
+        }
+      }
     }
   }
 
+
+  def cannotShip(
+    cart: ShoppingCartTotal, e: CannotShippingException, addr: Address
+  ): Seq[ShoppingCartTotalEntry] = {
+    cart.table.filter { item =>
+      item.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE) match {
+        case None => true
+        case Some(itemClass) =>
+          e.isCannotShip(
+            item.site.id.get,
+            addr.prefecture.code,
+            itemClass.metadata
+          )
+      }
+    }
+  }
+
+  def shippingFee(
+    addr: Address, cart: ShoppingCartTotal
+  )(implicit conn: Connection): ShippingTotal = {
+    ShippingFeeHistory.feeBySiteAndItemClass(
+      CountryCode.JPN, addr.prefecture.code,
+      cart.table.foldLeft(ShippingFeeEntries()) {
+        (sum, e) =>
+          sum.add(
+            e.shoppingCartItem.siteId,
+            e.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE).map(_.metadata).getOrElse(1L),
+            e.shoppingCartItem.quantity
+          )
+      }
+    )
+  }
+
   def finalizeTransaction = isAuthenticated { login => implicit request =>
-    Ok("Create Transaction")
+    DB.withTransaction { implicit conn =>
+      val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+      val his = ShippingAddressHistory.list(login.userId).head
+      val addr = Address.byId(his.addressId)
+      try {
+        Transaction.save(cart, addr, shippingFee(addr, cart))
+        Ok("save")
+      }
+      catch {
+        case e: CannotShippingException => {
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.siteId, e.itemClass))
+        }
+      }
+    }
   }
 }

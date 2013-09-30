@@ -82,26 +82,26 @@ class ShoppingCartSpec extends Specification {
           val time = date("2013-01-04").getTime
           val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
           list1.size === 2
-          list1(0)._1 === cart1
-          list1(0)._2 === name1(Ja)
-          list1(0)._3 === desc1
-          list1(0)._4 === site1
-          list1(0)._5 === ph2
+          list1(0).shoppingCartItem === cart1
+          list1(0).itemName === name1(Ja)
+          list1(0).itemDescription === desc1
+          list1(0).site === site1
+          list1(0).itemPriceHistory === ph2
 
-          list1(1)._1 === cart2
-          list1(1)._2 === name2(Ja)
-          list1(1)._3 === desc2
-          list1(1)._4 === site2
-          list1(1)._5 === ph4
+          list1(1).shoppingCartItem === cart2
+          list1(1).itemName === name2(Ja)
+          list1(1).itemDescription === desc2
+          list1(1).site === site2
+          list1(1).itemPriceHistory === ph4
 
           val time2 = date("2013-01-01").getTime
           val list2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get, 0, 10, time2)
           list2.size === 1
-          list2(0)._1 === cart3
-          list2(0)._2 === name1(Ja)
-          list2(0)._3 === desc1
-          list2(0)._4 === site1
-          list2(0)._5 === ph1
+          list2(0).shoppingCartItem === cart3
+          list2(0).itemName === name1(Ja)
+          list2(0).itemDescription === desc1
+          list2(0).site === site1
+          list2(0).itemPriceHistory === ph1
         }}
       }
     }

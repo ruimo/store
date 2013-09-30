@@ -35,7 +35,7 @@
       <tr>
         <td>@e._2.name</td>
         <td>@e._4.name</td>
-        <td>@{ if (loginSession.isDefined) amount(e._5.unitPrice) else "-" }</td>
+        <td>@amount(e._5.unitPrice)</td>
         <td>
           <button type="button" 
                   onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
@@ -47,12 +47,12 @@
   </table>
   <br>
   <div style="width: 80%; text-align: right;">
-    <button type="button" disabled="@{if(list.prevPageExists) "false" else "true"}"
+    <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
             onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage - 1, list.pageSize)'">
       &lt;
     </button>
     Page @{list.currentPage + 1}/@list.pageCount
-    <button type="button" disabled="@{if(list.nextPageExists) "false" else "true"}"
+    <button type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
             onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage + 1, list.pageSize)'">
       &gt;
     </button>

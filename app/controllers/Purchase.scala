@@ -5,8 +5,9 @@ import db.DB
 import play.api.mvc._
 import models.{LocaleInfo, ShoppingCartItem}
 import play.api.Play.current
+import controllers.I18n.I18nAware
 
-object Purchase extends Controller with NeedLogin with HasLogger {
+object Purchase extends Controller with NeedLogin with HasLogger with I18nAware {
   def addToCart(siteId: Long, itemId: Long) = isAuthenticated { login => implicit request =>
     DB.withConnection { implicit conn => {
       val cartItem = ShoppingCartItem.addItem(login.userId, siteId, itemId, 1)
@@ -17,12 +18,12 @@ object Purchase extends Controller with NeedLogin with HasLogger {
   def showShoppingCart = isAuthenticated { login => implicit request =>
     Ok(
       views.html.shoppingCart(
-        DB.withConnection { implicit conn => {
+        DB.withConnection { implicit conn =>
           ShoppingCartItem.listItemsForUser(
             LocaleInfo.getDefault, 
             login.userId
           )
-        }}
+        }
       )
     )
   }
