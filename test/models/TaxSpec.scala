@@ -80,9 +80,26 @@ class TaxSpec extends Specification {
       }
     }
 
-    "Tax amount is calculated." in {
+    "Outer tax amount is calculated." in {
       val his = TaxHistory(NotAssigned, 0, TaxType.OUTER_TAX, BigDecimal(5), 0)
       his.taxAmount(BigDecimal(100)) === BigDecimal(5)
+      his.taxAmount(BigDecimal(99)) === BigDecimal(4)
+      his.taxAmount(BigDecimal(80)) === BigDecimal(4)
+      his.taxAmount(BigDecimal(79)) === BigDecimal(3)
+    }
+
+    "Innter tax amount is calculated." in {
+      val his = TaxHistory(NotAssigned, 0, TaxType.INNER_TAX, BigDecimal(5), 0)
+      his.taxAmount(BigDecimal(100)) === BigDecimal(4)
+      his.taxAmount(BigDecimal(84)) === BigDecimal(4)
+      his.taxAmount(BigDecimal(83)) === BigDecimal(3)
+    }
+
+    "Non tax amount is calculated." in {
+      val his = TaxHistory(NotAssigned, 0, TaxType.NON_TAX, BigDecimal(5), 0)
+      his.taxAmount(BigDecimal(100)) === BigDecimal(0)
+      his.taxAmount(BigDecimal(84)) === BigDecimal(0)
+      his.taxAmount(BigDecimal(83)) === BigDecimal(0)
     }
   }
 }

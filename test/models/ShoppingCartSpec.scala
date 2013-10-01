@@ -136,6 +136,10 @@ class ShoppingCartSpec extends Specification {
         }}
       }
     }
+    
+    "Tax amount equals zero if shopping cart is empty" in {
+      ShoppingCartTotal(List()).taxAmount === BigDecimal(0)
+    }
   }
 }
 
