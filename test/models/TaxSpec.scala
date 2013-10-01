@@ -12,8 +12,11 @@ import play.api.Play.current
 import anorm.Id
 import java.util.Locale
 import play.api.i18n.Lang
+import java.sql.Date.{valueOf => date}
 
 class TaxSpec extends Specification {
+  implicit def date2milli(d: java.sql.Date) = d.getTime
+
   "Tax" should {
     "Create new tax." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
@@ -61,6 +64,25 @@ class TaxSpec extends Specification {
           tax2 === Tax(tax2.id.get)
         }}
       }
+    }
+
+    "at." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn =>
+          val tax1 = Tax.createNew
+          val his1 = TaxHistory.createNew(tax1, TaxType.INNER_TAX, BigDecimal("5"), date("2013-01-02"))
+          val his2 = TaxHistory.createNew(tax1, TaxType.INNER_TAX, BigDecimal("10"), date("9999-12-31"))
+          
+          TaxHistory.at(tax1.id.get, date("2013-01-01")) === his1                         
+          TaxHistory.at(tax1.id.get, date("2013-01-02")) === his2
+        }
+      }
+    }
+
+    "Tax amount is calculated." in {
+      val his = TaxHistory(NotAssigned, 0, TaxType.OUTER_TAX, BigDecimal(5), 0)
+      his.taxAmount(BigDecimal(100)) === BigDecimal(5)
     }
   }
 }

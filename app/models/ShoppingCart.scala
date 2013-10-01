@@ -7,7 +7,7 @@ import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-import collection.immutable.{HashMap, IntMap}
+import collection.immutable.{HashSet, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
@@ -18,21 +18,24 @@ case class ShoppingCartTotalEntry(
   itemDescription: ItemDescription,
   site: Site,
   itemPriceHistory: ItemPriceHistory,
+  taxHistory: TaxHistory,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
 ) extends NotNull {
-  lazy val unitPrice = itemPriceHistory.unitPrice
-  lazy val quantity = shoppingCartItem.quantity
-  lazy val itemPrice = unitPrice * quantity
+  lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
+  lazy val quantity: Int = shoppingCartItem.quantity
+  lazy val itemPrice: BigDecimal = unitPrice * quantity
 }
 
 case class ShoppingCartTotal(
   table: Seq[ShoppingCartTotalEntry]
 ) extends NotNull {
-  lazy val size = table.size
-  lazy val notEmpty = (! table.isEmpty)
-  lazy val quantity = table.foldLeft(0)(_ + _.quantity)
-  lazy val total = table.foldLeft(BigDecimal(0))(_ + _.itemPrice)
+  lazy val size: Int = table.size
+  lazy val notEmpty: Boolean = (! table.isEmpty)
+  lazy val quantity: Int = table.foldLeft(0)(_ + _.quantity)
+  lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice)
+  lazy val sites: Seq[Site] = table.foldLeft(new HashSet[Site])(_ + _.site).toSeq
+  lazy val taxAmount: BigDecimal = BigDecimal(0)
   def apply(index: Int): ShoppingCartTotalEntry = table(index)
 }
 
@@ -141,10 +144,11 @@ object ShoppingCartItem {
       val itemId = e._1.itemId
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
+      val taxHistory = TaxHistory.at(priceHistory.taxId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
       val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
+      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata)
     }
   )
 

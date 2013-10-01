@@ -8,10 +8,21 @@ import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.{Messages, Lang}
 import java.sql.Connection
+import math.BigDecimal.RoundingMode
 
 case class Tax(id: Pk[Long] = NotAssigned) extends NotNull
 
-case class TaxHistory(id: Pk[Long] = NotAssigned, taxId: Long, taxType: TaxType, rate: BigDecimal, validUntil: Long) extends NotNull
+case class TaxHistory(
+  id: Pk[Long] = NotAssigned, taxId: Long, taxType: TaxType, rate: BigDecimal, validUntil: Long
+) extends NotNull {
+  lazy val realRate = rate / BigDecimal(100)
+
+  def taxAmount(amount: BigDecimal): BigDecimal = (taxType match {
+      case TaxType.OUTER_TAX => amount * realRate
+      case TaxType.INNER_TAX => realRate * amount / (realRate + 1)
+      case TaxType.NON_TAX => BigDecimal(0)
+    }).setScale(0, RoundingMode.DOWN)
+}
 
 case class TaxName(taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
 
@@ -106,7 +117,7 @@ object TaxName {
 object TaxHistory {
   val simple = {
     SqlParser.get[Pk[Long]]("tax_history.tax_history_id") ~
-    SqlParser.get[Long]("tax_history_id.tax_id") ~
+    SqlParser.get[Long]("tax_history.tax_id") ~
     SqlParser.get[Int]("tax_history.tax_type") ~
     SqlParser.get[java.math.BigDecimal]("tax_history.rate") ~
     SqlParser.get[java.util.Date]("tax_history.valid_until") map {
@@ -134,4 +145,21 @@ object TaxHistory {
 
     TaxHistory(Id(id), tax.id.get, taxType, rate, validUntil)
   }
+
+  def at(
+    taxId: Long, now: Long = System.currentTimeMillis
+  )(implicit conn: Connection): TaxHistory = SQL(
+    """
+    select * from tax_history
+    where tax_id = {taxId}
+    and {now} < valid_until
+    order by valid_until
+    limit 1
+    """
+  ).on(
+    'taxId -> taxId,
+    'now -> new java.sql.Timestamp(now)
+  ).as(
+    TaxHistory.simple.single
+  )
 }
