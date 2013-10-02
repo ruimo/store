@@ -73,13 +73,17 @@
       <td class="itemPrice" style="text-align: right;">@amount(list.total)</td>
     </tr>
     <tr class="salesTotalBody">
+      <td colspan="2">外税計</td>
+      <td class="taxAmount" style="text-align: right;">@amount(list.taxByType(TaxType.OUTER_TAX))</td>
+    </tr>
+    <tr class="salesTotalBody">
       <td>送料計</td>
       <td class="itemQuantity" style="text-align: right;">@shippingFee.boxQuantity 個</td>
       <td class="itemPrice" style="text-align: right;">@amount(shippingFee.boxTotal)</td>
     </tr>
     <tr class="salesTotalBody">
       <td colspan="2">合計</td>
-      <td class="itemPrice" style="text-align: right;">@amount(list.total + shippingFee.boxTotal)</td>
+      <td class="itemPrice" style="text-align: right;">@amount(list.total + shippingFee.boxTotal + list.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
   </table>
 
