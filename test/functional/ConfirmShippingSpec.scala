@@ -83,7 +83,7 @@ object ConfirmShippingSpec extends Specification {
           user.id.get, address
         )
         val tax = Tax.createNew
-        val his = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("8"), date("9999-12-31"))
+        val his = TaxHistory.createNew(tax, TaxType.OUTER_TAX, BigDecimal("8"), date("9999-12-31"))
 
         val site1 = Site.createNew(Ja, "商店1")
         val site2 = Site.createNew(Ja, "商店2")
@@ -307,21 +307,34 @@ object ConfirmShippingSpec extends Specification {
             Integer.valueOf(15 * 101 + 28 * 301 + 40 * 401)
           )
 
+        // Outer tax
         browser.find("table.salesTotal")
           .find("tr.salesTotalBody", 1)
+          .find("td.taxAmount")
+          .getText === String.format(
+            "%1$,d円",
+            Integer.valueOf((15 * 101 + 28 * 301 + 40 * 401) * 8 / 100)
+          )
+
+        browser.find("table.salesTotal")
+          .find("tr.salesTotalBody", 2)
           .find("td.itemQuantity")
           .getText === (3 + 10 + 8) + " 個"
 
         browser.find("table.salesTotal")
-          .find("tr.salesTotalBody", 1)
+          .find("tr.salesTotalBody", 2)
           .find("td.itemPrice")
           .getText === String.format("%1$,d円", Integer.valueOf(3 * 2345 + 10 * 3333 + 8 * 4444))
 
         browser.find("table.salesTotal")
-          .find("tr.salesTotalBody", 2)
+          .find("tr.salesTotalBody", 3)
           .find("td.itemPrice")
           .getText === String.format(
-            "%1$,d円", Integer.valueOf(15 * 101 + 28 * 301 + 40 * 401 + 3 * 2345 + 10 * 3333 + 8 * 4444)
+            "%1$,d円", Integer.valueOf(
+              15 * 101 + 28 * 301 + 40 * 401
+              + (15 * 101 + 28 * 301 + 40 * 401) * 8 / 100
+              + (3 * 2345 + 10 * 3333 + 8 * 4444)
+            )
           )
 
         // 送付先
