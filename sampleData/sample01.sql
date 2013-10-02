@@ -218,9 +218,14 @@ insert into site_category (category_id, site_id) values (3, 1);
 insert into site_category (category_id, site_id) values (3, 2);
 
 insert into tax (tax_id) values (1);
+insert into tax (tax_id) values (2);
 
+-- Inner tax
 insert into tax_history (tax_history_id, tax_id, tax_type, rate, valid_until)
   values (1, 1, 1, 5, timestamp '9999-12-31 00:00:00');
+-- Outer tax
+insert into tax_history (tax_history_id, tax_id, tax_type, rate, valid_until)
+  values (2, 2, 0, 5, timestamp '9999-12-31 00:00:00');
 
 insert into item_price (item_price_id, site_id, item_id) values (1, 1, 1);
 insert into item_price (item_price_id, site_id, item_id) values (2, 1, 3);
@@ -239,35 +244,35 @@ insert into item_price (item_price_id, site_id, item_id) values (14, 1, 14);
 insert into item_price (item_price_id, site_id, item_id) values (15, 1, 15);
 
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (1, 1, 1, 1, 800, timestamp '9999-12-31 00:00:00');
+  values (1, 1, 2, 1, 800, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (2, 2, 1, 1, 1200, timestamp '9999-12-31 00:00:00');
+  values (2, 2, 2, 1, 1200, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (3, 3, 1, 1, 400, timestamp '9999-12-31 00:00:00');
+  values (3, 3, 2, 1, 400, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (4, 4, 1, 1, 3000, timestamp '9999-12-31 00:00:00');
+  values (4, 4, 2, 1, 3000, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (5, 5, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (5, 5, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (6, 6, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (6, 6, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (7, 7, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (7, 7, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (8, 8, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (8, 8, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (9, 9, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (9, 9, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (10, 10, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (10, 10, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (11, 11, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (11, 11, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (12, 12, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (12, 12, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (13, 13, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (13, 13, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (14, 14, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (14, 14, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 insert into item_price_history (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, valid_until)
-  values (15, 15, 1, 1, 700, timestamp '9999-12-31 00:00:00');
+  values (15, 15, 2, 1, 700, timestamp '9999-12-31 00:00:00');
 
 insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(1, 1, 1, 10, '小箱10個口');
 insert into shipping_box (shipping_box_id, site_id, item_class, box_size, box_name) values(2, 1, 2, 3, '中箱3個口');
@@ -286,16 +291,16 @@ insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, locati
 insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(5, 5, 152, 13);
 insert into shipping_fee (shipping_fee_id, shipping_box_id, country_code, location_code) values(6, 6, 152, 13);
 
-insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
-  values(1, 1, 800, timestamp '9999-12-31 00:00:00');
-insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
-  values(2, 2, 1000, timestamp '9999-12-31 00:00:00');
-insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
-  values(3, 3, 1300, timestamp '9999-12-31 00:00:00');
-insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
-  values(4, 4, 900, timestamp '9999-12-31 00:00:00');
-insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
-  values(5, 5, 1100, timestamp '9999-12-31 00:00:00');
-insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, fee, valid_until)
-  values(6, 6, 1500, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+  values(1, 1, 1, 800, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+  values(2, 2, 1, 1000, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+  values(3, 3, 1, 1300, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+  values(4, 4, 1, 900, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+  values(5, 5, 1, 1100, timestamp '9999-12-31 00:00:00');
+insert into shipping_fee_history(shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+  values(6, 6, 1, 1500, timestamp '9999-12-31 00:00:00');
 
