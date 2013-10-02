@@ -130,13 +130,19 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   }
 
-  def finalizeTransaction = isAuthenticated { login => implicit request =>
+  def finalizeTransactionJa = isAuthenticated { implicit login => implicit request =>
+    finalizeTransaction(CurrencyInfo.Jpy)
+  }
+
+  def finalizeTransaction(
+    currency: CurrencyInfo
+  )(implicit request: Request[AnyContent], login: LoginSession): Result = {
     DB.withTransaction { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
-        Transaction.save(cart, addr, shippingFee(addr, cart))
+        Transaction.save(cart, addr, shippingFee(addr, cart), currency, login.userId)
         Ok("save")
       }
       catch {

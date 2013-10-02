@@ -7,7 +7,7 @@ import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-import collection.immutable.{HashMap, IntMap}
+import collection.immutable.{LongMap, HashSet, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
@@ -18,21 +18,52 @@ case class ShoppingCartTotalEntry(
   itemDescription: ItemDescription,
   site: Site,
   itemPriceHistory: ItemPriceHistory,
+  taxHistory: TaxHistory,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
 ) extends NotNull {
-  lazy val unitPrice = itemPriceHistory.unitPrice
-  lazy val quantity = shoppingCartItem.quantity
-  lazy val itemPrice = unitPrice * quantity
+  lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
+  lazy val quantity: Int = shoppingCartItem.quantity
+  lazy val itemPrice: BigDecimal = unitPrice * quantity
 }
 
 case class ShoppingCartTotal(
   table: Seq[ShoppingCartTotalEntry]
 ) extends NotNull {
-  lazy val size = table.size
-  lazy val notEmpty = (! table.isEmpty)
-  lazy val quantity = table.foldLeft(0)(_ + _.quantity)
-  lazy val total = table.foldLeft(BigDecimal(0))(_ + _.itemPrice)
+  lazy val size: Int = table.size
+  lazy val notEmpty: Boolean = (! table.isEmpty)
+  lazy val quantity: Int = table.foldLeft(0)(_ + _.quantity)
+  lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice)
+  lazy val sites: Seq[Site] = table.foldLeft(new HashSet[Site])(_ + _.site).toSeq
+  lazy val taxTotal: BigDecimal = {
+    val sumById = table.foldLeft(LongMap().withDefaultValue(BigDecimal(0))) {
+      (sum, e) => sum.updated(e.taxHistory.taxId, e.itemPriceHistory.unitPrice * e.shoppingCartItem.quantity)
+    }
+    val typeById = table.foldLeft(LongMap[TaxHistory]()) {
+      (sum, e) => sum.updated(e.taxHistory.taxId, e.taxHistory)
+    }
+
+    sumById.foldLeft(BigDecimal(0)) {
+      (sum, e) => sum + typeById(e._1).taxAmount(e._2)
+    }
+  }
+  lazy val taxByType: Map[TaxType, BigDecimal] = {
+    val sumById = table.foldLeft(LongMap().withDefaultValue(BigDecimal(0))) {
+      (sum, e) => sum.updated(e.taxHistory.taxId, e.itemPriceHistory.unitPrice * e.shoppingCartItem.quantity)
+    }
+    val typeById = table.foldLeft(LongMap[TaxHistory]()) {
+      (sum, e) => sum.updated(e.taxHistory.taxId, e.taxHistory)
+    }
+
+    sumById.foldLeft(HashMap[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
+      (sum, e) => {
+        val taxType = typeById(e._1).taxType
+        sum.updated(taxType, sum(taxType) + e._2)
+      }
+    }
+  }
+  lazy val taxAmount: BigDecimal = taxByType.values.foldLeft(BigDecimal(0)){_ + _}
+
   def apply(index: Int): ShoppingCartTotalEntry = table(index)
 }
 
@@ -141,10 +172,11 @@ object ShoppingCartItem {
       val itemId = e._1.itemId
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
+      val taxHistory = TaxHistory.at(priceHistory.taxId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
       val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
+      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata)
     }
   )
 

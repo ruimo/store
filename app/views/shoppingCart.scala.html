@@ -7,46 +7,52 @@
 )
 
 @main(Messages("shopping.cart")) {
-  <table style="width: 80%;">
-    <tr>
-      <th>@Messages("itemName")</th>
-      <th>@Messages("site")</th>
-      <th>@Messages("unitPrice")</th>
-      <th>
-        @Messages("quantity")
-        <form action="@routes.Purchase.clear()" style="display: inline;">
-          <input type="submit" value="@Messages("remove.all")">
-        </form>
-      </th>
-      <th>@Messages("subtotal")</th>
-    </tr>
+  <h2>@Messages("shopping.cart")</h2>
 
-    @list.table.map { e =>
+  @if(! list.table.isEmpty) {
+    <table style="width: 80%;">
       <tr>
-        <td>@e.itemName.name</td>
-        <td>@e.site.name</td>
-        <td>@amount(e.itemPriceHistory.unitPrice)</td>
-        <td>
-          <form action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
-            <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
-            <input type="text" name="quantity" value="@e.shoppingCartItem.quantity">
-            <input type="submit" value="@Messages("update")">
+        <th>@Messages("itemName")</th>
+        <th>@Messages("site")</th>
+        <th>@Messages("unitPrice")</th>
+        <th>
+          @Messages("quantity")
+          <form action="@routes.Purchase.clear()" style="display: inline;">
+            <input type="submit" value="@Messages("remove.all")">
           </form>
-          <form action="@routes.Purchase.deleteItemFromCart()" style="display: inline;">
-            <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
-            <input type="submit" value="@Messages("remove")">
-          </form>
-        </td>
-        <td>
-          @amount(e.itemPrice)
-        </td>
+        </th>
+        <th>@Messages("subtotal")</th>
       </tr>
-    }
-  </table>
 
-  <div style="width: 90%;">
-    <div style="float: right; padding: 20px;">
-      <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.address")</a>
+      @list.table.map { e =>
+        <tr>
+          <td>@e.itemName.name</td>
+          <td>@e.site.name</td>
+          <td>@amount(e.itemPriceHistory.unitPrice)</td>
+          <td>
+            <form action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
+              <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
+              <input type="text" name="quantity" value="@e.shoppingCartItem.quantity">
+              <input type="submit" value="@Messages("update")">
+            </form>
+            <form action="@routes.Purchase.deleteItemFromCart()" style="display: inline;">
+              <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
+              <input type="submit" value="@Messages("remove")">
+            </form>
+          </td>
+          <td>
+            @amount(e.itemPrice)
+          </td>
+        </tr>
+      }
+    </table>
+
+    <div style="width: 90%;">
+      <div style="float: right; padding: 20px;">
+        <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.address")</a>
+      </div>
     </div>
-  </div>
+  } else {
+    <h2>@Messages("shopping.cart.empty")</h2>
+  }
 }
