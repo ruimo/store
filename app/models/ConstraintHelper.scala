@@ -21,11 +21,11 @@ object ConstraintHelper {
     }
   }
   
-  val columnSizes = TrieMap[(Option[String], String, String), ColumnSize]()
+  val columnSizes = TrieMap[ColumnSize, ColumnSize]()
 
   def getColumnSize(schema: Option[String], table: String, column: String) : Int = {
-    def col = (schema, table, column)
-    columnSizes.putIfAbsent(col, ColumnSize(schema,table,column))
+    def col = ColumnSize(schema, table, column)
+    columnSizes.putIfAbsent(col, col)
     columnSizes(col).columnSize
   }
 
