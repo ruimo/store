@@ -3,7 +3,7 @@ package models
 import play.api.db._
 import java.sql.Connection
 import play.api.Play.current
-import scala.collection.parallel.mutable.ParHashSet
+import scala.collection.concurrent.TrieMap
 
 object ConstraintHelper {
   case class ColumnSize(schema: Option[String], table: String, column: String) {
@@ -21,15 +21,11 @@ object ConstraintHelper {
     }
   }
   
-  val columnSizes = ParHashSet[ColumnSize]()
+  val columnSizes = TrieMap[ColumnSize, ColumnSize]()
 
   def getColumnSize(schema: Option[String], table: String, column: String) : Int = {
-    val newone = ColumnSize(schema,table,column)
-
-    columnSizes.find { x => x.hashCode == newone.hashCode } match {
-      case Some(cached) => cached.columnSize
-      case _            => { columnSizes += newone; newone.columnSize }
-    }
+    def col = ColumnSize(schema, table, column)
+    columnSizes.putIfAbsent(col, col).getOrElse(col).columnSize
   }
 
   def refreshColumnSizes() = {
