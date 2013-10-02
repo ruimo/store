@@ -202,7 +202,6 @@ create sequence store_user_seq start with 1000;
 
 create table transaction_header (
   transaction_id bigint not null,
-  site_id bigint not null,
   store_user_id bigint not null,
   transaction_time timestamp not null,
   currency_id bigint not null references currency,
@@ -213,6 +212,18 @@ create table transaction_header (
 );
 
 create sequence transaction_header_seq start with 1000;
+
+create table transaction_site (
+  transaction_site_id bigint not null,
+  transaction_id bigint not null references transaction_header on delete cascade,
+  site_id bigint not null,
+  total_amount decimal(15,2) not null,
+  tax_amount decimal(15,2) not null,
+  constraint pk_transaction_site primary key (transaction_site_id),
+  unique(transaction_id, site_id)
+);
+
+create sequence transaction_site_seq start with 1000;
 
 create table address (
   address_id bigint not null,
@@ -242,7 +253,7 @@ create sequence address_seq start with 1000;
 
 create table transaction_shipping (
   transaction_shipping_id bigint not null,
-  transaction_id bigint not null references transaction_header on delete cascade,
+  transaction_site_id bigint not null references transaction_site on delete cascade,
   amount decimal(15,2) not null,
   address_id bigint not null,
   constraint pk_transaction_shipping primary key (transaction_shipping_id)
@@ -252,7 +263,7 @@ create sequence transaction_shipping_seq start with 1000;
 
 create table transaction_item (
   transaction_item_id bigint not null,
-  transaction_id bigint not null references transaction_header on delete cascade,
+  transaction_site_id bigint not null references transaction_site on delete cascade,
   item_price_history_id bigint not null,
   transaction_shipping_id bigint not null references transaction_shipping on delete cascade,
   quantity integer not null,
@@ -264,7 +275,7 @@ create sequence transaction_item_seq start with 1000;
 
 create table transaction_tax (
   transaction_tax_id bigint not null,
-  transaction_id bigint not null references transaction_header on delete cascade,
+  transaction_site_id bigint not null references transaction_site on delete cascade,
   tax_id bigint not null,
   tax_type integer not null,
   rate decimal(5, 3) not null,
@@ -347,6 +358,7 @@ create sequence shipping_fee_seq start with 1000;
 create table shipping_fee_history (
   shipping_fee_history_id bigint not null,
   shipping_fee_id bigint not null references shipping_fee on delete cascade,
+  tax_id bigint not null references tax on delete cascade,
   fee decimal(15, 2) not null,
   -- Exclusive
   valid_until timestamp not null,

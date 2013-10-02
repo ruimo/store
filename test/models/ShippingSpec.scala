@@ -44,6 +44,8 @@ class ShippingSpec extends Specification {
 
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val itemClass1 = 1L
+          val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val box = ShippingBox.createNew(
             site1.id.get, itemClass1, 10, "小箱"
@@ -52,7 +54,7 @@ class ShippingSpec extends Specification {
             box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code
           )
           val history1 = ShippingFeeHistory.createNew(
-            shipping.id.get, BigDecimal(1234), date("9999-12-31")
+            shipping.id.get, tax.id.get, BigDecimal(1234), date("9999-12-31")
           )
 
           val list = ShippingFeeHistory.list(shipping.id.get)
@@ -62,7 +64,7 @@ class ShippingSpec extends Specification {
           ShippingFeeHistory.at(shipping.id.get).fee === BigDecimal(1234)
           
           val history2 = ShippingFeeHistory.createNew(
-            shipping.id.get, BigDecimal(2345), date("2013-12-31")
+            shipping.id.get, tax.id.get, BigDecimal(2345), date("2013-12-31")
           )
 
           val list2 = ShippingFeeHistory.list(shipping.id.get)
@@ -84,6 +86,9 @@ class ShippingSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val itemClass1 = 1L
 
+          val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
           val box = ShippingBox.createNew(
             site1.id.get, itemClass1, 10, "小箱"
           )
@@ -91,20 +96,20 @@ class ShippingSpec extends Specification {
             box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code
           )
           val history1 = ShippingFeeHistory.createNew(
-            shipping1.id.get, BigDecimal(1234), date("9999-12-31")
+            shipping1.id.get, tax.id.get, BigDecimal(1234), date("9999-12-31")
           )
           val history2 = ShippingFeeHistory.createNew(
-            shipping1.id.get, BigDecimal(2345), date("2013-12-31")
+            shipping1.id.get, tax.id.get, BigDecimal(2345), date("2013-12-31")
           )
 
           val shipping2 = ShippingFee.createNew(
             box.id.get, CountryCode.JPN, JapanPrefecture.埼玉県.code
           )
           val history3 = ShippingFeeHistory.createNew(
-            shipping2.id.get, BigDecimal(9999), date("9999-12-31")
+            shipping2.id.get, tax.id.get, BigDecimal(9999), date("9999-12-31")
           )
           val history4 = ShippingFeeHistory.createNew(
-            shipping2.id.get, BigDecimal(8888), date("2013-12-31")
+            shipping2.id.get, tax.id.get, BigDecimal(8888), date("2013-12-31")
           )
 
           val list = ShippingFeeHistory.listByLocation(CountryCode.JPN, JapanPrefecture.東京都.code)
@@ -132,6 +137,9 @@ class ShippingSpec extends Specification {
           val itemClass1 = 1L
           val itemClass2 = 2L
 
+          val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
           val box1_1 = ShippingBox.createNew(site1.id.get, itemClass1, 10, "小箱1")
           val box1_2 = ShippingBox.createNew(site1.id.get, itemClass2, 5, "中箱1")
 
@@ -149,59 +157,59 @@ class ShippingSpec extends Specification {
           val shipping2_2_saitama = ShippingFee.createNew(box2_2.id.get, CountryCode.JPN, JapanPrefecture.埼玉県.code)
 
           val history1_1_tokyo_1 = ShippingFeeHistory.createNew(
-            shipping1_1_tokyo.id.get, BigDecimal(1234), date("9999-12-31")
+            shipping1_1_tokyo.id.get, tax.id.get, BigDecimal(1234), date("9999-12-31")
           )
           val history1_1_tokyo_2 = ShippingFeeHistory.createNew(
-            shipping1_1_tokyo.id.get, BigDecimal(1000), date("2013-12-31")
+            shipping1_1_tokyo.id.get, tax.id.get, BigDecimal(1000), date("2013-12-31")
           )
 
           val history1_1_saitama_1 = ShippingFeeHistory.createNew(
-            shipping1_1_saitama.id.get, BigDecimal(12), date("9999-12-31")
+            shipping1_1_saitama.id.get, tax.id.get, BigDecimal(12), date("9999-12-31")
           )
           val history1_1_saitama_2 = ShippingFeeHistory.createNew(
-            shipping1_1_saitama.id.get, BigDecimal(34), date("2013-12-31")
+            shipping1_1_saitama.id.get, tax.id.get, BigDecimal(34), date("2013-12-31")
           )
 
           val history1_2_tokyo_1 = ShippingFeeHistory.createNew(
-            shipping1_2_tokyo.id.get, BigDecimal(234), date("9999-12-31")
+            shipping1_2_tokyo.id.get, tax.id.get, BigDecimal(234), date("9999-12-31")
           )
           val history1_2_tokyo_2 = ShippingFeeHistory.createNew(
-            shipping1_2_tokyo.id.get, BigDecimal(345), date("2013-12-31")
+            shipping1_2_tokyo.id.get, tax.id.get, BigDecimal(345), date("2013-12-31")
           )
           
           val history1_2_saitama_1 = ShippingFeeHistory.createNew(
-            shipping1_2_saitama.id.get, BigDecimal(112), date("9999-12-31")
+            shipping1_2_saitama.id.get, tax.id.get, BigDecimal(112), date("9999-12-31")
           )
           val history1_2_saitama_2 = ShippingFeeHistory.createNew(
-            shipping1_2_saitama.id.get, BigDecimal(221), date("2013-12-31")
+            shipping1_2_saitama.id.get, tax.id.get, BigDecimal(221), date("2013-12-31")
           )
 
           val history2_1_tokyo_1 = ShippingFeeHistory.createNew(
-            shipping2_1_tokyo.id.get, BigDecimal(222), date("9999-12-31")
+            shipping2_1_tokyo.id.get, tax.id.get, BigDecimal(222), date("9999-12-31")
           )
           val history2_1_tokyo_2 = ShippingFeeHistory.createNew(
-            shipping2_1_tokyo.id.get, BigDecimal(333), date("2013-12-31")
+            shipping2_1_tokyo.id.get, tax.id.get, BigDecimal(333), date("2013-12-31")
           )
 
           val history2_1_saitama_1 = ShippingFeeHistory.createNew(
-            shipping2_1_saitama.id.get, BigDecimal(999), date("9999-12-31")
+            shipping2_1_saitama.id.get, tax.id.get, BigDecimal(999), date("9999-12-31")
           )
           val history2_1_saitama_2 = ShippingFeeHistory.createNew(
-            shipping2_1_saitama.id.get, BigDecimal(888), date("2013-12-31")
+            shipping2_1_saitama.id.get, tax.id.get, BigDecimal(888), date("2013-12-31")
           )
 
           val history2_2_tokyo_1 = ShippingFeeHistory.createNew(
-            shipping2_2_tokyo.id.get, BigDecimal(9999), date("9999-12-31")
+            shipping2_2_tokyo.id.get, tax.id.get, BigDecimal(9999), date("9999-12-31")
           )
           val history2_2_tokyo_2 = ShippingFeeHistory.createNew(
-            shipping2_2_tokyo.id.get, BigDecimal(8888), date("2013-12-31")
+            shipping2_2_tokyo.id.get, tax.id.get, BigDecimal(8888), date("2013-12-31")
           )
 
           val history2_2_saitama_1 = ShippingFeeHistory.createNew(
-            shipping2_2_saitama.id.get, BigDecimal(7777), date("9999-12-31")
+            shipping2_2_saitama.id.get, tax.id.get, BigDecimal(7777), date("9999-12-31")
           )
           val history2_2_saitama_2 = ShippingFeeHistory.createNew(
-            shipping2_2_saitama.id.get, BigDecimal(6666), date("2013-12-31")
+            shipping2_2_saitama.id.get, tax.id.get, BigDecimal(6666), date("2013-12-31")
           )
 
           val map1 = ShippingFeeHistory.feeBySiteAndItemClass(

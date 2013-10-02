@@ -26,7 +26,7 @@ class TransactionSpec extends Specification {
           val now = 1234L
 
           val header = TransactionHeader.createNew(
-            site1.id.get, user1.id.get, currency1.id,
+            user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
             TransactionType.NORMAL
           )
@@ -51,7 +51,7 @@ class TransactionSpec extends Specification {
           val now = 1234L
 
           val header = TransactionHeader.createNew(
-            site1.id.get, user1.id.get, currency1.id,
+            user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
             TransactionType.NORMAL
           )
@@ -67,8 +67,12 @@ class TransactionSpec extends Specification {
             tel1 = "12345678"
           )
 
+          val tranSite = TransactionSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
           val shipping = TransactionShipping.createNew(
-            header.id.get, BigDecimal(9876), addr1.id.get
+            tranSite.id.get, BigDecimal(9876), addr1.id.get
           )
 
           val list = TransactionShipping.list()
@@ -92,13 +96,17 @@ class TransactionSpec extends Specification {
           val now = 1234L
 
           val header = TransactionHeader.createNew(
-            site1.id.get, user1.id.get, currency1.id,
+            user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
             TransactionType.NORMAL
           )
           
+          val tranSite = TransactionSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
           val tax = TransactionTax.createNew(
-            header.id.get,
+            tranSite.id.get,
             1234L, 2345L, TaxType.INNER_TAX,
             BigDecimal(5), BigDecimal(333), BigDecimal(222)
           )
@@ -125,9 +133,13 @@ class TransactionSpec extends Specification {
           val now = 1234L
 
           val header = TransactionHeader.createNew(
-            site1.id.get, user1.id.get, currency1.id,
+            user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
             TransactionType.NORMAL
+          )
+
+          val tranSite = TransactionSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
           )
 
           val addr1 = Address.createNew(
@@ -142,7 +154,7 @@ class TransactionSpec extends Specification {
           )
 
           val shipping = TransactionShipping.createNew(
-            header.id.get, BigDecimal(9876), addr1.id.get
+            tranSite.id.get, BigDecimal(9876), addr1.id.get
           )
 
           val item = TransactionItem.createNew(

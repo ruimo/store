@@ -37,7 +37,7 @@ case class ShippingFee(
 ) extends NotNull
 
 case class ShippingFeeHistory(
-  id: Pk[Long] = NotAssigned, shippingFeeId: Long, fee: BigDecimal, validUntil: Long
+  id: Pk[Long] = NotAssigned, shippingFeeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
 ) extends NotNull
 
 case class ShippingFeeEntries(
@@ -169,31 +169,33 @@ object ShippingFeeHistory {
   val simple = {
     SqlParser.get[Pk[Long]]("shipping_fee_history.shipping_fee_history_id") ~
     SqlParser.get[Long]("shipping_fee_history.shipping_fee_id") ~
+    SqlParser.get[Long]("shipping_fee_history.tax_id") ~
     SqlParser.get[java.math.BigDecimal]("shipping_fee_history.fee") ~
     SqlParser.get[java.util.Date]("shipping_fee_history.valid_until") map {
-      case id~feeId~fee~validUntil => ShippingFeeHistory(id, feeId, fee, validUntil.getTime)
+      case id~feeId~taxId~fee~validUntil => ShippingFeeHistory(id, feeId, taxId, fee, validUntil.getTime)
     }
   }
 
   def createNew(
-    feeId: Long, fee: BigDecimal, validUntil: Long
+    feeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
   )(implicit conn: Connection): ShippingFeeHistory = {
     SQL(
       """
-      insert into shipping_fee_history (shipping_fee_history_id, shipping_fee_id, fee, valid_until)
+      insert into shipping_fee_history (shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
       values (
-        (select nextval('shipping_fee_history_seq')), {feeId}, {fee}, {validUntil}
+        (select nextval('shipping_fee_history_seq')), {feeId}, {taxId}, {fee}, {validUntil}
       )
       """
     ).on(
       'feeId -> feeId,
+      'taxId -> taxId,
       'fee -> fee.bigDecimal,
       'validUntil -> new java.sql.Timestamp(validUntil)
     ).executeUpdate()
 
     val id = SQL("select currval('shipping_fee_history_seq')").as(SqlParser.scalar[Long].single)
 
-    ShippingFeeHistory(Id(id), feeId, fee, validUntil)
+    ShippingFeeHistory(Id(id), feeId, taxId, fee, validUntil)
   }
 
   def list(feeId: Long)(implicit conn: Connection): Seq[ShippingFeeHistory] = SQL(

@@ -126,9 +126,9 @@ object ConfirmShippingSpec extends Specification {
         val fee2 = ShippingFee.createNew(box2_1.id.get, CountryCode.JPN, JapanPrefecture.三重県.code)
         val fee3 = ShippingFee.createNew(box2_2.id.get, CountryCode.JPN, JapanPrefecture.三重県.code)
 
-        val feeHis1 = ShippingFeeHistory.createNew(fee1.id.get, BigDecimal(2345), date("9999-12-31"))
-        val feeHis2 = ShippingFeeHistory.createNew(fee2.id.get, BigDecimal(3333), date("9999-12-31"))
-        val feeHis3 = ShippingFeeHistory.createNew(fee3.id.get, BigDecimal(4444), date("9999-12-31"))
+        val feeHis1 = ShippingFeeHistory.createNew(fee1.id.get, tax.id.get, BigDecimal(2345), date("9999-12-31"))
+        val feeHis2 = ShippingFeeHistory.createNew(fee2.id.get, tax.id.get, BigDecimal(3333), date("9999-12-31"))
+        val feeHis3 = ShippingFeeHistory.createNew(fee3.id.get, tax.id.get, BigDecimal(4444), date("9999-12-31"))
 
         SiteItem.createNew(site1, item1)
         SiteItem.createNew(site2, item2)
