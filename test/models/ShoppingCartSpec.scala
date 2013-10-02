@@ -137,8 +137,159 @@ class ShoppingCartSpec extends Specification {
       }
     }
     
-    "Tax amount equals zero if shopping cart is empty" in {
+    "Tax amount equals zero if shopping cart is empty." in {
       ShoppingCartTotal(List()).taxAmount === BigDecimal(0)
+    }
+
+    "Tax amount is calculated for outer tax items." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          TestHelper.removePreloadedRecords()
+
+          val tax1 = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax1, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+          )
+          import models.LocaleInfo.{Ja}
+          val site1 = Site.createNew(Ja, "商店1")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site1, item2)
+
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc2 = ItemDescription.createNew(item2, site1, "梅説明")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+
+          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(101), date("9999-12-31"))
+          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(301), date("9999-12-31"))
+
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 2)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get, 3)
+
+          val time = date("2013-01-04").getTime
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+
+          list1.size === 2
+          list1.taxTotal === BigDecimal((101 * 2 + 301 * 3) * 5 / 100)
+          list1.taxByType(TaxType.OUTER_TAX) === BigDecimal((101 * 2 + 301 * 3) * 5 / 100)
+          list1.taxByType.get(TaxType.INNER_TAX) === None
+          list1.taxByType.get(TaxType.NON_TAX) === None
+        }}
+      }
+    }
+
+    "Tax amount is calculated by tax id." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          TestHelper.removePreloadedRecords()
+
+          val tax1 = Tax.createNew
+          val tax2 = Tax.createNew
+          val taxHistory1 = TaxHistory.createNew(tax1, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+          val taxHistory2 = TaxHistory.createNew(tax2, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+          )
+          import models.LocaleInfo.{Ja}
+          val site1 = Site.createNew(Ja, "商店1")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site1, item2)
+
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc2 = ItemDescription.createNew(item2, site1, "梅説明")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+
+          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), date("9999-12-31"))
+          val ph2 = ItemPriceHistory.createNew(price2, tax2, CurrencyInfo.Jpy, BigDecimal(59), date("9999-12-31"))
+
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get, 1)
+
+          val time = date("2013-01-04").getTime
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+
+          list1.size === 2
+          list1.taxTotal === BigDecimal((119 * 5 / 100) + (59 * 5 /100))
+          list1.taxByType(TaxType.OUTER_TAX) === BigDecimal((119 * 5 / 100) + (59 * 5 /100))
+          list1.taxByType.get(TaxType.INNER_TAX) === None
+          list1.taxByType.get(TaxType.NON_TAX) === None
+        }}
+      }
+    }
+
+    "Inner tax and outer tax amount is calculated." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          TestHelper.removePreloadedRecords()
+
+          val tax1 = Tax.createNew
+          val tax2 = Tax.createNew
+          val taxHistory1 = TaxHistory.createNew(tax1, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+          val taxHistory2 = TaxHistory.createNew(tax2, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+          )
+          import models.LocaleInfo.{Ja}
+          val site1 = Site.createNew(Ja, "商店1")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site1, item2)
+
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc2 = ItemDescription.createNew(item2, site1, "梅説明")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+
+          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), date("9999-12-31"))
+          val ph2 = ItemPriceHistory.createNew(price2, tax2, CurrencyInfo.Jpy, BigDecimal(59), date("9999-12-31"))
+
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get, 1)
+
+          val time = date("2013-01-04").getTime
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+
+          list1.size === 2
+          list1.taxTotal === BigDecimal((59 * 5 / 105) + (119 * 5 / 100))
+          list1.taxByType(TaxType.OUTER_TAX) === BigDecimal(119 * 5 / 100)
+          list1.taxByType(TaxType.INNER_TAX) === BigDecimal(59 * 5 /100)
+          list1.taxByType.get(TaxType.NON_TAX) === None
+        }}
+      }
     }
   }
 }
