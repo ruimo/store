@@ -25,8 +25,7 @@ object ConstraintHelper {
 
   def getColumnSize(schema: Option[String], table: String, column: String) : Int = {
     def col = ColumnSize(schema, table, column)
-    columnSizes.putIfAbsent(col, col)
-    columnSizes(col).columnSize
+    columnSizes.putIfAbsent(col, col).getOrElse(col).columnSize
   }
 
   def refreshColumnSizes() = {
