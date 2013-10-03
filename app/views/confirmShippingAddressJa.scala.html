@@ -26,15 +26,30 @@
         <tr class="itemTableBody">
           <td class="itemName">@e.itemName.name</td>
           <td class="siteName">@e.site.name</td>
-          <td class="itemQuantity" style="text-align: right;">@e.shoppingCartItem.quantity</td>
-          <td class="itemPrice" style="text-align: right;">@amount(e.itemPrice)</td>
           <td class="itemSize">
             @{e.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE).map {
               m => Messages("item.size." + m.metadata)
             }.getOrElse("-")}
           </td>
+          <td class="itemQuantity" style="text-align: right;">@e.shoppingCartItem.quantity</td>
+          <td class="itemPrice" style="text-align: right;">@amount(e.itemPrice)</td>
         </tr>
       }
+
+      <tr class="itemTableBody subtotalWithoutTax">
+        <td colspan="4">小計</td>
+        <td class="subtotal">@amount(list.total)</td>
+      </tr>
+
+      <tr class="itemTableBody outerTax">
+        <td colspan="4">外税額</td>
+        <td class="outerTax">@amount(list.taxByType(TaxType.OUTER_TAX))</td>
+      </tr>
+
+      <tr class="itemTableBody total">
+        <td colspan="4">商品計</td>
+        <td class="outerTax">@amount(list.total + list.taxByType(TaxType.OUTER_TAX))</td>
+      </tr>
     </table>
   }
 

@@ -151,7 +151,7 @@ object ConfirmShippingSpec extends Specification {
         )
         browser.title === Messages("confirm.shipping.address")
 
-        browser.find("table.itemTable").find("tr.itemTableBody").size === 3
+        browser.find("table.itemTable").find("tr.itemTableBody").size === 6
         browser.find("table.itemTable")
           .find("tr.itemTableBody", 0)
           .find("td.itemName")
@@ -226,6 +226,14 @@ object ConfirmShippingSpec extends Specification {
           .find("tr.itemTableBody", 2)
           .find("td.itemSize")
           .getText === Messages("item.size.2")
+
+        browser.find("table.itemTable")
+          .find("tr.subtotalWithoutTax")
+          .find("td.subtotal")
+          .getText === String.format(
+            "%1$,d円",
+            Integer.valueOf(15 * 101 + 28 * 301 + 40 * 401)
+          )
 
         // 送料
         browser.find("h2.shippingSiteName").size === 2
