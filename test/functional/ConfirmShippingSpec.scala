@@ -302,40 +302,38 @@ object ConfirmShippingSpec extends Specification {
           .find("td.boxPrice")
           .getText === String.format("%1$,d円", Integer.valueOf(8 * 4444))
 
+        // Total quantity
         browser.find("table.salesTotal")
           .find("tr.salesTotalBody", 0)
           .find("td.itemQuantity")
           .getText === (15 + 28 + 40) + " 個"
 
+        // Total amount(including outer tax)
         browser.find("table.salesTotal")
           .find("tr.salesTotalBody", 0)
           .find("td.itemPrice")
           .getText === String.format(
             "%1$,d円",
-            Integer.valueOf(15 * 101 + 28 * 301 + 40 * 401)
+            Integer.valueOf(
+              15 * 101 + 28 * 301 + 40 * 401
+              + (15 * 101 + 28 * 301 + 40 * 401) * 8 / 100
+            )
           )
 
-        // Outer tax
+        // Shipping box quantity
         browser.find("table.salesTotal")
           .find("tr.salesTotalBody", 1)
-          .find("td.taxAmount")
-          .getText === String.format(
-            "%1$,d円",
-            Integer.valueOf((15 * 101 + 28 * 301 + 40 * 401) * 8 / 100)
-          )
-
-        browser.find("table.salesTotal")
-          .find("tr.salesTotalBody", 2)
           .find("td.itemQuantity")
           .getText === (3 + 10 + 8) + " 個"
 
+        // Shipping fee
         browser.find("table.salesTotal")
-          .find("tr.salesTotalBody", 2)
+          .find("tr.salesTotalBody", 1)
           .find("td.itemPrice")
           .getText === String.format("%1$,d円", Integer.valueOf(3 * 2345 + 10 * 3333 + 8 * 4444))
 
         browser.find("table.salesTotal")
-          .find("tr.salesTotalBody", 3)
+          .find("tr.salesTotalBody", 2)
           .find("td.itemPrice")
           .getText === String.format(
             "%1$,d円", Integer.valueOf(
