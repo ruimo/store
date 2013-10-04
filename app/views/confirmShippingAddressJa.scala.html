@@ -1,7 +1,5 @@
 @(
-  list: ShoppingCartTotal,
-  address: Address,
-  shippingFee: ShippingTotal
+  tran: Transaction
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -12,7 +10,7 @@
 
 @main(Messages("confirm.shipping.address")) {
   <h1>お買い上げ商品</h1>
-  @if(list.notEmpty) {
+  @if(tran.itemTotal.notEmpty) {
     <table class="itemTable" border="0">
       <tr class="itemTableHeader">
         <th>@Messages("itemName")</th>
@@ -22,7 +20,7 @@
         <th>@Messages("subtotal")</th>
       </tr>
 
-      @list.table.map { e =>
+      @tran.itemTotal.table.map { e =>
         <tr class="itemTableBody">
           <td class="itemName">@e.itemName.name</td>
           <td class="siteName">@e.site.name</td>
@@ -38,23 +36,23 @@
 
       <tr class="itemTableBody subtotalWithoutTax">
         <td colspan="4">小計</td>
-        <td class="subtotal">@amount(list.total)</td>
+        <td class="subtotal">@amount(tran.itemTotal.total)</td>
       </tr>
 
       <tr class="itemTableBody outerTax">
         <td colspan="4">外税額</td>
-        <td class="outerTax">@amount(list.taxByType(TaxType.OUTER_TAX))</td>
+        <td class="outerTax">@amount(tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
       </tr>
 
       <tr class="itemTableBody total">
         <td colspan="4">商品計</td>
-        <td class="outerTax">@amount(list.total + list.taxByType(TaxType.OUTER_TAX))</td>
+        <td class="outerTax">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
       </tr>
     </table>
   }
 
   <h1>送料</h1>
-  @shippingFee.table.map { e =>
+  @tran.shippingTotal.table.map { e =>
     <h2 class="shippingSiteName">@e._1.name</h2>
     <table class="shipping">
       <tr class="itemTableHeader">
@@ -84,17 +82,17 @@
     </tr>
     <tr class="salesTotalBody">
       <td>商品計</td>
-      <td class="itemQuantity" style="text-align: right;">@list.quantity 個</td>
-      <td class="itemPrice" style="text-align: right;">@amount(list.total + list.taxByType(TaxType.OUTER_TAX))</td>
+      <td class="itemQuantity" style="text-align: right;">@tran.itemTotal.quantity 個</td>
+      <td class="itemPrice" style="text-align: right;">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
     <tr class="salesTotalBody">
       <td>送料計</td>
-      <td class="itemQuantity" style="text-align: right;">@shippingFee.boxQuantity 個</td>
-      <td class="itemPrice" style="text-align: right;">@amount(shippingFee.boxTotal)</td>
+      <td class="itemQuantity" style="text-align: right;">@tran.shippingTotal.boxQuantity 個</td>
+      <td class="itemPrice" style="text-align: right;">@amount(tran.shippingTotal.boxTotal)</td>
     </tr>
     <tr class="salesTotalBody">
       <td colspan="2">合計</td>
-      <td class="itemPrice" style="text-align: right;">@amount(list.total + shippingFee.boxTotal + list.taxByType(TaxType.OUTER_TAX))</td>
+      <td class="itemPrice" style="text-align: right;">@amount(tran.itemTotal.total + tran.shippingTotal.boxTotal + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
   </table>
 
@@ -103,62 +101,62 @@
     <tr class="shippingTableHeader">
       <th colspan="2">送付先</th>
     </tr>
-    @if(address.hasName) {
+    @if(tran.shippingAddress.hasName) {
       <tr class="shippingTableBody">
-        <td>お名前</td><td>@address.firstName @address.lastName</td>
+        <td>お名前</td><td>@tran.shippingAddress.firstName @tran.shippingAddress.lastName</td>
       </tr>
     }
-    @if(address.hasKanaName) {
+    @if(tran.shippingAddress.hasKanaName) {
       <tr class="shippingTableBody">
-        <td>フリガナ</td><td>@address.firstNameKana @address.lastNameKana</td>
+        <td>フリガナ</td><td>@tran.shippingAddress.firstNameKana @tran.shippingAddress.lastNameKana</td>
       </tr>
     }
-    @if(address.hasZip) {
+    @if(tran.shippingAddress.hasZip) {
       <tr class="shippingTableBody">
-        <td>〒</td><td>@address.zip1 - @address.zip2</td>
+        <td>〒</td><td>@tran.shippingAddress.zip1 - @tran.shippingAddress.zip2</td>
       </tr>
     }
     <tr class="shippingTableBody">
       <td>ご住所</td>
       <td>
-        @if(! address.prefecture.isUnknown) {
-          @address.prefecture<br>
+        @if(! tran.shippingAddress.prefecture.isUnknown) {
+          @tran.shippingAddress.prefecture<br>
         }
 
-        @if(!address.address1.isEmpty) {
-          @address.address1<br>
+        @if(!tran.shippingAddress.address1.isEmpty) {
+          @tran.shippingAddress.address1<br>
         }
 
-        @if(!address.address2.isEmpty) {
-          @address.address2<br>
+        @if(!tran.shippingAddress.address2.isEmpty) {
+          @tran.shippingAddress.address2<br>
         }
 
-        @if(!address.address3.isEmpty) {
-          @address.address3<br>
+        @if(!tran.shippingAddress.address3.isEmpty) {
+          @tran.shippingAddress.address3<br>
         }
 
-        @if(!address.address4.isEmpty) {
-          @address.address4<br>
+        @if(!tran.shippingAddress.address4.isEmpty) {
+          @tran.shippingAddress.address4<br>
         }
 
-        @if(!address.address5.isEmpty) {
-          @address.address5<br>
+        @if(!tran.shippingAddress.address5.isEmpty) {
+          @tran.shippingAddress.address5<br>
         }
       </td>
     </tr>
-    @if(!address.tel1.isEmpty) {
+    @if(!tran.shippingAddress.tel1.isEmpty) {
       <tr class="shippingTableBody">
-        <td>TEL</td><td>@address.tel1</td>
+        <td>TEL</td><td>@tran.shippingAddress.tel1</td>
       </tr>
     }
-    @if(!address.tel2.isEmpty) {
+    @if(!tran.shippingAddress.tel2.isEmpty) {
       <tr class="shippingTableBody">
-        <td></td><td>@address.tel2</td>
+        <td></td><td>@tran.shippingAddress.tel2</td>
       </tr>
     }
-    @if(!address.tel3.isEmpty) {
+    @if(!tran.shippingAddress.tel3.isEmpty) {
       <tr class="shippingTableBody">
-        <td></td><td>@address.tel3</td>
+        <td></td><td>@tran.shippingAddress.tel3</td>
       </tr>
     }
   </table>

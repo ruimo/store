@@ -291,6 +291,83 @@ class ShoppingCartSpec extends Specification {
         }}
       }
     }
+    "Can calculate total by site." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          TestHelper.removePreloadedRecords()
+
+          import LocaleInfo.{Ja, En}
+
+          val site1 = Site.createNew(Ja, "商店1")
+          val site2 = Site.createNew(Ja, "商店2")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉", En -> "Cedar"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅", En -> "Ume"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site2, item2)
+
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc2 = ItemDescription.createNew(item2, site1, "梅説明")
+      
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+
+          val tax1 = Tax.createNew
+          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), date("9999-12-31"))
+          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), date("9999-12-31"))
+
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+          )
+
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get, 1)
+
+          val taxHistory1 = TaxHistory.createNew(tax1, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+          val e1 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = NotAssigned,
+              storeUserId = user1.id.get,
+              sequenceNumber = 1,
+              siteId = site1.id.get,
+              itemId = item1.id.get,
+              quantity = 4
+            ),
+            name1(Ja), desc1, site1, ph1, taxHistory1, Map(), Map()
+          )
+
+          val e2 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = NotAssigned,
+              storeUserId = user1.id.get,
+              sequenceNumber = 2,
+              siteId = site2.id.get,
+              itemId = item2.id.get,
+              quantity = 4
+            ),
+            name2(Ja), desc2, site2, ph2, taxHistory1, Map(), Map()
+          )
+
+          val total = ShoppingCartTotal(
+            List(e1, e2)
+          )
+
+          val bySite = total.bySite
+          bySite.size === 2
+          bySite(site1).table.size === 1
+          bySite(site1).table(0) === e1
+          bySite(site2).table.size === 1
+          bySite(site2).table(0) === e2
+        }}
+      }
+    }
   }
 }
 

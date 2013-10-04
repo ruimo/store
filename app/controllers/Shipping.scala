@@ -87,7 +87,11 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
-        Ok(views.html.confirmShippingAddressJa(cart, addr, shippingFee(addr, cart)))
+        Ok(
+          views.html.confirmShippingAddressJa(
+            Transaction(login.userId, CurrencyInfo.Jpy, cart, addr, shippingFee(addr, cart))
+          )
+        )
       }
       catch {
         case e: CannotShippingException => {
@@ -142,7 +146,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
-        Transaction.save(cart, addr, shippingFee(addr, cart), currency, login.userId)
+        Transaction(login.userId, currency, cart, addr, shippingFee(addr, cart)).save()
         Ok("save")
       }
       catch {

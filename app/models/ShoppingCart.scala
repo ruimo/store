@@ -28,8 +28,9 @@ case class ShoppingCartTotalEntry(
 }
 
 case class ShoppingCartTotal(
-  table: Seq[ShoppingCartTotalEntry]
+  table: Seq[ShoppingCartTotalEntry] = List()
 ) extends NotNull {
+  def +(e: ShoppingCartTotalEntry) = ShoppingCartTotal(table :+ e)
   lazy val size: Int = table.size
   lazy val notEmpty: Boolean = (! table.isEmpty)
   lazy val quantity: Int = table.foldLeft(0)(_ + _.quantity)
@@ -56,6 +57,11 @@ case class ShoppingCartTotal(
     }
   }
   lazy val taxAmount: BigDecimal = taxByType.values.foldLeft(BigDecimal(0)){_ + _}
+  lazy val bySite: Map[Site, ShoppingCartTotal] = {
+    table.foldLeft(HashMap[Site, ShoppingCartTotal]().withDefaultValue(ShoppingCartTotal())) { (map, e) =>
+      map.updated(e.site, map(e.site) + e)
+    }
+  }
 
   def apply(index: Int): ShoppingCartTotalEntry = table(index)
 }
@@ -136,7 +142,7 @@ object ShoppingCartItem {
   }
 
   def listItemsForUser(
-    locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 10, now: Long = System.currentTimeMillis
+    locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 100, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
   ): ShoppingCartTotal = ShoppingCartTotal(
