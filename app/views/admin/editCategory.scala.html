@@ -1,10 +1,10 @@
 @()(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
-@main(Messages("editCategoryTitle")) {
+@main(Messages("editCategoryTitle"), Some(loginSession)) {
 <h1>@Messages("editCategoryTitle")</h1>
 
 }

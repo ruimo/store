@@ -1,7 +1,6 @@
-@(title: String)(content: Html)(
+@(title: String, loginSession: Option[LoginSession])(content: Html)(
   implicit lang: Lang,
-  request: RequestHeader,
-  loginSession: Option[LoginSession]
+  request: RequestHeader
 )
 
 @loginLink() = {

@@ -5,7 +5,7 @@
   lang: Lang,
   flash: play.api.mvc.Flash,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
 @import helper._
@@ -14,7 +14,7 @@
   f("zip1").error.isDefined || f("zip2").error.isDefined
 }
 
-@main(Messages("enter.shipping.address")) {
+@main(Messages("enter.shipping.address"), Some(loginSession)) {
   <h1>@Messages("enter.shipping.address")</h1>
 
   @if(myForm.hasErrors) {

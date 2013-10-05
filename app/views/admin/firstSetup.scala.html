@@ -3,11 +3,10 @@
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
-  request: RequestHeader,
-  loginSession: Option[LoginSession]
+  request: RequestHeader
 )
 
-@main(Messages("firstSetupTitle")) {
+@main(Messages("firstSetupTitle"), None) {
   <h1>@Messages("firstSetupGuide")</h1>
 
   @if(myForm.hasErrors) {

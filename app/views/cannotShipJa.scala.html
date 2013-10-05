@@ -6,10 +6,10 @@
 )(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
-@main(Messages("cannot.ship.title")) {
+@main(Messages("cannot.ship.title"), Some(loginSession)) {
   <h2>@Messages("cannot.ship")</h2>
 
   <table class="itemTable" border="0">

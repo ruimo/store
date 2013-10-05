@@ -1,11 +1,11 @@
 @()(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
 @import helper._
 
-@main(Messages("enter.shipping.address")) {
+@main(Messages("enter.shipping.address"), Some(loginSession)) {
 
 }

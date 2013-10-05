@@ -51,11 +51,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (CreateItem.apply)(CreateItem.unapply)
   )
 
-  def index = isAuthenticated { login => implicit request =>
+  def index = isAuthenticated { implicit login => implicit request =>
     Ok(views.html.admin.itemMaintenance())
   }
 
-  def startCreateNewItem = isAuthenticated { login => implicit request =>
+  def startCreateNewItem = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       Ok(
         views.html.admin.createNewItem(
@@ -66,7 +66,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }
 
-  def createNewItem = isAuthenticated { login => implicit request =>
+  def createNewItem = isAuthenticated { implicit login => implicit request =>
     createItemForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.createNewItem." + formWithErrors + ".")
@@ -88,7 +88,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def editItem(start: Int, size: Int, q: String) = isAuthenticated { login => implicit request =>
+  def editItem(start: Int, size: Int, q: String) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn => {
       val list = Item.list(locale = LocaleInfo.byLang(lang), queryString = q, page = start, pageSize = size)
       Ok(views.html.admin.editItem(q, list.records))
@@ -113,7 +113,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     e => (e.ordinal.toString, e.toString)
   }
 
-  def startChangeItem(id: Long) = isAuthenticated { login => implicit request =>
+  def startChangeItem(id: Long) = isAuthenticated { implicit login => implicit request =>
     Ok(views.html.admin.changeItem(
       ChangeItem(
         id,
@@ -196,7 +196,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemName(id: Long) = isAuthenticated { login => implicit request =>
+  def changeItemName(id: Long) = isAuthenticated { implicit login => implicit request =>
     changeItemNameForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
@@ -236,7 +236,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def addItemName(id: Long) = isAuthenticated { login => implicit request =>
+  def addItemName(id: Long) = isAuthenticated { implicit login => implicit request =>
     addItemNameForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
@@ -353,7 +353,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def addSiteItem(id: Long) = isAuthenticated { login => implicit request =>
+  def addSiteItem(id: Long) = isAuthenticated { implicit login => implicit request =>
     addSiteItemForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
@@ -455,7 +455,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def updateItemCategory(id: Long) = isAuthenticated { login => implicit request =>
+  def updateItemCategory(id: Long) = isAuthenticated { implicit login => implicit request =>
     updateCategoryForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
@@ -525,7 +525,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemDescription(id: Long) = isAuthenticated { login => implicit request =>
+  def changeItemDescription(id: Long) = isAuthenticated { implicit login => implicit request =>
     changeItemDescriptionForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
@@ -565,7 +565,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def addItemDescription(id: Long) = isAuthenticated { login => implicit request =>
+  def addItemDescription(id: Long) = isAuthenticated { implicit login => implicit request =>
     addItemDescriptionForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
@@ -694,7 +694,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemPrice(id: Long) = isAuthenticated { login => implicit request =>
+  def changeItemPrice(id: Long) = isAuthenticated { implicit login => implicit request =>
     changeItemPriceForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
@@ -734,7 +734,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def addItemPrice(id: Long) = isAuthenticated { login => implicit request =>
+  def addItemPrice(id: Long) = isAuthenticated { implicit login => implicit request =>
     addItemPriceForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
@@ -822,7 +822,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def changeItemMetadata(itemId: Long) = isAuthenticated { login => implicit request =>
+  def changeItemMetadata(itemId: Long) = isAuthenticated { implicit login => implicit request =>
     changeItemMetadataForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItemMetadata." + formWithErrors + ".")
@@ -862,7 +862,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def addItemMetadata(id: Long) = isAuthenticated { login => implicit request =>
+  def addItemMetadata(id: Long) = isAuthenticated { implicit login => implicit request =>
     addItemMetadataForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addItemMetadata." + formWithErrors + ".")

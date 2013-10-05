@@ -42,7 +42,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 
-  def startEnterShippingAddress = isAuthenticated { login => implicit request =>
+  def startEnterShippingAddress = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val addr: Option[Address] = ShippingAddressHistory.list(login.userId).headOption.map {
         h => Address.byId(h.addressId)
@@ -64,7 +64,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
   }
 
-  def enterShippingAddressJa = isAuthenticated { login => implicit request =>
+  def enterShippingAddressJa = isAuthenticated { implicit login => implicit request =>
     jaForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in Shipping.enterShippingAddress.")
@@ -81,7 +81,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   }
 
-  def confirmShippingAddressJa = isAuthenticated { login => implicit request =>
+  def confirmShippingAddressJa = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
       val his = ShippingAddressHistory.list(login.userId).head

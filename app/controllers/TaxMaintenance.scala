@@ -18,15 +18,15 @@ object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasL
     ) (CreateTax.apply)(CreateTax.unapply)
   )
 
-  def index = isAuthenticated { login => implicit request =>
+  def index = isAuthenticated { implicit login => implicit request =>
     Ok(views.html.admin.taxMaintenance())
   }
 
-  def startCreateNewTax = isAuthenticated { login => implicit request => {
+  def startCreateNewTax = isAuthenticated { implicit login => implicit request => {
     Ok(views.html.admin.createNewTax(createTaxForm, Tax.taxTypeTable, LocaleInfo.localeTable))
   }}
 
-  def createNewTax = isAuthenticated { login => implicit request =>
+  def createNewTax = isAuthenticated { implicit login => implicit request =>
     createTaxForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in TaxMaintenance.createNewTax.")
@@ -41,7 +41,7 @@ object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasL
     )
   }
 
-  def editTax = isAuthenticated { login => implicit request => {
+  def editTax = isAuthenticated { implicit login => implicit request => {
     Ok(views.html.admin.editTax())
   }}
 }

@@ -1,10 +1,10 @@
 @()(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[models.LoginSession]
+  loginSession: models.LoginSession
 )
 
-@main(Messages("categoryMaintenanceTitle")) {
+@main(Messages("categoryMaintenanceTitle"), Some(loginSession)) {
   <h1>@Messages("categoryMaintenanceTitle")</h1>
 
   <div class="menuItem">

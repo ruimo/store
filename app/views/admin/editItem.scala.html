@@ -10,10 +10,10 @@
 )(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
-@main(Messages("editItemTitle")) {
+@main(Messages("editItemTitle"), Some(loginSession)) {
   <h1>@Messages("editItemTitle")</h1>
 
   @helper.form(action=routes.ItemMaintenance.editItem()) {

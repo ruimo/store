@@ -18,15 +18,15 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
     ) (CreateCategory.apply)(CreateCategory.unapply)
   )
 
-  def index = isAuthenticated { login => implicit request =>
+  def index = isAuthenticated { implicit login => implicit request =>
     Ok(views.html.admin.categoryMaintenance())
   }
 
-  def startCreateNewCategory = isAuthenticated { login => implicit request => {
+  def startCreateNewCategory = isAuthenticated { implicit login => implicit request => {
     Ok(views.html.admin.createNewCategory(createCategoryForm, LocaleInfo.localeTable))
   }}
 
-  def createNewCategory = isAuthenticated { login => implicit request =>
+  def createNewCategory = isAuthenticated { implicit login => implicit request =>
     createCategoryForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in CategoryMaintenance.createNewCategory.")
@@ -41,7 +41,7 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
     )
   }
 
-  def editCategory = isAuthenticated { login => implicit request => {
+  def editCategory = isAuthenticated { implicit login => implicit request => {
     Ok(views.html.admin.editCategory())
   }}
 }

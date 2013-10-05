@@ -9,12 +9,12 @@
   lang: Lang,
   flash: play.api.mvc.Flash,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
 @import helper._
 
-@main(Messages("createNewItemTitle")) {
+@main(Messages("createNewItemTitle"), Some(loginSession)) {
   <h1>@Messages("createNewItemTitle")</h1>
 
   @if(myForm.hasErrors) {

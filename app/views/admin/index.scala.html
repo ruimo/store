@@ -2,10 +2,10 @@
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
-@main(Messages("adminTitle")) {
+@main(Messages("adminTitle"), Some(loginSession)) {
   <h1>@Messages("adminTitle")</h1>
 
   @flash.get("message").map { message =>

@@ -4,7 +4,7 @@
   loginSession: Option[LoginSession]
 )
 
-@main("Functional Store") {
+@main("Functional Store", loginSession) {
   @helper.form(action=routes.ItemQuery.query("")) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">

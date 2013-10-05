@@ -5,12 +5,12 @@
   lang: Lang,
   flash: play.api.mvc.Flash,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
 @import helper._
 
-@main(Messages("createNewCategoryTitle")) {
+@main(Messages("createNewCategoryTitle"), Some(loginSession)) {
   <h1>@Messages("createNewCategoryTitle")</h1>
 
   @if(myForm.hasErrors) {

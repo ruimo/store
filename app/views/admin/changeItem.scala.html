@@ -5,7 +5,7 @@
   lang: Lang,
   flash: play.api.mvc.Flash,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
 @import helper._
@@ -148,7 +148,7 @@
   </tr>
 }
 
-@main(Messages("changeItemTitle")) {
+@main(Messages("changeItemTitle"), Some(loginSession)) {
 <h1>@Messages("changeItemTitle")</h1>
   <h2>@Messages("item") Id: @c.id</h2>
 

@@ -18,15 +18,15 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (CreateSite.apply)(CreateSite.unapply)
   )
 
-  def index = isAuthenticated { login => implicit request =>
+  def index = isAuthenticated { implicit login => implicit request =>
     Ok(views.html.admin.siteMaintenance())
   }
 
-  def startCreateNewSite = isAuthenticated { login => implicit request => {
+  def startCreateNewSite = isAuthenticated { implicit login => implicit request => {
     Ok(views.html.admin.createNewSite(createSiteForm, LocaleInfo.localeTable))
   }}
 
-  def createNewSite = isAuthenticated { login => implicit request =>
+  def createNewSite = isAuthenticated { implicit login => implicit request =>
     createSiteForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in SiteMaintenance.createNewSite.")
@@ -41,7 +41,7 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }
 
-  def editSite = isAuthenticated { login => implicit request => {
+  def editSite = isAuthenticated { implicit login => implicit request => {
     Ok(views.html.admin.editSite())
   }}
 }

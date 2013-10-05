@@ -299,9 +299,7 @@ create table site_user (
   site_user_id bigint not null,
   site_id bigint not null references site on delete cascade,
   store_user_id bigint not null references store_user on delete cascade,
-  user_role integer not null,
   constraint pk_site_user primary key (site_user_id),
-  constraint site_user_user_role_check1 check (user_role in (0,1)),
   unique (site_id, store_user_id)
 );
 

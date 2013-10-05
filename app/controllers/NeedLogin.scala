@@ -11,6 +11,7 @@ import play.api.templates.Html
 import helpers.PasswordHash
 import play.api.db.DB
 import play.api.Play.current
+import java.sql.Connection
 
 trait NeedLogin extends Controller with HasLogger {
   val userNameConstraint = List(minLength(6), maxLength(24))
@@ -30,13 +31,16 @@ trait NeedLogin extends Controller with HasLogger {
     )(LoginUser.apply)(LoginUser.unapply)
   )
 
-  implicit def loginSession(implicit request: RequestHeader):
+  def loginSession(implicit request: RequestHeader, conn: Connection):
     Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
 
-  def retrieveLoginSession(request: RequestHeader) = loginSession(request)
+  def retrieveLoginSession(request: RequestHeader) = DB.withConnection{conn =>
+    loginSession(request, conn)
+  }
 
-
-  def loginSessionWithTime(request: RequestHeader, now: Long): Option[LoginSession] =
+  def loginSessionWithTime(
+    request: RequestHeader, now: Long
+  )(implicit conn: Connection): Option[LoginSession] =
     request.session.get(LoginUserKey).flatMap {
       sessionString =>
         val s = LoginSession(sessionString)
@@ -96,7 +100,7 @@ trait NeedLogin extends Controller with HasLogger {
           Redirect(user.uri).flashing(
             "message" -> "Welcome"
           ).withSession {
-            (LoginUserKey, LoginSession(rec.id.get, System.currentTimeMillis + SessionTimeout).toSessionString)
+            (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
           }
         }
         else {

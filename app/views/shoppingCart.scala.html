@@ -3,10 +3,10 @@
 )(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
-@main(Messages("shopping.cart")) {
+@main(Messages("shopping.cart"), Some(loginSession)) {
   <h2>@Messages("shopping.cart")</h2>
 
   @if(! list.table.isEmpty) {

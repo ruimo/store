@@ -9,6 +9,14 @@ import scala.language.postfixOps
 import helpers.PasswordHash
 import java.sql.Connection
 
+trait Role
+
+case object Buyer extends Role
+
+case object SuperUser extends Role
+
+case class SiteOwner(siteUser: SiteUser) extends Role with NotNull
+
 case class StoreUser(
   id: Pk[Long] = NotAssigned,
   userName: String,
@@ -20,12 +28,12 @@ case class StoreUser(
   salt: Long,
   deleted: Boolean,
   userRole: UserRole
-) {
+) extends NotNull {
   def passwordMatch(password: String): Boolean =
     PasswordHash.generate(password, salt) == passwordHash
 }
 
-case class SiteUser(siteId: Long, storeUserId: Long, userRole: UserRole)
+case class SiteUser(siteId: Long, storeUserId: Long) extends NotNull
 
 object StoreUser {
   val simple = {
@@ -45,10 +53,14 @@ object StoreUser {
     }
   }
 
+  val withSiteUser = StoreUser.simple ~ (SiteUser.simple ?) map {
+    case storeUser~siteUser => (storeUser, siteUser)
+  }
+
   def count(implicit conn: Connection) = 
     SQL("select count(*) from store_user").as(SqlParser.scalar[Long].single)
 
-  def find(id: Long)(implicit conn: Connection): StoreUser =
+  def apply(id: Long)(implicit conn: Connection): StoreUser =
     SQL(
       "select * from store_user where store_user_id = {id}"
     ).on(
@@ -94,14 +106,38 @@ object StoreUser {
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
     StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash, salt,  false, userRole)
   }
+
+  def withSite(userId: Long)(implicit conn: Connection): (StoreUser, Option[SiteUser]) =
+    SQL(
+      """
+      select * from store_user
+      left join site_user on store_user.store_user_id = site_user.store_user_id
+      where store_user.store_user_id = {storeUserId}
+      """
+    ).on(
+      'storeUserId -> userId
+    ).as(
+      withSiteUser.single
+    )
 }
 
 object SiteUser {
   val simple = {
     SqlParser.get[Long]("site_user.site_id") ~
-    SqlParser.get[Long]("site_user.store_user_id") ~
-    SqlParser.get[Int]("site_user.user_role") map {
-      case siteId~storeUserId~userRole => SiteUser(siteId, storeUserId, UserRole.byIndex(userRole))
+    SqlParser.get[Long]("site_user.store_user_id") map {
+      case siteId~storeUserId => SiteUser(siteId, storeUserId)
     }
+  }
+
+  def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[SiteUser] = {
+    SQL(
+      """
+      select * from site_user where store_user_id = {storeUserId}
+      """
+    ).on(
+      'storeUserId -> storeUserId
+    ).as(
+      SiteUser.simple.singleOpt
+    )
   }
 }

@@ -18,7 +18,7 @@ class FirstSetupSpec extends Specification {
             }, conn
           )
 
-          StoreUser.find(user.id.get) === user
+          StoreUser(user.id.get) === user
         }}
       }
     }

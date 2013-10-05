@@ -13,6 +13,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
   def query(
     queryString: String, page: Int, pageSize: Int
   ) = Action { implicit request => DB.withConnection { implicit conn => {
+    implicit val login = loginSession(request, conn)
     val list = Item.list(LocaleInfo.byLang(lang), queryString, page, pageSize)
     Ok(views.html.query("", queryString, list))
   }}}

@@ -3,12 +3,12 @@
 )(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: Option[LoginSession]
+  loginSession: LoginSession
 )
 
 @import helper._
 
-@main(Messages("confirm.shipping.address")) {
+@main(Messages("confirm.shipping.address"), Some(loginSession)) {
   <h1>お買い上げ商品</h1>
   @if(tran.itemTotal.notEmpty) {
     <table class="itemTable" border="0">
