@@ -47,19 +47,6 @@ object Item {
     }
   }
 
-  val itemQuerySql = """
-      select * from item
-      inner join item_name on item.item_id = item_name.item_id
-      inner join item_description on item.item_id = item_description.item_id
-      inner join item_price on item.item_id = item_price.item_id
-      inner join site_item on item.item_id = site_item.item_id
-      inner join site on site_item.site_id = site.site_id
-      where item_name.locale_id = {localeId}
-      and item_description.locale_id = {localeId}
-      and item_name.item_name like {query}
-      order by item_name.item_name
-  """;
-
   val itemParser = Item.simple~ItemName.simple~ItemDescription.simple~ItemPrice.simple~Site.simple map {
     case item~itemName~itemDescription~itemPrice~site => (
       item, itemName, itemDescription, itemPrice, site
@@ -146,7 +133,7 @@ object Item {
     siteUser.map { "  and site.site_id = " + _.siteId }.getOrElse("") +
     """
       and item_description.locale_id = {localeId}
-      and item_name.item_name like {query}
+      and (item_name.item_name like {query} or item_description.description like {query})
     """
 
     val list = SQL(
@@ -212,7 +199,7 @@ object Item {
       and item_description.site_id = {siteId}
       and item_price.site_id = {siteId}
       and site_item.site_id = {siteId}
-      and item_name.item_name like {query}
+      and (item_name.item_name like {query} or item_description.description like {query})
       order by item_name.item_name
       limit {pageSize} offset {offset}
       """
