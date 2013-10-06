@@ -51,5 +51,15 @@
 
     <input type="submit" id="registerNormalUser" value=@Messages("register")>
   }
+
+  <br>
+  <a href="@routes.UserMaintenance.index">
+    @Messages("backTo", Messages("userMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
 }
 
