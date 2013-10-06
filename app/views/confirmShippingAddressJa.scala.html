@@ -41,12 +41,12 @@
 
       <tr class="itemTableBody outerTax">
         <td colspan="4">外税額</td>
-        <td class="outerTax">@amount(tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
+        <td class="outerTaxAmount">@amount(tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
       </tr>
 
       <tr class="itemTableBody total">
         <td colspan="4">商品計</td>
-        <td class="outerTax">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
+        <td class="grandTotal">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
       </tr>
     </table>
   }

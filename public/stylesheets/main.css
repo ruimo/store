@@ -173,3 +173,16 @@ tr.userTableBody {
     vertical-align: top;
     background-color: White;
 }
+
+
+.subtotal {
+  text-align: right;
+}
+
+.outerTaxAmount {
+  text-align: right;
+}
+
+.grandTotal {
+  text-align: right;
+}
