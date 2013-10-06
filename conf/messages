@@ -132,3 +132,6 @@ siteItemMetadata=Store unique data
 itemPicture=Item pictures
 file.not.found=File not found
 jpeg.needed=File should be in jpeg format
+rough.stock=Rough stock count
+shipping.size=Shipping size
+stock.count=Stock count

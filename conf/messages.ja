@@ -162,3 +162,6 @@ siteItemMetadata=店舗固有データ
 itemPicture=商品画像
 file.not.found=ファイルが見つかりません
 jpeg.needed=ファイルはJPEG形式である必要があります
+rough.stock=在庫目安
+shipping.size=送料サイズ
+stock.count=在庫数
