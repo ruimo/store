@@ -14,17 +14,25 @@
     </div>
   }
 
-  <div class="menuItem">
-    <a href="@routes.SiteMaintenance.index()">
-      @Messages("siteMaintenanceTitle")
-    </a>
-  </div>
+  @if(loginSession.isSuperUser) {
+    <div class="menuItem">
+      <a href="@routes.UserMaintenance.index()">
+        @Messages("userMaintenanceTitle")
+      </a>
+    </div>
 
-  <div class="menuItem">
-    <a href="@routes.CategoryMaintenance.index()">
-      @Messages("categoryMaintenanceTitle")
-    </a>
-  </div>
+    <div class="menuItem">
+      <a href="@routes.SiteMaintenance.index()">
+        @Messages("siteMaintenanceTitle")
+      </a>
+    </div>
+
+    <div class="menuItem">
+      <a href="@routes.CategoryMaintenance.index()">
+        @Messages("categoryMaintenanceTitle")
+      </a>
+    </div>
+  }
 
   <div class="menuItem">
     <a href="@routes.ItemMaintenance.index()">
@@ -32,9 +40,11 @@
     </a>
   </div>
 
-  <div class="menuItem">
-    <a href="@routes.TaxMaintenance.index()">
-      @Messages("taxMaintenanceTitle")
-    </a>
-  </div>
+  @if(loginSession.isSuperUser) {
+    <div class="menuItem">
+      <a href="@routes.TaxMaintenance.index()">
+        @Messages("taxMaintenanceTitle")
+      </a>
+    </div>
+  }
 }

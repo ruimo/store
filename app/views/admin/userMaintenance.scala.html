@@ -1,0 +1,41 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("userMaintenanceTitle"), Some(loginSession)) {
+  <h1>@Messages("userMaintenanceTitle")</h1>
+
+  @if(loginSession.isSuperUser) {
+    <div class="menuItem">
+      <a href="@routes.UserMaintenance.startCreateNewSuperUser()">
+        @Messages("createNewSuperUserMenu")
+      </a>
+    </div>
+
+    <div class="menuItem">
+      <a href="@routes.UserMaintenance.startCreateNewSiteOwner()">
+        @Messages("createNewSiteOwnerMenu")
+      </a>
+    </div>
+
+    <div class="menuItem">
+      <a href="@routes.UserMaintenance.startCreateNewNormalUser()">
+        @Messages("createNewNormalUserMenu")
+      </a>
+    </div>
+
+    <div class="menuItem">
+      <a href="@routes.UserMaintenance.editUser()">
+        @Messages("editUserMenu")
+      </a>
+    </div>
+  }
+
+<br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}
+

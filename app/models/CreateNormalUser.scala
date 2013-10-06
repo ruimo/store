@@ -4,15 +4,15 @@ import helpers.{PasswordHash, TokenGenerator}
 import java.security.MessageDigest
 import java.sql.Connection
 
-case class FirstSetup(
+case class CreateNormalUser(
   userName: String, firstName: String, middleName: Option[String], lastName: String, email: String, password: String
 ) extends CreateUser with NotNull {
-  val role = UserRole.ADMIN
+  val role = UserRole.NORMAL
 }
 
-object FirstSetup extends CreateUserObject {
+object CreateNormalUser extends CreateUserObject {
   def fromForm(
     userName: String, firstName: String, middleName: Option[String], lastName: String, email: String, passwords: (String, String)
-  ): FirstSetup =
-    FirstSetup(userName, firstName, middleName, lastName, email, passwords._1)
+  ): CreateNormalUser =
+    CreateNormalUser(userName, firstName, middleName, lastName, email, passwords._1)
 }

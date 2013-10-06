@@ -3,68 +3,84 @@
 # ~~~~
 
 # Home page
-GET     /                             controllers.Application.index
+GET     /                                controllers.Application.index
 
 # Admin
-GET     /admin                        controllers.Admin.index
-GET     /admin/startFirstSetup        controllers.Admin.startFirstSetup
-POST    /admin/firstSetup             controllers.Admin.firstSetup
-GET     /admin/startLogin             controllers.Admin.startLogin(uriOnLoginSuccess: String)
-POST    /admin/login                  controllers.Admin.login
-GET     /admin/logoff                 controllers.Admin.logoff(uriOnLogoffSuccess: String)
+GET     /admin                           controllers.Admin.index
+GET     /admin/startFirstSetup           controllers.Admin.startFirstSetup
+POST    /admin/firstSetup                controllers.Admin.firstSetup
+GET     /admin/startLogin                controllers.Admin.startLogin(uriOnLoginSuccess: String)
+POST    /admin/login                     controllers.Admin.login
+GET     /admin/logoff                    controllers.Admin.logoff(uriOnLogoffSuccess: String)
 
-GET     /admin/itemMaintenance        controllers.ItemMaintenance.index
-GET     /admin/startCreateNewItem     controllers.ItemMaintenance.startCreateNewItem
-POST    /admin/createNewItem          controllers.ItemMaintenance.createNewItem
-GET     /admin/editItem               controllers.ItemMaintenance.editItem(page: Int ?= 0, pageSize: Int ?= 20, q: String ?= "")
-GET     /admin/startChangeItem        controllers.ItemMaintenance.startChangeItem(id: Long)
+GET     /admin/itemMaintenance           controllers.ItemMaintenance.index
+GET     /admin/startCreateNewItem        controllers.ItemMaintenance.startCreateNewItem
+POST    /admin/createNewItem             controllers.ItemMaintenance.createNewItem
+GET     /admin/editItem                  controllers.ItemMaintenance.editItem(page: Int ?= 0, pageSize: Int ?= 20, q: String ?= "")
+GET     /admin/startChangeItem           controllers.ItemMaintenance.startChangeItem(id: Long)
 
-POST    /admin/changeItemName         controllers.ItemMaintenance.changeItemName(id: Long)
-POST    /admin/addItemName            controllers.ItemMaintenance.addItemName(id: Long)
-GET     /admin/removeItemName         controllers.ItemMaintenance.removeItemName(itemId: Long, localeId: Long)
+POST    /admin/changeItemName            controllers.ItemMaintenance.changeItemName(id: Long)
+POST    /admin/addItemName               controllers.ItemMaintenance.addItemName(id: Long)
+GET     /admin/removeItemName            controllers.ItemMaintenance.removeItemName(itemId: Long, localeId: Long)
 
-POST    /admin/addItemMetadata        controllers.ItemMaintenance.addItemMetadata(id: Long)
-POST    /admin/changeItemMetadata     controllers.ItemMaintenance.changeItemMetadata(id: Long)
-GET     /admin/removeItemMetadata     controllers.ItemMaintenance.removeItemMetadata(itemId: Long, metadataType: Int)
+POST    /admin/addItemMetadata           controllers.ItemMaintenance.addItemMetadata(id: Long)
+POST    /admin/addSiteItemMetadata       controllers.ItemMaintenance.addSiteItemMetadata(id: Long)
+POST    /admin/changeItemMetadata        controllers.ItemMaintenance.changeItemMetadata(id: Long)
+POST    /admin/changeSiteItemMetadata    controllers.ItemMaintenance.changeSiteItemMetadata(id: Long)
+GET     /admin/removeItemMetadata        controllers.ItemMaintenance.removeItemMetadata(itemId: Long, metadataType: Int)
+GET     /admin/removeSiteItemMetadata    controllers.ItemMaintenance.removeSiteItemMetadata(itemId: Long, siteId: Long, metadataType: Int)
 
-POST    /admin/addSiteItem            controllers.ItemMaintenance.addSiteItem(id: Long)
-GET     /admin/removeSiteItem         controllers.ItemMaintenance.removeSiteItem(itemId: Long, siteId: Long)
-POST    /admin/updateItemCategory     controllers.ItemMaintenance.updateItemCategory(id: Long)
+POST    /admin/addSiteItem               controllers.ItemMaintenance.addSiteItem(id: Long)
+GET     /admin/removeSiteItem            controllers.ItemMaintenance.removeSiteItem(itemId: Long, siteId: Long)
+POST    /admin/updateItemCategory        controllers.ItemMaintenance.updateItemCategory(id: Long)
 
-POST    /admin/addItemDescription     controllers.ItemMaintenance.addItemDescription(id: Long)
-POST    /admin/changeItemDescription  controllers.ItemMaintenance.changeItemDescription(id: Long)
-GET     /admin/removeItemDescription  controllers.ItemMaintenance.removeItemDescription(siteId: Long, itemId: Long, localeId: Long)
+POST    /admin/addItemDescription        controllers.ItemMaintenance.addItemDescription(id: Long)
+POST    /admin/changeItemDescription     controllers.ItemMaintenance.changeItemDescription(id: Long)
+GET     /admin/removeItemDescription     controllers.ItemMaintenance.removeItemDescription(siteId: Long, itemId: Long, localeId: Long)
 
-GET     /admin/categoryMaintenance    controllers.CategoryMaintenance.index
-GET     /admin/startCreateNewCategory controllers.CategoryMaintenance.startCreateNewCategory
-POST    /admin/createNewCategory      controllers.CategoryMaintenance.createNewCategory
-GET     /admin/editCategory           controllers.CategoryMaintenance.editCategory
+GET     /admin/categoryMaintenance       controllers.CategoryMaintenance.index
+GET     /admin/startCreateNewCategory    controllers.CategoryMaintenance.startCreateNewCategory
+POST    /admin/createNewCategory         controllers.CategoryMaintenance.createNewCategory
+GET     /admin/editCategory              controllers.CategoryMaintenance.editCategory
 
-POST    /admin/addItemPrice           controllers.ItemMaintenance.addItemPrice(id: Long)
-POST    /admin/changeItemPrice        controllers.ItemMaintenance.changeItemPrice(id: Long)
-GET     /admin/removeItemPrice        controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
+POST    /admin/addItemPrice              controllers.ItemMaintenance.addItemPrice(id: Long)
+POST    /admin/changeItemPrice           controllers.ItemMaintenance.changeItemPrice(id: Long)
+GET     /admin/removeItemPrice           controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
 
-GET     /admin/siteMaintenance        controllers.SiteMaintenance.index
-GET     /admin/startCreateNewSite     controllers.SiteMaintenance.startCreateNewSite
-POST    /admin/createNewSite          controllers.SiteMaintenance.createNewSite
-GET     /admin/editSite               controllers.SiteMaintenance.editSite
+GET     /admin/siteMaintenance           controllers.SiteMaintenance.index
+GET     /admin/startCreateNewSite        controllers.SiteMaintenance.startCreateNewSite
+POST    /admin/createNewSite             controllers.SiteMaintenance.createNewSite
+GET     /admin/editSite                  controllers.SiteMaintenance.editSite
 
-GET     /admin/taxMaintenance         controllers.TaxMaintenance.index
-GET     /admin/startCreateNewTax      controllers.TaxMaintenance.startCreateNewTax
-POST    /admin/createNewTax           controllers.TaxMaintenance.createNewTax
-GET     /admin/editTax                controllers.TaxMaintenance.editTax
+GET     /admin/taxMaintenance            controllers.TaxMaintenance.index
+GET     /admin/startCreateNewTax         controllers.TaxMaintenance.startCreateNewTax
+POST    /admin/createNewTax              controllers.TaxMaintenance.createNewTax
+GET     /admin/editTax                   controllers.TaxMaintenance.editTax
 
-GET     /query                        controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
-GET     /addToCart                    controllers.Purchase.addToCart(siteId: Long, itemId: Long)
-GET     /showShoppingCart             controllers.Purchase.showShoppingCart
-GET     /changeItemQuantity           controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
-GET     /deleteItemFromCart           controllers.Purchase.deleteItemFromCart(cartId: Long ?= 0)
-GET     /clearShoppingCart            controllers.Purchase.clear()
+GET     /admin/userMaintenance           controllers.UserMaintenance.index
+GET     /admin/startCreateNewSuperUser   controllers.UserMaintenance.startCreateNewSuperUser
+POST    /admin/createNewSuperUser        controllers.UserMaintenance.createNewSuperUser
+GET     /admin/editUser                  controllers.UserMaintenance.editUser
+POST    /admin/deleteUser                controllers.UserMaintenance.deleteUser(id: Long)
+GET     /admin/startCreateNewSiteOwner   controllers.UserMaintenance.startCreateNewSiteOwner
+POST    /admin/createNewSiteOwner        controllers.UserMaintenance.createNewSiteOwner
+GET     /admin/startCreateNewNormalUser  controllers.UserMaintenance.startCreateNewNormalUser
+POST    /admin/createNewNormalUser       controllers.UserMaintenance.createNewNormalUser
 
-GET     /startEnterShippingAddress    controllers.Shipping.startEnterShippingAddress()
-POST    /enterShippingAddressJa       controllers.Shipping.enterShippingAddressJa()
-GET     /confirmShippingAddressJa     controllers.Shipping.confirmShippingAddressJa()
-POST    /finalizeTransactionJa        controllers.Shipping.finalizeTransactionJa()
+POST    /admin/uploadItemPicture         controllers.ItemPictures.upload(id: Long, no: Int)
+GET     /admin/getItemPicture            controllers.ItemPictures.getPicture(id: Long, no: Int)
+
+GET     /query                           controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
+GET     /addToCart                       controllers.Purchase.addToCart(siteId: Long, itemId: Long)
+GET     /showShoppingCart                controllers.Purchase.showShoppingCart
+GET     /changeItemQuantity              controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
+GET     /deleteItemFromCart              controllers.Purchase.deleteItemFromCart(cartId: Long ?= 0)
+GET     /clearShoppingCart               controllers.Purchase.clear()
+
+GET     /startEnterShippingAddress       controllers.Shipping.startEnterShippingAddress()
+POST    /enterShippingAddressJa          controllers.Shipping.enterShippingAddressJa()
+GET     /confirmShippingAddressJa        controllers.Shipping.confirmShippingAddressJa()
+POST    /finalizeTransactionJa           controllers.Shipping.finalizeTransactionJa()
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                 controllers.Assets.at(path="/public", file)
+GET     /assets/*file                    controllers.Assets.at(path="/public", file)

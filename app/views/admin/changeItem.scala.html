@@ -62,6 +62,38 @@
   }
 }
 
+@siteItemMetadataForm(field: Field) = {
+  @if(field("siteId").value.isDefined && field("metadataType").value.isDefined) {
+    <tr>
+      <td>
+        <button type="button"
+                onclick="location.href='@routes.ItemMaintenance.removeSiteItemMetadata(c.id, field("siteId").value.get.toLong, field("metadataType").value.get.toInt)';">
+          @Messages("remove")
+        </button>
+        @c.siteMap(field("siteId").value.get.toLong).name
+        @inputText(field("siteId"), 'type -> "hidden")(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+      </td>
+      <td>
+        @SiteItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt)
+        <div style="display: none;">
+        @inputText(field("metadataType"), 'type -> "hidden")(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+        </div>
+      </td>
+      <td>
+        @inputText(
+          field("metadata")
+        )(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+      </td>
+    </tr>
+  }
+}
+
 @descriptionForm(field: Field) = {
   <tr>
     <td>
@@ -149,6 +181,18 @@
 }
 
 @main(Messages("changeItemTitle"), Some(loginSession)) {
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
 <h1>@Messages("changeItemTitle")</h1>
   <h2>@Messages("item") Id: @c.id</h2>
 
@@ -276,7 +320,7 @@
         <td>
           @select(
             c.newItemMetadataForm("metadataType"), 
-            c.itemMetadataTable,
+            ItemMaintenance.itemMetadataTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly
@@ -293,6 +337,64 @@
 
       <tr>
         <td colspan="2">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
+  <h2>@Messages("siteItemMetadata")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeSiteItemMetadata(c.id))) {
+      <tr class="itemHeader">
+        <th>@Messages("site")</th>
+        <th>@Messages("itemMetadataType")</th>
+        <th>@Messages("itemMetadata")</th>
+      </tr>
+
+      @repeat(c.siteItemMetadataTableForm("siteItemMetadatas")) { metadata => @siteItemMetadataForm(metadata) }
+
+      @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
+        <tr>
+          <td colspan="3">
+            <input style="float: right;" type="submit" value=@Messages("update")>
+          </td>
+        </tr>
+      }
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItemMetadata(c.id))) {
+      <tr>
+        <td>
+          @select(
+            c.newSiteItemMetadataForm("siteId"), 
+            c.siteNameTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @select(
+            c.newItemMetadataForm("metadataType"), 
+            ItemMaintenance.siteItemMetadataTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newItemNameForm("metadata"), '_label -> ""
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="3">
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
@@ -433,6 +535,70 @@
       <tr>
         <td colspan="3">
           <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
+  <h2>@Messages("itemPicture")</h2>
+
+  <table>
+    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 0)), 'enctype -> "multipart/form-data") {
+      <tr>
+        <td><img src="@routes.ItemPictures.getPicture(c.id, 0)"></td>
+        <td>
+          <input type="file" name="picture">
+        </td>
+        <td>
+          <input type="submit">
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 1)), 'enctype -> "multipart/form-data") {
+      <tr>
+        <td><img src="@routes.ItemPictures.getPicture(c.id, 1)"></td>
+        <td>
+          <input type="file" name="picture">
+        </td>
+        <td>
+          <input type="submit">
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 2)), 'enctype -> "multipart/form-data") {
+      <tr>
+        <td><img src="@routes.ItemPictures.getPicture(c.id, 2)"></td>
+        <td>
+          <input type="file" name="picture">
+        </td>
+        <td>
+          <input type="submit">
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 3)), 'enctype -> "multipart/form-data") {
+      <tr>
+        <td><img src="@routes.ItemPictures.getPicture(c.id, 3)"></td>
+        <td>
+          <input type="file" name="picture">
+        </td>
+        <td>
+          <input type="submit">
+        </td>
+      </tr>
+    }
+
+    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 4)), 'enctype -> "multipart/form-data") {
+      <tr>
+        <td><img src="@routes.ItemPictures.getPicture(c.id, 4)"></td>
+        <td>
+          <input type="file" name="picture">
+        </td>
+        <td>
+          <input type="submit">
         </td>
       </tr>
     }

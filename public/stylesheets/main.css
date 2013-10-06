@@ -110,12 +110,26 @@ table.itemTable {
     background-color: DarkGreen;
 }
 
+table.userTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
 tr.itemTableHeader {
     background-color: DarkGreen;
     color: White;
 }
 
+tr.userTableHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
 tr.itemTableBody {
+    background-color: white;
+}
+
+tr.userTableBody {
     background-color: white;
 }
 

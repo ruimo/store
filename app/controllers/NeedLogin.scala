@@ -121,4 +121,18 @@ trait NeedLogin extends Controller with HasLogger {
       form("uri").value.get
     ))
   }
+
+  def forAdmin[T](
+    f: Request[T] => Result
+  )(implicit login: LoginSession): Request[T] => Result = { request =>
+    if (login.isAdmin) f(request)
+    else Redirect(routes.Application.index)
+  }
+
+  def forSuperUser(
+    f: Request[AnyContent] => Result
+  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
+    if (login.isSuperUser) f(request)
+    else Redirect(routes.Application.index)
+  }
 }

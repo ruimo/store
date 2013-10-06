@@ -1,0 +1,62 @@
+@(
+  myForm: Form[models.CreateSiteOwner], siteTable: Seq[(String, String)]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  request: RequestHeader
+)
+
+@import helper._
+
+@main(Messages("createSiteOwnerTitle"), None) {
+  <h1>@Messages("createSiteOwnerTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @helper.form(action = helper.CSRF(routes.UserMaintenance.createNewSiteOwner()), 'id -> "createNewSiteOwnerForm") {
+    @select(
+      myForm("siteId"), 
+      siteTable, 
+      '_label -> Messages("site"),
+      '_showConstraints -> false
+    )
+
+    @helper.inputText(
+      myForm("userName"),
+      '_label -> Messages("userName"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputText(
+      myForm("firstName"),
+      '_label -> Messages("firstName"), 'size -> 32, 'maxlength -> 32
+    )
+
+    @helper.inputText(
+      myForm("lastName"),
+      '_label -> Messages("lastName"), 'size -> 32, 'maxlength -> 32
+    )
+
+    @helper.inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
+    )
+
+    @helper.inputPassword(
+      myForm("password.main"),
+      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.confirm"),
+      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
+      '_error -> myForm.error("password")
+    )
+
+    <input type="submit" id="registerSuperUser" value=@Messages("register")>
+  }
+}
+

@@ -34,7 +34,8 @@ case class ChangeItem(
   itemInSiteTable: Seq[(String, String)],
   itemMetadataTableForm: Form[ChangeItemMetadataTable],
   newItemMetadataForm: Form[ChangeItemMetadata],
-  itemMetadataTable: Seq[(String, String)]
+  siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
+  newSiteItemMetadataForm: Form[ChangeSiteItemMetadata]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -51,22 +52,27 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (CreateItem.apply)(CreateItem.unapply)
   )
 
-  def index = isAuthenticated { implicit login => implicit request =>
+  def index = isAuthenticated { implicit login => forAdmin { implicit request =>
     Ok(views.html.admin.itemMaintenance())
-  }
+  }}
 
-  def startCreateNewItem = isAuthenticated { implicit login => implicit request =>
+  def startCreateNewItem = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       Ok(
         views.html.admin.createNewItem(
           createItemForm, LocaleInfo.localeTable, Category.tableForDropDown,
-          Site.tableForDropDown, Tax.tableForDropDown, CurrencyInfo.tableForDropDown
+          if (login.isSuperUser) Site.tableForDropDown
+          else {
+            val site = Site(login.siteUser.get.siteId)
+            List((site.id.get.toString, site.name))
+          },
+          Tax.tableForDropDown, CurrencyInfo.tableForDropDown
         )
       )
     }
-  }
+  }}
 
-  def createNewItem = isAuthenticated { implicit login => implicit request =>
+  def createNewItem = isAuthenticated { implicit login => forAdmin { implicit request =>
     createItemForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.createNewItem." + formWithErrors + ".")
@@ -86,14 +92,21 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         ).flashing("message" -> Messages("itemIsCreated"))
       }
     )
-  }
+  }}
 
-  def editItem(start: Int, size: Int, q: String) = isAuthenticated { implicit login => implicit request =>
+  def editItem(start: Int, size: Int, q: String) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn => {
-      val list = Item.list(locale = LocaleInfo.byLang(lang), queryString = q, page = start, pageSize = size)
-      Ok(views.html.admin.editItem(q, list.records))
+      login.role match {
+        case SuperUser =>
+          val list = Item.list(siteUser = None, locale = LocaleInfo.byLang(lang), queryString = q, page = start, pageSize = size)
+          Ok(views.html.admin.editItem(q, list.records))
+
+        case SiteOwner(siteOwner) =>
+          val list = Item.list(siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = q, page = start, pageSize = size)
+          Ok(views.html.admin.editItem(q, list.records))
+      }
     }}
-  }
+  }}
 
   def siteListAsMap: Map[Long, Site] = {
     DB.withConnection { implicit conn => {
@@ -113,7 +126,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     e => (e.ordinal.toString, e.toString)
   }
 
-  def startChangeItem(id: Long) = isAuthenticated { implicit login => implicit request =>
+  lazy val siteItemMetadataTable: Seq[(String, String)] = SiteItemNumericMetadataType.all.map {
+    e => (e.ordinal.toString, e.toString)
+  }
+
+  def startChangeItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     Ok(views.html.admin.changeItem(
       ChangeItem(
         id,
@@ -135,10 +152,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         createSiteTable(id),
         createItemMetadataTable(id),
         addItemMetadataForm,
-        itemMetadataTable
+        createSiteItemMetadataTable(id),
+        addSiteItemMetadataForm
       )
     ))
-  }
+  }}
 
   val changeItemNameForm = Form(
     mapping(
@@ -162,6 +180,18 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeItemMetadataTable.apply)(ChangeItemMetadataTable.unapply)
   )
 
+  val changeSiteItemMetadataForm = Form(
+    mapping(
+      "siteItemMetadatas" -> seq(
+        mapping(
+          "siteId" -> longNumber,
+          "metadataType" -> number,
+          "metadata" -> longNumber
+        ) (ChangeSiteItemMetadata.apply)(ChangeSiteItemMetadata.unapply)
+      )
+    ) (ChangeSiteItemMetadataTable.apply)(ChangeSiteItemMetadataTable.unapply)
+  )
+
   val addItemNameForm = Form(
     mapping(
       "localeId" -> longNumber,
@@ -174,6 +204,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "metadataType" -> number,
       "metadata" -> longNumber
     ) (ChangeItemMetadata.apply)(ChangeItemMetadata.unapply)
+  )
+
+  val addSiteItemMetadataForm = Form(
+    mapping(
+      "siteId" -> longNumber,
+      "metadataType" -> number,
+      "metadata" -> longNumber
+    ) (ChangeSiteItemMetadata.apply)(ChangeSiteItemMetadata.unapply)
   )
 
   def createItemNameTable(id: Long): Form[ChangeItemNameTable] = {
@@ -196,7 +234,17 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemName(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def createSiteItemMetadataTable(id: Long): Form[ChangeSiteItemMetadataTable] = {
+    DB.withConnection { implicit conn => {
+      val itemMetadatas = SiteItemNumericMetadata.allById(id).values.map {
+        n => ChangeSiteItemMetadata(n.siteId, n.metadataType.ordinal, n.metadata)
+      }.toSeq
+
+      changeSiteItemMetadataForm.fill(ChangeSiteItemMetadataTable(itemMetadatas))
+    }}
+  }
+
+  def changeItemName(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     changeItemNameForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
@@ -222,7 +270,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -234,9 +283,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
-  }
+  }}
 
-  def addItemName(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def addItemName(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     addItemNameForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
@@ -262,7 +311,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -299,7 +349,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteTable(id),
                   createItemMetadataTable(id),
                   addItemMetadataForm,
-                  itemMetadataTable
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm
                 )
               )
             )
@@ -307,9 +358,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         }
       }
     )
-  }
+  }}
 
-  def removeItemName(itemId: Long, localeId: Long) = isAuthenticated { login => implicit request =>
+  def removeItemName(itemId: Long, localeId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       ItemName.remove(itemId, localeId)
     }
@@ -317,9 +368,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
     )
-  }
+  }}
 
-  def removeItemMetadata(itemId: Long, metadataType: Int) = isAuthenticated { login => implicit request =>
+  def removeItemMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       ItemNumericMetadata.remove(itemId, metadataType)
     }
@@ -327,7 +378,17 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
     )
-  }
+  }}
+
+  def removeSiteItemMetadata(itemId: Long, siteId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    DB.withConnection { implicit conn =>
+      SiteItemNumericMetadata.remove(itemId, siteId, metadataType)
+    }
+
+    Redirect(
+      routes.ItemMaintenance.startChangeItem(itemId)
+    )
+  }}
 
   val addSiteItemForm = Form(
     mapping(
@@ -353,7 +414,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def addSiteItem(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def addSiteItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     addSiteItemForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
@@ -379,7 +440,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -416,7 +478,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteTable(id),
                   createItemMetadataTable(id),
                   addItemMetadataForm,
-                  itemMetadataTable
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm
                 )
               )
             )
@@ -424,9 +487,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         }
       }
     )
-  }
+  }}
 
-  def removeSiteItem(itemId: Long, siteId: Long) = isAuthenticated { login => implicit request =>
+  def removeSiteItem(itemId: Long, siteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       SiteItem.remove(itemId, siteId)
     }
@@ -434,7 +497,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
     )
-  }
+  }}
 
   val updateCategoryForm = Form(
     mapping(
@@ -455,7 +518,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def updateItemCategory(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def updateItemCategory(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     updateCategoryForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
@@ -481,7 +544,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -493,7 +557,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
-  }
+  }}
 
   val changeItemDescriptionForm = Form(
     mapping(
@@ -525,7 +589,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemDescription(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def changeItemDescription(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     changeItemDescriptionForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
@@ -551,7 +615,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -563,9 +628,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
-  }
+  }}
 
-  def addItemDescription(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def addItemDescription(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     addItemDescriptionForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
@@ -591,7 +656,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -631,7 +697,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteTable(id),
                   createItemMetadataTable(id),
                   addItemMetadataForm,
-                  itemMetadataTable
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm
                 )
               )
             )
@@ -639,11 +706,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         }
       }
     )
-  }
+  }}
 
   def removeItemDescription(
     siteId: Long, itemId: Long, localeId: Long
-  ) = isAuthenticated { login => implicit request =>
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       ItemDescription.remove(siteId, itemId, localeId)
     }
@@ -651,7 +718,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
     )
-  }
+  }}
 
   val changeItemPriceForm = Form(
     mapping(
@@ -694,7 +761,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemPrice(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def changeItemPrice(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     changeItemPriceForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
@@ -720,7 +787,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -732,9 +800,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
-  }
+  }}
 
-  def addItemPrice(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def addItemPrice(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     addItemPriceForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
@@ -760,7 +828,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -800,7 +869,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteTable(id),
                   createItemMetadataTable(id),
                   addItemMetadataForm,
-                  itemMetadataTable
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm
                 )
               )
             )
@@ -808,11 +878,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         }
       }
     )
-  }
+  }}
 
   def removeItemPrice(
     itemId: Long, siteId: Long, itemPriceHistoryId: Long
-  ) = isAuthenticated { login => implicit request =>
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       ItemPriceHistory.remove(itemId, siteId, itemPriceHistoryId)
     }
@@ -820,9 +890,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
     )
-  }
+  }}
 
-  def changeItemMetadata(itemId: Long) = isAuthenticated { implicit login => implicit request =>
+  def changeItemMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     changeItemMetadataForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.changeItemMetadata." + formWithErrors + ".")
@@ -848,7 +918,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(itemId),
               formWithErrors,
               addItemMetadataForm,
-              itemMetadataTable
+              createSiteItemMetadataTable(itemId),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -860,9 +931,50 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
-  }
+  }}
 
-  def addItemMetadata(id: Long) = isAuthenticated { implicit login => implicit request =>
+  def changeSiteItemMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    changeSiteItemMetadataForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.changeSiteItemMetadata." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            ChangeItem(
+              itemId,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(itemId),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(itemId),
+              addSiteItemForm,
+              createItemCategoryForm(itemId),
+              createCategoryTable,
+              createItemDescriptionTable(itemId),
+              addItemDescriptionForm,
+              createItemPriceTable(itemId),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(itemId),
+              createItemMetadataTable(itemId),
+              addItemMetadataForm,
+              formWithErrors,
+              addSiteItemMetadataForm
+            )
+          )
+        )
+      },
+      newMetadata => {
+        newMetadata.update(itemId)
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(itemId)
+        ).flashing("message" -> Messages("itemIsUpdated"))
+      }
+    )
+  }}
+
+  def addItemMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     addItemMetadataForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemMaintenance.addItemMetadata." + formWithErrors + ".")
@@ -888,7 +1000,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteTable(id),
               createItemMetadataTable(id),
               formWithErrors,
-              itemMetadataTable
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm
             )
           )
         )
@@ -927,7 +1040,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemMetadataForm
                     .fill(newMetadata)
                     .withError("metadataType", "unique.constraint.violation"),
-                  itemMetadataTable
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm
                 )
               )
             )
@@ -935,5 +1049,82 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         }
       }
     )
-  }
+  }}
+
+  def addSiteItemMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    addSiteItemMetadataForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.addSiteItemMetadata." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            ChangeItem(
+              id,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(id),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(id),
+              addSiteItemForm,
+              createItemCategoryForm(id),
+              createCategoryTable,
+              createItemDescriptionTable(id),
+              addItemDescriptionForm,
+              createItemPriceTable(id),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(id),
+              createItemMetadataTable(id),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(id),
+              formWithErrors
+            )
+          )
+        )
+      },
+      newMetadata => {
+        try {
+          newMetadata.add(id)
+
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(id)
+          ).flashing("message" -> Messages("itemIsUpdated"))
+        }
+        catch {
+          case e: UniqueConstraintException => {
+            BadRequest(
+              views.html.admin.changeItem(
+                ChangeItem(
+                  id,
+                  siteListAsMap,
+                  LocaleInfo.localeTable,
+                  createItemNameTable(id),
+                  addItemNameForm,
+                  createSiteTable,
+                  createSiteItemTable(id),
+                  addSiteItemForm,
+                  createItemCategoryForm(id),
+                  createCategoryTable,
+                  createItemDescriptionTable(id),
+                  addItemDescriptionForm,
+                  createItemPriceTable(id),
+                  addItemPriceForm,
+                  taxTable,
+                  currencyTable,
+                  createSiteTable(id),
+                  createItemMetadataTable(id),
+                  addItemMetadataForm,
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm
+                    .fill(newMetadata)
+                    .withError("metadataType", "unique.constraint.violation")
+                )
+              )
+            )
+          }
+        }
+      }
+    )
+  }}
 }

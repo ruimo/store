@@ -1,0 +1,47 @@
+@(users: Seq[(StoreUser, Option[SiteUser], Option[Site])])(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("editUserTitle"), Some(loginSession)) {
+<h1>@Messages("editUserTitle")</h1>
+
+<table class="userTable">
+  <tr class="userTableHeader">
+    <th>id</th>
+    <th>@Messages("userName")</th>
+    <th>@Messages("role")</th>
+  </tr>
+  @users.map { user =>
+    <tr class="userTableBody">
+      <td>@user._1.id.get</td>
+      <td>@user._1.userName</td>
+      <td>
+        @form(action = helper.CSRF(routes.UserMaintenance.deleteUser(user._1.id.get))) {
+          <input type="submit" style="float: left;" value=@Messages("remove")>
+        }
+        @{
+          if (user._1.userRole == UserRole.ADMIN) {
+            Messages("admin.user")
+          } else {
+            user._3 match {
+              case None => Messages("normal.user")
+              case Some(site) => Messages("site.owner") + "(" + site.name + ")"
+            }
+          }
+       }
+      </td>
+    </tr>
+  }
+</table>
+
+<br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}
+

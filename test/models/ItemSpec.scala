@@ -292,7 +292,7 @@ class ItemSpec extends Specification {
 
           val time = date("2013-01-04").getTime
 
-          val pages = Item.list(LocaleInfo.Ja, "", now = time)
+          val pages = Item.list(None, LocaleInfo.Ja, "", now = time)
           pages.pageCount === 1
           pages.currentPage === 0
           pages.pageSize === 10

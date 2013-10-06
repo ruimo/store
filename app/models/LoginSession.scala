@@ -13,6 +13,8 @@ case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expire
       case Some(u) => SiteOwner(u)
     }
   }
+  lazy val isSuperUser = role == SuperUser
+  lazy val isAdmin = role != Buyer
 }
 
 object LoginSession {

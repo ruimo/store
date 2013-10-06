@@ -33,7 +33,7 @@ case class StoreUser(
     PasswordHash.generate(password, salt) == passwordHash
 }
 
-case class SiteUser(siteId: Long, storeUserId: Long) extends NotNull
+case class SiteUser(id: Pk[Long] = NotAssigned, siteId: Long, storeUserId: Long) extends NotNull
 
 object StoreUser {
   val simple = {
@@ -53,30 +53,30 @@ object StoreUser {
     }
   }
 
-  val withSiteUser = StoreUser.simple ~ (SiteUser.simple ?) map {
-    case storeUser~siteUser => (storeUser, siteUser)
+  val withSiteUser = StoreUser.simple ~ (SiteUser.simple ?) ~ (Site.simple ?) map {
+    case storeUser~siteUser~site => (storeUser, siteUser, site)
   }
 
   def count(implicit conn: Connection) = 
-    SQL("select count(*) from store_user").as(SqlParser.scalar[Long].single)
+    SQL("select count(*) from store_user where deleted = FALSE").as(SqlParser.scalar[Long].single)
 
   def apply(id: Long)(implicit conn: Connection): StoreUser =
     SQL(
-      "select * from store_user where store_user_id = {id}"
+      "select * from store_user where store_user_id = {id} and deleted = FALSE"
     ).on(
       'id -> id
     ).as(StoreUser.simple.single)
   
   def findByUserName(userName: String)(implicit conn: Connection): Option[StoreUser] =
     SQL(
-      "select * from store_user where user_name = {user_name}"
+      "select * from store_user where user_name = {user_name} and deleted = FALSE"
     ).on(
       'user_name -> userName
     ).as(StoreUser.simple.singleOpt)
 
   def all(implicit conn: Connection): Seq[StoreUser] =
     SQL(
-      "select * from store_user"
+      "select * from store_user where deleted = FALSE"
     ).as(StoreUser.simple *)
 
   def create(
@@ -89,7 +89,7 @@ object StoreUser {
         store_user_id, user_name, first_name, middle_name, last_name, email, password_hash, salt, deleted, user_role
       ) values (
         (select nextval('store_user_seq')),
-        {user_name}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash}, {salt}, false, {user_role}
+        {user_name}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash}, {salt}, FALSE, {user_role}
       )
       """
     ).on(
@@ -107,26 +107,77 @@ object StoreUser {
     StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash, salt,  false, userRole)
   }
 
-  def withSite(userId: Long)(implicit conn: Connection): (StoreUser, Option[SiteUser]) =
+  def withSite(userId: Long)(implicit conn: Connection): (StoreUser, Option[SiteUser], Option[Site]) =
     SQL(
       """
       select * from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
+      left join site on site_user.site_id = site.site_id
       where store_user.store_user_id = {storeUserId}
+      and deleted = FALSE
       """
     ).on(
       'storeUserId -> userId
     ).as(
       withSiteUser.single
     )
+
+  def listUsers(
+    page: Int = 0, pageSize: Int = 50
+  )(implicit conn: Connection): Seq[(StoreUser, Option[SiteUser], Option[Site])] =
+    SQL(
+      """
+      select * from store_user
+      left join site_user on store_user.store_user_id = site_user.store_user_id
+      left join site on site_user.site_id = site.site_id
+      where deleted = FALSE
+      order by store_user.user_name
+      limit {pageSize} offset {offset}
+      """
+    ).on(
+      'pageSize -> pageSize,
+      'offset -> page * pageSize
+    ).as(
+      withSiteUser *
+    )
+
+  def delete(userId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      update store_user set deleted = TRUE where store_user_id = {id}
+      """
+    ).on(
+      'id -> userId
+    ).executeUpdate()
+  }
 }
 
 object SiteUser {
   val simple = {
+    SqlParser.get[Pk[Long]]("site_user.site_user_id") ~
     SqlParser.get[Long]("site_user.site_id") ~
     SqlParser.get[Long]("site_user.store_user_id") map {
-      case siteId~storeUserId => SiteUser(siteId, storeUserId)
+      case id~siteId~storeUserId => SiteUser(id, siteId, storeUserId)
     }
+  }
+
+  def createNew(storeUserId: Long, siteId: Long)(implicit conn: Connection): SiteUser = {
+    SQL(
+      """
+      insert into site_user (
+        site_user_id, site_id, store_user_id
+      ) values (
+        (select nextval('site_user_seq')),
+        {siteId}, {storeUserId}
+      )
+      """
+    ).on(
+      'siteId -> siteId,
+      'storeUserId -> storeUserId
+    ).executeUpdate()
+
+    val id = SQL("select currval('site_user_seq')").as(SqlParser.scalar[Long].single)
+    SiteUser(Id(id), siteId, storeUserId)
   }
 
   def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[SiteUser] = {
