@@ -11,22 +11,32 @@ import collection.immutable.{TreeMap, LongMap, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
+import collection.mutable
 
 case class ShippingTotalEntry(
   shippingBox: ShippingBox,
   shippingFee: ShippingFee,
   itemQuantity: Int,
   boxQuantity: Int,
-  boxPrice: BigDecimal
+  boxUnitPrice: BigDecimal,
+  boxTaxId: Long
 ) extends NotNull {
-  lazy val boxTotal = boxPrice * boxQuantity
+  lazy val boxTotal = boxUnitPrice * boxQuantity
 }
 
 case class ShippingTotal(
+  // Site, ItemClass, ShippingTotalEntry
   table: Map[Site, Map[Long, ShippingTotalEntry]],
   boxQuantity: Int,
   boxTotal: BigDecimal
-) extends NotNull
+) extends NotNull {
+  lazy val taxByType: Map[TaxType, BigDecimal] = {
+    val sumById = new mutable.HashMap[Long, BigDecimal]().withDefaultValue(BigDecimal(0))
+    table.values.foreach { map => map.values.foreach { e => sumById.put(e.boxTaxId, sumById(e.boxTaxId) + e.boxTotal)}}
+
+    Map[TaxType, BigDecimal]()
+  }
+}
 
 case class ShippingBox(
   id: Pk[Long] = NotAssigned, siteId: Long, itemClass: Long, boxSize: Int, boxName: String
@@ -338,7 +348,7 @@ object ShippingFeeHistory {
           "shipping_fee_history record not found(shipping_fee_id = " + feeId + ")"
         )
         case Some(boxFeeHistory) => {
-          ret += (e._1 -> ShippingTotalEntry(e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee))
+          ret += (e._1 -> ShippingTotalEntry(e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, boxFeeHistory.taxId))
           totalQuantity += boxCount
           total += boxFeeHistory.fee * boxCount;
         }

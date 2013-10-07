@@ -186,3 +186,8 @@ tr.userTableBody {
 .grandTotal {
   text-align: right;
 }
+
+.itemPhoto {
+  max-width: 120px;
+  max-height: 120px;
+}

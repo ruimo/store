@@ -226,7 +226,7 @@ class ShippingSpec extends Specification {
           info1.shippingBox.boxName === "小箱1"
           info1.itemQuantity === 19
           info1.boxQuantity === 2
-          info1.boxPrice === history1_1_tokyo_2.fee
+          info1.boxUnitPrice === history1_1_tokyo_2.fee
 
           val map2 = ShippingFeeHistory.feeBySiteAndItemClass(
             CountryCode.JPN, JapanPrefecture.東京都.code, ShippingFeeEntries()
@@ -243,7 +243,7 @@ class ShippingSpec extends Specification {
           info2.shippingBox.boxName === "中箱1"
           info2.itemQuantity === 4
           info2.boxQuantity === 1
-          info2.boxPrice === history1_2_tokyo_1.fee
+          info2.boxUnitPrice === history1_2_tokyo_1.fee
 
           val map3 = ShippingFeeHistory.feeBySiteAndItemClass(
             CountryCode.JPN, JapanPrefecture.埼玉県.code, ShippingFeeEntries()
@@ -263,26 +263,26 @@ class ShippingSpec extends Specification {
           info3.shippingBox.boxName === "小箱1"
           info3.itemQuantity === 19
           info3.boxQuantity === 2
-          info3.boxPrice === history1_1_saitama_1.fee
+          info3.boxUnitPrice === history1_1_saitama_1.fee
 
           val info4 = map3(site1)(itemClass2)
           info4.shippingBox.boxName === "中箱1"
           info4.itemQuantity === 4
           info4.boxQuantity === 1
-          info4.boxPrice === history1_2_saitama_1.fee
+          info4.boxUnitPrice === history1_2_saitama_1.fee
 
           map3(site2).size === 2
           val info5 = map3(site2)(itemClass1)
           info5.shippingBox.boxName === "小箱2"
           info5.itemQuantity === 21
           info5.boxQuantity === 3
-          info5.boxPrice === history2_1_saitama_1.fee
+          info5.boxUnitPrice === history2_1_saitama_1.fee
 
           val info6 = map3(site2)(itemClass2)
           info6.shippingBox.boxName === "中箱2"
           info6.itemQuantity === 6
           info6.boxQuantity === 2
-          info6.boxPrice === history2_2_saitama_1.fee
+          info6.boxUnitPrice === history2_2_saitama_1.fee
         }
       }
     }

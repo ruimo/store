@@ -17,7 +17,9 @@ case class TransactionLogHeader(
   userId: Long,
   transactionTime: Long,
   currencyId: Long,
+  // Item total and shipping total. Excluding outer tax, including inner tax.
   totalAmount: BigDecimal,
+  // Outer tax.
   taxAamount: BigDecimal,
   transactionType: TransactionType
 ) extends NotNull
@@ -26,7 +28,9 @@ case class TransactionLogSite(
   id: Pk[Long] = NotAssigned,
   transactionId: Long,
   siteId: Long,
+  // Item total and shipping total. Including tax.
   totalAmount: BigDecimal,
+  // Outer tax and inner tax.
   taxAmount: BigDecimal
 )
 
@@ -66,9 +70,12 @@ case class Transaction(
   def save() (implicit conn: Connection) {
     val header = TransactionLogHeader.createNew(
       userId, currency.id, 
-      itemTotal.total + shippingTotal.boxTotal,
+      itemTotal.total + shippingTotal.boxTotal +
+      itemTotal.taxByType(TaxType.OUTER_TAX),
       itemTotal.taxAmount, TransactionType.NORMAL
     )
+    
+    
   }
 }
 

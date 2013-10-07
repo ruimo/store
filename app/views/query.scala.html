@@ -25,6 +25,7 @@
   <br>
   <table style="width: 80%;">
     <tr>
+      <th></th>
       <th>@Messages("itemName")</th>
       <th>@Messages("site")</th>
       <th>@Messages("unitPrice")</th>
@@ -33,6 +34,7 @@
 
     @list.records.map { e =>
       <tr>
+        <td><img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)"></td>
         <td>@e._2.name</td>
         <td>@e._4.name</td>
         <td>@amount(e._5.unitPrice)</td>
