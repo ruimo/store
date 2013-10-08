@@ -75,7 +75,19 @@ case class Transaction(
       itemTotal.taxAmount, TransactionType.NORMAL
     )
     
-    
+    itemTotal.bySite.foreach { it =>
+      val site = it._1
+      val cartTotal = it._2
+
+      saveSiteTotal(site, cartTotal, shippingTotal.table(site))
+    }
+  }
+
+  def saveSiteTotal(
+    site: Site,
+    cart: ShoppingCartTotal,
+    shipping: Map[Long, ShippingTotalEntry] // itemClass -> ShippingTotalEntry
+  ) {
   }
 }
 

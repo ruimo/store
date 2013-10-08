@@ -14,7 +14,7 @@ case class ShippingTotalEntry(
   itemQuantity: Int,
   boxQuantity: Int,
   boxUnitPrice: BigDecimal,
-  boxTax: TaxHistory
+  boxTaxInfo: TaxHistory
 ) extends NotNull {
   lazy val boxTotal = boxUnitPrice * boxQuantity
 }
@@ -29,16 +29,16 @@ case class ShippingTotal(
     var sumById = LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
     var hisById = LongMap[TaxHistory]()
     table.values.foreach { map => map.values.foreach { e => 
-      sumById += e.boxTax.taxId -> (sumById(e.boxTax.id.get) + e.boxTotal)
-      if (! hisById.contains(e.boxTax.id.get)) {
-        hisById += e.boxTax.id.get -> e.boxTax
+      sumById += e.boxTaxInfo.taxId -> (sumById(e.boxTaxInfo.id.get) + e.boxTotal)
+      if (! hisById.contains(e.boxTaxInfo.id.get)) {
+        hisById += e.boxTaxInfo.id.get -> e.boxTaxInfo
       }
     }}
 
     sumById.foldLeft(Map[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
       (sum, e) => {
         val his = hisById(e._1)
-        sum.updated(his.taxType, sum(his.taxType) + e._2)
+        sum.updated(his.taxType, sum(his.taxType) + his.taxAmount(e._2))
       }
     }
   }

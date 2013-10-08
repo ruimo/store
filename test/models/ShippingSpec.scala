@@ -330,7 +330,9 @@ class ShippingSpec extends Specification {
 
       val byType = total.taxByType
       byType.size === 3
-//      byType(TaxType.OUTER_TAX) === BigDecimal(8 * 12 / 100 + 8 * 23 * 2 / 100)
+      byType(TaxType.OUTER_TAX) === BigDecimal(8 * 12 / 100 + 8 * 23 * 2 / 100)
+      byType(TaxType.INNER_TAX) === BigDecimal(8 * 34 * 3 / 108)
+      byType(TaxType.NON_TAX) === BigDecimal(0)
     }
   }
 }
