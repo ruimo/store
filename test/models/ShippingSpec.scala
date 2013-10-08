@@ -286,6 +286,52 @@ class ShippingSpec extends Specification {
         }
       }
     }
+
+    "Tax by tax type can be obtained from shipping total." in {
+      val site1 = Site(Id(1L), 1L, "site1")
+      val site2 = Site(Id(2L), 1L, "site2")
+      val itemClass1 = 1L
+      val itemClass2 = 2L
+      val box1 = ShippingBox(Id(1L), site1.id.get, itemClass1, 5, "box1")
+      val fee1 = ShippingFee(Id(1L), box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+      val fee2 = ShippingFee(Id(2L), box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+      val fee3 = ShippingFee(Id(3L), box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+      val fee4 = ShippingFee(Id(4L), box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+      val taxId1 = 1L
+      val taxId2 = 2L
+      val taxId3 = 3L
+      val taxId4 = 4L
+      val taxHis1 = TaxHistory(Id(1L), taxId1, TaxType.OUTER_TAX, BigDecimal(8), date("2013-12-31").getTime)
+      val taxHis2 = TaxHistory(Id(2L), taxId2, TaxType.OUTER_TAX, BigDecimal(8), date("2013-12-31").getTime)
+      val taxHis3 = TaxHistory(Id(3L), taxId3, TaxType.INNER_TAX, BigDecimal(8), date("2013-12-31").getTime)
+      val taxHis4 = TaxHistory(Id(4L), taxId4, TaxType.NON_TAX, BigDecimal(0), date("2013-12-31").getTime)
+
+
+      val total = ShippingTotal(
+        Map(
+          site1 -> Map(
+            itemClass1 -> ShippingTotalEntry(
+              box1, fee1, 3, 1, BigDecimal(12), taxHis1
+            ),
+            itemClass2 -> ShippingTotalEntry(
+              box1, fee2, 5, 2, BigDecimal(23), taxHis2
+            )
+          ),
+          site2 -> Map(
+            itemClass1 -> ShippingTotalEntry(
+              box1, fee3, 2, 3, BigDecimal(34), taxHis3
+            ),
+            itemClass2 -> ShippingTotalEntry(
+              box1, fee4, 4, 4, BigDecimal(45), taxHis4
+            )
+          )
+        ), 0, 0
+      )
+
+      val byType = total.taxByType
+      byType.size === 3
+
+    }
   }
 }
 

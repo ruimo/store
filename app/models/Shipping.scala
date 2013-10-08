@@ -3,14 +3,9 @@ package models
 import anorm._
 import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
-import model.Until
-import play.api.Play.current
-import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{TreeMap, LongMap, HashMap, IntMap}
 import java.sql.Connection
-import play.api.data.Form
-import org.joda.time.DateTime
 import collection.mutable
 
 case class ShippingTotalEntry(
@@ -19,7 +14,7 @@ case class ShippingTotalEntry(
   itemQuantity: Int,
   boxQuantity: Int,
   boxUnitPrice: BigDecimal,
-  boxTaxId: Long
+  boxTax: TaxHistory
 ) extends NotNull {
   lazy val boxTotal = boxUnitPrice * boxQuantity
 }
@@ -31,10 +26,21 @@ case class ShippingTotal(
   boxTotal: BigDecimal
 ) extends NotNull {
   lazy val taxByType: Map[TaxType, BigDecimal] = {
-    val sumById = new mutable.HashMap[Long, BigDecimal]().withDefaultValue(BigDecimal(0))
-    table.values.foreach { map => map.values.foreach { e => sumById.put(e.boxTaxId, sumById(e.boxTaxId) + e.boxTotal)}}
+    var sumById = LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
+    var typeById = LongMap[TaxType]()
+    table.values.foreach { map => map.values.foreach { e => 
+      sumById += e.boxTax.taxId -> (sumById(e.boxTax.id.get) + e.boxTotal)
+      if (! typeById.contains(e.boxTax.id.get)) {
+        typeById += e.boxTax.id.get -> e.boxTax.taxType
+      }
+    }}
 
-    Map[TaxType, BigDecimal]()
+    sumById.foldLeft(Map[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
+      (sum, e) => {
+        val taxType = typeById(e._1)
+        sum.updated(taxType, sum(taxType) + e._2)
+      }
+    }
   }
 }
 
@@ -348,7 +354,8 @@ object ShippingFeeHistory {
           "shipping_fee_history record not found(shipping_fee_id = " + feeId + ")"
         )
         case Some(boxFeeHistory) => {
-          ret += (e._1 -> ShippingTotalEntry(e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, boxFeeHistory.taxId))
+          val taxHistory = TaxHistory.at(boxFeeHistory.taxId)
+          ret += (e._1 -> ShippingTotalEntry(e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, taxHistory))
           totalQuantity += boxCount
           total += boxFeeHistory.fee * boxCount;
         }
