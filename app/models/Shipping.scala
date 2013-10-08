@@ -27,18 +27,18 @@ case class ShippingTotal(
 ) extends NotNull {
   lazy val taxByType: Map[TaxType, BigDecimal] = {
     var sumById = LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
-    var typeById = LongMap[TaxType]()
+    var hisById = LongMap[TaxHistory]()
     table.values.foreach { map => map.values.foreach { e => 
       sumById += e.boxTax.taxId -> (sumById(e.boxTax.id.get) + e.boxTotal)
-      if (! typeById.contains(e.boxTax.id.get)) {
-        typeById += e.boxTax.id.get -> e.boxTax.taxType
+      if (! hisById.contains(e.boxTax.id.get)) {
+        hisById += e.boxTax.id.get -> e.boxTax
       }
     }}
 
     sumById.foldLeft(Map[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
       (sum, e) => {
-        val taxType = typeById(e._1)
-        sum.updated(taxType, sum(taxType) + e._2)
+        val his = hisById(e._1)
+        sum.updated(his.taxType, sum(his.taxType) + e._2)
       }
     }
   }
