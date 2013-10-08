@@ -188,6 +188,6 @@ tr.userTableBody {
 }
 
 .itemPhoto {
-  max-width: 120px;
-  max-height: 120px;
+  max-width: 50px;
+  max-height: 50px;
 }
