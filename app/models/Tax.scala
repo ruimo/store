@@ -24,7 +24,7 @@ case class TaxHistory(
     }).setScale(0, RoundingMode.DOWN)
 }
 
-case class TaxName(taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
+case class TaxName(id: Pk[Long] = NotAssigned, taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
 
 object Tax {
   val simple = {
@@ -85,24 +85,31 @@ object Tax {
     ).map {
       e => e._1.id.get.toString -> e._2.taxName
     }
+
+    
+
   }
 }
 
 object TaxName {
   val simple = {
+    SqlParser.get[Pk[Long]]("tax_name.tax_name_id") ~
     SqlParser.get[Long]("tax_name.tax_id") ~
     SqlParser.get[Long]("tax_name.locale_id") ~
     SqlParser.get[String]("tax_name.tax_name") map {
-      case taxId~localeId~taxName =>
-        TaxName(taxId, LocaleInfo(localeId), taxName)
+      case id~taxId~localeId~taxName =>
+        TaxName(id, taxId, LocaleInfo(localeId), taxName)
     }
   }
 
   def createNew(tax: Tax, locale: LocaleInfo, name: String)(implicit conn: Connection): TaxName = {
     SQL(
       """
-      insert into tax_name (tax_id, locale_id, tax_name)
-      values ({taxId}, {localeId}, {taxName})
+      insert into tax_name (tax_name_id, tax_id, locale_id, tax_name)
+      values (
+        (select nextval('tax_name_seq')),
+        {taxId}, {localeId}, {taxName}
+      )
       """
     ).on(
       'taxId -> tax.id.get,
@@ -110,7 +117,9 @@ object TaxName {
       'taxName -> name
     ).executeUpdate()
 
-    TaxName(tax.id.get, locale, name)
+    val id = SQL("select currval('tax_name_seq')").as(SqlParser.scalar[Long].single)
+
+    TaxName(Id(id), tax.id.get, locale, name)
   }
 }
 

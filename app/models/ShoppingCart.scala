@@ -34,7 +34,7 @@ case class ShoppingCartTotal(
   lazy val size: Int = table.size
   lazy val notEmpty: Boolean = (! table.isEmpty)
   lazy val quantity: Int = table.foldLeft(0)(_ + _.quantity)
-  lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice)
+  lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice) // Excluding tax
   lazy val sites: Seq[Site] = table.foldLeft(new HashSet[Site])(_ + _.site).toSeq
   lazy val taxTotal: BigDecimal = taxByType.values.foldLeft(BigDecimal(0))(_ + _)
   lazy val taxByType: Map[TaxType, BigDecimal] = {

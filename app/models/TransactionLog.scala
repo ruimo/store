@@ -79,15 +79,18 @@ case class Transaction(
       val site = it._1
       val cartTotal = it._2
 
-      saveSiteTotal(site, cartTotal, shippingTotal.table(site))
+      saveSiteTotal(header, site, cartTotal, shippingTotal.table(site))
     }
   }
 
   def saveSiteTotal(
+    header: TransactionLogHeader,
     site: Site,
     cart: ShoppingCartTotal,
     shipping: Map[Long, ShippingTotalEntry] // itemClass -> ShippingTotalEntry
   ) {
+    var shippingTotal = BigDecimal(0)
+    var shippingTax = BigDecimal(0)
   }
 }
 

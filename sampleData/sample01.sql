@@ -1,5 +1,7 @@
 delete from item_numeric_metadata where item_numeric_metadata_id < 1000;
 
+delete from tax_name where tax_id < 1000;
+
 delete from item_name where item_id < 1000;
 
 delete from item_description where item_id < 1000;
@@ -226,6 +228,9 @@ insert into tax_history (tax_history_id, tax_id, tax_type, rate, valid_until)
 -- Outer tax
 insert into tax_history (tax_history_id, tax_id, tax_type, rate, valid_until)
   values (2, 2, 0, 5, timestamp '9999-12-31 00:00:00');
+
+insert into tax_name (tax_name_id, tax_id, locale_id, tax_name) values (1, 1, 1, '外税品');
+insert into tax_name (tax_name_id, tax_id, locale_id, tax_name) values (2, 2, 1, '内税品');
 
 insert into item_price (item_price_id, site_id, item_id) values (1, 1, 1);
 insert into item_price (item_price_id, site_id, item_id) values (2, 1, 3);

@@ -127,11 +127,15 @@ create table tax (
 create sequence tax_seq start with 1000;
 
 create table tax_name (
+  tax_name_id bigint not null,
   tax_id bigint not null references tax on delete cascade,
   locale_id bigint not null references locale,
   tax_name varchar(32) not null,
+  constraint pk_tax_name primary key (tax_name_id),
   unique (tax_id, locale_id)
 );
+
+create sequence tax_name_seq start with 1000;
 
 create table tax_history (
   tax_history_id bigint not null,
