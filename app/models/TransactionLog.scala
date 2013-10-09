@@ -28,9 +28,9 @@ case class TransactionLogSite(
   id: Pk[Long] = NotAssigned,
   transactionId: Long,
   siteId: Long,
-  // Item total and shipping total. Including tax.
+  // Item total and shipping total. Excluding outer tax, including inner tax.
   totalAmount: BigDecimal,
-  // Outer tax and inner tax.
+  // Outer tax.
   taxAmount: BigDecimal
 )
 
@@ -38,7 +38,10 @@ case class TransactionLogShipping(
   id: Pk[Long] = NotAssigned,
   transactionSiteId: Long,
   amount: BigDecimal,
-  addressId: Long
+  addressId: Long,
+  itemClass: Long,
+  boxSize: Int,
+  taxId: Long
 ) extends NotNull
 
 case class TransactionLogTax(
@@ -79,7 +82,7 @@ case class Transaction(
       val site = it._1
       val cartTotal = it._2
 
-      saveSiteTotal(header, site, cartTotal, shippingTotal.table(site))
+      saveSiteTotal(header, site, cartTotal, shippingTotal.table(site), shippingAddress)
     }
   }
 
@@ -87,10 +90,24 @@ case class Transaction(
     header: TransactionLogHeader,
     site: Site,
     cart: ShoppingCartTotal,
-    shipping: Map[Long, ShippingTotalEntry] // itemClass -> ShippingTotalEntry
-  ) {
+    shipping: Map[Long, ShippingTotalEntry], // itemClass -> ShippingTotalEntry
+    shippingAddress: Address
+  )(implicit conn: Connection) {
     var shippingTotal = BigDecimal(0)
     var shippingTax = BigDecimal(0)
+
+    shipping.values.foreach { e =>
+      shippingTotal += e.boxTotal
+      shippingTax += e.outerTax
+    }
+
+    val siteLog = TransactionLogSite.createNew(
+      header.id.get, site.id.get,
+      cart.total + shippingTotal,
+      cart.taxByType(TaxType.OUTER_TAX) + shippingTax
+    )
+
+
   }
 }
 
@@ -201,33 +218,42 @@ object TransactionLogShipping {
     SqlParser.get[Pk[Long]]("transaction_shipping.transaction_shipping_id") ~
     SqlParser.get[Long]("transaction_shipping.transaction_site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_shipping.amount") ~
-    SqlParser.get[Long]("transaction_shipping.address_id") map {
-      case id~transactionId~amount~addressId =>
-        TransactionLogShipping(id, transactionId, amount, addressId)
+    SqlParser.get[Long]("transaction_shipping.address_id") ~
+    SqlParser.get[Long]("transaction_shipping.item_class") ~
+    SqlParser.get[Int]("transaction_shipping.box_size") ~
+    SqlParser.get[Long]("transaction_shipping.tax_id") map {
+      case id~transactionId~amount~addressId~itemClass~boxSize~taxId =>
+        TransactionLogShipping(id, transactionId, amount, addressId, itemClass, boxSize, taxId)
     }
   }
 
   def createNew(
-    transactionSiteId: Long, amount: BigDecimal, addressId: Long
+    transactionSiteId: Long, amount: BigDecimal, addressId: Long,
+    itemClass: Long, boxSize: Int, taxId: Long
   )(implicit conn: Connection): TransactionLogShipping = {
     SQL(
       """
       insert into transaction_shipping (
-        transaction_shipping_id, transaction_site_id, amount, address_id
+        transaction_shipping_id, transaction_site_id, amount, address_id,
+        item_class, box_size, tax_id
       ) values (
         (select nextval('transaction_shipping_seq')),
-        {transactionSiteId}, {amount}, {addressId}
+        {transactionSiteId}, {amount}, {addressId},
+        {itemClass}, {boxSize}, {taxId}
       )
       """
     ).on(
       'transactionSiteId -> transactionSiteId,
       'amount -> amount.bigDecimal,
-      'addressId -> addressId
+      'addressId -> addressId,
+      'itemClass -> itemClass,
+      'boxSize -> boxSize,
+      'taxId -> taxId
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_shipping_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId)
+    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogShipping] =

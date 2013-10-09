@@ -22,6 +22,12 @@ case class TaxHistory(
       case TaxType.INNER_TAX => realRate * amount / (realRate + 1)
       case TaxType.NON_TAX => BigDecimal(0)
     }).setScale(0, RoundingMode.DOWN)
+
+  def outerTax(amount: BigDecimal): BigDecimal = (taxType match {
+      case TaxType.OUTER_TAX => amount * realRate
+      case TaxType.INNER_TAX => BigDecimal(0)
+      case TaxType.NON_TAX => BigDecimal(0)
+    }).setScale(0, RoundingMode.DOWN)
 }
 
 case class TaxName(id: Pk[Long] = NotAssigned, taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull

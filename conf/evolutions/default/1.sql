@@ -10,6 +10,12 @@ create table locale (
   unique (lang, country)
 );
 
+COMMENT ON TABLE locale IS 'Locale information.';
+COMMENT ON COLUMN locale.locale_id IS 'Surrogate key.';
+COMMENT ON COLUMN locale.lang IS 'ISO 639 lang code such as ja, en.';
+COMMENT ON COLUMN locale.country IS 'ISO 3166 country code such as JP, US.';
+COMMENT ON COLUMN locale.precedence IS 'Precedence. If requested locale is not registed in this table, the record having greatest precedence will be used instead.';
+
 insert into locale (locale_id, lang, precedence) values (1, 'ja', 2);
 insert into locale (locale_id, lang, precedence) values (2, 'en', 1);
 
@@ -20,12 +26,20 @@ create table site (
   constraint pk_site primary key (site_id)
 );
 
+COMMENT ON TABLE site IS 'Site information. Site expresses store. In this application, each site treates one locale each other.';
+COMMENT ON COLUMN site.site_id IS 'Surrogate key.';
+COMMENT ON COLUMN site.locale_id IS 'Locale.';
+COMMENT ON COLUMN site.site_name IS 'Name of this site.';
+
 create sequence site_seq start with 1000;
 
 create table category (
   category_id bigint not null,
   constraint pk_category primary key (category_id)
 );
+
+COMMENT ON TABLE category IS 'Category information. Each item has one category.';
+COMMENT ON COLUMN category.category_id IS 'Surrogate key.';
 
 create sequence category_seq start with 1000;
 
@@ -260,6 +274,9 @@ create table transaction_shipping (
   transaction_site_id bigint not null references transaction_site on delete cascade,
   amount decimal(15,2) not null,
   address_id bigint not null,
+  item_class bigint not null,
+  box_size integer not null,
+  tax_id bigint not null,
   constraint pk_transaction_shipping primary key (transaction_shipping_id)
 );
 

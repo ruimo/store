@@ -336,4 +336,3 @@ class ShippingSpec extends Specification {
     }
   }
 }
-

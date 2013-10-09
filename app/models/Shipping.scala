@@ -17,6 +17,7 @@ case class ShippingTotalEntry(
   boxTaxInfo: TaxHistory
 ) extends NotNull {
   lazy val boxTotal = boxUnitPrice * boxQuantity
+  lazy val outerTax = boxTaxInfo.outerTax(boxTotal)
 }
 
 case class ShippingTotal(
