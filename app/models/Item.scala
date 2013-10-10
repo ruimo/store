@@ -114,7 +114,7 @@ object Item {
 
   def list(
     siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
-    now: Long = System.currentTimeMillis
+    showHidden: Boolean = false, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
   ): PagedRecords[(
@@ -131,6 +131,19 @@ object Item {
       where item_name.locale_id = {localeId}
     """ + 
     siteUser.map { "  and site.site_id = " + _.siteId }.getOrElse("") +
+    (if (! showHidden)
+      """
+      and not exists (
+        select coalesce(metadata, 0) from site_item_numeric_metadata
+        where item.item_id = site_item_numeric_metadata.item_id
+        and site.site_id = site_item_numeric_metadata.site_id
+        and site_item_numeric_metadata.metadata_type = 
+      """ + SiteItemNumericMetadataType.HIDE.ordinal +
+      """
+        and site_item_numeric_metadata.metadata = 1
+      )
+      """
+    else "") +
     """
       and item_description.locale_id = {localeId}
       and (item_name.item_name like {query} or item_description.description like {query})
