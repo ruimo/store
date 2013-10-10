@@ -37,20 +37,19 @@ case class ShoppingCartTotal(
   lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice) // Excluding outer tax
   lazy val sites: Seq[Site] = table.foldLeft(new HashSet[Site])(_ + _.site).toSeq
   lazy val taxTotal: BigDecimal = taxByType.values.foldLeft(BigDecimal(0))(_ + _)
+  lazy val taxHistoryById: LongMap[TaxHistory] = table.foldLeft(LongMap[TaxHistory]()) {
+    (sum, e) => sum.updated(e.taxHistory.taxId, e.taxHistory)
+  }
+  lazy val sumByTaxId = table.foldLeft(LongMap().withDefaultValue(BigDecimal(0))) {
+    (sum, e) => sum.updated(
+      e.taxHistory.taxId,
+      e.itemPriceHistory.unitPrice * e.shoppingCartItem.quantity + sum(e.taxHistory.taxId)
+    )
+  }
   lazy val taxByType: Map[TaxType, BigDecimal] = {
-    val sumById = table.foldLeft(LongMap().withDefaultValue(BigDecimal(0))) {
-      (sum, e) => sum.updated(
-        e.taxHistory.taxId,
-        e.itemPriceHistory.unitPrice * e.shoppingCartItem.quantity + sum(e.taxHistory.taxId)
-      )
-    }
-    val hisById = table.foldLeft(LongMap[TaxHistory]()) {
-      (sum, e) => sum.updated(e.taxHistory.taxId, e.taxHistory)
-    }
-
-    sumById.foldLeft(HashMap[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
+    sumByTaxId.foldLeft(HashMap[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
       (sum, e) => {
-        val taxHistory = hisById(e._1)
+        val taxHistory = taxHistoryById(e._1)
         val taxType = taxHistory.taxType
         sum.updated(taxType, sum(taxType) + taxHistory.taxAmount(e._2))
       }

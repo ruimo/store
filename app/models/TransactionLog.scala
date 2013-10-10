@@ -7,7 +7,7 @@ import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-import collection.immutable.{HashMap, IntMap}
+import collection.immutable.{LongMap, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
@@ -82,7 +82,7 @@ case class Transaction(
       val site = it._1
       val cartTotal = it._2
 
-      saveSiteTotal(header, site, cartTotal, shippingTotal.table(site), shippingAddress)
+      saveSiteTotal(header, site, cartTotal, shippingTotal, shippingAddress)
     }
   }
 
@@ -90,13 +90,13 @@ case class Transaction(
     header: TransactionLogHeader,
     site: Site,
     cart: ShoppingCartTotal,
-    shipping: Map[Long, ShippingTotalEntry], // itemClass -> ShippingTotalEntry
+    shipping: ShippingTotal, // itemClass -> ShippingTotalEntry
     shippingAddress: Address
   )(implicit conn: Connection) {
     var shippingTotal = BigDecimal(0)
     var shippingTax = BigDecimal(0)
 
-    shipping.values.foreach { e =>
+    shipping.table(site).values.foreach { e =>
       shippingTotal += e.boxTotal
       shippingTax += e.outerTax
     }
@@ -107,7 +107,38 @@ case class Transaction(
       cart.taxByType(TaxType.OUTER_TAX) + shippingTax
     )
 
+    saveShippingTotal(siteLog, shipping.table(site), shippingAddress)
+    saveTax(siteLog, cart, shipping)
+  }
 
+  def saveShippingTotal(
+    siteLog: TransactionLogSite, shipping: Map[Long, ShippingTotalEntry], shippingAddress: Address
+  )(implicit conn: Connection) {
+    shipping.foreach { e =>
+      val shippingLog = TransactionLogShipping.createNew(
+        siteLog.id.get, e._2.boxTotal, shippingAddress.id.get, e._1, e._2.shippingBox.boxSize, e._2.boxTaxInfo.taxId
+      )
+    }
+  }
+
+  def saveTax(
+    siteLog: TransactionLogSite, cart: ShoppingCartTotal,
+    shipping: ShippingTotal
+  )(implicit conn: Connection) {
+    val taxTable = shipping.taxHistoryById ++ cart.taxHistoryById
+
+    taxTable.foreach { e =>
+      val taxId = e._1
+      val taxHistory = e._2
+
+      val targetAmount = cart.sumByTaxId(taxId) + shipping.sumByTaxId(taxId)
+      val taxAmount = taxHistory.taxAmount(targetAmount)
+
+      TransactionLogTax.createNew(
+        siteLog.id.get, taxHistory.id.get, taxId, taxHistory.taxType,
+        taxHistory.rate, targetAmount, taxAmount
+      )
+    }
   }
 }
 

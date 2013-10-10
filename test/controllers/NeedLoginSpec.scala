@@ -6,7 +6,6 @@ import org.specs2.mutable._
 import play.api.Play.current
 import org.specs2.mock._
 import play.api.mvc.Session
-import controllers.{Admin, NeedLogin}
 import models.{UserRole, StoreUser, TestHelper, LoginSession}
 import play.api.db.DB
 
