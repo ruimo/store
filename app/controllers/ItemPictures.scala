@@ -3,7 +3,7 @@ package controllers
 import play.api.mvc.Security.Authenticated
 import controllers.I18n.I18nAware
 import play.api.mvc.Controller
-import java.nio.file.{Files, Paths}
+import java.nio.file.{NoSuchFileException, Files, Paths}
 import io.Source
 import play.api.mvc._
 import play.api.i18n.Messages
@@ -29,7 +29,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
             ).flashing("errorMessage" -> Messages("jpeg.needed"))
           }
           else {
-            picture.ref.moveTo(toPath(itemId, no).toFile)
+            picture.ref.moveTo(toPath(itemId, no).toFile, true)
             Redirect(
               routes.ItemMaintenance.startChangeItem(itemId)
             ).flashing("message" -> Messages("itemIsUpdated"))
@@ -58,6 +58,19 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       source.close()
       Ok(byteArray).as("image/jpeg")
     }
+  }
+
+  def remove(itemId: Long, no: Int) = Action { implicit request =>
+    try {
+      Files.delete(toPath(itemId, no))
+    }
+    catch {
+      case e: NoSuchFileException =>
+      case e => throw e
+    }
+    Redirect(
+      routes.ItemMaintenance.startChangeItem(itemId)
+    ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
   def toPath(itemId: Long, no: Int) = picturePath.resolve(itemId + "_" + no + ".jpg")

@@ -352,7 +352,8 @@ object ShippingFeeHistory {
   }
 
   def addPrice(
-    map: Map[Long, (ShippingBox, ShippingFee, Int)], now: Long
+    map: Map[Long, (ShippingBox, ShippingFee, Int)], // The key is itemClass.
+    now: Long
   )(
     implicit conn: Connection
   ): (Map[Long, ShippingTotalEntry], Int, BigDecimal) = {

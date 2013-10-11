@@ -124,12 +124,11 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     ShippingFeeHistory.feeBySiteAndItemClass(
       CountryCode.JPN, addr.prefecture.code,
       cart.table.foldLeft(ShippingFeeEntries()) {
-        (sum, e) =>
-          sum.add(
-            e.shoppingCartItem.siteId,
-            e.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE).map(_.metadata).getOrElse(1L),
-            e.shoppingCartItem.quantity
-          )
+        (sum, e) => sum.add(
+          e.shoppingCartItem.siteId,
+          e.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE).map(_.metadata).getOrElse(1L),
+          e.shoppingCartItem.quantity
+        )
       }
     )
   }

@@ -10,6 +10,25 @@
 
 @import helper._
 
+@fileUpload(id: Long, idx: Int) = {
+  <tr>
+    <td><img src="@routes.ItemPictures.getPicture(id, idx)"></td>
+    @form(action = helper.CSRF(routes.ItemPictures.upload(id, idx)), 'enctype -> "multipart/form-data") {
+    <td>
+      <input type="file" name="picture">
+    </td>
+    <td>
+      <input type="submit">
+    </td>
+    }
+    @form(action = helper.CSRF(routes.ItemPictures.remove(id, idx))) {
+    <td>
+      <input type="submit" value="@Messages("remove")">
+    </td>
+    }
+  </tr>
+}
+
 @nameForm(field: Field) = {
   <tr>
     <td>
@@ -543,65 +562,7 @@
   <h2>@Messages("itemPicture")</h2>
 
   <table>
-    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 0)), 'enctype -> "multipart/form-data") {
-      <tr>
-        <td><img src="@routes.ItemPictures.getPicture(c.id, 0)"></td>
-        <td>
-          <input type="file" name="picture">
-        </td>
-        <td>
-          <input type="submit">
-        </td>
-      </tr>
-    }
-
-    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 1)), 'enctype -> "multipart/form-data") {
-      <tr>
-        <td><img src="@routes.ItemPictures.getPicture(c.id, 1)"></td>
-        <td>
-          <input type="file" name="picture">
-        </td>
-        <td>
-          <input type="submit">
-        </td>
-      </tr>
-    }
-
-    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 2)), 'enctype -> "multipart/form-data") {
-      <tr>
-        <td><img src="@routes.ItemPictures.getPicture(c.id, 2)"></td>
-        <td>
-          <input type="file" name="picture">
-        </td>
-        <td>
-          <input type="submit">
-        </td>
-      </tr>
-    }
-
-    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 3)), 'enctype -> "multipart/form-data") {
-      <tr>
-        <td><img src="@routes.ItemPictures.getPicture(c.id, 3)"></td>
-        <td>
-          <input type="file" name="picture">
-        </td>
-        <td>
-          <input type="submit">
-        </td>
-      </tr>
-    }
-
-    @form(action = helper.CSRF(routes.ItemPictures.upload(c.id, 4)), 'enctype -> "multipart/form-data") {
-      <tr>
-        <td><img src="@routes.ItemPictures.getPicture(c.id, 4)"></td>
-        <td>
-          <input type="file" name="picture">
-        </td>
-        <td>
-          <input type="submit">
-        </td>
-      </tr>
-    }
+    @{(0 until 5) map { idx => fileUpload(c.id, idx)}}
   </table>
 
   <br>

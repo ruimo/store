@@ -68,6 +68,7 @@ GET     /admin/startCreateNewNormalUser  controllers.UserMaintenance.startCreate
 POST    /admin/createNewNormalUser       controllers.UserMaintenance.createNewNormalUser
 
 POST    /admin/uploadItemPicture         controllers.ItemPictures.upload(id: Long, no: Int)
+POST    /admin/remove                    controllers.ItemPictures.remove(id: Long, no: Int)
 GET     /admin/getItemPicture            controllers.ItemPictures.getPicture(id: Long, no: Int)
 
 GET     /query                           controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
