@@ -1,14 +1,14 @@
 package models
 
 class CannotShippingException(
-  val siteId: Long, val locationCode: Int, val itemClass: Option[Long]
+  val site: Site, val locationCode: Int, val itemClass: Option[Long]
 ) extends Exception {
-  def this (siteId: Long, locationCode: Int) = this (siteId, locationCode, None)
-  def this (siteId: Long, locationCode: Int, itemClass: Long)
-    = this (siteId, locationCode, Some(itemClass))
+  def this (site: Site, locationCode: Int) = this (site, locationCode, None)
+  def this (site: Site, locationCode: Int, itemClass: Long)
+    = this (site, locationCode, Some(itemClass))
 
-  def isCannotShip(siteId: Long, locationCode: Int, itemClass: Long): Boolean = 
-    this.siteId == siteId && this.locationCode == locationCode && (this.itemClass match {
+  def isCannotShip(site: Site, locationCode: Int, itemClass: Long): Boolean = 
+    this.site == site && this.locationCode == locationCode && (this.itemClass match {
       case None => true
       case Some(c) => c == itemClass
     })

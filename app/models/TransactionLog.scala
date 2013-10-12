@@ -20,7 +20,7 @@ case class TransactionLogHeader(
   // Item total and shipping total. Excluding outer tax, including inner tax.
   totalAmount: BigDecimal,
   // Outer tax.
-  taxAamount: BigDecimal,
+  taxAmount: BigDecimal,
   transactionType: TransactionType
 ) extends NotNull
 
@@ -57,6 +57,7 @@ case class TransactionLogTax(
 case class TransactionLogItem(
   id: Pk[Long] = NotAssigned,
   transactionSiteId: Long,
+  itemId: Long,
   itemPriceHistoryId: Long,
   quantity: Long,
   amount: BigDecimal
@@ -67,81 +68,34 @@ case class Transaction(
   currency: CurrencyInfo,
   itemTotal: ShoppingCartTotal,
   shippingAddress: Address,
-  shippingTotal: ShippingTotal
-) extends NotNull {
-  def save() (implicit conn: Connection) {
-    val header = TransactionLogHeader.createNew(
-      userId, currency.id, 
-      itemTotal.total + shippingTotal.boxTotal +
-      itemTotal.taxByType(TaxType.OUTER_TAX),
-      itemTotal.taxAmount, TransactionType.NORMAL
-    )
-    
-    itemTotal.bySite.foreach { it =>
-      val site = it._1
-      val cartTotal = it._2
-
-      saveSiteTotal(header, site, cartTotal, shippingTotal, shippingAddress)
-    }
-  }
-
-  def saveSiteTotal(
-    header: TransactionLogHeader,
-    site: Site,
-    cart: ShoppingCartTotal,
-    shipping: ShippingTotal, // itemClass -> ShippingTotalEntry
-    shippingAddress: Address
-  )(implicit conn: Connection) {
-    var shippingTotal = BigDecimal(0)
-    var shippingTax = BigDecimal(0)
-
-    shipping.table(site).values.foreach { e =>
-      shippingTotal += e.boxTotal
-      shippingTax += e.outerTax
+  shippingTotal: ShippingTotal,
+  now: Long = System.currentTimeMillis
+) {
+  lazy val total = itemTotal.total + shippingTotal.boxTotal  // Including inner tax excluding outer tax.
+  lazy val taxAmount: BigDecimal = {
+    val sumByTaxId = (itemTotal.sumByTaxId.toList ++ shippingTotal.sumByTaxId.toList).foldLeft(
+      LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
+    ) { (sum, e) => 
+      sum.updated(e._1, sum(e._1) + e._2)
     }
 
-    val siteLog = TransactionLogSite.createNew(
-      header.id.get, site.id.get,
-      cart.total + shippingTotal,
-      cart.taxByType(TaxType.OUTER_TAX) + shippingTax
-    )
-
-    saveShippingTotal(siteLog, shipping.table(site), shippingAddress)
-    saveTax(siteLog, cart, shipping)
+    val taxHistoryById = itemTotal.taxHistoryById ++ shippingTotal.taxHistoryById
+    sumByTaxId.foldLeft(BigDecimal(0)) { (sum, e) =>
+      sum + taxHistoryById(e._1).taxAmount(e._2)
+    }
   }
-
-  def saveShippingTotal(
-    siteLog: TransactionLogSite, shipping: Map[Long, ShippingTotalEntry], shippingAddress: Address
-  )(implicit conn: Connection) {
-    shipping.foreach { e =>
-      val shippingLog = TransactionLogShipping.createNew(
-        siteLog.id.get, e._2.boxTotal, shippingAddress.id.get, e._1, e._2.shippingBox.boxSize, e._2.boxTaxInfo.taxId
+  lazy val bySite: Map[Site, Transaction] = {
+    itemTotal.bySite.foldLeft(
+      new HashMap[Site, Transaction]()
+    ) { (map, e) =>
+      map.updated(
+        e._1,
+        Transaction(
+          userId, currency, e._2, shippingAddress, shippingTotal.bySite(e._1), now
+        )
       )
     }
   }
-
-  def saveTax(
-    siteLog: TransactionLogSite, cart: ShoppingCartTotal,
-    shipping: ShippingTotal
-  )(implicit conn: Connection) {
-    val taxTable = shipping.taxHistoryById ++ cart.taxHistoryById
-
-    taxTable.foreach { e =>
-      val taxId = e._1
-      val taxHistory = e._2
-
-      val targetAmount = cart.sumByTaxId(taxId) + shipping.sumByTaxId(taxId)
-      val taxAmount = taxHistory.taxAmount(targetAmount)
-
-      TransactionLogTax.createNew(
-        siteLog.id.get, taxHistory.id.get, taxId, taxHistory.taxType,
-        taxHistory.rate, targetAmount, taxAmount
-      )
-    }
-  }
-}
-
-object Transaction {
 }
 
 object TransactionLogHeader {
@@ -155,7 +109,7 @@ object TransactionLogHeader {
     SqlParser.get[Int]("transaction_header.transaction_type") map {
       case transactionId~userId~transactionTime~currencyId~totalAmount~taxAmount~transactionType =>
         TransactionLogHeader(transactionId, userId, transactionTime.getTime, currencyId, totalAmount,
-                          taxAmount, TransactionType.byIndex(transactionType))
+                             taxAmount, TransactionType.byIndex(transactionType))
     }
   }
 
@@ -212,7 +166,7 @@ object TransactionLogSite {
     SqlParser.get[Long]("transaction_site.transaction_id") ~
     SqlParser.get[Long]("transaction_site.site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_site.total_amount") ~
-    SqlParser.get[java.math.BigDecimal]("transaction_site.tax_amaount") map {
+    SqlParser.get[java.math.BigDecimal]("transaction_site.tax_amount") map {
       case id~transactionId~siteId~totalAmount~taxAmount =>
         TransactionLogSite(id, transactionId, siteId, totalAmount, taxAmount)
     }
@@ -240,6 +194,21 @@ object TransactionLogSite {
     val id = SQL("select currval('transaction_site_seq')").as(SqlParser.scalar[Long].single)
 
     TransactionLogSite(Id(id), transactionId, siteId, totalAmount, taxAmount)
+  }
+
+  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogSite] = {
+    SQL(
+      """
+      select * from transaction_site
+      order by transaction_id, site_id
+      limit {limit} offset {offset}
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
+    ).as(
+      simple *
+    )
   }
 }
 
@@ -362,28 +331,30 @@ object TransactionLogItem {
   val simple = {
     SqlParser.get[Pk[Long]]("transaction_item.transaction_item_id") ~
     SqlParser.get[Long]("transaction_item.transaction_site_id") ~
+    SqlParser.get[Long]("transaction_item.item_id") ~
     SqlParser.get[Long]("transaction_item.item_price_history_id") ~
     SqlParser.get[Int]("transaction_item.quantity") ~
     SqlParser.get[java.math.BigDecimal]("transaction_item.amount") map {
-      case id~tranId~priceHistoryId~quantity~amount =>
-        TransactionLogItem(id, tranId, priceHistoryId, quantity, amount)
+      case id~tranSiteId~itemId~priceHistoryId~quantity~amount =>
+        TransactionLogItem(id, tranSiteId, itemId, priceHistoryId, quantity, amount)
     }
   }
 
   def createNew(
-    transactionSiteId: Long, itemPriceHistoryId: Long, quantity: Long, amount: BigDecimal
+    transactionSiteId: Long, itemId: Long, itemPriceHistoryId: Long, quantity: Long, amount: BigDecimal
   )(implicit conn: Connection): TransactionLogItem = {
     SQL(
       """
       insert into transaction_item (
-        transaction_item_id, transaction_site_id, item_price_history_id, quantity, amount
+        transaction_item_id, transaction_site_id, item_id, item_price_history_id, quantity, amount
       ) values (
         (select nextval('transaction_item_seq')),
-        {transactionSiteId}, {itemPriceHistoryId}, {quantity}, {amount}
+        {transactionSiteId}, {itemId}, {itemPriceHistoryId}, {quantity}, {amount}
       )
       """
     ).on(
       'transactionSiteId -> transactionSiteId,
+      'itemId -> itemId,
       'itemPriceHistoryId -> itemPriceHistoryId,
       'quantity -> quantity,
       'amount -> amount.bigDecimal
@@ -391,7 +362,7 @@ object TransactionLogItem {
 
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogItem(Id(id), transactionSiteId, itemPriceHistoryId, quantity, amount)
+    TransactionLogItem(Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogItem] =
@@ -407,4 +378,77 @@ object TransactionLogItem {
     ).as(
       simple *
     )
+}
+
+class TransactionPersister {
+  def persist(tran: Transaction)(implicit conn: Connection) {
+    val header = TransactionLogHeader.createNew(
+      tran.userId, tran.currency.id,
+      tran.total, tran.taxAmount,
+      TransactionType.NORMAL,
+      tran.now
+    )
+    
+    tran.itemTotal.bySite.foreach { it =>
+      val site = it._1
+      val cartTotal = it._2
+
+      saveSiteTotal(header, site, tran)
+    }
+  }
+
+  def saveSiteTotal(
+    header: TransactionLogHeader,
+    site: Site,
+    tran: Transaction
+  )(implicit conn: Connection) {
+    val siteLog = TransactionLogSite.createNew(
+      header.id.get, site.id.get,
+      tran.bySite(site).total,
+      tran.bySite(site).taxAmount
+    )
+
+    saveShippingTotal(siteLog, tran.bySite(site))
+    saveTax(siteLog, tran.bySite(site))
+  }
+
+  def saveShippingTotal(
+    siteLog: TransactionLogSite, tran: Transaction
+  )(implicit conn: Connection) {
+    tran.shippingTotal.table.foreach { e =>
+      TransactionLogShipping.createNew(
+        siteLog.id.get, e.boxTotal, tran.shippingAddress.id.get, e.itemClass, e.shippingBox.boxSize, e.boxTaxInfo.taxId
+      )
+    }
+  }
+
+  def saveTax(
+    siteLog: TransactionLogSite, tran: Transaction
+  )(implicit conn: Connection) {
+    val taxTable = tran.shippingTotal.taxHistoryById ++ tran.itemTotal.taxHistoryById
+
+    taxTable.foreach { e =>
+      val taxId = e._1
+      val taxHistory = e._2
+
+      val targetAmount = tran.itemTotal.sumByTaxId(taxId) + tran.shippingTotal.sumByTaxId(taxId)
+      val taxAmount = taxHistory.taxAmount(targetAmount)
+
+      TransactionLogTax.createNew(
+        siteLog.id.get, taxHistory.id.get, taxId, taxHistory.taxType,
+        taxHistory.rate, targetAmount, taxAmount
+      )
+    }
+  }
+
+  def saveItem(
+    siteLog: TransactionLogSite, cart: ShoppingCartTotal
+  )(implicit conn: Connection) {
+    cart.table.foreach { e =>
+      TransactionLogItem.createNew(
+        siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
+        e.quantity, e.itemPrice
+      )
+    }
+  }
 }

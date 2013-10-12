@@ -144,13 +144,17 @@ class TransactionSpec extends Specification {
             header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
           )
 
-          val item = TransactionLogItem.createNew(
-            tranSite.id.get, 1234L, 234L, BigDecimal(456)
+          val cat = Category.createNew(Map(LocaleInfo.Ja -> "Category"))
+          val item = Item.createNew(cat)
+
+          val itemLog = TransactionLogItem.createNew(
+            tranSite.id.get, item.id.get, 1234L, 234L, BigDecimal(456)
           )
 
           val list = TransactionLogItem.list()
           list.size === 1
-          list(0) === item
+          list(0) === itemLog
+          list(0).itemId === item.id.get
         }
       }
     }
@@ -209,8 +213,8 @@ class TransactionSpec extends Specification {
           val shippingTotal = ShippingFeeHistory.feeBySiteAndItemClass(
             CountryCode.JPN, JapanPrefecture.東京都.code,
             ShippingFeeEntries()
-              .add(site1.id.get, itemClass1, 3)
-              .add(site2.id.get, itemClass1, 5)
+              .add(site1, itemClass1, 3)
+              .add(site2, itemClass1, 5)
           )
 
 

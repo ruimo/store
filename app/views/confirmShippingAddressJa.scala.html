@@ -52,7 +52,7 @@
   }
 
   <h1>送料</h1>
-  @tran.shippingTotal.table.map { e =>
+  @tran.shippingTotal.bySite.map { e =>
     <h2 class="shippingSiteName">@e._1.name</h2>
     <table class="shipping">
       <tr class="itemTableHeader">
@@ -62,13 +62,15 @@
         <th>金額</th>
       </tr>
 
-      @e._2.map { e2 =>
-        <tr class="shippingTableBody">
-          <td class="boxName">@e2._2.shippingBox.boxName</td>
-          <td class="boxUnitPrice" style="text-align: right;">@amount(e2._2.boxUnitPrice)</td>
-          <td class="boxQuantity" style="text-align: right;">@e2._2.boxQuantity 個</td>
-          <td class="boxPrice" style="text-align: right;">@amount(e2._2.boxTotal)</td>
-        </tr>
+      @e._2.byItemClass.values.map { e2 =>
+        @e2.table.map { e3 =>
+          <tr class="shippingTableBody">
+            <td class="boxName">@e3.shippingBox.boxName</td>
+            <td class="boxUnitPrice" style="text-align: right;">@amount(e3.boxUnitPrice)</td>
+            <td class="boxQuantity" style="text-align: right;">@e3.boxQuantity 個</td>
+            <td class="boxPrice" style="text-align: right;">@amount(e3.boxTotal)</td>
+          </tr>
+        }
       }
     </table>
   }

@@ -10,7 +10,13 @@ import collection.immutable.IntMap
 import java.sql.Connection
 import play.api.i18n.Lang
 
-case class Site(id: Pk[Long] = NotAssigned, localeId: Long, name: String) extends NotNull
+case class Site(
+  id: Pk[Long] = NotAssigned, localeId: Long, name: String
+) extends NotNull with Ordered[Site] {
+  def compare(that: Site) = {
+    this.name.compare(that.name)
+  }
+}
 
 object Site {
   val simple = {

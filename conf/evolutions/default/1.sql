@@ -285,6 +285,7 @@ create sequence transaction_shipping_seq start with 1000;
 create table transaction_item (
   transaction_item_id bigint not null,
   transaction_site_id bigint not null references transaction_site on delete cascade,
+  item_id bigint not null,
   item_price_history_id bigint not null,
   quantity integer not null,
   amount decimal(15,2) not null,

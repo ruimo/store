@@ -11,6 +11,7 @@ import collection.immutable.{LongMap, HashSet, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
+import collection.mutable.ListBuffer
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -56,12 +57,13 @@ case class ShoppingCartTotal(
     }
   }
   lazy val taxAmount: BigDecimal = taxByType.values.foldLeft(BigDecimal(0)){_ + _}
-  lazy val bySite: Map[Site, ShoppingCartTotal] = {
-    table.foldLeft(HashMap[Site, ShoppingCartTotal]().withDefaultValue(ShoppingCartTotal())) { (map, e) =>
-      map.updated(e.site, map(e.site) + e)
-    }
-  }
-
+  lazy val bySite: Map[Site, ShoppingCartTotal] =
+    table.foldLeft(
+      HashMap[Site, Vector[ShoppingCartTotalEntry]]()
+        .withDefaultValue(Vector[ShoppingCartTotalEntry]())
+    ) { (map, e) =>
+      map.updated(e.site, map(e.site).+:(e))
+    }.mapValues(e => ShoppingCartTotal(e.toSeq))
   def apply(index: Int): ShoppingCartTotalEntry = table(index)
 }
 

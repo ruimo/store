@@ -7,8 +7,11 @@ import scala.language.postfixOps
 import collection.immutable.{TreeMap, LongMap, HashMap, IntMap}
 import java.sql.Connection
 import collection.mutable
+import collection.mutable.ListBuffer
 
-case class ShippingTotalEntry(
+case class ShippingTotalEntry (
+  site: Site,
+  itemClass: Long,
   shippingBox: ShippingBox,
   shippingFee: ShippingFee,
   itemQuantity: Int,
@@ -21,28 +24,27 @@ case class ShippingTotalEntry(
 }
 
 case class ShippingTotal(
-  // Site, ItemClass, ShippingTotalEntry
-  table: Map[Site, Map[Long, ShippingTotalEntry]],
-  boxQuantity: Int,
-  boxTotal: BigDecimal
+  table: Seq[ShippingTotalEntry] = List()
 ) extends NotNull {
+  lazy val size = table.size
+  lazy val boxQuantity = table.foldLeft(0)(_ + _.boxQuantity)
+  lazy val boxTotal = table.foldLeft(BigDecimal(0))(_ + _.boxTotal)
   lazy val sumByTaxId: Map[Long, BigDecimal] = {
     var sumById = LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
-    table.values.foreach { map => map.values.foreach { e => 
+    table.foreach { e =>
       val taxId = e.boxTaxInfo.taxId
       sumById += taxId -> (sumById(taxId) + e.boxTotal)
-    }}
+    }
     sumById
   }
-
   lazy val taxByType: Map[TaxType, BigDecimal] = {
     var hisById = LongMap[TaxHistory]()
-    table.values.foreach { map => map.values.foreach { e =>
+    table.foreach { e =>
       val taxId = e.boxTaxInfo.taxId
       if (! hisById.contains(taxId)) {
         hisById += taxId -> e.boxTaxInfo
       }
-    }}
+    }
 
     sumByTaxId.foldLeft(Map[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
       (sum, e) => {
@@ -51,14 +53,26 @@ case class ShippingTotal(
       }
     }
   }
-
-  lazy val taxHistoryById: LongMap[TaxHistory] = table.values.foldLeft(LongMap[TaxHistory]()) {
-    (sum, e) => e.values.foldLeft(sum) {
-      (sum2, e2) =>
-        val taxHistory = e2.boxTaxInfo
-        sum2.updated(taxHistory.taxId, taxHistory)
-    }
+  lazy val taxAmount = taxByType(TaxType.INNER_TAX) + taxByType(TaxType.OUTER_TAX)
+  lazy val taxHistoryById: LongMap[TaxHistory] = table.foldLeft(LongMap[TaxHistory]()) {
+    (sum, e) =>
+      val taxHistory = e.boxTaxInfo
+      sum.updated(taxHistory.taxId, taxHistory)
   }
+  lazy val bySite: Map[Site, ShippingTotal] =
+    table.foldLeft(
+      TreeMap[Site, Vector[ShippingTotalEntry]]()
+        .withDefaultValue(Vector[ShippingTotalEntry]())
+    ) { (map, e) =>
+      map.updated(e.site, map(e.site).+:(e))
+    }.mapValues(e => ShippingTotal(e.toSeq))
+  lazy val byItemClass: Map[Long, ShippingTotal] =
+    table.foldLeft(
+      TreeMap[Long, Vector[ShippingTotalEntry]]()
+        .withDefaultValue(Vector[ShippingTotalEntry]())
+    ) { (map, e) =>
+      map.updated(e.itemClass, map(e.itemClass).+:(e))
+    }.mapValues(e => ShippingTotal(e.toSeq))
 }
 
 case class ShippingBox(
@@ -74,15 +88,15 @@ case class ShippingFeeHistory(
 ) extends NotNull
 
 case class ShippingFeeEntries(
-  // siteId, itemClass, quantity
-  bySiteAndItemClass: Map[Long, Map[Long, Int]] = new TreeMap[Long, Map[Long, Int]]
+  // site, itemClass, quantity
+  bySiteAndItemClass: Map[Site, Map[Long, Int]] = new HashMap[Site, Map[Long, Int]]
 ) {
-  def add(siteId: Long, itemClass: Long, quantity: Int): ShippingFeeEntries = ShippingFeeEntries(
-    bySiteAndItemClass.get(siteId) match {
+  def add(site: Site, itemClass: Long, quantity: Int): ShippingFeeEntries = ShippingFeeEntries(
+    bySiteAndItemClass.get(site) match {
       case None =>
-        bySiteAndItemClass + (siteId -> (LongMap(itemClass -> quantity).withDefaultValue(0)))
+        bySiteAndItemClass + (site -> (LongMap(itemClass -> quantity).withDefaultValue(0)))
       case Some(longMap) =>
-        bySiteAndItemClass + (siteId -> longMap.updated(itemClass, longMap(itemClass) + quantity))
+        bySiteAndItemClass + (site -> longMap.updated(itemClass, longMap(itemClass) + quantity))
     }
   )
 }
@@ -298,19 +312,16 @@ object ShippingFeeHistory {
     case box~fee => (box, fee)
   }
 
-  // siteId -> (ShippingBox, ShippingFee, quantity, boxCount, boxFee)
   def feeBySiteAndItemClass(
     countryCode: CountryCode, locationCode: Int, entries: ShippingFeeEntries,
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
   ): ShippingTotal = {
-    var map = new HashMap[Site, Map[Long, ShippingTotalEntry]]
-    var totalQuantity = 0
-    var total = BigDecimal(0)
+    var result = List[ShippingTotalEntry]()
 
     entries.bySiteAndItemClass.foreach { t =>
-      val siteId = t._1
+      val site = t._1
       val quantityByItemClass = t._2
       var longMap: Map[Long, (ShippingBox, ShippingFee, Int)] = LongMap()
 
@@ -325,41 +336,38 @@ object ShippingFeeHistory {
       ).on(
         'countryCode -> countryCode.code,
         'locationCode -> locationCode,
-        'siteId -> siteId
+        'siteId -> site.id.get
       ).as(
         withBoxFee *
       )
       
-      if (list.isEmpty) throw new CannotShippingException(siteId, locationCode)
+      if (list.isEmpty) throw new CannotShippingException(site, locationCode)
       val boxesByItemClass = list.map { e => (e._1.itemClass -> e) }.toMap
 
       quantityByItemClass.foreach { e =>
         val itemClass = e._1
+        val quantity = e._2
 
         boxesByItemClass.get(itemClass) match {
-          case None => throw new CannotShippingException(siteId, locationCode, itemClass)
-          case Some(box) => longMap += (itemClass -> (box._1, box._2, e._2))
+          case None => throw new CannotShippingException(site, locationCode, itemClass)
+          case Some(box) => longMap += (itemClass -> (box._1, box._2, quantity))
         }
       }
 
-      val price = addPrice(longMap, now)
-      map += (Site(siteId) -> price._1)
-      totalQuantity += price._2
-      total += price._3
+      result ++= addPrice(site, longMap, now)
     }
 
-    ShippingTotal(map, totalQuantity, total)
+    ShippingTotal(result)
   }
 
   def addPrice(
+    site: Site,
     map: Map[Long, (ShippingBox, ShippingFee, Int)], // The key is itemClass.
     now: Long
   )(
     implicit conn: Connection
-  ): (Map[Long, ShippingTotalEntry], Int, BigDecimal) = {
-    var totalQuantity = 0
-    var total = BigDecimal(0)
-    var ret: Map[Long, ShippingTotalEntry] = LongMap()
+  ): Seq[ShippingTotalEntry] = {
+    val ret = ListBuffer[ShippingTotalEntry]()
 
     map.foreach { e =>
       val quantity = e._2._3
@@ -373,13 +381,15 @@ object ShippingFeeHistory {
         )
         case Some(boxFeeHistory) => {
           val taxHistory = TaxHistory.at(boxFeeHistory.taxId)
-          ret += (e._1 -> ShippingTotalEntry(e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, taxHistory))
-          totalQuantity += boxCount
-          total += boxFeeHistory.fee * boxCount;
+          ret.append(
+            ShippingTotalEntry(
+              site, e._1, e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, taxHistory
+            )
+          )
         }
       }
     }
 
-    (ret, totalQuantity, total)
+    ret
   }
 }

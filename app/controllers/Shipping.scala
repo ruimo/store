@@ -95,7 +95,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       }
       catch {
         case e: CannotShippingException => {
-          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.siteId, e.itemClass))
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
         }
       }
     }
@@ -110,7 +110,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         case None => true
         case Some(itemClass) =>
           e.isCannotShip(
-            item.site.id.get,
+            item.site,
             addr.prefecture.code,
             itemClass.metadata
           )
@@ -125,7 +125,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       CountryCode.JPN, addr.prefecture.code,
       cart.table.foldLeft(ShippingFeeEntries()) {
         (sum, e) => sum.add(
-          e.shoppingCartItem.siteId,
+          e.site,
           e.siteItemNumericMetadata.get(SiteItemNumericMetadataType.SHIPPING_SIZE).map(_.metadata).getOrElse(1L),
           e.shoppingCartItem.quantity
         )
@@ -145,12 +145,14 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
-        Transaction(login.userId, currency, cart, addr, shippingFee(addr, cart)).save()
+        new TransactionPersister().persist(
+          Transaction(login.userId, currency, cart, addr, shippingFee(addr, cart))
+        )
         Ok("save")
       }
       catch {
         case e: CannotShippingException => {
-          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.siteId, e.itemClass))
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
         }
       }
     }

@@ -213,72 +213,78 @@ class ShippingSpec extends Specification {
           )
 
           val map1 = ShippingFeeHistory.feeBySiteAndItemClass(
-            CountryCode.JPN, JapanPrefecture.東京都.code, ShippingFeeEntries()
-            .add(site1.id.get, itemClass1, 7)
-            .add(site1.id.get, itemClass1, 8)
-            .add(site1.id.get, itemClass1, 4),
+            CountryCode.JPN, JapanPrefecture.東京都.code, 
+            ShippingFeeEntries()
+              .add(site1, itemClass1, 7)
+              .add(site1, itemClass1, 8)
+              .add(site1, itemClass1, 4),
             date("2013-12-30").getTime
-          ).table
+          )
 
           map1.size === 1
-          map1(site1).size === 1
-          val info1 = map1(site1)(itemClass1)
+          val bySite1 = map1.bySite(site1)
+          bySite1.table.size === 1
+          val info1 = bySite1.byItemClass(itemClass1).table(0)
           info1.shippingBox.boxName === "小箱1"
           info1.itemQuantity === 19
           info1.boxQuantity === 2
           info1.boxUnitPrice === history1_1_tokyo_2.fee
 
           val map2 = ShippingFeeHistory.feeBySiteAndItemClass(
-            CountryCode.JPN, JapanPrefecture.東京都.code, ShippingFeeEntries()
-            .add(site1.id.get, itemClass1, 7)
-            .add(site1.id.get, itemClass1, 8)
-            .add(site1.id.get, itemClass1, 4)
-            .add(site1.id.get, itemClass2, 4),
+            CountryCode.JPN, JapanPrefecture.東京都.code, 
+            ShippingFeeEntries()
+              .add(site1, itemClass1, 7)
+              .add(site1, itemClass1, 8)
+              .add(site1, itemClass1, 4)
+              .add(site1, itemClass2, 4),
             date("2013-12-31").getTime
-          ).table
+          )
 
-          map2.size === 1
-          map2(site1).size === 2
-          val info2 = map2(site1)(itemClass2)
+          map2.size === 2
+          val bySite2 = map2.bySite(site1)
+          bySite2.size === 2
+          val info2 = bySite2.byItemClass(itemClass2).table(0)
           info2.shippingBox.boxName === "中箱1"
           info2.itemQuantity === 4
           info2.boxQuantity === 1
           info2.boxUnitPrice === history1_2_tokyo_1.fee
 
           val map3 = ShippingFeeHistory.feeBySiteAndItemClass(
-            CountryCode.JPN, JapanPrefecture.埼玉県.code, ShippingFeeEntries()
-            .add(site1.id.get, itemClass1, 7)
-            .add(site1.id.get, itemClass1, 8)
-            .add(site1.id.get, itemClass1, 4)
-            .add(site1.id.get, itemClass2, 4)
-            .add(site2.id.get, itemClass1, 20)
-            .add(site2.id.get, itemClass1, 1)
-            .add(site2.id.get, itemClass2, 6),
+            CountryCode.JPN, JapanPrefecture.埼玉県.code, 
+            ShippingFeeEntries()
+              .add(site1, itemClass1, 7)
+              .add(site1, itemClass1, 8)
+              .add(site1, itemClass1, 4)
+              .add(site1, itemClass2, 4)
+              .add(site2, itemClass1, 20)
+              .add(site2, itemClass1, 1)
+              .add(site2, itemClass2, 6),
             date("2013-12-31").getTime
-          ).table
+          )
 
-          map3.size === 2
-          map3(site1).size === 2
-          val info3 = map3(site1)(itemClass1)
+          map3.size === 4
+          val bySite3 = map3.bySite(site1)
+          bySite3.size === 2
+          val info3 = bySite3.byItemClass(itemClass1).table(0)
           info3.shippingBox.boxName === "小箱1"
           info3.itemQuantity === 19
           info3.boxQuantity === 2
           info3.boxUnitPrice === history1_1_saitama_1.fee
 
-          val info4 = map3(site1)(itemClass2)
+          val info4 = bySite3.byItemClass(itemClass2).table(0)
           info4.shippingBox.boxName === "中箱1"
           info4.itemQuantity === 4
           info4.boxQuantity === 1
           info4.boxUnitPrice === history1_2_saitama_1.fee
 
-          map3(site2).size === 2
-          val info5 = map3(site2)(itemClass1)
+          map3.bySite(site2).size === 2
+          val info5 = map3.bySite(site2).byItemClass(itemClass1).table(0)
           info5.shippingBox.boxName === "小箱2"
           info5.itemQuantity === 21
           info5.boxQuantity === 3
           info5.boxUnitPrice === history2_1_saitama_1.fee
 
-          val info6 = map3(site2)(itemClass2)
+          val info6 = map3.bySite(site2).byItemClass(itemClass2).table(0)
           info6.shippingBox.boxName === "中箱2"
           info6.itemQuantity === 6
           info6.boxQuantity === 2
@@ -306,26 +312,21 @@ class ShippingSpec extends Specification {
       val taxHis3 = TaxHistory(Id(3L), taxId3, TaxType.INNER_TAX, BigDecimal(8), date("2013-12-31").getTime)
       val taxHis4 = TaxHistory(Id(4L), taxId4, TaxType.NON_TAX, BigDecimal(0), date("2013-12-31").getTime)
 
-
       val total = ShippingTotal(
-        Map(
-          site1 -> Map(
-            itemClass1 -> ShippingTotalEntry(
-              box1, fee1, 3, 1, BigDecimal(12), taxHis1
-            ),
-            itemClass2 -> ShippingTotalEntry(
-              box1, fee2, 5, 2, BigDecimal(23), taxHis2
-            )
+        List(
+          ShippingTotalEntry(
+            site1, itemClass1, box1, fee1, 3, 1, BigDecimal(12), taxHis1
           ),
-          site2 -> Map(
-            itemClass1 -> ShippingTotalEntry(
-              box1, fee3, 2, 3, BigDecimal(34), taxHis3
-            ),
-            itemClass2 -> ShippingTotalEntry(
-              box1, fee4, 4, 4, BigDecimal(45), taxHis4
-            )
+          ShippingTotalEntry(
+            site1, itemClass2, box1, fee2, 5, 2, BigDecimal(23), taxHis2
+          ),
+          ShippingTotalEntry(
+            site2, itemClass1, box1, fee3, 2, 3, BigDecimal(34), taxHis3
+          ),
+          ShippingTotalEntry(
+            site2, itemClass2, box1, fee4, 4, 4, BigDecimal(45), taxHis4
           )
-        ), 0, 0
+        )
       )
 
       val byType = total.taxByType

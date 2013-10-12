@@ -263,22 +263,22 @@ object ConfirmShippingSpec extends Specification {
           .getText === String.format("%1$,d円", Integer.valueOf(3 * 2345))
 
         browser.find("table.shipping", 1)
-          .find("tr.shippingTableBody")
+          .find("tr.shippingTableBody", 0)
           .find("td.boxName")
           .getText === "商店2の箱1"
 
         browser.find("table.shipping", 1)
-          .find("tr.shippingTableBody")
+          .find("tr.shippingTableBody", 0)
           .find("td.boxUnitPrice")
           .getText === String.format("%1$,d円", Integer.valueOf(3333))
 
         browser.find("table.shipping", 1)
-          .find("tr.shippingTableBody")
+          .find("tr.shippingTableBody", 0)
           .find("td.boxQuantity")
           .getText === "10 個"
 
         browser.find("table.shipping", 1)
-          .find("tr.shippingTableBody")
+          .find("tr.shippingTableBody", 0)
           .find("td.boxPrice")
           .getText === String.format("%1$,d円", Integer.valueOf(10 * 3333))
 
