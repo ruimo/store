@@ -144,23 +144,8 @@ class TransactionSpec extends Specification {
             header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
           )
 
-          val addr1 = Address.createNew(
-            countryCode = CountryCode.JPN,
-            firstName = "FirstName",
-            lastName = "LastName",
-            zip1 = "123",
-            prefecture = JapanPrefecture.東京都,
-            address1 = "Address1",
-            address2 = "Address2",
-            tel1 = "12345678"
-          )
-
-          val shipping = TransactionLogShipping.createNew(
-            tranSite.id.get, BigDecimal(9876), addr1.id.get, 1L, 1, 1L
-          )
-
           val item = TransactionLogItem.createNew(
-            header.id.get, 1234L, shipping.id.get, 234L, BigDecimal(456)
+            tranSite.id.get, 1234L, 234L, BigDecimal(456)
           )
 
           val list = TransactionLogItem.list()

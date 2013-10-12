@@ -286,7 +286,6 @@ create table transaction_item (
   transaction_item_id bigint not null,
   transaction_site_id bigint not null references transaction_site on delete cascade,
   item_price_history_id bigint not null,
-  transaction_shipping_id bigint not null references transaction_shipping on delete cascade,
   quantity integer not null,
   amount decimal(15,2) not null,
   constraint pk_transaction_item primary key (transaction_item_id)

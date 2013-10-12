@@ -58,7 +58,6 @@ case class TransactionLogItem(
   id: Pk[Long] = NotAssigned,
   transactionSiteId: Long,
   itemPriceHistoryId: Long,
-  transactionShippingId: Long,
   quantity: Long,
   amount: BigDecimal
 ) extends NotNull
@@ -364,38 +363,35 @@ object TransactionLogItem {
     SqlParser.get[Pk[Long]]("transaction_item.transaction_item_id") ~
     SqlParser.get[Long]("transaction_item.transaction_site_id") ~
     SqlParser.get[Long]("transaction_item.item_price_history_id") ~
-    SqlParser.get[Long]("transaction_item.transaction_shipping_id") ~
     SqlParser.get[Int]("transaction_item.quantity") ~
     SqlParser.get[java.math.BigDecimal]("transaction_item.amount") map {
-      case id~tranId~priceHistoryId~shipId~quantity~amount =>
-        TransactionLogItem(id, tranId, priceHistoryId, shipId, quantity, amount)
+      case id~tranId~priceHistoryId~quantity~amount =>
+        TransactionLogItem(id, tranId, priceHistoryId, quantity, amount)
     }
   }
 
   def createNew(
-    transactionSiteId: Long, itemPriceHistoryId: Long, transactionShippingId: Long, quantity: Long, amount: BigDecimal
+    transactionSiteId: Long, itemPriceHistoryId: Long, quantity: Long, amount: BigDecimal
   )(implicit conn: Connection): TransactionLogItem = {
     SQL(
       """
       insert into transaction_item (
-        transaction_item_id, transaction_site_id, item_price_history_id, transaction_shipping_id,
-        quantity, amount
+        transaction_item_id, transaction_site_id, item_price_history_id, quantity, amount
       ) values (
         (select nextval('transaction_item_seq')),
-        {transactionSiteId}, {itemPriceHistoryId}, {transactionShippingId}, {quantity}, {amount}
+        {transactionSiteId}, {itemPriceHistoryId}, {quantity}, {amount}
       )
       """
     ).on(
       'transactionSiteId -> transactionSiteId,
       'itemPriceHistoryId -> itemPriceHistoryId,
-      'transactionShippingId -> transactionShippingId,
       'quantity -> quantity,
       'amount -> amount.bigDecimal
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogItem(Id(id), transactionSiteId, itemPriceHistoryId, transactionShippingId, quantity, amount)
+    TransactionLogItem(Id(id), transactionSiteId, itemPriceHistoryId, quantity, amount)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogItem] =
