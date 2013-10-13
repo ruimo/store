@@ -59,6 +59,12 @@ case class TransactionLogItem(
   amount: BigDecimal
 ) extends NotNull
 
+case class TransactionShipStatus(
+  id: Pk[Long] = NotAssigned,
+  transactionSiteId: Long,
+  status: TransactionStatus
+) extends NotNull
+
 case class Transaction(
   userId: Long,
   currency: CurrencyInfo,
@@ -404,6 +410,7 @@ case class PersistedTransaction(
 
 case class TransactionSummaryEntry(
   transactionId: Long,
+  transactionSiteId: Long,
   transactionTime: Long,
   totalAmount: BigDecimal,
   address: Address,
@@ -413,9 +420,54 @@ case class TransactionSummaryEntry(
   status: TransactionStatus
 ) extends NotNull
 
+object TransactionShipStatus {
+  val simple = {
+    SqlParser.get[Pk[Long]]("transaction_status.transaction_status_id") ~
+    SqlParser.get[Long]("transaction_status.transaction_site_id") ~
+    SqlParser.get[Int]("transaction_status.status") map {
+      case id~tranSiteId~status => TransactionShipStatus(id, tranSiteId, TransactionStatus.byIndex(status))
+    }
+  }
+  
+  def createNew(
+    transactionSiteId: Long, status: TransactionStatus
+  )(implicit conn: Connection): TransactionShipStatus = {
+    SQL(
+      """
+      insert into transaction_status (
+        transaction_status_id, transaction_site_id, status
+      ) values (
+        (select nextval('transaction_status_seq')),
+        {transactionSiteId}, {status}
+      )
+      """
+    ).on(
+      'transactionSiteId -> transactionSiteId,
+      'status -> status.ordinal
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_status_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionShipStatus(Id(id), transactionSiteId, status)
+  }
+
+  def update(
+    transactionSiteId: Long, status: TransactionStatus
+  )(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_status set status = {status}
+    where transaction_site_id = {tranSiteId}
+    """
+  ).on(
+    'status -> status.ordinal,
+    'tranSiteId -> transactionSiteId
+  ).executeUpdate()
+}
+
 object TransactionSummary {
   val parser = {
     SqlParser.get[Long]("transaction_id") ~
+    SqlParser.get[Long]("transaction_site_id") ~
     SqlParser.get[java.util.Date]("transaction_time") ~
     SqlParser.get[java.math.BigDecimal]("total_amount") ~
     Address.simple ~
@@ -423,9 +475,9 @@ object TransactionSummary {
     SqlParser.get[java.math.BigDecimal]("outer_tax") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
     SqlParser.get[Int]("status") map {
-      case id~time~amount~address~siteName~outerTax~shippingFee~status =>
+      case id~siteId~time~amount~address~siteName~outerTax~shippingFee~status =>
         TransactionSummaryEntry(
-          id, time.getTime, amount, address, siteName, outerTax,
+          id, siteId, time.getTime, amount, address, siteName, outerTax,
           shippingFee, TransactionStatus.byIndex(status)
         )
     }
@@ -438,12 +490,13 @@ object TransactionSummary {
       """
       select 
         transaction_id,
+        base.transaction_site_id,
         transaction_time,
         total_amount,
         address.*,
         site.site_name,
         outer_tax,
-        shipping shipping_fee,
+        shipping,
         coalesce(transaction_status.status, 0) status
       from (
         select            
@@ -516,6 +569,7 @@ class TransactionPersister {
       tran.bySite(site).taxAmount
     )
 
+    TransactionShipStatus.createNew(siteLog.id.get, TransactionStatus.ORDERED)
     saveShippingTotal(siteLog, tran.bySite(site))
     saveTax(siteLog, tran.bySite(site))
     saveItem(siteLog, tran.bySite(site))

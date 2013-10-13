@@ -1,11 +1,61 @@
-@(tran: Seq[TransactionSummaryEntry])(
+@(
+  tran: Seq[TransactionSummaryEntry],
+  myForm: Form[models.ChangeTransactionStatus],
+  statusTable: Seq[(String, String)]
+)(
   implicit lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
 )
 
+@import helper._
+
 @main(Messages("transactionMaintenanceTitle"), Some(loginSession)) {
   <h1>@Messages("transactionMaintenanceTitle")</h1>
+
+  <table class="transactionSummaryTable" border="0">
+    <tr class="transactionSummaryHeader">
+      <th>@Messages("transaction.id")</th>
+      <th>@Messages("transaction.time")</th>
+      <th>@Messages("site")</th>
+      <th>@Messages("transaction.amount")</th>
+      <th>@Messages("shipping.fee")</th>
+      <th>@Messages("shipping.address")</th>
+      <th>@Messages("transaction.status")</th>
+    </tr>
+    @tran.map { e =>
+      <tr class="transactionSummaryBody">
+        <td class="transactionId">@e.transactionId</td>
+        <td class="transactionTime">@yyyymmddhhmmss(e.transactionTime)</td>
+        <td class="site">@e.siteName</td>
+        <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee + e.outerTax)</td>
+        <td class="transactionShipping">@amount(e.shippingFee)</td>
+        <td class="transactionAddress">
+          <table>
+          @addressBody(e.address)
+          </table>
+        </td>
+        <td>
+          @form(action = helper.CSRF(routes.TransactionMaintenance.setStatus)) {
+            @defining(myForm.fill(ChangeTransactionStatus(e.transactionSiteId, e.status.ordinal))) { f =>
+              @inputText(f("transactionSiteId"), 'type -> "hidden", '_showConstraints -> false)(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+
+              @select(
+                f("status"),
+                statusTable,
+                '_showConstraints -> false
+              )(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+              <input type="submit" value=@Messages("update")> 
+            }
+          }
+        </td>
+      </tr>
+    }
+  </table>  
 
   <br>
   <a href="@routes.Admin.index()">

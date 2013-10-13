@@ -393,8 +393,11 @@ create table transaction_status (
   transaction_status_id bigint not null,
   transaction_site_id bigint not null references transaction_site,
   status integer not null,
-  constraint pk_transaction_status primary key(transaction_status_id)
+  constraint pk_transaction_status primary key(transaction_status_id),
+  unique(transaction_site_id)
 );
+
+create sequence transaction_status_seq start with 1000;
 
 # --- !Downs
 
