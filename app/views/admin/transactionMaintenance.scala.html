@@ -1,0 +1,14 @@
+@(tran: Seq[TransactionSummaryEntry])(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("transactionMaintenanceTitle"), Some(loginSession)) {
+  <h1>@Messages("transactionMaintenanceTitle")</h1>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}

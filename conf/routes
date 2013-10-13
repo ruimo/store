@@ -71,6 +71,8 @@ POST    /admin/uploadItemPicture         controllers.ItemPictures.upload(id: Lon
 POST    /admin/remove                    controllers.ItemPictures.remove(id: Long, no: Int)
 GET     /admin/getItemPicture            controllers.ItemPictures.getPicture(id: Long, no: Int)
 
+GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index
+
 GET     /query                           controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
 GET     /addToCart                       controllers.Purchase.addToCart(siteId: Long, itemId: Long)
 GET     /showShoppingCart                controllers.Purchase.showShoppingCart

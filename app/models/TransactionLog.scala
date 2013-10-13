@@ -3,14 +3,10 @@ package models
 import anorm._
 import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
-import model.Until
 import play.api.Play.current
-import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{LongMap, HashMap, IntMap}
 import java.sql.Connection
-import play.api.data.Form
-import org.joda.time.DateTime
 
 case class TransactionLogHeader(
   id: Pk[Long] = NotAssigned,
@@ -32,7 +28,7 @@ case class TransactionLogSite(
   totalAmount: BigDecimal,
   // Outer tax.
   taxAmount: BigDecimal
-)
+) extends NotNull
 
 case class TransactionLogShipping(
   id: Pk[Long] = NotAssigned,
@@ -158,6 +154,18 @@ object TransactionLogHeader {
       simple *
     )
   }
+
+  def apply(id: Long)(implicit conn: Connection): TransactionLogHeader =
+    SQL(
+      """
+      select * from transaction_header
+      where transaction_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
 }
 
 object TransactionLogSite {
@@ -380,21 +388,121 @@ object TransactionLogItem {
     )
 }
 
+case class PersistedTransaction(
+  header: TransactionLogHeader,
+  siteTable: Seq[Site],
+  shippingTable: Map[Long, Seq[TransactionLogShipping]],
+  taxTable: Map[Long, Seq[TransactionLogTax]],
+  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]]
+) extends NotNull {
+  lazy val sites: Map[Long, Site] = siteTable.foldLeft(
+    LongMap[Site]()
+  ) {
+    (map, e) => map.updated(e.id.get, e)
+  }
+}
+
+case class TransactionSummaryEntry(
+  transactionId: Long,
+  transactionTime: Long,
+  totalAmount: BigDecimal,
+  address: Address,
+  siteName: String,
+  outerTax: BigDecimal,
+  shippingFee: BigDecimal,
+  status: TransactionStatus
+) extends NotNull
+
+object TransactionSummary {
+  val parser = {
+    SqlParser.get[Long]("transaction_id") ~
+    SqlParser.get[java.util.Date]("transaction_time") ~
+    SqlParser.get[java.math.BigDecimal]("total_amount") ~
+    Address.simple ~
+    SqlParser.get[String]("site_name") ~
+    SqlParser.get[java.math.BigDecimal]("outer_tax") ~
+    SqlParser.get[java.math.BigDecimal]("shipping") ~
+    SqlParser.get[Int]("status") map {
+      case id~time~amount~address~siteName~outerTax~shippingFee~status =>
+        TransactionSummaryEntry(
+          id, time.getTime, amount, address, siteName, outerTax,
+          shippingFee, TransactionStatus.byIndex(status)
+        )
+    }
+  }
+
+  def list(
+    user: Option[SiteUser], limit: Int = 20, offset: Int = 0
+  )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
+    SQL(
+      """
+      select 
+        transaction_id,
+        transaction_time,
+        total_amount,
+        address.*,
+        site.site_name,
+        outer_tax,
+        shipping shipping_fee,
+        coalesce(transaction_status.status, 0) status
+      from (
+        select            
+          transaction_header.transaction_id,
+          transaction_header.transaction_time,
+          transaction_site.total_amount,
+          transaction_site.site_id,
+          transaction_site.transaction_site_id,
+          min(transaction_shipping.address_id) address_id,
+          sum(transaction_tax.amount) outer_tax,
+          sum(transaction_shipping.amount) shipping
+        from transaction_header
+        inner join transaction_site on
+          transaction_header.transaction_id = transaction_site.transaction_id
+        inner join transaction_shipping on
+          transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
+        inner join transaction_tax on
+          transaction_tax.transaction_site_id = transaction_site.transaction_site_id
+        where transaction_tax.tax_type = 0
+      """ + (user match {
+        case None => ""
+        case Some(siteUser) => "and transaction_site.site_id = " + siteUser.siteId
+      }) +
+      """
+        group by
+          transaction_header.transaction_id,
+          transaction_site.transaction_site_id,
+          transaction_tax.amount
+        order by transaction_header.transaction_time desc, transaction_site.site_id
+        limit {limit} offset {offset}
+      ) base
+      inner join address on address.address_id = base.address_id
+      inner join site on site.site_id = base.site_id
+      left join transaction_status
+        on transaction_status.transaction_site_id = base.transaction_site_id
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
+    ).as(
+      parser *
+    )
+  }
+}
+
 class TransactionPersister {
-  def persist(tran: Transaction)(implicit conn: Connection) {
+  def persist(tran: Transaction)(implicit conn: Connection): Long = {
     val header = TransactionLogHeader.createNew(
       tran.userId, tran.currency.id,
       tran.total, tran.taxAmount,
       TransactionType.NORMAL,
       tran.now
     )
-    
-    tran.itemTotal.bySite.foreach { it =>
-      val site = it._1
-      val cartTotal = it._2
 
+    tran.itemTotal.bySite.keys.foreach { site =>
       saveSiteTotal(header, site, tran)
     }
+
+    header.id.get
   }
 
   def saveSiteTotal(
@@ -410,6 +518,7 @@ class TransactionPersister {
 
     saveShippingTotal(siteLog, tran.bySite(site))
     saveTax(siteLog, tran.bySite(site))
+    saveItem(siteLog, tran.bySite(site))
   }
 
   def saveShippingTotal(
@@ -442,13 +551,106 @@ class TransactionPersister {
   }
 
   def saveItem(
-    siteLog: TransactionLogSite, cart: ShoppingCartTotal
+    siteLog: TransactionLogSite, tran: Transaction
   )(implicit conn: Connection) {
-    cart.table.foreach { e =>
+    tran.itemTotal.table.foreach { e =>
       TransactionLogItem.createNew(
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
         e.quantity, e.itemPrice
       )
     }
+  }
+
+  val siteWithShipping = TransactionLogSite.simple ~ TransactionLogShipping.simple map {
+    case site~shipping => (site, shipping)
+  }
+
+  val siteWithTax = TransactionLogSite.simple ~ TransactionLogTax.simple map {
+    case site~tax => (site, tax)
+  }
+
+  val siteWithItem = ItemName.simple ~ TransactionLogSite.simple ~ TransactionLogItem.simple map {
+    case name~site~item => (name, site, item)
+  }
+
+  def load(tranId: Long, localeInfo: LocaleInfo)(implicit conn: Connection): PersistedTransaction = {
+    val header = TransactionLogHeader(tranId)
+
+    val siteLog = SQL(
+      """
+      select * from transaction_site
+      inner join site on site.site_id = transaction_site.site_id
+      where transaction_site.transaction_id = {id}
+      order by site.site_name
+      """
+    ).on(
+      'id -> tranId
+    ).as(
+      Site.simple *
+    )
+
+    var shippingLog = SQL(
+      """
+      select * from transaction_site
+      inner join transaction_shipping
+        on transaction_site.transaction_site_id = transaction_shipping.transaction_site_id
+      where transaction_site.transaction_id = {id}
+      order by transaction_site.transaction_site_id
+      """
+    ).on(
+      'id -> tranId
+    ).as(
+      siteWithShipping *
+    ).foldLeft(
+      LongMap[List[TransactionLogShipping]]().withDefaultValue(List())
+    ) { (map, e) =>
+      val siteId = e._1.siteId
+      map.updated(siteId, e._2 :: map(siteId))
+    }.mapValues(_.reverse)
+
+    val taxLog = SQL(
+      """
+      select * from transaction_site
+      inner join transaction_tax
+        on transaction_site.transaction_site_id = transaction_tax.transaction_site_id
+      where transaction_site.transaction_id = {id}
+      order by transaction_tax_id
+      """
+    ).on(
+      'id -> tranId
+    ).as(
+      siteWithTax *
+    ).foldLeft(
+      LongMap[List[TransactionLogTax]]().withDefaultValue(List())
+    ) { (map, e) =>
+      val siteId = e._1.siteId
+      map.updated(siteId, e._2 :: map(siteId))
+    }.mapValues(_.reverse)
+
+    val itemLog = SQL(
+      """
+      select * from transaction_site
+      inner join transaction_item
+        on transaction_site.transaction_site_id = transaction_item.transaction_site_id
+      inner join item_name on transaction_item.item_id = item_name.item_id
+      where transaction_site.transaction_id = {id}
+      and item_name.locale_id = {locale}
+      order by transaction_item.transaction_item_id
+      """
+    ).on(
+      'id -> tranId,
+      'locale -> localeInfo.id
+    ).as(
+      siteWithItem *
+    ).foldLeft(
+      LongMap[List[(ItemName, TransactionLogItem)]]().withDefaultValue(List())
+    ) { (map, e) =>
+      val siteId = e._2.siteId
+      map.updated(siteId, ((e._1, e._3)) :: map(siteId))
+    }.mapValues(_.reverse)
+
+    PersistedTransaction(
+      header, siteLog, shippingLog, taxLog, itemLog
+    )
   }
 }

@@ -15,5 +15,5 @@ dist
 /.project
 /RUNNING_PID
 /.settings
-db
-schema
+/db
+/schema

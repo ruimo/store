@@ -390,6 +390,6 @@ object ShippingFeeHistory {
       }
     }
 
-    ret
+    ret.toSeq
   }
 }

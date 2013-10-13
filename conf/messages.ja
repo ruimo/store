@@ -167,3 +167,5 @@ shipping.size=送料サイズ
 stock.count=在庫数
 createSiteOwnerTitle=店舗管理者の作成
 hide=商品を隠す
+end.transaction=取引完了
+transactionMaintenanceTitle=取引管理

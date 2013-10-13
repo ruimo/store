@@ -191,3 +191,27 @@ tr.userTableBody {
   max-width: 80px;
   max-height: 80px;
 }
+
+.itemPrice {
+  text-align: right;
+}
+
+.itemQuantity {
+  text-align: right;
+}
+
+.boxSize {
+  text-align: right;
+}
+
+.boxPrice {
+  text-align: right;
+}
+
+.boxQuantity {
+  text-align: right;
+}
+
+.boxPrice {
+  text-align: right;
+}

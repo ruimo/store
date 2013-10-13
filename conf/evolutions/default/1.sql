@@ -389,6 +389,13 @@ create index ix_shipping_fee_history1 on shipping_fee_history (shipping_fee_id);
 
 create sequence shipping_fee_history_seq start with 1000;
 
+create table transaction_status (
+  transaction_status_id bigint not null,
+  transaction_site_id bigint not null references transaction_site,
+  status integer not null,
+  constraint pk_transaction_status primary key(transaction_status_id)
+);
+
 # --- !Downs
 
 -- No down script. Recreate database before reloading 1.sql.

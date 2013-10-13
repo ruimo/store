@@ -40,6 +40,12 @@
     </a>
   </div>
 
+  <div class="menuItem">
+    <a href="@routes.TransactionMaintenance.index()">
+      @Messages("transactionMaintenanceTitle")
+    </a>
+  </div>
+
   @if(loginSession.isSuperUser) {
     <div class="menuItem">
       <a href="@routes.TaxMaintenance.index()">

@@ -11,7 +11,6 @@ import collection.immutable.{LongMap, HashSet, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
-import collection.mutable.ListBuffer
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -33,6 +32,7 @@ case class ShoppingCartTotal(
 ) extends NotNull {
   def +(e: ShoppingCartTotalEntry) = ShoppingCartTotal(table :+ e)
   lazy val size: Int = table.size
+  lazy val isEmpty: Boolean = table.isEmpty
   lazy val notEmpty: Boolean = (! table.isEmpty)
   lazy val quantity: Int = table.foldLeft(0)(_ + _.quantity)
   lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice) // Excluding outer tax

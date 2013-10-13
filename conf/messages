@@ -137,3 +137,5 @@ shipping.size=Shipping size
 stock.count=Stock count
 createSiteOwnerTitle=Create site owner
 hide=Hide item
+end.transaction=Transaction is compilted
+transactionMaintenanceTitle=Transaction maintenance

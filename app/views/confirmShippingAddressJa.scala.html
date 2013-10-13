@@ -66,9 +66,9 @@
         @e2.table.map { e3 =>
           <tr class="shippingTableBody">
             <td class="boxName">@e3.shippingBox.boxName</td>
-            <td class="boxUnitPrice" style="text-align: right;">@amount(e3.boxUnitPrice)</td>
-            <td class="boxQuantity" style="text-align: right;">@e3.boxQuantity 個</td>
-            <td class="boxPrice" style="text-align: right;">@amount(e3.boxTotal)</td>
+            <td class="boxUnitPrice">@amount(e3.boxUnitPrice)</td>
+            <td class="boxQuantity">@e3.boxQuantity 個</td>
+            <td class="boxPrice">@amount(e3.boxTotal)</td>
           </tr>
         }
       }
@@ -84,8 +84,8 @@
     </tr>
     <tr class="salesTotalBody">
       <td>商品計</td>
-      <td class="itemQuantity" style="text-align: right;">@tran.itemTotal.quantity 個</td>
-      <td class="itemPrice" style="text-align: right;">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
+      <td class="itemQuantity">@tran.itemTotal.quantity 個</td>
+      <td class="itemPrice">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
     <tr class="salesTotalBody">
       <td>送料計</td>
@@ -99,69 +99,7 @@
   </table>
 
   <h1>送付先</h1>
-  <table class="shippingAddress">
-    <tr class="shippingTableHeader">
-      <th colspan="2">送付先</th>
-    </tr>
-    @if(tran.shippingAddress.hasName) {
-      <tr class="shippingTableBody">
-        <td>お名前</td><td>@tran.shippingAddress.firstName @tran.shippingAddress.lastName</td>
-      </tr>
-    }
-    @if(tran.shippingAddress.hasKanaName) {
-      <tr class="shippingTableBody">
-        <td>フリガナ</td><td>@tran.shippingAddress.firstNameKana @tran.shippingAddress.lastNameKana</td>
-      </tr>
-    }
-    @if(tran.shippingAddress.hasZip) {
-      <tr class="shippingTableBody">
-        <td>〒</td><td>@tran.shippingAddress.zip1 - @tran.shippingAddress.zip2</td>
-      </tr>
-    }
-    <tr class="shippingTableBody">
-      <td>ご住所</td>
-      <td>
-        @if(! tran.shippingAddress.prefecture.isUnknown) {
-          @tran.shippingAddress.prefecture<br>
-        }
-
-        @if(!tran.shippingAddress.address1.isEmpty) {
-          @tran.shippingAddress.address1<br>
-        }
-
-        @if(!tran.shippingAddress.address2.isEmpty) {
-          @tran.shippingAddress.address2<br>
-        }
-
-        @if(!tran.shippingAddress.address3.isEmpty) {
-          @tran.shippingAddress.address3<br>
-        }
-
-        @if(!tran.shippingAddress.address4.isEmpty) {
-          @tran.shippingAddress.address4<br>
-        }
-
-        @if(!tran.shippingAddress.address5.isEmpty) {
-          @tran.shippingAddress.address5<br>
-        }
-      </td>
-    </tr>
-    @if(!tran.shippingAddress.tel1.isEmpty) {
-      <tr class="shippingTableBody">
-        <td>TEL</td><td>@tran.shippingAddress.tel1</td>
-      </tr>
-    }
-    @if(!tran.shippingAddress.tel2.isEmpty) {
-      <tr class="shippingTableBody">
-        <td></td><td>@tran.shippingAddress.tel2</td>
-      </tr>
-    }
-    @if(!tran.shippingAddress.tel3.isEmpty) {
-      <tr class="shippingTableBody">
-        <td></td><td>@tran.shippingAddress.tel3</td>
-      </tr>
-    }
-  </table>
+  @address(tran.shippingAddress)
 
   <br>
   <a href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>

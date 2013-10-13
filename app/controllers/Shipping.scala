@@ -142,17 +142,32 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   )(implicit request: Request[AnyContent], login: LoginSession): Result = {
     DB.withTransaction { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-      val his = ShippingAddressHistory.list(login.userId).head
-      val addr = Address.byId(his.addressId)
-      try {
-        new TransactionPersister().persist(
-          Transaction(login.userId, currency, cart, addr, shippingFee(addr, cart))
-        )
-        Ok("save")
+      if (cart.isEmpty) {
+        logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
+        throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
       }
-      catch {
-        case e: CannotShippingException => {
-          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+      else {
+        val his = ShippingAddressHistory.list(login.userId).head
+        val addr = Address.byId(his.addressId)
+        try {
+          val persister = new TransactionPersister()
+          val tranId = persister.persist(
+            Transaction(login.userId, currency, cart, addr, shippingFee(addr, cart))
+          )
+          ShoppingCartItem.removeForUser(login.userId)
+          val tran = persister.load(tranId, LocaleInfo.getDefault)
+          
+          Ok(
+            views.html.showTransactionJa(
+              tran, Address.byId(tran.shippingTable.head._2.head.addressId)
+            )
+
+          )
+        }
+        catch {
+          case e: CannotShippingException => {
+            Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+          }
         }
       }
     }
