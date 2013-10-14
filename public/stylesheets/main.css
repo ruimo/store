@@ -110,6 +110,11 @@ table.itemTable {
     background-color: DarkGreen;
 }
 
+table.transactionSummaryTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
 table.userTable {
     width: 90%;
     background-color: DarkGreen;
@@ -120,12 +125,21 @@ tr.itemTableHeader {
     color: White;
 }
 
+tr.transactionSummaryHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
 tr.userTableHeader {
     background-color: DarkGreen;
     color: White;
 }
 
 tr.itemTableBody {
+    background-color: white;
+}
+
+tr.transactionSummaryBody {
     background-color: white;
 }
 
@@ -213,5 +227,13 @@ tr.userTableBody {
 }
 
 .boxPrice {
+  text-align: right;
+}
+
+.transactionAmount {
+  text-align: right;
+}
+
+.transactionShipping {
   text-align: right;
 }

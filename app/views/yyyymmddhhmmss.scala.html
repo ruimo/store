@@ -1,0 +1,11 @@
+@(time: Long)(implicit lang: Lang)
+
+@import java.util.Locale
+
+@{
+  lang.toLocale match {
+    case Locale.JAPANESE => "%1$tY/%1$tm/%1$td %1$tH:%1$tM:%1$tS".format(time)
+    case Locale.JAPAN => "%1$tY/%1$tm/%1$td %1$tH:%1$tM:%1$tS".format(time)
+    case _ => "%1$td %1$tb %1$tY %1$tH:%1$tM:%1$tS".format(time)
+  }
+}
