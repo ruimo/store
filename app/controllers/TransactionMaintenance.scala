@@ -28,9 +28,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     DB.withConnection { implicit conn =>
       Ok(
         views.html.admin.transactionMaintenance(
-          TransactionSummary.list(
-            if (login.isAdmin) None else login.siteUser
-          ),
+          TransactionSummary.list(login.siteUser),
           changeStatusForm, statusDropDown
         )
       )
