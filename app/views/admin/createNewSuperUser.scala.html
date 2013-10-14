@@ -3,7 +3,8 @@
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
-  request: RequestHeader
+  request: RequestHeader,
+  loginSession: LoginSession
 )
 
 @import helper._
