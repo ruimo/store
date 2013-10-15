@@ -73,6 +73,7 @@ GET     /admin/getItemPicture            controllers.ItemPictures.getPicture(id:
 
 GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index
 POST    /admin/setStatus                 controllers.TransactionMaintenance.setStatus
+GET     /admin/transactionDetail         controllers.TransactionMaintenance.detail(tranSiteId: Long)
 
 GET     /query                           controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
 GET     /addToCart                       controllers.Purchase.addToCart(siteId: Long, itemId: Long)

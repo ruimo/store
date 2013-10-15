@@ -52,10 +52,14 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       },
       newStatus => {
         DB.withConnection { implicit conn =>
-          newStatus.save()
+          newStatus.save(login.siteUser)
           Redirect(routes.TransactionMaintenance.index)
         }
       }
     )
+  }}
+
+  def detail(tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    Ok("")
   }}
 }

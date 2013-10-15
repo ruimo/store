@@ -316,6 +316,7 @@ class TransactionSpec extends Specification {
 
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val summary1 = TransactionSummary.list(Some(siteUser1))
+println("summary = " + summary1)
           summary1.size === 1
           val entry1 = summary1.head
           entry1.transactionId === tranNo
@@ -340,7 +341,67 @@ class TransactionSpec extends Specification {
           entry2.shippingFee === BigDecimal(2345)
           entry2.status === TransactionStatus.ORDERED
         }
-      }      
+      }
+    }
+
+    "Site owners cannot modify transaction status of other site owneres." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val currency1 = CurrencyInfo.Jpy
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN
+          )
+          val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
+          val user2 = StoreUser.create(
+            "userName2", "firstName2", Some("middleName2"), "lastName2", "email2",
+            1L, 2L, UserRole.ADMIN
+          )
+          val siteUser2 = SiteUser.createNew(user2.id.get, site2.id.get)
+
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+
+          val tranSite1 = TransactionLogSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
+          val tranSite2 = TransactionLogSite.createNew(
+            header.id.get, site2.id.get, BigDecimal(345), BigDecimal(456)
+          )
+
+          val ship1 = TransactionShipStatus.createNew(
+            tranSite1.id.get, TransactionStatus.ORDERED
+          )
+          val ship2 = TransactionShipStatus.createNew(
+            tranSite2.id.get, TransactionStatus.ORDERED
+          )
+
+          TransactionShipStatus(ship1.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+
+          TransactionShipStatus.update(
+            Some(siteUser1), tranSite2.id.get, TransactionStatus.CANCELED
+          )
+
+          TransactionShipStatus(ship1.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+
+          TransactionShipStatus.update(
+            Some(siteUser1), tranSite1.id.get, TransactionStatus.CANCELED
+          )
+
+          TransactionShipStatus(ship1.id.get).status === TransactionStatus.CANCELED
+          TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+        }
+      }
     }
   }
 }

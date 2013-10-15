@@ -20,16 +20,24 @@
       <th>@Messages("site")</th>
       <th>@Messages("transaction.amount")</th>
       <th>@Messages("shipping.fee")</th>
+      <th>@Messages("buyer")</th>
       <th>@Messages("shipping.address")</th>
       <th>@Messages("transaction.status")</th>
     </tr>
     @tran.map { e =>
       <tr class="transactionSummaryBody">
-        <td class="transactionId">@e.transactionId</td>
+        <td class="transactionId">
+          <a href="@routes.TransactionMaintenance.detail(e.transactionSiteId)">
+            @e.transactionId
+          </a>
+        </td>
         <td class="transactionTime">@yyyymmddhhmmss(e.transactionTime)</td>
         <td class="site">@e.siteName</td>
         <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee + e.outerTax)</td>
         <td class="transactionShipping">@amount(e.shippingFee)</td>
+        <td class="buyer">
+          @{e.buyer.firstName + " " + e.buyer.middleName.getOrElse("") + " " + e.buyer.lastName}
+        </td>
         <td class="transactionAddress">
           <table>
           @addressBody(e.address)
@@ -43,9 +51,7 @@
               )
 
               @select(
-                f("status"),
-                statusTable,
-                '_showConstraints -> false
+                f("status"), statusTable, '_showConstraints -> false
               )(
                 helper.FieldConstructor(simpleField.f), implicitly
               )

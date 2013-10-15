@@ -148,3 +148,4 @@ transaction.status=Status
 transaction.status.ORDERED=Ordered
 transaction.status.SHIPPED=Shipped
 transaction.status.CANCELED=Canceled
+buyer=buyer

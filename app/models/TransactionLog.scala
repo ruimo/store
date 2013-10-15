@@ -417,7 +417,8 @@ case class TransactionSummaryEntry(
   siteName: String,
   outerTax: BigDecimal,
   shippingFee: BigDecimal,
-  status: TransactionStatus
+  status: TransactionStatus,
+  buyer: StoreUser
 ) extends NotNull
 
 object TransactionShipStatus {
@@ -429,6 +430,17 @@ object TransactionShipStatus {
     }
   }
   
+  def apply(id: Long)(implicit conn: Connection): TransactionShipStatus =
+    SQL(
+      """
+      select * from transaction_status where transaction_status_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
   def createNew(
     transactionSiteId: Long, status: TransactionStatus
   )(implicit conn: Connection): TransactionShipStatus = {
@@ -452,12 +464,23 @@ object TransactionShipStatus {
   }
 
   def update(
-    transactionSiteId: Long, status: TransactionStatus
+    siteUser: Option[SiteUser], transactionSiteId: Long, status: TransactionStatus
   )(implicit conn: Connection): Int = SQL(
     """
     update transaction_status set status = {status}
     where transaction_site_id = {tranSiteId}
-    """
+    """ + (
+      siteUser match {
+        case None => ""
+        case Some(u) => "and " + u.siteId + " = " +
+          """
+          (
+            select site_id from transaction_site
+            where transaction_site.transaction_site_id = transaction_status.transaction_site_id
+          )
+          """
+      }
+    )
   ).on(
     'status -> status.ordinal,
     'tranSiteId -> transactionSiteId
@@ -474,11 +497,12 @@ object TransactionSummary {
     SqlParser.get[String]("site_name") ~
     SqlParser.get[java.math.BigDecimal]("outer_tax") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
-    SqlParser.get[Int]("status") map {
-      case id~siteId~time~amount~address~siteName~outerTax~shippingFee~status =>
+    SqlParser.get[Int]("status") ~
+    StoreUser.simple map {
+      case id~siteId~time~amount~address~siteName~outerTax~shippingFee~status~user =>
         TransactionSummaryEntry(
           id, siteId, time.getTime, amount, address, siteName, outerTax,
-          shippingFee, TransactionStatus.byIndex(status)
+          shippingFee, TransactionStatus.byIndex(status), user
         )
     }
   }
@@ -497,7 +521,8 @@ object TransactionSummary {
         site.site_name,
         outer_tax,
         shipping,
-        coalesce(transaction_status.status, 0) status
+        coalesce(transaction_status.status, 0) status,
+        store_user.*
       from (
         select            
           transaction_header.transaction_id,
@@ -505,20 +530,21 @@ object TransactionSummary {
           transaction_site.total_amount,
           transaction_site.site_id,
           transaction_site.transaction_site_id,
+          transaction_header.store_user_id,
           min(transaction_shipping.address_id) address_id,
-          sum(transaction_tax.amount) outer_tax,
+          sum(coalesce(transaction_tax.amount, 0)) outer_tax,
           sum(transaction_shipping.amount) shipping
         from transaction_header
         inner join transaction_site on
           transaction_header.transaction_id = transaction_site.transaction_id
         inner join transaction_shipping on
           transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
-        inner join transaction_tax on
+        left join transaction_tax on
           transaction_tax.transaction_site_id = transaction_site.transaction_site_id
-        where transaction_tax.tax_type = 0
+          and transaction_tax.tax_type = 0
       """ + (user match {
         case None => ""
-        case Some(siteUser) => "and transaction_site.site_id = " + siteUser.siteId
+        case Some(siteUser) => "where transaction_site.site_id = " + siteUser.siteId
       }) +
       """
         group by
@@ -530,8 +556,10 @@ object TransactionSummary {
       ) base
       inner join address on address.address_id = base.address_id
       inner join site on site.site_id = base.site_id
+      inner join store_user on base.store_user_id = store_user.store_user_id
       left join transaction_status
         on transaction_status.transaction_site_id = base.transaction_site_id
+      order by base.transaction_id desc, base.site_id
       """
     ).on(
       'limit -> limit,
