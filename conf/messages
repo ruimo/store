@@ -139,6 +139,7 @@ createSiteOwnerTitle=Create site owner
 hide=Hide item
 end.transaction=Transaction is compilted
 transactionMaintenanceTitle=Transaction maintenance
+transactionDetailTitle=Transaction detail
 transaction.id=Id
 transaction.time=Time
 transaction.amount=Amount

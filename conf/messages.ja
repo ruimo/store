@@ -169,6 +169,7 @@ createSiteOwnerTitle=店舗管理者の作成
 hide=商品を隠す
 end.transaction=取引完了
 transactionMaintenanceTitle=取引管理
+transactionDetailTitle=取引詳細
 transaction.id=Id
 transaction.time=取引時刻
 transaction.amount=合計

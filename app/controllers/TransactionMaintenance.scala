@@ -60,6 +60,13 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   }}
 
   def detail(tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    Ok("")
+    DB.withConnection { implicit conn =>
+      Ok(
+        views.html.admin.transactionDetail(
+          TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), login.siteUser),
+          changeStatusForm, statusDropDown
+        )
+      )
+    }
   }}
 }

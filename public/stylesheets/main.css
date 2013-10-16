@@ -115,6 +115,11 @@ table.transactionSummaryTable {
     background-color: DarkGreen;
 }
 
+table.transactionDetailTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
 table.userTable {
     width: 90%;
     background-color: DarkGreen;
@@ -126,6 +131,11 @@ tr.itemTableHeader {
 }
 
 tr.transactionSummaryHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
+tr.transactionDetailHeader {
     background-color: DarkGreen;
     color: White;
 }

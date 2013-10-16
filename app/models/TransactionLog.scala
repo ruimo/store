@@ -570,6 +570,46 @@ object TransactionSummary {
   }
 }
 
+case class TransactionDetail(
+  itemName: String,
+  unitPrice: BigDecimal,
+  quantity: Int
+) extends NotNull
+
+object TransactionDetail {
+  val parser = {
+    SqlParser.get[String]("item_name.item_name") ~
+    SqlParser.get[Int]("transaction_item.quantity") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_item.amount") map {
+      case name~quantity~amount => TransactionDetail(name, BigDecimal(amount) / quantity, quantity)
+    }
+  }
+
+  def show(
+    tranSiteId: Long, locale: LocaleInfo, user: Option[SiteUser]
+  )(implicit conn: Connection): Seq[TransactionDetail] =
+    SQL(
+      """
+      select * from transaction_item
+      inner join item_name on item_name.item_id = transaction_item.item_id
+      inner join transaction_site on transaction_site.transaction_site_id = transaction_item.transaction_site_id
+      where transaction_item.transaction_site_id = {id}
+      and item_name.locale_id = {locale}
+      """ + (user match {
+        case None => ""
+          case Some(u) => "and transaction_site.site_id = " + u.siteId
+      }) +
+      """
+      order by transaction_item_id
+      """
+    ).on(
+      'id -> tranSiteId,
+      'locale -> locale.id
+    ).as(
+      parser *
+    )
+}
+
 class TransactionPersister {
   def persist(tran: Transaction)(implicit conn: Connection): Long = {
     val header = TransactionLogHeader.createNew(

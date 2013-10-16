@@ -1,0 +1,49 @@
+@(
+  tran: Seq[TransactionDetail],
+  myForm: Form[models.ChangeTransactionStatus],
+  statusTable: Seq[(String, String)]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("transactionDetailTitle"), Some(loginSession)) {
+  <h1>@Messages("transactionDetailTitle")</h1>
+
+  <table class="transactionDetailTable" border="0">
+    <tr class="transactionDetailHeader">
+      <th>@Messages("itemName")</th>
+      <th>@Messages("unitPrice")</th>
+      <th>@Messages("quantity")</th>
+      <th>@Messages("subtotal")</th>
+    </tr>
+    @tran.map { e =>
+      <tr class="transactionSummaryBody">
+        <td class="itemName">
+          @e.itemName
+        </td>
+        <td class="unitPrice">
+          @amount(e.unitPrice)
+         </td>
+        <td class="quantity">
+          @e.quantity
+        </td>
+        <td class="subtotal">
+          @amount(e.unitPrice * e.quantity)
+        </td>
+      </tr>
+    }
+  </table>
+  <br>
+  <a href="@routes.TransactionMaintenance.index()">
+    @Messages("backTo", Messages("transactionMaintenanceTitle"))
+  </a>
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}
+

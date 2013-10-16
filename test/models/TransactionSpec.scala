@@ -316,7 +316,6 @@ class TransactionSpec extends Specification {
 
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val summary1 = TransactionSummary.list(Some(siteUser1))
-println("summary = " + summary1)
           summary1.size === 1
           val entry1 = summary1.head
           entry1.transactionId === tranNo
@@ -400,6 +399,85 @@ println("summary = " + summary1)
 
           TransactionShipStatus(ship1.id.get).status === TransactionStatus.CANCELED
           TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+        }
+      }
+    }
+
+    "Can retrieve transaction item." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val currency1 = CurrencyInfo.Jpy
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN
+          )
+          val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
+
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+
+          val tranSite1 = TransactionLogSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
+          import models.LocaleInfo.{Ja}
+          val tax1 = Tax.createNew
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+          
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+
+          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), date("9999-12-31"))
+          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), date("9999-12-31"))
+
+          val tranItem1 = TransactionLogItem.createNew(
+            tranSite1.id.get, item1.id.get, price1.id.get, 3, BigDecimal(400 * 3)
+          )
+          val tranItem2 = TransactionLogItem.createNew(
+            tranSite1.id.get, item2.id.get, price2.id.get, 5, BigDecimal(700 * 5)
+          )
+
+          val detail = TransactionDetail.show(tranSite1.id.get, Ja, Some(siteUser1))
+          detail.size === 2
+          detail(0).itemName === "杉"
+          detail(0).unitPrice === BigDecimal(400)
+          detail(0).quantity === 3
+
+          detail(1).itemName === "梅"
+          detail(1).unitPrice === BigDecimal(700)
+          detail(1).quantity === 5
+
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val user2 = StoreUser.create(
+            "userName2", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN
+          )
+          val siteUser2 = SiteUser.createNew(user2.id.get, site2.id.get)
+
+          // Other site owner cannot see other owners' transaction.
+          TransactionDetail.show(tranSite1.id.get, Ja, Some(siteUser2)).size === 0
+
+          // Super user can see all transaction.
+          val detail2 = TransactionDetail.show(tranSite1.id.get, Ja, None)
+          detail2.size === 2
+          detail2(0).itemName === "杉"
+          detail2(0).unitPrice === BigDecimal(400)
+          detail2(0).quantity === 3
+
+          detail2(1).itemName === "梅"
+          detail2(1).unitPrice === BigDecimal(700)
+          detail2(1).quantity === 5
         }
       }
     }
