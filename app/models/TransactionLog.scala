@@ -415,7 +415,6 @@ case class TransactionSummaryEntry(
   totalAmount: BigDecimal,
   address: Address,
   siteName: String,
-  outerTax: BigDecimal,
   shippingFee: BigDecimal,
   status: TransactionStatus,
   buyer: StoreUser
@@ -495,13 +494,12 @@ object TransactionSummary {
     SqlParser.get[java.math.BigDecimal]("total_amount") ~
     Address.simple ~
     SqlParser.get[String]("site_name") ~
-    SqlParser.get[java.math.BigDecimal]("outer_tax") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
     SqlParser.get[Int]("status") ~
     StoreUser.simple map {
-      case id~siteId~time~amount~address~siteName~outerTax~shippingFee~status~user =>
+      case id~siteId~time~amount~address~siteName~shippingFee~status~user =>
         TransactionSummaryEntry(
-          id, siteId, time.getTime, amount, address, siteName, outerTax,
+          id, siteId, time.getTime, amount, address, siteName,
           shippingFee, TransactionStatus.byIndex(status), user
         )
     }
@@ -519,7 +517,6 @@ object TransactionSummary {
         total_amount,
         address.*,
         site.site_name,
-        outer_tax,
         shipping,
         coalesce(transaction_status.status, 0) status,
         store_user.*
@@ -532,16 +529,12 @@ object TransactionSummary {
           transaction_site.transaction_site_id,
           transaction_header.store_user_id,
           min(transaction_shipping.address_id) address_id,
-          sum(coalesce(transaction_tax.amount, 0)) outer_tax,
           sum(transaction_shipping.amount) shipping
         from transaction_header
         inner join transaction_site on
           transaction_header.transaction_id = transaction_site.transaction_id
         inner join transaction_shipping on
           transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
-        left join transaction_tax on
-          transaction_tax.transaction_site_id = transaction_site.transaction_site_id
-          and transaction_tax.tax_type = 0
       """ + (user match {
         case None => ""
         case Some(siteUser) => "where transaction_site.site_id = " + siteUser.siteId
@@ -549,8 +542,7 @@ object TransactionSummary {
       """
         group by
           transaction_header.transaction_id,
-          transaction_site.transaction_site_id,
-          transaction_tax.amount
+          transaction_site.transaction_site_id
         order by transaction_header.transaction_time desc, transaction_site.site_id
         limit {limit} offset {offset}
       ) base

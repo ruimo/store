@@ -323,7 +323,6 @@ class TransactionSpec extends Specification {
           entry1.totalAmount === BigDecimal(119 + 1234)
           entry1.address === addr
           entry1.siteName === "商店1"
-          entry1.outerTax === BigDecimal(119 * 5 / 100)
           entry1.shippingFee === BigDecimal(1234)
           entry1.status === TransactionStatus.ORDERED
 
@@ -336,7 +335,6 @@ class TransactionSpec extends Specification {
           entry2.totalAmount === BigDecimal(59 + 2345)
           entry2.address === addr
           entry2.siteName === "商店2"
-          entry2.outerTax === BigDecimal(59 * 5 / 100)
           entry2.shippingFee === BigDecimal(2345)
           entry2.status === TransactionStatus.ORDERED
         }
