@@ -1,10 +1,56 @@
 @(
+  detail: models.ItemDetail
 )(
   implicit lang: Lang,
   request: RequestHeader,
   loginSession: Option[LoginSession]
 )
 
+@itemSubPhoto(i: Int) = {
+  <img class="itemDetailPhotoSub" src="@routes.ItemPictures.getPicture(detail.itemId, i)"
+       onclick='$(".itemDetailPhoto").attr("src", "@routes.ItemPictures.getPicture(detail.itemId, i)");'>
+}
+
 @main(Messages("item.detail"), loginSession) {
+  <div class="itemDetailAll">
+    <div class="itemDetailPicture">
+      <div class="itemDetailPictureMain">
+        <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(detail.itemId, 0)">
+      </div>
+      <div class="itemDetailPictureSub">
+        @{(0 until 5) map { i => itemSubPhoto(i)}}
+      </div>
+    </div>
+
+    <div class="itemDetailBody">
+      <div class="itemDetailItemName">@detail.name</div>
+      <table class="itemDetailMain">
+        @detail.itemNumericMetadata.map { e =>
+          <tr class="itemNumericMetadata">
+            <td>@Messages("itemNumericMetadata" + e._1)</td>
+            <td class="itemNumericMetadata@e._1">@e._2.metadata</td>
+          </tr>
+        }
+
+        <tr class="itemDetailItemPrice">
+          <td>@Messages("price")</td>
+          <td>@amount(detail.price)</td>
+        </tr>
+        <tr class="itemDetailSiteName">
+          <td>@Messages("site")</td>
+          <td>@detail.siteName</td>
+        </tr>
+      </table>
+
+      <div class="itemDetailCartPanel">
+        <button type="button"
+                onclick="location.href='@routes.Purchase.addToCart(detail.siteId, detail.itemId)';">
+          @Messages("purchase")
+        </button>
+      </div>
+
+      <div class="itemDetailDescription">@detail.description</div>
+    </div>
+  </div>
 }
 

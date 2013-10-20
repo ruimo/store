@@ -34,7 +34,9 @@
 
     @list.records.map { e =>
       <tr>
-        <td><img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)"></td>
+        <td>
+          <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)">
+        </td>
         <td>
           <a href="@routes.ItemDetail.show(e._1.id.get, e._4.id.get)">
             @e._2.name

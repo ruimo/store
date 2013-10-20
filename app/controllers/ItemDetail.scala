@@ -11,6 +11,7 @@ import controllers.I18n.I18nAware
 
 object ItemDetail extends Controller with I18nAware with NeedLogin {
   def show(itemId: Long, siteId: Long) = Action { implicit request => DB.withConnection { implicit conn => {
-    Ok("")
+    implicit val login = loginSession(request, conn)
+    Ok(views.html.itemDetail(models.ItemDetail.show(siteId, itemId, LocaleInfo.byLang(lang))))
   }}}
 }

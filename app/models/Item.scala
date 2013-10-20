@@ -602,6 +602,29 @@ object ItemPriceHistory {
     ItemPriceHistory.simple.single
   )
 
+  def atBySiteAndItem(
+    siteId: Long, itemId: Long, now: Long = System.currentTimeMillis
+  )(implicit conn: Connection): ItemPriceHistory =
+    SQL(
+      """
+      select * from item_price_history
+      where item_price_id = (
+        select item_price_id from item_price
+        where item_price.item_id = {itemId} and item_price.site_id = {siteId}
+      )
+      and item_price_history.item_price_id = item_price_id
+      and {now} < valid_until
+      order by valid_until
+      limit 1
+      """
+    ).on(
+      'itemId -> itemId,
+      'siteId -> siteId,
+      'now -> new java.sql.Timestamp(now)
+    ).as(
+      ItemPriceHistory.simple.single
+    )
+
   val withItemPrice = ItemPrice.simple~simple map {
     case price~priceHistory => (price, priceHistory)
   }
@@ -906,3 +929,4 @@ object SiteItem {
     ).executeUpdate()
   }
 }
+

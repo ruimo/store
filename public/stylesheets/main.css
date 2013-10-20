@@ -216,6 +216,22 @@ tr.userTableBody {
   max-height: 80px;
 }
 
+.itemDetailPictureMain {
+  height: 320px;
+}
+
+.itemDetailPhoto {
+  max-width: 320px;
+  max-height: 320px;
+  padding-bottom: 10px;
+}
+
+.itemDetailPhotoSub {
+  max-width: 53px;
+  max-height: 53px;
+  cursor: pointer;
+}
+
 .itemPrice {
   text-align: right;
 }
@@ -246,4 +262,45 @@ tr.userTableBody {
 
 .transactionShipping {
   text-align: right;
+}
+
+.itemDetailPicture {
+  float: left;
+  width: 330px;
+}
+
+.itemDetailBody {
+  margin-left: 330px;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.itemDetailItemName {
+  border-bottom: solid;
+  font-size: 200%;
+  padding: 5px;
+}
+
+.itemDetailItemPrice {
+  text-align: right;
+}
+
+.itemNumericMetadataHEIGHT {
+  text-align: right;
+}
+
+.itemDetailMain {
+  padding: 5px;
+}
+
+.itemDetailDescription {
+  border-top: solid;
+  padding: 5px;
+}
+
+.itemDetailCartPanel {
+  margin: 10px 30px 10px 30px;
+  padding: 10px;
+  border-style: solid;
+  border-width: 1px;
 }
