@@ -2,6 +2,6 @@
 
 db=store_db
 
-for i in `psql -h /tmp $db -t -c "select tablename from pg_tables where schemaname = 'public'"`; do psql -h /tmp $db -c "drop table if exists $i cascade"; done
+for i in `psql -h /tmp $db -t -c "select tablename from pg_tables where schemaname = 'public'"`; do psql -U store_user -h /tmp $db -c "drop table if exists $i cascade"; done
 
-for i in `psql -h /tmp $db -t -c "select relname from pg_class where relkind='S'"`; do psql -h /tmp $db -c "drop sequence $i"; done
+for i in `psql -h /tmp $db -t -c "select relname from pg_class where relkind='S'"`; do psql -U store_user -h /tmp $db -c "drop sequence $i"; done
