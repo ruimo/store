@@ -180,3 +180,5 @@ transaction.status.ORDERED=未発送
 transaction.status.SHIPPED=送付済
 transaction.status.CANCELED=キャンセル
 buyer=お客様名
+item.list=商品リスト
+item.detail=商品詳細

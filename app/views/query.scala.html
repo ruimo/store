@@ -16,7 +16,7 @@
 
 @import helper._
 
-@main("Functional Store", loginSession) {
+@main(Messages("item.list"), loginSession) {
   @helper.form(action=routes.ItemQuery.query(queryString)) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
@@ -35,7 +35,11 @@
     @list.records.map { e =>
       <tr>
         <td><img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)"></td>
-        <td>@e._2.name</td>
+        <td>
+          <a href="@routes.ItemDetail.show(e._1.id.get, e._4.id.get)">
+            @e._2.name
+          </a>
+        </td>
         <td>@e._4.name</td>
         <td>@amount(e._5.unitPrice)</td>
         <td>
