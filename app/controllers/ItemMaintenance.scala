@@ -48,7 +48,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "price" -> bigDecimal.verifying(min(BigDecimal(0))),
-      "description" -> text.verifying(maxLength(500))
+      "description" -> text.verifying(maxLength(2048))
     ) (CreateItem.apply)(CreateItem.unapply)
   )
 
