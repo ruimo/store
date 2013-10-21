@@ -17,8 +17,8 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
   def createUserForm[T <: CreateUser](
-    apply: (String, String, Option[String], String, String, (String, String)) => T,
-    unapply: T => Option[(String, String, Option[String], String, String, (String, String))]
+    apply: (String, String, Option[String], String, String, (String, String), String) => T,
+    unapply: T => Option[(String, String, Option[String], String, String, (String, String), String)]
   )(implicit lang: Lang) = Form(
     mapping(
       "userName" -> text.verifying(userNameConstraint: _*),
@@ -27,11 +27,12 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> email.verifying(emailConstraint: _*),
       "password" -> tuple(
-        "main" -> text.verifying(userNameConstraint: _*),
+        "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
       ).verifying(
         Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
-      )
+      ),
+      "companyName" -> text.verifying(companyNameConstraint: _*)
     )(apply)(unapply)
   )
 

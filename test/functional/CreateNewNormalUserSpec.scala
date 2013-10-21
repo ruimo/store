@@ -8,24 +8,19 @@ import models.{UserRole, StoreUser}
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
+import functional.Helper._
 
-class FirstSetupSpec extends Specification {
-  "FirstSetup" should {
-    "First setup screen is shown if no user found." in {
+class CreateNewNormalUserSpec extends Specification {
+  "CreateNewNormalUser" should {
+    "Can create new user" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
-      }
-    }
-
-    "First setup create user." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn => {
-        implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        val user = loginWithTestUser(browser)
+        browser.goTo("http://localhost:3333" +
+                     controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
+        
+        browser.title === Messages("createNormalUserTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -33,30 +28,31 @@ class FirstSetupSpec extends Specification {
         browser.fill("#email").`with`("ruimo@ruimo.com")
         browser.fill("#password_main").`with`("12345678")
         browser.fill("#password_confirm").`with`("12345678")
+        browser.submit("#registerNormalUser")
 
-        browser.submit("#registerFirstUser")
-        browser.title === Messages("loginTitle")
+        // Waiting next normal user to create.
+        browser.title === Messages("createNormalUserTitle")
+        val user2 = StoreUser.findByUserName("username").get
 
-        val list = StoreUser.all
-        list.size === 1
-        val user = list.head
-
-        user.deleted === false
-        user.email === "ruimo@ruimo.com"
-        user.firstName === "firstname"
-        user.lastName === "lastname"
-        user.userName === "username"
-        user.companyName === Some("companyname")
-        user.userRole === UserRole.ADMIN
-      }}}
+        user2.deleted === false
+        user2.email === "ruimo@ruimo.com"
+        user2.firstName === "firstname"
+        user2.lastName === "lastname"
+        user2.userName === "username"
+        user2.companyName === Some("companyname")
+        user2.userRole === UserRole.NORMAL
+      }}
     }
 
     "Minimum length error." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        val user = loginWithTestUser(browser)
+        browser.goTo("http://localhost:3333" +
+                     controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
+
+        browser.title === Messages("createNormalUserTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
         browser.fill("#lastName").`with`("")
@@ -65,8 +61,9 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345678")
         browser.fill("#companyName").`with`("")
 
-        browser.submit("#registerFirstUser")
-        browser.title === Messages("firstSetupTitle")
+        browser.submit("#registerNormalUser")
+        // Waiting next normal user to create.
+        browser.title === Messages("createNormalUserTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#userName_field dd.error").getText === Messages("error.minLength", 6)
@@ -81,8 +78,11 @@ class FirstSetupSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        val user = loginWithTestUser(browser)
+        browser.goTo("http://localhost:3333" +
+                     controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
+
+        browser.title === Messages("createNormalUserTitle")
         browser.fill("#userName").`with`("userName")
         browser.fill("#firstName").`with`("firstName")
         browser.fill("#lastName").`with`("lastName")
@@ -90,8 +90,9 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_main").`with`("password")
         browser.fill("#password_confirm").`with`("password")
 
-        browser.submit("#registerFirstUser")
-        browser.title === Messages("firstSetupTitle")
+        browser.submit("#registerNormalUser")
+        // Waiting next normal user to create.
+        browser.title === Messages("createNormalUserTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#email_field dd.error").getText === Messages("error.email")
@@ -102,17 +103,22 @@ class FirstSetupSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
-        browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        val user = loginWithTestUser(browser)
+        browser.goTo("http://localhost:3333" +
+                     controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
+
+        browser.title === Messages("createNormalUserTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
+        browser.fill("#companyName").`with`("companyname")
         browser.fill("#email").`with`("ruimo@ruimo.com")
         browser.fill("#password_main").`with`("12345678")
         browser.fill("#password_confirm").`with`("12345679")
+        browser.submit("#registerNormalUser")
 
-        browser.submit("#registerFirstUser")
-        browser.title === Messages("firstSetupTitle")
+        // Waiting next normal user to create.
+        browser.title === Messages("createNormalUserTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#password_confirm_field dd.error").getText === Messages("confirmPasswordDoesNotMatch")
@@ -120,4 +126,3 @@ class FirstSetupSpec extends Specification {
     }
   }
 }
-

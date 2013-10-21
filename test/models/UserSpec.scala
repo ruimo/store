@@ -23,7 +23,7 @@ class UserSpec extends Specification {
         DB.withConnection { implicit conn => {
           StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           StoreUser.count === 1
         }}
@@ -35,12 +35,12 @@ class UserSpec extends Specification {
         DB.withConnection { implicit conn => {
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
 
           val user2 = StoreUser.create(
             "userName2", "firstName2", None, "lastName2", "email2",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, None
           )
 
           StoreUser.findByUserName("userName").get === user1
@@ -54,12 +54,12 @@ class UserSpec extends Specification {
         DB.withConnection { implicit conn =>
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
 
           val user2 = StoreUser.create(
             "userName2", "firstName2", None, "lastName2", "email2",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, None
           )
 
           StoreUser.listUsers().size === 2
@@ -78,12 +78,12 @@ class UserSpec extends Specification {
 
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
 
           val user2 = StoreUser.create(
             "userName2", "firstName2", None, "lastName2", "email2",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, None
           )
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
 

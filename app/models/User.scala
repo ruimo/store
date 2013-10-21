@@ -27,7 +27,8 @@ case class StoreUser(
   passwordHash: Long,
   salt: Long,
   deleted: Boolean,
-  userRole: UserRole
+  userRole: UserRole,
+  companyName: Option[String]
 ) extends NotNull {
   def passwordMatch(password: String): Boolean =
     PasswordHash.generate(password, salt) == passwordHash
@@ -46,10 +47,13 @@ object StoreUser {
     SqlParser.get[Long]("store_user.password_hash") ~
     SqlParser.get[Long]("store_user.salt") ~
     SqlParser.get[Boolean]("store_user.deleted") ~
-    SqlParser.get[Int]("store_user.user_role") map {
-      case id~userName~firstName~middleName~lastName~email~passwordHash~salt~deleted~userRole => StoreUser(
-        id, userName, firstName, middleName, lastName, email, passwordHash, salt, deleted, UserRole.byIndex(userRole)
-      )
+    SqlParser.get[Int]("store_user.user_role") ~
+    SqlParser.get[Option[String]]("store_user.company_name") map {
+      case id~userName~firstName~middleName~lastName~email~passwordHash~salt~deleted~userRole~companyName =>
+        StoreUser(
+          id, userName, firstName, middleName, lastName, email, passwordHash, 
+          salt, deleted, UserRole.byIndex(userRole), companyName
+        )
     }
   }
 
@@ -81,15 +85,17 @@ object StoreUser {
 
   def create(
     userName: String, firstName: String, middleName: Option[String], lastName: String,
-    email: String, passwordHash: Long, salt: Long, userRole: UserRole
+    email: String, passwordHash: Long, salt: Long, userRole: UserRole, companyName: Option[String]
   )(implicit conn: Connection): StoreUser = {
     SQL(
       """
       insert into store_user (
-        store_user_id, user_name, first_name, middle_name, last_name, email, password_hash, salt, deleted, user_role
+        store_user_id, user_name, first_name, middle_name, last_name, email, password_hash, 
+        salt, deleted, user_role, company_name
       ) values (
         (select nextval('store_user_seq')),
-        {user_name}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash}, {salt}, FALSE, {user_role}
+        {user_name}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash},
+        {salt}, FALSE, {user_role}, {company_name}
       )
       """
     ).on(
@@ -100,11 +106,13 @@ object StoreUser {
       'email -> email,
       'password_hash -> passwordHash,
       'salt -> salt,
-      'user_role -> userRole.ordinal
+      'user_role -> userRole.ordinal,
+      'company_name -> companyName
     ).executeUpdate()
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
-    StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash, salt,  false, userRole)
+    StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
+              salt,  false, userRole, companyName)
   }
 
   def withSite(userId: Long)(implicit conn: Connection): (StoreUser, Option[SiteUser], Option[Site]) =

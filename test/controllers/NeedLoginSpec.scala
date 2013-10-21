@@ -16,7 +16,7 @@ class NeedLoginSpec extends Specification {
         DB.withConnection { implicit conn =>
           TestHelper.removePreloadedRecords()
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           
           val now = 234L
@@ -33,7 +33,7 @@ class NeedLoginSpec extends Specification {
         DB.withConnection { implicit conn =>
           TestHelper.removePreloadedRecords()
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
 
           val now = 234L

@@ -42,6 +42,11 @@
     )
 
     @helper.inputText(
+      myForm("companyName"),
+      '_label -> Messages("companyName"), 'size -> 32, 'maxlength -> 32
+    )
+
+    @helper.inputText(
       myForm("email"),
       '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
     )
@@ -57,7 +62,7 @@
       '_error -> myForm.error("password")
     )
 
-    <input type="submit" id="registerSuperUser" value=@Messages("register")>
+    <input type="submit" id="registerSiteOwner" value=@Messages("register")>
   }
 
   <br>

@@ -42,7 +42,7 @@ class AddressSpec extends Specification {
 
         DB.withConnection { implicit conn =>
           val user = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
 
           for (i <- 0 until ShippingAddressHistory.HistoryMaxCount) {
@@ -113,7 +113,7 @@ class AddressSpec extends Specification {
 
         DB.withConnection { implicit conn =>
           val user = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           
           ShippingAddressHistory.createNew(

@@ -23,7 +23,7 @@ class TransactionPersisterSpec extends Specification {
           
           val user = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val site = Site.createNew(LocaleInfo.Ja, "商店1")
           val cat = Category.createNew(Map(LocaleInfo.Ja -> "植木"))

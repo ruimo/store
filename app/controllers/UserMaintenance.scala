@@ -27,7 +27,8 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
         "confirm" -> text
       ).verifying(
         Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
-      )
+      ),
+      "companyName" -> text.verifying(companyNameConstraint: _*)
     )(CreateSiteOwner.fromForm)(CreateSiteOwner.toForm)
   )
 

@@ -32,6 +32,11 @@
     )
 
     @helper.inputText(
+      myForm("companyName"),
+      '_label -> Messages("companyName"), 'size -> 32, 'maxlength -> 32
+    )
+
+    @helper.inputText(
       myForm("email"),
       '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
     )

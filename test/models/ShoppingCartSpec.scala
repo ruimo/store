@@ -26,10 +26,10 @@ class ShoppingCartSpec extends Specification {
           val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           val user2 = StoreUser.create(
-            "name2", "first2", None, "last2", "email2", 987L, 765L, UserRole.NORMAL
+            "name2", "first2", None, "last2", "email2", 987L, 765L, UserRole.NORMAL, None
           )
 
           import models.LocaleInfo.{Ja, En}
@@ -114,7 +114,7 @@ class ShoppingCartSpec extends Specification {
           val tax = Tax.createNew
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
 
           import models.LocaleInfo.{Ja, En}
@@ -150,7 +150,7 @@ class ShoppingCartSpec extends Specification {
           val taxHistory = TaxHistory.createNew(tax1, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           import models.LocaleInfo.{Ja}
           val site1 = Site.createNew(Ja, "商店1")
@@ -201,7 +201,7 @@ class ShoppingCartSpec extends Specification {
           val taxHistory2 = TaxHistory.createNew(tax2, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           import models.LocaleInfo.{Ja}
           val site1 = Site.createNew(Ja, "商店1")
@@ -252,7 +252,7 @@ class ShoppingCartSpec extends Specification {
           val taxHistory2 = TaxHistory.createNew(tax2, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           import models.LocaleInfo.{Ja}
           val site1 = Site.createNew(Ja, "商店1")
@@ -323,7 +323,7 @@ class ShoppingCartSpec extends Specification {
           val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), date("9999-12-31"))
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)

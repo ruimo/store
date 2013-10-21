@@ -24,7 +24,7 @@ class TransactionSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val currency1 = CurrencyInfo.Jpy
           val now = 1234L
@@ -49,7 +49,7 @@ class TransactionSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val currency1 = CurrencyInfo.Jpy
           val now = 1234L
@@ -94,7 +94,7 @@ class TransactionSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val currency1 = CurrencyInfo.Jpy
           val now = 1234L
@@ -130,7 +130,7 @@ class TransactionSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val currency1 = CurrencyInfo.Jpy
           val now = 1234L
@@ -169,7 +169,7 @@ class TransactionSpec extends Specification {
           val taxHistory2 = TaxHistory.createNew(tax2, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
           val user1 = StoreUser.create(
-            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
           )
           import models.LocaleInfo.{Ja}
           val site1 = Site.createNew(Ja, "商店1")
@@ -351,12 +351,12 @@ class TransactionSpec extends Specification {
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val user2 = StoreUser.create(
             "userName2", "firstName2", Some("middleName2"), "lastName2", "email2",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName2")
           )
           val siteUser2 = SiteUser.createNew(user2.id.get, site2.id.get)
 
@@ -410,7 +410,7 @@ class TransactionSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val user1 = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
 
@@ -459,7 +459,7 @@ class TransactionSpec extends Specification {
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
           val user2 = StoreUser.create(
             "userName2", "firstName", Some("middleName"), "lastName", "email",
-            1L, 2L, UserRole.ADMIN
+            1L, 2L, UserRole.ADMIN, Some("companyName")
           )
           val siteUser2 = SiteUser.createNew(user2.id.get, site2.id.get)
 

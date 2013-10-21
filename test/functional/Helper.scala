@@ -10,7 +10,7 @@ object Helper {
   def createTestUser(): StoreUser = DB.withConnection { implicit conn =>
     StoreUser.create(
       "administrator", "Admin", None, "Manager", "admin@abc.com",
-      4151208325021896473L, -1106301469931443100L, UserRole.ADMIN
+      4151208325021896473L, -1106301469931443100L, UserRole.ADMIN, Some("Company1")
     )
   }
 

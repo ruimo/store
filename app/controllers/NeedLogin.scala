@@ -19,6 +19,7 @@ trait NeedLogin extends Controller with HasLogger {
   val firstNameConstraint = List(nonEmpty, maxLength(32))
   val lastNameConstraint = List(nonEmpty, maxLength(32))
   val emailConstraint = List(maxLength(255))
+  val companyNameConstraint = List(nonEmpty, maxLength(32))
 
   val LoginUserKey = "loginUser"
   val SessionTimeout = 5 * 60 * 1000
