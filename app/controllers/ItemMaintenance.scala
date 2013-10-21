@@ -571,7 +571,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         mapping(
           "siteId" -> longNumber,
           "localeId" -> longNumber,
-          "itemDescription" -> text.verifying(nonEmpty, maxLength(255))
+          "itemDescription" -> text.verifying(nonEmpty, maxLength(2048))
         ) (ChangeItemDescription.apply)(ChangeItemDescription.unapply)
       )
     ) (ChangeItemDescriptionTable.apply)(ChangeItemDescriptionTable.unapply)
@@ -581,7 +581,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "siteId" -> longNumber,
       "localeId" -> longNumber,
-      "itemDescription" -> text.verifying(nonEmpty, maxLength(255))
+      "itemDescription" -> text.verifying(nonEmpty, maxLength(2048))
     ) (ChangeItemDescription.apply)(ChangeItemDescription.unapply)
   )
 
