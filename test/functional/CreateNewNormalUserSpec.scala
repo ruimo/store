@@ -38,7 +38,7 @@ class CreateNewNormalUserSpec extends Specification {
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#email_field dd.error").getText === Messages("error.email")
-      }
+      }}
     }
 
     "Confirmation password does not match." in {
