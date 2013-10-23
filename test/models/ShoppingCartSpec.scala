@@ -291,6 +291,7 @@ class ShoppingCartSpec extends Specification {
         }}
       }
     }
+
     "Can calculate total by site." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withConnection { implicit conn => {
@@ -367,6 +368,31 @@ class ShoppingCartSpec extends Specification {
           bySite(site2).table(0) === e2
         }}
       }
+    }
+
+    "Can store shipping date." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          TestHelper.removePreloadedRecords()
+          import LocaleInfo.{Ja, En}
+
+          val site1 = Site.createNew(Ja, "商店1")
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
+          )
+
+          // Insert
+          ShoppingCartShipping.updateOrInsert(user1.id.get, site1.id.get, date("2013-12-31"))
+          date("2013-12-31").getTime === ShoppingCartShipping.find(user1.id.get, site1.id.get)
+
+          // Update
+          ShoppingCartShipping.updateOrInsert(user1.id.get, site1.id.get, date("2013-12-30"))
+          date("2013-12-30").getTime === ShoppingCartShipping.find(user1.id.get, site1.id.get)
+
+          // Clear
+          ShoppingCartShipping.clear(user1.id.get)
+        }
+      }}
     }
   }
 }

@@ -76,6 +76,13 @@ case class ShoppingCartItem(
   siteId: Long, itemId: Long, quantity: Int
 ) extends NotNull
 
+case class ShoppingCartShipping(
+  id: Pk[Long] = NotAssigned,
+  storeUserId: Long,
+  siteId: Long,
+  shippingDate: Long
+) extends NotNull
+
 object ShoppingCartItem {
   val simple = {
     SqlParser.get[Pk[Long]]("shopping_cart_item.shopping_cart_item_id") ~
@@ -199,4 +206,71 @@ object ShoppingCartItem {
     ).on(
       'id -> id
     ).as(simple.single)
+}
+
+object ShoppingCartShipping {
+  val simple = {
+    SqlParser.get[Pk[Long]]("shopping_cart_shipping.shopping_cart_shipping_id") ~
+    SqlParser.get[Long]("shopping_cart_shipping.store_user_id") ~
+    SqlParser.get[Long]("shopping_cart_shipping.site_id") ~
+    SqlParser.get[java.util.Date]("shopping_cart_shipping.shipping_date") map {
+      case id~userId~siteId~shippingDate =>
+        ShoppingCartShipping(id, userId, siteId, shippingDate.getTime)
+    }
+  }
+
+  // Not atomic.
+  def updateOrInsert(userId: Long, siteId: Long, shippingDate: Long)(implicit conn: Connection) {
+    val updateCount = SQL(
+      """
+      update shopping_cart_shipping
+      set shipping_date = {shippingDate}
+      where store_user_id = {userId} and site_id = {siteId}
+      """
+    ).on(
+      'shippingDate -> new java.sql.Timestamp(shippingDate),
+      'userId -> userId,
+      'siteId -> siteId
+    ).executeUpdate()
+
+    if (updateCount == 0) {
+      SQL(
+        """
+        insert into shopping_cart_shipping (
+          shopping_cart_shipping_id, store_user_id, site_id, shipping_date
+        ) values (
+          (select nextval('shopping_cart_shipping_seq')),
+          {userId}, {siteId}, {shippingDate}
+        )
+        """
+      ).on(
+        'shippingDate -> new java.sql.Timestamp(shippingDate),
+        'userId -> userId,
+        'siteId -> siteId
+      ).executeUpdate()
+    }
+  }
+
+  def find(userId: Long, siteId: Long)(implicit conn: Connection): Long =
+    SQL(
+      """
+      select shipping_date from shopping_cart_shipping
+      where store_user_id = {userId} and site_id = {siteId}
+      """
+    ).on(
+      'userId -> userId,
+      'siteId -> siteId
+    ).as(
+      SqlParser.scalar[java.util.Date].single
+    ).getTime
+
+  def clear(userId: Long)(implicit conn: Connection): Unit =
+    SQL(
+      """
+      delete from shopping_cart_shipping
+      where store_user_id = {userId}
+      """
+    ).on(
+      'userId -> userId
+    ).executeUpdate()
 }

@@ -2,6 +2,7 @@ package models
 
 import play.api.db.DB
 import play.api.Play.current
+import org.joda.time.DateTime
 
 case class CreateAddress(
   countryCode: CountryCode,
@@ -21,7 +22,8 @@ case class CreateAddress(
   address5: String,
   tel1: String,
   tel2: String,
-  tel3: String
+  tel3: String,
+  shippingDate: DateTime
 ) extends NotNull {
   lazy val hasName: Boolean = !firstName.isEmpty || !lastName.isEmpty
   lazy val hasKanaName: Boolean = !firstNameKana.isEmpty || !lastNameKana.isEmpty
@@ -57,7 +59,7 @@ case class CreateAddress(
 }
 
 object CreateAddress {
-  def fromAddress(addr: Address) =
+  def fromAddress(addr: Address, shippingDate: DateTime) =
     CreateAddress(
       addr.countryCode,
       addr.firstName,
@@ -76,7 +78,8 @@ object CreateAddress {
       addr.address5,
       addr.tel1,
       addr.tel2,
-      addr.tel3
+      addr.tel3,
+      shippingDate
     )
 
   def apply4Japan(
@@ -94,7 +97,8 @@ object CreateAddress {
     address5: String,
     tel1: String,
     tel2: String,
-    tel3: String
+    tel3: String,
+    shippingDate: DateTime
   ) = CreateAddress(
     CountryCode.JPN,
     firstName,
@@ -113,7 +117,8 @@ object CreateAddress {
     address5,
     tel1,
     tel2,
-    tel3
+    tel3,
+    shippingDate
   )
 
   def unapply4Japan(addr: CreateAddress): Option[(
@@ -122,12 +127,12 @@ object CreateAddress {
     String, String,
     Int,
     String, String, String, String, String,
-    String, String, String
+    String, String, String, DateTime
   )] = Some((addr.firstName, addr.lastName,
              addr.firstNameKana, addr.lastNameKana,
              addr.zip1, addr.zip2,
              addr.prefecture.code,
              addr.address1, addr.address2, addr.address3, addr.address4, addr.address5,
-             addr.tel1, addr.tel2, addr.tel3
+             addr.tel1, addr.tel2, addr.tel3, addr.shippingDate
            ))
 }

@@ -15,6 +15,7 @@ import play.api.i18n.Messages
 import helpers.Enums
 import controllers.I18n.I18nAware
 import java.sql.Connection
+import org.joda.time.DateTime
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   val Zip1Pattern = Pattern.compile("\\d{3}")
@@ -38,7 +39,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       "address5" -> text.verifying(maxLength(256)),
       "tel1" -> text.verifying(Messages("error.number"), z => TelPattern.matcher(z).matches),
       "tel2" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
-      "tel3" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches)
+      "tel3" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
+      "shippingDate" -> jodaDate("yyyy-MM-dd")
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 
@@ -49,7 +51,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       }
       val form = addr match {
         case Some(a) =>
-          jaForm.fill(CreateAddress.fromAddress(a))
+          jaForm.fill(CreateAddress.fromAddress(a, new DateTime().plusDays(3)))
         case None => jaForm
       }
       lang.toLocale match {

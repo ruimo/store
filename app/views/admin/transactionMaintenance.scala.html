@@ -36,6 +36,7 @@
         <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee)</td>
         <td class="transactionShipping">@amount(e.shippingFee)</td>
         <td class="buyer">
+          @{e.buyer.companyName.getOrElse("-")}<br>
           @{e.buyer.firstName + " " + e.buyer.middleName.getOrElse("") + " " + e.buyer.lastName}
         </td>
         <td class="transactionAddress">

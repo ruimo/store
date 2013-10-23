@@ -1,4 +1,4 @@
-# --- First database schema
+# --- 
 
 # --- !Ups
 alter table store_user add company_name varchar(64);
