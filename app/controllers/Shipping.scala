@@ -7,6 +7,7 @@ import play.api.mvc._
 import models._
 import play.api.Play.current
 
+import collection.immutable.LongMap
 import java.util.Locale
 import java.util.regex.Pattern
 import play.api.data.Forms._
@@ -89,12 +90,16 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   def confirmShippingAddressJa = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+      val shipping = cart.sites.foldLeft(LongMap[Long]()) { (sum, e) =>
+        sum.updated(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get))
+      }
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
         Ok(
           views.html.confirmShippingAddressJa(
-            Transaction(login.userId, CurrencyInfo.Jpy, cart, addr, shippingFee(addr, cart))
+            Transaction(login.userId, CurrencyInfo.Jpy, cart, addr, shippingFee(addr, cart)),
+            shipping
           )
         )
       }

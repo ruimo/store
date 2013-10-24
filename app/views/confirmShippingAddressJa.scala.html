@@ -1,5 +1,6 @@
 @(
-  tran: Transaction
+  tran: Transaction,
+  shipping: Map[Long, Long]  // siteId, shippingDate
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -7,6 +8,7 @@
 )
 
 @import helper._
+@import helpers.Formatter.yyyy_mm_dd
 
 @main(Messages("confirm.shipping.address"), Some(loginSession)) {
   <h1>お買い上げ商品</h1>
@@ -73,6 +75,7 @@
         }
       }
     </table>
+    <h3 class="shippingDate">配送希望日: @shippingDate(shipping(e._1.id.get))</h3>
   }
 
   <h1>合計</h1>
