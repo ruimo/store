@@ -14,6 +14,13 @@ import play.api.Play.current
 import java.sql.Connection
 
 trait NeedLogin extends Controller with HasLogger {
+  lazy val cfg = play.api.Play.maybeApplication.map(_.configuration).get
+  lazy val loginTimeoutInMinute = cfg.getString("login.timeout.minute").map {
+    _.toInt
+  }.getOrElse {
+    5
+  }
+
   val userNameConstraint = List(minLength(6), maxLength(24))
   val passwordConstraint = List(minLength(6), maxLength(24))
   val firstNameConstraint = List(nonEmpty, maxLength(32))
@@ -22,7 +29,7 @@ trait NeedLogin extends Controller with HasLogger {
   val companyNameConstraint = List(nonEmpty, maxLength(32))
 
   val LoginUserKey = "loginUser"
-  val SessionTimeout = 5 * 60 * 1000
+  val SessionTimeout = loginTimeoutInMinute * 60 * 1000
 
   val loginForm = Form(
     mapping(
