@@ -7,6 +7,7 @@ import play.api.mvc._
 import models._
 import play.api.Play.current
 
+import collection.immutable.LongMap
 import java.util.Locale
 import java.util.regex.Pattern
 import play.api.data.Forms._
@@ -16,12 +17,14 @@ import helpers.Enums
 import controllers.I18n.I18nAware
 import java.sql.Connection
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   val Zip1Pattern = Pattern.compile("\\d{3}")
   val Zip2Pattern = Pattern.compile("\\d{4}")
   val TelPattern = Pattern.compile("\\d+{1,32}")
   val TelOptionPattern = Pattern.compile("\\d{0,32}")
+  val ShippingDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
 
   val jaForm = Form(
     mapping(
@@ -49,10 +52,11 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val addr: Option[Address] = ShippingAddressHistory.list(login.userId).headOption.map {
         h => Address.byId(h.addressId)
       }
+      val shippingDate = new DateTime().plusDays(3)
       val form = addr match {
         case Some(a) =>
-          jaForm.fill(CreateAddress.fromAddress(a, new DateTime().plusDays(3)))
-        case None => jaForm
+          jaForm.fill(CreateAddress.fromAddress(a, shippingDate))
+        case None => jaForm.bind(Map("shippingDate" -> ShippingDateFormat.print(shippingDate))).discardingErrors
       }
       lang.toLocale match {
         case Locale.JAPANESE =>
@@ -86,12 +90,16 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   def confirmShippingAddressJa = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+      val shipping = cart.sites.foldLeft(LongMap[Long]()) { (sum, e) =>
+        sum.updated(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get))
+      }
       val his = ShippingAddressHistory.list(login.userId).head
       val addr = Address.byId(his.addressId)
       try {
         Ok(
           views.html.confirmShippingAddressJa(
-            Transaction(login.userId, CurrencyInfo.Jpy, cart, addr, shippingFee(addr, cart))
+            Transaction(login.userId, CurrencyInfo.Jpy, cart, addr, shippingFee(addr, cart)),
+            shipping
           )
         )
       }

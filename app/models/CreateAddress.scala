@@ -52,6 +52,10 @@ case class CreateAddress(
         tel3 = this.tel3
       )
 
+      ShoppingCartItem.sites(userId).foreach { siteId =>
+        ShoppingCartShipping.updateOrInsert(userId, siteId, shippingDate.getMillis)
+      }
+
       ShippingAddressHistory.createNew(userId, addr)
       addr
     }

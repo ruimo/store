@@ -146,6 +146,9 @@ object ConfirmShippingSpec extends Specification {
         val cart2 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item2.id.get, 28)
         val cart3 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item3.id.get, 40)
 
+        val cartShipping1 = ShoppingCartShipping.updateOrInsert(user.id.get, site1.id.get, date("2013-12-01"))
+        val cartShipping2 = ShoppingCartShipping.updateOrInsert(user.id.get, site2.id.get, date("2013-12-02"))
+
         browser.goTo(
           "http://localhost:3333" + controllers.routes.Shipping.confirmShippingAddressJa().url + "?lang=" + lang.code
         )
@@ -241,6 +244,10 @@ object ConfirmShippingSpec extends Specification {
           .getText === "商店1"
         browser.find("h2.shippingSiteName", 1)
           .getText === "商店2"
+        browser.find("h3.shippingDate", 0)
+          .getText === "配送希望日: 2013-12-01"
+        browser.find("h3.shippingDate", 1)
+          .getText === "配送希望日: 2013-12-02"
 
         browser.find("table.shipping")
           .find("tr.shippingTableBody", 0)

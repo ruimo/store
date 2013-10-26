@@ -96,6 +96,17 @@ object ShoppingCartItem {
     }
   }
 
+  def sites(userId: Long)(implicit conn: Connection): Seq[Long] = SQL(
+    """
+    select distinct site_id from shopping_cart_item
+    where store_user_id = {userId}
+    """
+  ).on(
+    'userId -> userId
+  ).as(
+    SqlParser.scalar[Long] *
+  )
+
   def addItem(userId: Long, siteId: Long, itemId: Long, quantity: Int)(implicit conn: Connection): ShoppingCartItem = {
     SQL(
       """
