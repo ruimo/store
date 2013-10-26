@@ -114,6 +114,7 @@ size=Size
 item.size.1=Small
 item.size.2=Medium
 item.size.3=Large
+item.size.4=Extra large
 shopping.cart.empty=No items in shopping cart
 outer.tax.amount=Outer tax amount
 userMaintenanceTitle=User Maintenance

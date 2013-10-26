@@ -144,6 +144,7 @@ size=サイズ
 item.size.1=小型
 item.size.2=中型
 item.size.3=大型
+item.size.4=特大
 shopping.cart.empty=ショッピングカートは空です。
 outer.tax.amount=外税額
 userMaintenanceTitle=ユーザ管理
