@@ -76,7 +76,7 @@ class TransactionSpec extends Specification {
           )
 
           val shipping = TransactionLogShipping.createNew(
-            tranSite.id.get, BigDecimal(9876), addr1.id.get, 1L, 1, 1L
+            tranSite.id.get, BigDecimal(9876), addr1.id.get, 1L, 1, 1L, date("2013-05-05")
           )
 
           val list = TransactionLogShipping.list()
@@ -230,10 +230,16 @@ class TransactionSpec extends Specification {
             tel1 = "12345678"
           )
 
+          val shippingDate = ShippingDate(
+            Map(
+              site1.id.get -> ShippingDateEntry(site1.id.get, date("2013-02-03")),
+              site2.id.get -> ShippingDateEntry(site2.id.get, date("2013-05-03"))
+            )
+          )
           val persister = new TransactionPersister
           val tranNo = persister.persist(
             Transaction(user1.id.get, CurrencyInfo.Jpy, cart, addr, 
-                        controllers.Shipping.shippingFee(addr, cart))
+                        controllers.Shipping.shippingFee(addr, cart), shippingDate)
           )
 
           val ptran = persister.load(tranNo, Ja)
@@ -257,6 +263,7 @@ class TransactionSpec extends Specification {
           tranShipping1.itemClass === itemClass1
           tranShipping1.boxSize === 10
           tranShipping1.taxId === tax2.id.get
+          tranShipping1.shippingDate === date("2013-02-03").getTime
 
           ptran.shippingTable(site2.id.get).size === 1
           val tranShipping2 = ptran.shippingTable(site2.id.get).head
@@ -265,6 +272,7 @@ class TransactionSpec extends Specification {
           tranShipping2.itemClass === itemClass1
           tranShipping2.boxSize === 3
           tranShipping2.taxId === tax2.id.get
+          tranShipping2.shippingDate === date("2013-05-03").getTime
 
           ptran.taxTable.size === 2
           val taxTable1 = ptran.taxTable(site1.id.get).foldLeft(LongMap[TransactionLogTax]()) {

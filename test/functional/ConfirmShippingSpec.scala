@@ -245,9 +245,9 @@ object ConfirmShippingSpec extends Specification {
         browser.find("h2.shippingSiteName", 1)
           .getText === "商店2"
         browser.find("h3.shippingDate", 0)
-          .getText === "配送希望日: 2013-12-01"
+          .getText === "配送希望日: 2013年12月01日"
         browser.find("h3.shippingDate", 1)
-          .getText === "配送希望日: 2013-12-02"
+          .getText === "配送希望日: 2013年12月02日"
 
         browser.find("table.shipping")
           .find("tr.shippingTableBody", 0)

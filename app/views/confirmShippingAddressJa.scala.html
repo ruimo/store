@@ -1,6 +1,5 @@
 @(
-  tran: Transaction,
-  shipping: Map[Long, Long]  // siteId, shippingDate
+  tran: Transaction
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -75,7 +74,7 @@
         }
       }
     </table>
-    <h3 class="shippingDate">配送希望日: @shippingDate(shipping(e._1.id.get))</h3>
+    <h3 class="shippingDate">配送希望日: @shippingDate(tran.shippingDate.bySite(e._1).shippingDate)</h3>
   }
 
   <h1>合計</h1>

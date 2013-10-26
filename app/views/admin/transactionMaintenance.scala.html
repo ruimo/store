@@ -18,6 +18,7 @@
       <th>@Messages("transaction.id")</th>
       <th>@Messages("transaction.time")</th>
       <th>@Messages("site")</th>
+      <th>@Messages("shipping.date")</th>
       <th>@Messages("transaction.amount")</th>
       <th>@Messages("shipping.fee")</th>
       <th>@Messages("buyer")</th>
@@ -33,11 +34,13 @@
         </td>
         <td class="transactionTime">@yyyymmddhhmmss(e.transactionTime)</td>
         <td class="site">@e.siteName</td>
+        <td class="shippingDate">@shippingDate(e.shippingDate)</td>
         <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee)</td>
         <td class="transactionShipping">@amount(e.shippingFee)</td>
         <td class="buyer">
           @{e.buyer.companyName.getOrElse("-")}<br>
-          @{e.buyer.firstName + " " + e.buyer.middleName.getOrElse("") + " " + e.buyer.lastName}
+          @{e.buyer.firstName + " " + e.buyer.middleName.getOrElse("") + " " + e.buyer.lastName}<br>
+          @{e.buyer.email}
         </td>
         <td class="transactionAddress">
           <table>

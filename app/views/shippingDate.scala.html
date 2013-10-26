@@ -1,6 +1,8 @@
 @(date: Long)(implicit lang: Lang)
 
+@import org.joda.time.format.DateTimeFormat
+
 @{
-  f"$date%tY-$date%tm-$date%td"
+  DateTimeFormat.forPattern(Messages("shipping.date.format")).print(date)
 }
 

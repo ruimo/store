@@ -20,7 +20,6 @@ class TransactionPersisterSpec extends Specification {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         TestHelper.removePreloadedRecords()
         DB.withConnection { implicit conn =>
-          
           val user = StoreUser.create(
             "userName", "firstName", Some("middleName"), "lastName", "email",
             1L, 2L, UserRole.ADMIN, Some("companyName")
@@ -63,8 +62,10 @@ class TransactionPersisterSpec extends Specification {
             now
           )
 
+          val shippingDate = ShippingDate(Map(site.id.get -> ShippingDateEntry(site.id.get, date("2013-02-03"))))
+
           (new TransactionPersister).persist(
-            Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, address, shippingTotal, now)
+            Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, address, shippingTotal, shippingDate, now)
           )
 
           val header = TransactionLogHeader.list()
@@ -91,6 +92,7 @@ class TransactionPersisterSpec extends Specification {
           shippingLog(0).itemClass === itemClass
           shippingLog(0).boxSize === 3
           shippingLog(0).taxId === tax.id.get
+          shippingLog(0).shippingDate === date("2013-02-03").getTime
 
           val taxLog = TransactionLogTax.list()
           taxLog.size === 1

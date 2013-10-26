@@ -17,7 +17,7 @@ public enum JapanPrefecture implements Prefecture {
     埼玉県,
     千葉県,
     東京都,
-    神奈川,
+    神奈川県,
     新潟県,
     富山県,
     石川県,

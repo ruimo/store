@@ -37,7 +37,8 @@ case class TransactionLogShipping(
   addressId: Long,
   itemClass: Long,
   boxSize: Int,
-  taxId: Long
+  taxId: Long,
+  shippingDate: Long
 ) extends NotNull
 
 case class TransactionLogTax(
@@ -65,12 +66,24 @@ case class TransactionShipStatus(
   status: TransactionStatus
 ) extends NotNull
 
+case class ShippingDateEntry(
+  siteId: Long,
+  shippingDate: Long
+) extends NotNull
+
+case class ShippingDate(
+  tables: Map[Long, ShippingDateEntry] // Key is siteId
+) extends NotNull {
+  def bySite(site: Site): ShippingDateEntry = tables(site.id.get)
+}
+
 case class Transaction(
   userId: Long,
   currency: CurrencyInfo,
   itemTotal: ShoppingCartTotal,
   shippingAddress: Address,
   shippingTotal: ShippingTotal,
+  shippingDate: ShippingDate,
   now: Long = System.currentTimeMillis
 ) {
   lazy val total = itemTotal.total + shippingTotal.boxTotal  // Including inner tax excluding outer tax.
@@ -93,7 +106,7 @@ case class Transaction(
       map.updated(
         e._1,
         Transaction(
-          userId, currency, e._2, shippingAddress, shippingTotal.bySite(e._1), now
+          userId, currency, e._2, shippingAddress, shippingTotal.bySite(e._1), shippingDate, now
         )
       )
     }
@@ -234,25 +247,26 @@ object TransactionLogShipping {
     SqlParser.get[Long]("transaction_shipping.address_id") ~
     SqlParser.get[Long]("transaction_shipping.item_class") ~
     SqlParser.get[Int]("transaction_shipping.box_size") ~
-    SqlParser.get[Long]("transaction_shipping.tax_id") map {
-      case id~transactionId~amount~addressId~itemClass~boxSize~taxId =>
-        TransactionLogShipping(id, transactionId, amount, addressId, itemClass, boxSize, taxId)
+    SqlParser.get[Long]("transaction_shipping.tax_id") ~
+    SqlParser.get[java.util.Date]("transaction_shipping.shipping_date") map {
+      case id~transactionId~amount~addressId~itemClass~boxSize~taxId~shippingDate =>
+        TransactionLogShipping(id, transactionId, amount, addressId, itemClass, boxSize, taxId, shippingDate.getTime)
     }
   }
 
   def createNew(
     transactionSiteId: Long, amount: BigDecimal, addressId: Long,
-    itemClass: Long, boxSize: Int, taxId: Long
+    itemClass: Long, boxSize: Int, taxId: Long, shippingDate: Long
   )(implicit conn: Connection): TransactionLogShipping = {
     SQL(
       """
       insert into transaction_shipping (
         transaction_shipping_id, transaction_site_id, amount, address_id,
-        item_class, box_size, tax_id
+        item_class, box_size, tax_id, shipping_date
       ) values (
         (select nextval('transaction_shipping_seq')),
         {transactionSiteId}, {amount}, {addressId},
-        {itemClass}, {boxSize}, {taxId}
+        {itemClass}, {boxSize}, {taxId}, {shippingDate}
       )
       """
     ).on(
@@ -261,12 +275,13 @@ object TransactionLogShipping {
       'addressId -> addressId,
       'itemClass -> itemClass,
       'boxSize -> boxSize,
-      'taxId -> taxId
+      'taxId -> taxId,
+      'shippingDate -> new java.sql.Date(shippingDate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_shipping_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId)
+    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, shippingDate)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogShipping] =
@@ -417,7 +432,8 @@ case class TransactionSummaryEntry(
   siteName: String,
   shippingFee: BigDecimal,
   status: TransactionStatus,
-  buyer: StoreUser
+  buyer: StoreUser,
+  shippingDate: Long
 ) extends NotNull
 
 object TransactionShipStatus {
@@ -496,11 +512,12 @@ object TransactionSummary {
     SqlParser.get[String]("site_name") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
     SqlParser.get[Int]("status") ~
-    StoreUser.simple map {
-      case id~siteId~time~amount~address~siteName~shippingFee~status~user =>
+    StoreUser.simple ~
+    SqlParser.get[java.util.Date]("shipping_date") map {
+      case id~siteId~time~amount~address~siteName~shippingFee~status~user~shippingDate =>
         TransactionSummaryEntry(
           id, siteId, time.getTime, amount, address, siteName,
-          shippingFee, TransactionStatus.byIndex(status), user
+          shippingFee, TransactionStatus.byIndex(status), user, shippingDate.getTime
         )
     }
   }
@@ -519,7 +536,8 @@ object TransactionSummary {
         site.site_name,
         shipping,
         coalesce(transaction_status.status, 0) status,
-        store_user.*
+        store_user.*,
+        base.shipping_date
       from (
         select            
           transaction_header.transaction_id,
@@ -528,6 +546,7 @@ object TransactionSummary {
           transaction_site.site_id,
           transaction_site.transaction_site_id,
           transaction_header.store_user_id,
+          max(transaction_shipping.shipping_date) shipping_date,
           min(transaction_shipping.address_id) address_id,
           sum(transaction_shipping.amount) shipping
         from transaction_header
@@ -640,7 +659,8 @@ class TransactionPersister {
   )(implicit conn: Connection) {
     tran.shippingTotal.table.foreach { e =>
       TransactionLogShipping.createNew(
-        siteLog.id.get, e.boxTotal, tran.shippingAddress.id.get, e.itemClass, e.shippingBox.boxSize, e.boxTaxInfo.taxId
+        siteLog.id.get, e.boxTotal, tran.shippingAddress.id.get, e.itemClass, e.shippingBox.boxSize,
+        e.boxTaxInfo.taxId, tran.shippingDate.tables(e.site.id.get).shippingDate
       )
     }
   }
