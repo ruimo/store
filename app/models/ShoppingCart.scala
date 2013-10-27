@@ -108,31 +108,71 @@ object ShoppingCartItem {
   )
 
   def addItem(userId: Long, siteId: Long, itemId: Long, quantity: Int)(implicit conn: Connection): ShoppingCartItem = {
-    SQL(
+    val updateCount = SQL(
       """
-      insert into shopping_cart_item (shopping_cart_item_id, store_user_id, seq, site_id, item_id, quantity)
-      values (
-        (select nextval('shopping_cart_item_seq')),
-        {userId},
-        (select coalesce(max(seq), 0) + 1 from shopping_cart_item where store_user_id = {userId}),
-        {siteId},
-        {itemId},
-        {quantity}
+      update shopping_cart_item set quantity = quantity + {quantity}
+      where store_user_id = {userId}
+      and site_id = {siteId}
+      and item_id = {itemId}
+      and seq = (
+        select max(seq) from shopping_cart_item
+        where store_user_id = {userId} and site_id = {siteId} and item_id = {itemId}
       )
       """
     ).on(
-      'userId ->userId,
+      'quantity -> quantity,
+      'userId -> userId,
       'siteId -> siteId,
-      'itemId -> itemId,
-      'quantity -> quantity
+      'itemId -> itemId
     ).executeUpdate()
-    
-    val id = SQL("select currval('shopping_cart_item_seq')").as(SqlParser.scalar[Long].single)
-    val seq = SQL(
-      "select seq from shopping_cart_item where shopping_cart_item_id = {id}"
-    ).on('id -> id).as(SqlParser.scalar[Int].single)
 
-    ShoppingCartItem(Id(id), userId, seq, siteId, itemId, quantity)
+    if (updateCount != 0) {
+      SQL(
+        """
+        select * from shopping_cart_item
+        where store_user_id = {userId}
+        and site_id = {siteId}
+        and item_id = {itemId}
+        and seq = (
+          select max(seq) from shopping_cart_item
+          where store_user_id = {userId} and site_id = {siteId} and item_id = {itemId}
+        )
+        """
+      ).on(
+        'userId -> userId,
+        'siteId -> siteId,
+        'itemId -> itemId
+      ).as(
+        simple.single
+      )
+    }
+    else {
+      SQL(
+        """
+        insert into shopping_cart_item (shopping_cart_item_id, store_user_id, seq, site_id, item_id, quantity)
+        values (
+          (select nextval('shopping_cart_item_seq')),
+          {userId},
+          (select coalesce(max(seq), 0) + 1 from shopping_cart_item where store_user_id = {userId}),
+          {siteId},
+          {itemId},
+          {quantity}
+        )
+        """
+      ).on(
+        'userId ->userId,
+        'siteId -> siteId,
+        'itemId -> itemId,
+        'quantity -> quantity
+      ).executeUpdate()
+    
+      val id = SQL("select currval('shopping_cart_item_seq')").as(SqlParser.scalar[Long].single)
+      val seq = SQL(
+        "select seq from shopping_cart_item where shopping_cart_item_id = {id}"
+      ).on('id -> id).as(SqlParser.scalar[Int].single)
+
+      ShoppingCartItem(Id(id), userId, seq, siteId, itemId, quantity)
+    }
   }
 
   def remove(id: Long, userId: Long)(implicit conn: Connection): Int =
