@@ -12,7 +12,7 @@ import java.util.Locale
 import java.util.regex.Pattern
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import play.api.i18n.Messages
+import i18n.{Lang, Messages}
 import helpers.Enums
 import controllers.I18n.I18nAware
 import java.sql.Connection
@@ -24,9 +24,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   val Zip2Pattern = Pattern.compile("\\d{4}")
   val TelPattern = Pattern.compile("\\d+{1,32}")
   val TelOptionPattern = Pattern.compile("\\d{0,32}")
-  val ShippingDateFormat = DateTimeFormat.forPattern(Messages("shipping.date.format"))
+  def shippingDateFormat(implicit lang: Lang) = DateTimeFormat.forPattern(Messages("shipping.date.format"))
 
-  val jaForm = Form(
+  def jaForm(implicit lang: Lang) = Form(
     mapping(
       "firstName" -> text.verifying(nonEmpty, maxLength(64)),
       "lastName" -> text.verifying(nonEmpty, maxLength(64)),
@@ -56,7 +56,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val form = addr match {
         case Some(a) =>
           jaForm.fill(CreateAddress.fromAddress(a, shippingDate))
-        case None => jaForm.bind(Map("shippingDate" -> ShippingDateFormat.print(shippingDate))).discardingErrors
+        case None => jaForm.bind(Map("shippingDate" -> shippingDateFormat.print(shippingDate))).discardingErrors
       }
       lang.toLocale match {
         case Locale.JAPANESE =>
