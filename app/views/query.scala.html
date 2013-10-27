@@ -24,7 +24,7 @@
 
   <br>
   <table class="queryItemTable">
-    <tr>
+    <tr class="queryItemTableHeader">
       <th></th>
       <th>@Messages("itemName")</th>
       <th>@Messages("site")</th>
@@ -33,17 +33,17 @@
     </tr>
 
     @list.records.map { e =>
-      <tr>
-        <td>
+      <tr class="queryItemTableBody">
+        <td class="queryItemPhoto">
           <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)">
         </td>
-        <td>
+        <td class="queryItemItemName">
           <a href="@routes.ItemDetail.show(e._1.id.get, e._4.id.get)">
             @e._2.name
           </a>
         </td>
-        <td>@e._4.name</td>
-        <td>@amount(e._5.unitPrice)</td>
+        <td class="queryItemSite">@e._4.name</td>
+        <td class="queryItemUnitPrice">@amount(e._5.unitPrice)</td>
         <td>
           <button type="button" 
                   onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
