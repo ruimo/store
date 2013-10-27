@@ -281,7 +281,7 @@ tr.userTableBody {
   padding: 5px;
 }
 
-.itemDetailItemPrice {
+.itemDetailItemPrice .value {
   text-align: right;
 }
 

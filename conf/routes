@@ -68,8 +68,12 @@ GET     /admin/startCreateNewNormalUser  controllers.UserMaintenance.startCreate
 POST    /admin/createNewNormalUser       controllers.UserMaintenance.createNewNormalUser
 
 POST    /admin/uploadItemPicture         controllers.ItemPictures.upload(id: Long, no: Int)
-POST    /admin/remove                    controllers.ItemPictures.remove(id: Long, no: Int)
+POST    /admin/removeItemPicture         controllers.ItemPictures.remove(id: Long, no: Int)
 GET     /admin/getItemPicture            controllers.ItemPictures.getPicture(id: Long, no: Int)
+
+POST    /admin/uploadItemDetailPicture   controllers.ItemPictures.uploadDetail(id: Long)
+POST    /admin/removeItemDetailPicture   controllers.ItemPictures.removeDetail(id: Long)
+GET     /admin/getItemDetailPicture      controllers.ItemPictures.getDetailPicture(id: Long)
 
 GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index
 POST    /admin/setStatus                 controllers.TransactionMaintenance.setStatus

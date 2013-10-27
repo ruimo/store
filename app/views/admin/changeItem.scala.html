@@ -29,6 +29,25 @@
   </tr>
 }
 
+@fileDetailUpload(id: Long) = {
+  <tr>
+    <td><img src="@routes.ItemPictures.getDetailPicture(id)"></td>
+    @form(action = helper.CSRF(routes.ItemPictures.uploadDetail(id)), 'enctype -> "multipart/form-data") {
+    <td>
+      <input type="file" name="picture">
+    </td>
+    <td>
+      <input type="submit">
+    </td>
+    }
+    @form(action = helper.CSRF(routes.ItemPictures.removeDetail(id))) {
+    <td>
+      <input type="submit" value="@Messages("remove")">
+    </td>
+    }
+  </tr>
+}
+
 @nameForm(field: Field) = {
   <tr>
     <td>
@@ -563,6 +582,12 @@
 
   <table>
     @{(0 until 5) map { idx => fileUpload(c.id, idx)}}
+  </table>
+
+  <h2>@Messages("itemDetailPicture")</h2>
+
+  <table>
+    @fileDetailUpload(c.id)
   </table>
 
   <br>

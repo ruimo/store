@@ -33,14 +33,17 @@
         }
 
         <tr class="itemDetailItemPrice">
-          <td>@Messages("price")</td>
-          <td>@amount(detail.price)</td>
+          <td class="label">@Messages("price")</td>
+          <td class="value">@amount(detail.price)</td>
         </tr>
+
         <tr class="itemDetailSiteName">
           <td>@Messages("site")</td>
           <td>@detail.siteName</td>
         </tr>
       </table>
+
+      <img class="itemPictureForDetail" src="@routes.ItemPictures.getDetailPicture(detail.itemId)">
 
       <div class="itemDetailCartPanel">
         <button type="button"
