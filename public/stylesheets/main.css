@@ -304,3 +304,7 @@ tr.userTableBody {
   border-style: solid;
   border-width: 1px;
 }
+
+.queryItemTable {
+  width: 80%;
+}
