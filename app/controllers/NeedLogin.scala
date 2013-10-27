@@ -29,7 +29,7 @@ trait NeedLogin extends Controller with HasLogger {
   val companyNameConstraint = List(nonEmpty, maxLength(32))
 
   val LoginUserKey = "loginUser"
-  val SessionTimeout = loginTimeoutInMinute * 60 * 1000
+  lazy val SessionTimeout = loginTimeoutInMinute * 60 * 1000
 
   val loginForm = Form(
     mapping(
