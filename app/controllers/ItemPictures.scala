@@ -3,10 +3,11 @@ package controllers
 import play.api.mvc.Security.Authenticated
 import controllers.I18n.I18nAware
 import play.api.mvc.Controller
-import java.nio.file.{NoSuchFileException, Files, Paths}
+import java.nio.file.{NoSuchFileException, Files, Paths, Path}
 import io.Source
 import play.api.mvc._
 import play.api.i18n.Messages
+import java.text.{ParseException, SimpleDateFormat}
 
 object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger {
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
@@ -73,19 +74,40 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }
 
   def getPicture(itemId: Long, no: Int) = Action { request =>
+    val path = getPath(itemId, no)
+    if (isModified(path, request)) readFile(path) else NotModified
+  }
+
+  def getPath(itemId: Long, no: Int): Path = {
     val path = toPath(itemId, no)
-    if (Files.isReadable(path)) {
-      val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
-      Ok(byteArray).as("image/jpeg")
+    if (Files.isReadable(path)) path
+    else picturePath.resolve("notfound.jpg")
+  }
+
+  def isModified(path: Path, request: RequestHeader): Boolean =
+    request.headers.get("If-Modified-Since").flatMap { value =>
+      try {
+        val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z")
+        Some(dateFormat.parse(value))
+      }
+      catch {
+        case e: ParseException => None
+      }
+    } match {
+      case Some(t) => t.getTime < path.toFile.lastModified
+      case None => true
     }
-    else {
-      val source = Source.fromFile(picturePath.resolve("notfound.jpg").toFile)(scala.io.Codec.ISO8859)
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
-      Ok(byteArray).as("image/jpeg")
-    }
+
+  def readFile(path: Path): Result = {
+    val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
+    val byteArray = source.map(_.toByte).toArray
+    source.close()
+    Ok(byteArray).as("image/jpeg").withHeaders(
+      LAST_MODIFIED -> String.format(
+        "%1$ta, %1$td %1$tb %1$tY %1$tH:%1$tM:%1$tS %1$tZ", 
+        java.lang.Long.valueOf(System.currentTimeMillis)
+      )
+    )
   }
 
   def getDetailPicture(itemId: Long) = Action { request =>

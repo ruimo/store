@@ -15,7 +15,7 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 
-object ConfirmShippingSpec extends Specification {
+class ConfirmShippingSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
 
   "ConfirmShipping" should {
