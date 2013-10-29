@@ -8,6 +8,7 @@ import io.Source
 import play.api.mvc._
 import play.api.i18n.Messages
 import java.text.{ParseException, SimpleDateFormat}
+import java.util.Locale
 
 object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger {
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
@@ -87,11 +88,14 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def isModified(path: Path, request: RequestHeader): Boolean =
     request.headers.get("If-Modified-Since").flatMap { value =>
       try {
-        val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z")
+        val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
         Some(dateFormat.parse(value))
       }
       catch {
-        case e: ParseException => None
+        case e: ParseException => {
+          logger.error("Invalid date format '" + value + "'")
+          None
+        }
       }
     } match {
       case Some(t) => t.getTime < path.toFile.lastModified
@@ -111,19 +115,14 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }
 
   def getDetailPicture(itemId: Long) = Action { request =>
+    val path = getDetailPath(itemId)
+    if (isModified(path, request)) readFile(path) else NotModified
+  }
+
+  def getDetailPath(itemId: Long): Path = {
     val path = toDetailPath(itemId)
-    if (Files.isReadable(path)) {
-      val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
-      Ok(byteArray).as("image/jpeg")
-    }
-    else {
-      val source = Source.fromFile(picturePath.resolve("detailnotfound.jpg").toFile)(scala.io.Codec.ISO8859)
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
-      Ok(byteArray).as("image/jpeg")
-    }
+    if (Files.isReadable(path)) path
+    else picturePath.resolve("detailnotfound.jpg")
   }
 
   def remove(itemId: Long, no: Int) = Action { implicit request =>
