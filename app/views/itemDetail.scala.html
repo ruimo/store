@@ -28,7 +28,7 @@
         @detail.itemNumericMetadata.map { e =>
           <tr class="itemNumericMetadata">
             <td>@Messages("itemNumericMetadata" + e._1)</td>
-            <td class="itemNumericMetadata@e._1">@e._2.metadata</td>
+            <td class="itemNumericMetadata@e._1">@itemNumericMetadata(e._1, e._2.metadata)</td>
           </tr>
         }
 

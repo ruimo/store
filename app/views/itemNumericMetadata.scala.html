@@ -1,0 +1,9 @@
+@(t: ItemNumericMetadataType, v: Long)(implicit lang: Lang)
+
+@import java.util.Locale
+
+@{
+  t match {
+    case ItemNumericMetadataType.HEIGHT => (BigDecimal(v) / 1000) + "m"
+  }
+}
