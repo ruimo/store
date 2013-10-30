@@ -110,6 +110,11 @@ println("file date = " + path.toFile.lastModified)
 
   def readFile(path: Path): Result = {
 println("timezone = " + java.util.TimeZone.getDefault())
+println("locale = " + Locale.getDefault())
+println("last modified = " + String.format(
+        "%1$ta, %1$td %1$tb %1$tY %1$tH:%1$tM:%1$tS %1$tZ", 
+        java.lang.Long.valueOf(System.currentTimeMillis)
+      ))
     val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
     val byteArray = source.map(_.toByte).toArray
     source.close()
