@@ -89,6 +89,9 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     request.headers.get("If-Modified-Since").flatMap { value =>
       try {
         val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
+println("request date = " + value)
+println("file = " + path)
+println("file date = " + path.toFile.lastModified)
         Some(dateFormat.parse(value))
       }
       catch {
