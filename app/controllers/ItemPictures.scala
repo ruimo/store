@@ -96,9 +96,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def isModified(path: Path, request: RequestHeader): Boolean =
     request.headers.get("If-Modified-Since").flatMap { value =>
       try {
-println("request date = " + value)
-println("file = " + path)
-println("file date = " + path.toFile.lastModified)
         Some(CacheDateFormat.get.parse(value))
       }
       catch {
@@ -108,22 +105,12 @@ println("file date = " + path.toFile.lastModified)
         }
       }
     } match {
-      case Some(t) => {
-println("request date = " + t + "(" + t.getTime + ")")
-println("file = " + path)
-println("file date = " + path.toFile.lastModified)
+      case Some(t) =>
         t.getTime < path.toFile.lastModified
-      }
       case None => true
     }
 
   def readFile(path: Path): Result = {
-println("timezone = " + java.util.TimeZone.getDefault())
-println("locale = " + Locale.getDefault())
-println("last modified = " + String.format(
-        "%1$ta, %1$td %1$tb %1$tY %1$tH:%1$tM:%1$tS %1$tZ", 
-        java.lang.Long.valueOf(System.currentTimeMillis)
-      ))
     val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
     val byteArray = source.map(_.toByte).toArray
     source.close()
