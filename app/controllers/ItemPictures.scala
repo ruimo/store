@@ -8,9 +8,17 @@ import io.Source
 import play.api.mvc._
 import play.api.i18n.Messages
 import java.text.{ParseException, SimpleDateFormat}
-import java.util.Locale
+import java.util.{TimeZone, Locale}
 
 object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger {
+  val CacheDateFormat = new ThreadLocal[SimpleDateFormat]() {
+    override def initialValue: SimpleDateFormat = {
+      val f = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
+      f.setTimeZone(TimeZone.getTimeZone("GMT"))
+      f
+    }
+  }
+
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
   lazy val picturePath = config.getString("item.picture.path").map {
     s => Paths.get(s)
@@ -88,11 +96,10 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def isModified(path: Path, request: RequestHeader): Boolean =
     request.headers.get("If-Modified-Since").flatMap { value =>
       try {
-        val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
 println("request date = " + value)
 println("file = " + path)
 println("file date = " + path.toFile.lastModified)
-        Some(dateFormat.parse(value))
+        Some(CacheDateFormat.get.parse(value))
       }
       catch {
         case e: ParseException => {
@@ -110,10 +117,7 @@ println("file date = " + path.toFile.lastModified)
     val byteArray = source.map(_.toByte).toArray
     source.close()
     Ok(byteArray).as("image/jpeg").withHeaders(
-      LAST_MODIFIED -> String.format(
-        "%1$ta, %1$td %1$tb %1$tY %1$tH:%1$tM:%1$tS %1$tZ", 
-        java.lang.Long.valueOf(System.currentTimeMillis)
-      )
+      LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
     )
   }
 
