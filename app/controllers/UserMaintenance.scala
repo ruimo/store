@@ -109,6 +109,9 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
   }}
 
   def deleteUser(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    DB.withConnection { implicit conn =>
+      StoreUser.delete(id)
+    }
     Redirect(routes.UserMaintenance.editUser)
   }}
 }
