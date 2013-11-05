@@ -438,6 +438,22 @@ class TransactionSpec extends Specification {
           val item1 = Item.createNew(cat1)
           val item2 = Item.createNew(cat1)
 
+          ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 10L)
+          ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 20L)
+
+          SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 123L
+          )
+          SiteItemNumericMetadata.createNew(
+            site1.id.get, item2.id.get, SiteItemNumericMetadataType.STOCK, 234L
+          )
+          SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, 0L
+          )
+          SiteItemNumericMetadata.createNew(
+            site1.id.get, item2.id.get, SiteItemNumericMetadataType.PROMOTION, 1L
+          )
+
           val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
           val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
           
@@ -459,10 +475,20 @@ class TransactionSpec extends Specification {
           detail(0).itemName === "杉"
           detail(0).unitPrice === BigDecimal(400)
           detail(0).quantity === 3
+          detail(0).itemNumericMetadata.size === 1
+          detail(0).itemNumericMetadata(ItemNumericMetadataType.HEIGHT).metadata === 10L
+          detail(0).siteItemNumericMetadata.size == 2
+          detail(0).siteItemNumericMetadata(SiteItemNumericMetadataType.STOCK).metadata === 123L
+          detail(0).siteItemNumericMetadata(SiteItemNumericMetadataType.SHIPPING_SIZE).metadata === 0L
 
           detail(1).itemName === "梅"
           detail(1).unitPrice === BigDecimal(700)
           detail(1).quantity === 5
+          detail(1).itemNumericMetadata.size === 1
+          detail(1).itemNumericMetadata(ItemNumericMetadataType.HEIGHT).metadata === 20L
+          detail(1).siteItemNumericMetadata.size == 2
+          detail(1).siteItemNumericMetadata(SiteItemNumericMetadataType.STOCK).metadata === 234L
+          detail(1).siteItemNumericMetadata(SiteItemNumericMetadataType.PROMOTION).metadata === 1L
 
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
           val user2 = StoreUser.create(

@@ -584,21 +584,27 @@ object TransactionSummary {
 case class TransactionDetail(
   itemName: String,
   unitPrice: BigDecimal,
-  quantity: Int
+  quantity: Int,
+  itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
 ) extends NotNull
 
 object TransactionDetail {
   val parser = {
     SqlParser.get[String]("item_name.item_name") ~
     SqlParser.get[Int]("transaction_item.quantity") ~
-    SqlParser.get[java.math.BigDecimal]("transaction_item.amount") map {
-      case name~quantity~amount => TransactionDetail(name, BigDecimal(amount) / quantity, quantity)
+    SqlParser.get[java.math.BigDecimal]("transaction_item.amount") ~
+    SqlParser.get[Long]("transaction_item.item_id") ~
+    SqlParser.get[Long]("transaction_site.site_id") map {
+      case name~quantity~amount~itemId~siteId => (
+        name, BigDecimal(amount) / quantity, quantity, itemId, siteId
+      )
     }
   }
 
   def show(
     tranSiteId: Long, locale: LocaleInfo, user: Option[SiteUser]
-  )(implicit conn: Connection): Seq[TransactionDetail] =
+  )(implicit conn: Connection): Seq[TransactionDetail] = {
     SQL(
       """
       select * from transaction_item
@@ -618,7 +624,12 @@ object TransactionDetail {
       'locale -> locale.id
     ).as(
       parser *
-    )
+    ).map { e =>
+      val metadata = ItemNumericMetadata.allById(e._4)
+      val siteMetadata = SiteItemNumericMetadata.all(e._5, e._4)
+      TransactionDetail(e._1, e._2, e._3, metadata, siteMetadata)
+    }
+  }
 }
 
 class TransactionPersister {
