@@ -334,6 +334,9 @@ class TransactionSpec extends Specification {
           entry1.shippingFee === BigDecimal(1234)
           entry1.status === TransactionStatus.ORDERED
 
+          val sum1 = TransactionSummary.get(Some(siteUser1), entry1.transactionSiteId)
+          sum1.isDefined === true
+
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
           val summary2 = TransactionSummary.list(Some(siteUser2))
           summary2.size === 1

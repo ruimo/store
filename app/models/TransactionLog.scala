@@ -522,61 +522,79 @@ object TransactionSummary {
     }
   }
 
+  def baseSql(user: Option[SiteUser], additionalWhere: String = "") =
+    """
+    select 
+      transaction_id,
+      base.transaction_site_id,
+      transaction_time,
+      total_amount,
+      address.*,
+      site.site_name,
+      shipping,
+      coalesce(transaction_status.status, 0) status,
+      store_user.*,
+      base.shipping_date
+    from (
+      select            
+        transaction_header.transaction_id,
+        transaction_header.transaction_time,
+        transaction_site.total_amount,
+        transaction_site.site_id,
+        transaction_site.transaction_site_id,
+        transaction_header.store_user_id,
+        max(transaction_shipping.shipping_date) shipping_date,
+        min(transaction_shipping.address_id) address_id,
+        sum(transaction_shipping.amount) shipping
+      from transaction_header
+      inner join transaction_site on
+        transaction_header.transaction_id = transaction_site.transaction_id
+      inner join transaction_shipping on
+        transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
+    """ + (user match {
+      case None => ""
+      case Some(siteUser) => "where transaction_site.site_id = " + siteUser.siteId
+    }) +
+    """
+      group by
+        transaction_header.transaction_id,
+        transaction_site.transaction_site_id
+      order by transaction_header.transaction_time desc, transaction_site.site_id
+      limit {limit} offset {offset}
+    ) base
+    inner join address on address.address_id = base.address_id
+    inner join site on site.site_id = base.site_id
+    inner join store_user on base.store_user_id = store_user.store_user_id
+    left join transaction_status
+      on transaction_status.transaction_site_id = base.transaction_site_id
+    """ +
+    additionalWhere +
+    """
+    order by base.transaction_id desc, base.site_id
+    """
+
   def list(
     user: Option[SiteUser], limit: Int = 20, offset: Int = 0
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     SQL(
-      """
-      select 
-        transaction_id,
-        base.transaction_site_id,
-        transaction_time,
-        total_amount,
-        address.*,
-        site.site_name,
-        shipping,
-        coalesce(transaction_status.status, 0) status,
-        store_user.*,
-        base.shipping_date
-      from (
-        select            
-          transaction_header.transaction_id,
-          transaction_header.transaction_time,
-          transaction_site.total_amount,
-          transaction_site.site_id,
-          transaction_site.transaction_site_id,
-          transaction_header.store_user_id,
-          max(transaction_shipping.shipping_date) shipping_date,
-          min(transaction_shipping.address_id) address_id,
-          sum(transaction_shipping.amount) shipping
-        from transaction_header
-        inner join transaction_site on
-          transaction_header.transaction_id = transaction_site.transaction_id
-        inner join transaction_shipping on
-          transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
-      """ + (user match {
-        case None => ""
-        case Some(siteUser) => "where transaction_site.site_id = " + siteUser.siteId
-      }) +
-      """
-        group by
-          transaction_header.transaction_id,
-          transaction_site.transaction_site_id
-        order by transaction_header.transaction_time desc, transaction_site.site_id
-        limit {limit} offset {offset}
-      ) base
-      inner join address on address.address_id = base.address_id
-      inner join site on site.site_id = base.site_id
-      inner join store_user on base.store_user_id = store_user.store_user_id
-      left join transaction_status
-        on transaction_status.transaction_site_id = base.transaction_site_id
-      order by base.transaction_id desc, base.site_id
-      """
+      baseSql(user)
     ).on(
       'limit -> limit,
       'offset -> offset
     ).as(
       parser *
+    )
+  }
+
+  def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] = {
+    SQL(
+      baseSql(user, "where base.transaction_site_id = {tranSiteId}")
+    ).on(
+      'limit -> 1,
+      'offset -> 0,
+      'tranSiteId -> tranSiteId
+    ).as(
+      parser.singleOpt
     )
   }
 }
@@ -614,7 +632,7 @@ object TransactionDetail {
       and item_name.locale_id = {locale}
       """ + (user match {
         case None => ""
-          case Some(u) => "and transaction_site.site_id = " + u.siteId
+        case Some(u) => "and transaction_site.site_id = " + u.siteId
       }) +
       """
       order by transaction_item_id

@@ -63,6 +63,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     DB.withConnection { implicit conn =>
       Ok(
         views.html.admin.transactionDetail(
+          TransactionSummary.get(login.siteUser, tranSiteId).get,
           TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), login.siteUser),
           changeStatusForm, statusDropDown
         )
