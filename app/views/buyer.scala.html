@@ -1,0 +1,7 @@
+@(buyer: StoreUser)(implicit lang: Lang)
+
+@import java.util.Locale
+
+@{buyer.companyName.getOrElse("-")}<br>
+@{buyer.firstName + " " + buyer.middleName.getOrElse("") + " " + buyer.lastName}<br>
+@{buyer.email}

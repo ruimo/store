@@ -1,0 +1,25 @@
+@(
+  transactionSiteId: Long,
+  status: Int,
+  myForm: Form[models.ChangeTransactionStatus],
+  statusTable: Seq[(String, String)]
+)(implicit lang: Lang, request: RequestHeader)
+
+@import helper._
+
+@form(action = helper.CSRF(routes.TransactionMaintenance.setStatus)) {
+  @defining(myForm.fill(ChangeTransactionStatus(transactionSiteId, status))) { f =>
+    @inputText(f("transactionSiteId"), 'type -> "hidden", '_showConstraints -> false)(
+      helper.FieldConstructor(simpleField.f), implicitly
+    )
+
+    @select(
+      f("status"), statusTable, '_showConstraints -> false
+    )(
+      helper.FieldConstructor(simpleField.f), implicitly
+    )
+    <input type="submit" value=@Messages("update")> 
+  }
+}
+
+
