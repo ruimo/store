@@ -522,7 +522,7 @@ object TransactionSummary {
     }
   }
 
-  def baseSql(user: Option[SiteUser], additionalWhere: String = "") =
+  def baseSql(user: Option[SiteUser], additionalWhere: String = "", limit: Option[(Int, Int)]) =
     """
     select 
       transaction_id,
@@ -560,7 +560,11 @@ object TransactionSummary {
         transaction_header.transaction_id,
         transaction_site.transaction_site_id
       order by transaction_header.transaction_time desc, transaction_site.site_id
-      limit {limit} offset {offset}
+    """ + (limit match {
+      case None => ""
+      case Some(l) => "limit {limit} offset {offset}"
+    }) +
+    """
     ) base
     inner join address on address.address_id = base.address_id
     inner join site on site.site_id = base.site_id
@@ -577,7 +581,7 @@ object TransactionSummary {
     user: Option[SiteUser], limit: Int = 20, offset: Int = 0
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     SQL(
-      baseSql(user)
+      baseSql(user, "", Some(limit, offset))
     ).on(
       'limit -> limit,
       'offset -> offset
@@ -588,10 +592,8 @@ object TransactionSummary {
 
   def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] = {
     SQL(
-      baseSql(user, "where base.transaction_site_id = {tranSiteId}")
+      baseSql(user, "where base.transaction_site_id = {tranSiteId}", None)
     ).on(
-      'limit -> 1,
-      'offset -> 0,
       'tranSiteId -> tranSiteId
     ).as(
       parser.singleOpt
