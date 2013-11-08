@@ -27,7 +27,7 @@ class SiteMaintenanceSpec extends Specification {
         browser.title === Messages("createNewSiteTitle")
         browser.click("select[id='langId'] option[value='1']")
         browser.fill("#siteName").`with`("Store01")
-        browser.click("input[type='submit']")
+        browser.find("#createNewSiteForm").find("input[type='submit']").click
 
         browser.find(".message").getText() === Messages("siteIsCreated")
 

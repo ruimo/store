@@ -49,7 +49,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.fill("#itemName").`with`("ItemName01")
         browser.fill("#price").`with`("1234")
-        browser.click("input[type='submit']")
+        browser.find("#createNewItemForm").find("input[type='submit']").click
 
         browser.find(".message").getText() === Messages("itemIsCreated")
 
