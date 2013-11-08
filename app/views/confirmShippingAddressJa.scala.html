@@ -10,15 +10,15 @@
 @import helpers.Formatter.yyyy_mm_dd
 
 @main(Messages("confirm.shipping.address"), Some(loginSession)) {
-  <h1>お買い上げ商品</h1>
+  <h1 class="itemsTitle">お買い上げ商品</h1>
   @if(tran.itemTotal.notEmpty) {
     <table class="itemTable" border="0">
       <tr class="itemTableHeader">
-        <th>@Messages("itemName")</th>
-        <th>@Messages("site")</th>
-        <th>@Messages("size")</th>
-        <th>@Messages("quantity")</th>
-        <th>@Messages("subtotal")</th>
+        <th class="itemNameHeader">@Messages("itemName")</th>
+        <th class="siteNameHeader">@Messages("site")</th>
+        <th class="sizeHeader">@Messages("size")</th>
+        <th class="quantityHeader">@Messages("quantity")</th>
+        <th class="subtotalHeader">@Messages("subtotal")</th>
       </tr>
 
       @tran.itemTotal.table.map { e =>
@@ -52,15 +52,15 @@
     </table>
   }
 
-  <h1>送料</h1>
+  <h1 class="shippingTitle">送料</h1>
   @tran.shippingTotal.bySite.map { e =>
     <h2 class="shippingSiteName">@e._1.name</h2>
     <table class="shipping">
       <tr class="itemTableHeader">
-        <th>箱</th>
-        <th>箱単価</th>
-        <th>個数</th>
-        <th>金額</th>
+        <th class="boxNameHeader">箱</th>
+        <th class="boxUnitPriceHeader">箱単価</th>
+        <th class="boxQuantityHeader">個数</th>
+        <th class="boxPriceHeader">金額</th>
       </tr>
 
       @e._2.byItemClass.values.map { e2 =>
@@ -77,35 +77,35 @@
     <h3 class="shippingDate">配送希望日: @shippingDate(tran.shippingDate.bySite(e._1).shippingDate)</h3>
   }
 
-  <h1>合計</h1>
+  <h1 class="totalTitle">合計</h1>
   <table class="salesTotal">
     <tr class="salesTotalHeader">
-      <th></th>
-      <th>個数</th>
-      <th>小計</th>
+      <th class="header"></th>
+      <th class="quantityHeader">個数</th>
+      <th class="subtotalHeader">小計</th>
     </tr>
     <tr class="salesTotalBody">
-      <td>商品計</td>
+      <td class="itemTotal">商品計</td>
       <td class="itemQuantity">@tran.itemTotal.quantity 個</td>
       <td class="itemPrice">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
     <tr class="salesTotalBody">
-      <td>送料計</td>
+      <td class="shippingTotal">送料計</td>
       <td class="itemQuantity" style="text-align: right;">@tran.shippingTotal.boxQuantity 個</td>
       <td class="itemPrice" style="text-align: right;">@amount(tran.shippingTotal.boxTotal)</td>
     </tr>
     <tr class="salesTotalBody">
-      <td colspan="2">合計</td>
+      <td class="total" colspan="2">合計</td>
       <td class="itemPrice" style="text-align: right;">@amount(tran.itemTotal.total + tran.shippingTotal.boxTotal + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
   </table>
 
-  <h1>送付先</h1>
+  <h1 class="shippngAddress">送付先</h1>
   @address(tran.shippingAddress)
 
   <br>
-  <a href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
-  <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+  <a class="backToShoppingLink" href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
+  <a class="backToShippingLink" href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
 
   <br>
   <br>

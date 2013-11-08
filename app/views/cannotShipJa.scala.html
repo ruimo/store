@@ -9,22 +9,22 @@
 )
 
 @main(Messages("cannot.ship.title"), Some(loginSession)) {
-  <h2>@Messages("cannot.ship")</h2>
+  <h2 class="title">@Messages("cannot.ship")</h2>
 
   <table class="itemTable" border="0">
     <tr class="itemTableHeader">
-      <th>@Messages("itemName")</th>
-      <th>@Messages("site")</th>
+      <th class="itemNameHeader">@Messages("itemName")</th>
+      <th class="siteNameHeader">@Messages("site")</th>
     </tr>
     @cart.map { item =>
       <tr class="itemTableBody">
-        <td>@item.itemName.name</td>
-        <td>@item.site.name</td>
+        <td class="itemName">@item.itemName.name</td>
+        <td class="siteName">@item.site.name</td>
       </tr>
     }
   </table>
 
   <br>
-  <a href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
-  <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+  <a class="backToCartLink" href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
+  <a class="backToShippingLink" href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
 }

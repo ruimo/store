@@ -25,6 +25,8 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }.getOrElse {
     Paths.get(System.getProperty("user.home"), "itemPictures")
   }
+  lazy val notfoundPath = picturePath.resolve("notfound.jpg")
+  lazy val detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
 
   def upload(itemId: Long, no: Int) = Action(parse.multipartFormData) { implicit request =>
     retrieveLoginSession(request) match {
@@ -90,7 +92,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def getPath(itemId: Long, no: Int): Path = {
     val path = toPath(itemId, no)
     if (Files.isReadable(path)) path
-    else picturePath.resolve("notfound.jpg")
+    else notfoundPath
   }
 
   def isModified(path: Path, request: RequestHeader): Boolean =
@@ -127,12 +129,13 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def getDetailPath(itemId: Long): Path = {
     val path = toDetailPath(itemId)
     if (Files.isReadable(path)) path
-    else picturePath.resolve("detailnotfound.jpg")
+    else detailNotfoundPath
   }
 
   def remove(itemId: Long, no: Int) = Action { implicit request =>
     try {
       Files.delete(toPath(itemId, no))
+      notfoundPath.toFile.setLastModified(System.currentTimeMillis)
     }
     catch {
       case e: NoSuchFileException =>
@@ -146,6 +149,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def removeDetail(itemId: Long) = Action { implicit request =>
     try {
       Files.delete(toDetailPath(itemId))
+      detailNotfoundPath.toFile.setLastModified(System.currentTimeMillis)
     }
     catch {
       case e: NoSuchFileException =>

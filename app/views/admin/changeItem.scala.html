@@ -15,15 +15,15 @@
     <td><img src="@routes.ItemPictures.getPicture(id, idx)"></td>
     @form(action = helper.CSRF(routes.ItemPictures.upload(id, idx)), 'enctype -> "multipart/form-data") {
     <td>
-      <input type="file" name="picture">
+      <input id="itemPictureUpload@idx" type="file" name="picture">
     </td>
     <td>
-      <input type="submit">
+      <input id="itemPictureUploadSubmit@idx" type="submit">
     </td>
     }
     @form(action = helper.CSRF(routes.ItemPictures.remove(id, idx))) {
     <td>
-      <input type="submit" value="@Messages("remove")">
+      <input id="itemPictureRemove@idx" type="submit" value="@Messages("remove")">
     </td>
     }
   </tr>

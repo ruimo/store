@@ -27,8 +27,8 @@
       <table class="itemDetailMain">
         @detail.itemNumericMetadata.map { e =>
           <tr class="itemNumericMetadata">
-            <td>@Messages("itemNumericMetadata" + e._1)</td>
-            <td class="itemNumericMetadata@e._1">@itemNumericMetadata(e._1, e._2.metadata)</td>
+            <td class="itemNumericMetadata@(e._1)Header">@Messages("itemNumericMetadata" + e._1)</td>
+            <td class="itemNumericMetadata@(e._1)">@itemNumericMetadata(e._1, e._2.metadata)</td>
           </tr>
         }
 
@@ -38,15 +38,15 @@
         </tr>
 
         <tr class="itemDetailSiteName">
-          <td>@Messages("site")</td>
-          <td>@detail.siteName</td>
+          <td class="siteNameHeader">@Messages("site")</td>
+          <td class="siteName">@detail.siteName</td>
         </tr>
       </table>
 
       <img class="itemPictureForDetail" src="@routes.ItemPictures.getDetailPicture(detail.itemId)">
 
       <div class="itemDetailCartPanel">
-        <button type="button"
+        <button class="purchaseButton" type="button"
                 onclick="location.href='@routes.Purchase.addToCart(detail.siteId, detail.itemId)';">
           @Messages("purchase")
         </button>
