@@ -5,7 +5,7 @@
 )
 
 @main(Messages("categoryMaintenanceTitle"), Some(loginSession)) {
-  <h1>@Messages("categoryMaintenanceTitle")</h1>
+  <h1 class="title">@Messages("categoryMaintenanceTitle")</h1>
 
   <div class="menuItem">
     <a href="@routes.CategoryMaintenance.startCreateNewCategory()">
@@ -19,7 +19,7 @@
     </a>
   </div>
 
-  <a href="@routes.Admin.index()">
+  <a class="backLink" href="@routes.Admin.index()">
     @Messages("backTo", Messages("adminTitle"))
   </a>
 }

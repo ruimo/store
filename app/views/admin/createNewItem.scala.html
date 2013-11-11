@@ -15,7 +15,7 @@
 @import helper._
 
 @main(Messages("createNewItemTitle"), Some(loginSession)) {
-  <h1>@Messages("createNewItemTitle")</h1>
+  <h1 class="title">@Messages("createNewItemTitle")</h1>
 
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">

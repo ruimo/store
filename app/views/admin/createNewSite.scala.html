@@ -11,7 +11,7 @@ myForm: Form[models.CreateSite], langTable: Seq[(String, String)]
 @import helper._
 
 @main(Messages("createNewSiteTitle"), Some(loginSession)) {
-  <h1>@Messages("createNewSiteTitle")</h1>
+  <h1 class="title">@Messages("createNewSiteTitle")</h1>
 
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">

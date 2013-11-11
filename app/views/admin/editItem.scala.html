@@ -14,7 +14,7 @@
 )
 
 @main(Messages("editItemTitle"), Some(loginSession)) {
-  <h1>@Messages("editItemTitle")</h1>
+  <h1 class="title">@Messages("editItemTitle")</h1>
 
   @helper.form(action=routes.ItemMaintenance.editItem()) {
     <input type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">

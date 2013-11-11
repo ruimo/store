@@ -3,15 +3,8 @@ package models
 import helpers.{PasswordHash, TokenGenerator}
 import java.sql.Connection
 
-trait CreateUser {
-  val userName: String
-  val firstName: String
-  val middleName: Option[String]
-  val lastName: String
-  val email: String
-  val password: String
+trait CreateUser extends CreateUserBase {
   val role: UserRole
-  val companyName: String
 
   def save(implicit tokenGenerator: TokenGenerator, conn: Connection): StoreUser = {
     val salt = tokenGenerator.next

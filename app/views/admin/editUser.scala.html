@@ -8,19 +8,25 @@
 @import helper._
 
 @main(Messages("editUserTitle"), Some(loginSession)) {
-<h1>@Messages("editUserTitle")</h1>
+<h1 class="title">@Messages("editUserTitle")</h1>
 
 <table class="userTable">
   <tr class="userTableHeader">
-    <th>id</th>
-    <th>@Messages("userName")</th>
-    <th>@Messages("role")</th>
+    <th class="id">id</th>
+    <th class="name">@Messages("userName")</th>
+    <th class="fullName">@Messages("name")</th>
+    <th class="company">@Messages("companyName")</th>
+    <th class="email">@Messages("email")</th>
+    <th class="role">@Messages("role")</th>
   </tr>
   @users.map { user =>
     <tr class="userTableBody">
-      <td>@user._1.id.get</td>
-      <td>@user._1.userName</td>
-      <td>
+      <td class="id">@user._1.id.get</td>
+      <td class="name">@user._1.userName</td>
+      <td class="fullName">@name(user._1)</td>
+      <td class="company">@user._1.companyName.getOrElse("")</td>
+      <td class="email">@user._1.email</td>
+      <td class="role">
         @form(action = helper.CSRF(routes.UserMaintenance.deleteUser(user._1.id.get))) {
           <input type="submit" style="float: left;" value=@Messages("remove")>
         }

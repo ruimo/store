@@ -158,3 +158,4 @@ companyName=Company Name
 shipping.date=Shipping Date
 shipping.date.format=yyyy-MM-dd
 itemDetailPicture=Item detail picture
+name=Name

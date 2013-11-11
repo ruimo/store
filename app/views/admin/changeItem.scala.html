@@ -231,10 +231,10 @@
     </div>
   }
 
-<h1>@Messages("changeItemTitle")</h1>
-  <h2>@Messages("item") Id: @c.id</h2>
+<h1 class="title">@Messages("changeItemTitle")</h1>
+  <h2 class="itemId">@Messages("item") Id: @c.id</h2>
 
-  <h2>@Messages("itemName")</h2>
+  <h2 class="itemName">@Messages("itemName")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
     @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(c.id))) {

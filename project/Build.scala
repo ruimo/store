@@ -9,6 +9,7 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     "postgresql" % "postgresql" % "9.1-901.jdbc4",
+    "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
     jdbc,
     anorm,
     filters

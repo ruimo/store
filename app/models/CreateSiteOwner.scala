@@ -7,7 +7,7 @@ import java.sql.Connection
 case class CreateSiteOwner(
   siteId: Long, userName: String, firstName: String, middleName: Option[String], lastName: String,
   email: String, password: String, companyName: String
-) extends NotNull {
+) extends CreateUserBase with NotNull {
   def save(implicit tokenGenerator: TokenGenerator, conn: Connection): (StoreUser, SiteUser) = {
     val salt = tokenGenerator.next
     val hash = PasswordHash.generate(password, salt)
