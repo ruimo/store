@@ -9,14 +9,6 @@ import scala.language.postfixOps
 import helpers.PasswordHash
 import java.sql.Connection
 
-trait Role
-
-case object Buyer extends Role
-
-case object SuperUser extends Role
-
-case class SiteOwner(siteUser: SiteUser) extends Role with NotNull
-
 case class StoreUser(
   id: Pk[Long] = NotAssigned,
   userName: String,
@@ -35,6 +27,23 @@ case class StoreUser(
 }
 
 case class SiteUser(id: Pk[Long] = NotAssigned, siteId: Long, storeUserId: Long) extends NotNull
+
+case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) extends NotNull {
+  lazy val userType: UserType = storeUser.userRole match {
+    case UserRole.ADMIN => SuperUser
+    case UserRole.NORMAL => siteUser match {
+      case None => Buyer
+      case Some(u) => SiteOwner(u)
+    }
+  }
+}
+
+case class ListUserEntry(
+  user: StoreUser,
+  siteUser: Option[SiteUser],
+  site: Option[Site],
+  sendNoticeMail: Boolean
+) extends NotNull
 
 object StoreUser {
   val simple = {
@@ -57,8 +66,12 @@ object StoreUser {
     }
   }
 
-  val withSiteUser = StoreUser.simple ~ (SiteUser.simple ?) ~ (Site.simple ?) map {
-    case storeUser~siteUser~site => (storeUser, siteUser, site)
+  val withSiteUser = 
+    StoreUser.simple ~
+    (SiteUser.simple ?) ~
+    (Site.simple ?) ~
+    SqlParser.get[Option[Long]]("order_notification.order_notification_id") map {
+    case storeUser~siteUser~site~notificationId => ListUserEntry(storeUser, siteUser, site, notificationId.isDefined)
   }
 
   def count(implicit conn: Connection) = 
@@ -112,15 +125,16 @@ object StoreUser {
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
     StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
-              salt,  false, userRole, companyName)
+              salt, false, userRole, companyName)
   }
 
-  def withSite(userId: Long)(implicit conn: Connection): (StoreUser, Option[SiteUser], Option[Site]) =
+  def withSite(userId: Long)(implicit conn: Connection): ListUserEntry =
     SQL(
       """
       select * from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
+      left join order_notification on order_notification.store_user_id = store_user.store_user_id
       where store_user.store_user_id = {storeUserId}
       and deleted = FALSE
       """
@@ -132,12 +146,13 @@ object StoreUser {
 
   def listUsers(
     page: Int = 0, pageSize: Int = 50
-  )(implicit conn: Connection): Seq[(StoreUser, Option[SiteUser], Option[Site])] =
+  )(implicit conn: Connection): Seq[ListUserEntry] =
     SQL(
       """
       select * from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
+      left join order_notification on order_notification.store_user_id = store_user.store_user_id
       where deleted = FALSE
       order by store_user.user_name
       limit {pageSize} offset {offset}
@@ -158,6 +173,36 @@ object StoreUser {
       'id -> userId
     ).executeUpdate()
   }
+
+  def update(
+    userId: Long,
+    userName: String, firstName: String, middleName: Option[String], lastName: String,
+    email: String, passwordHash: Long, salt: Long, companyName: String
+  )(implicit conn: Connection): Int =
+    SQL(
+      """
+      update store_user set
+        user_name = {userName},
+        first_name = {firstName},
+        middle_name = {middleName},
+        last_name = {lastName},
+        email = {email},
+        password_hash = {passwordHash},
+        salt = {salt},
+        company_name = {companyName}
+      where store_user_id = {userId}
+      """
+    ).on(
+      'userName -> userName,
+      'firstName -> firstName,
+      'middleName -> middleName,
+      'lastName -> lastName,
+      'email -> email,
+      'passwordHash -> passwordHash,
+      'salt -> salt,
+      'companyName -> companyName,
+      'userId -> userId
+    ).executeUpdate()
 }
 
 object SiteUser {

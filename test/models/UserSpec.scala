@@ -66,7 +66,39 @@ class UserSpec extends Specification {
           StoreUser.delete(user2.id.get)
           val list = StoreUser.listUsers()
           list.size === 1
-          list(0)._1 === user1
+          list(0).user === user1
+        }
+      }
+    }
+
+    "Notification email user" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+
+          val user2 = StoreUser.create(
+            "userName2", "firstName2", None, "lastName2", "email2",
+            1L, 2L, UserRole.ADMIN, None
+          )
+
+          val notification = OrderNotification.createNew(user2.id.get)
+
+          val u1 = StoreUser.withSite(user1.id.get)
+          u1.sendNoticeMail === false
+
+          val u2 = StoreUser.withSite(user2.id.get)
+          u2.sendNoticeMail === true
+
+          val list = StoreUser.listUsers()
+          list.size === 2
+          list(0).user === user1
+          list(0).sendNoticeMail === false
+
+          list(1).user === user2
+          list(1).sendNoticeMail === true
         }
       }
     }
@@ -91,11 +123,13 @@ class UserSpec extends Specification {
 
           val list = StoreUser.listUsers()
           list.size === 2
-          list(0)._1 === user1
-          list(0)._2 === None
+          list(0).user === user1
+          list(0).siteUser === None
+          list(0).sendNoticeMail === false
 
-          list(1)._1 === user2
-          list(1)._2.get === siteUser
+          list(1).user === user2
+          list(1).siteUser.get === siteUser
+          list(1).sendNoticeMail === false
         }
       }
     }

@@ -1,4 +1,4 @@
-@(users: Seq[(StoreUser, Option[SiteUser], Option[Site])])(
+@(users: Seq[ListUserEntry])(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
   request: RequestHeader,
@@ -18,28 +18,35 @@
     <th class="company">@Messages("companyName")</th>
     <th class="email">@Messages("email")</th>
     <th class="role">@Messages("role")</th>
+    <th class="action"></th>
   </tr>
   @users.map { user =>
     <tr class="userTableBody">
-      <td class="id">@user._1.id.get</td>
-      <td class="name">@user._1.userName</td>
-      <td class="fullName">@name(user._1)</td>
-      <td class="company">@user._1.companyName.getOrElse("")</td>
-      <td class="email">@user._1.email</td>
+      <td class="id">
+        <a href="@routes.UserMaintenance.modifyUserStart(user.user.id.get)">
+          @user.user.id.get
+        </a>
+      </td>
+      <td class="name">@user.user.userName</td>
+      <td class="fullName">@name(user.user)</td>
+      <td class="company">@user.user.companyName.getOrElse("")</td>
+      <td class="email">@user.user.email</td>
       <td class="role">
-        @form(action = helper.CSRF(routes.UserMaintenance.deleteUser(user._1.id.get))) {
-          <input type="submit" style="float: left;" value=@Messages("remove")>
-        }
         @{
-          if (user._1.userRole == UserRole.ADMIN) {
+          if (user.user.userRole == UserRole.ADMIN) {
             Messages("admin.user")
           } else {
-            user._3 match {
+            user.site match {
               case None => Messages("normal.user")
               case Some(site) => Messages("site.owner") + "(" + site.name + ")"
             }
           }
        }
+      </td>
+      <td class="action">
+        @form(action = helper.CSRF(routes.UserMaintenance.deleteUser(user.user.id.get))) {
+          <input type="submit" style="float: left;" value=@Messages("remove")>
+        }
       </td>
     </tr>
   }

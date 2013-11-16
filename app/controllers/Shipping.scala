@@ -170,13 +170,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           )
           ShoppingCartItem.removeForUser(login.userId)
           val tran = persister.load(tranId, LocaleInfo.getDefault)
+          val address = Address.byId(tran.shippingTable.head._2.head.addressId)
           
-          Ok(
-            views.html.showTransactionJa(
-              tran, Address.byId(tran.shippingTable.head._2.head.addressId)
-            )
-
-          )
+          Ok(views.html.showTransactionJa(tran, address))
         }
         catch {
           case e: CannotShippingException => {

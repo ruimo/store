@@ -7,8 +7,6 @@
   loginSession: LoginSession
 )
 
-@import helper._
-
 @main(Messages("createSuperUserTitle"), None) {
   <h1 class="title">@Messages("createSuperUserTitle")</h1>
 
@@ -19,42 +17,7 @@
   }
 
   @helper.form(action = helper.CSRF(routes.UserMaintenance.createNewSuperUser()), 'id -> "createNewSuperUserForm") {
-    @helper.inputText(
-      myForm("userName"),
-      '_label -> Messages("userName"), 'size -> 24, 'maxlength -> 24
-    )
-
-    @helper.inputText(
-      myForm("firstName"),
-      '_label -> Messages("firstName"), 'size -> 32, 'maxlength -> 32
-    )
-
-    @helper.inputText(
-      myForm("lastName"),
-      '_label -> Messages("lastName"), 'size -> 32, 'maxlength -> 32
-    )
-
-    @helper.inputText(
-      myForm("companyName"),
-      '_label -> Messages("companyName"), 'size -> 32, 'maxlength -> 32
-    )
-
-    @helper.inputText(
-      myForm("email"),
-      '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
-    )
-
-    @helper.inputPassword(
-      myForm("password.main"),
-      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
-    )
-
-    @helper.inputPassword(
-      myForm("password.confirm"),
-      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
-      '_error -> myForm.error("password")
-    )
-
+    @userCommonFields(myForm)
     <input type="submit" id="registerSuperUser" value=@Messages("register")>
   }
 

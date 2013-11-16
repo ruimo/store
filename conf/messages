@@ -159,3 +159,7 @@ shipping.date=Shipping Date
 shipping.date.format=yyyy-MM-dd
 itemDetailPicture=Item detail picture
 name=Name
+userIsCreated=User is created.
+userIsUpdated=User is updated.
+modifyUserTitle=Modify User
+sendNoticeMail=Receive notice mail when order is placed.

@@ -189,3 +189,7 @@ shipping.date=配送希望日
 shipping.date.format=yyyy年MM月dd日
 itemDetailPicture=商品詳細画像
 name=氏名
+userIsCreated=ユーザが作成されました。
+userIsUpdated=ユーザが更新されました。
+modifyUserTitle=ユーザの変更
+sendNoticeMail=注文時にメールで通知を受ける

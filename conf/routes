@@ -62,6 +62,8 @@ GET     /admin/startCreateNewSuperUser   controllers.UserMaintenance.startCreate
 POST    /admin/createNewSuperUser        controllers.UserMaintenance.createNewSuperUser
 GET     /admin/editUser                  controllers.UserMaintenance.editUser
 POST    /admin/deleteUser                controllers.UserMaintenance.deleteUser(id: Long)
+GET     /admin/modifyUserStart           controllers.UserMaintenance.modifyUserStart(id: Long)
+POST    /admin/modifyUser                controllers.UserMaintenance.modifyUser
 GET     /admin/startCreateNewSiteOwner   controllers.UserMaintenance.startCreateNewSiteOwner
 POST    /admin/createNewSiteOwner        controllers.UserMaintenance.createNewSiteOwner
 GET     /admin/startCreateNewNormalUser  controllers.UserMaintenance.startCreateNewNormalUser

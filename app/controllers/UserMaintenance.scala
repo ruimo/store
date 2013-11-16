@@ -14,6 +14,25 @@ import helpers.{TokenGenerator, RandomTokenGenerator}
 object UserMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
+  def modifyUserForm(implicit lang: Lang) = Form(
+    mapping(
+      "userId" -> longNumber,
+      "userName" -> text.verifying(userNameConstraint: _*),
+      "firstName" -> text.verifying(firstNameConstraint: _*),
+      "middleName" -> optional(text),
+      "lastName" -> text.verifying(lastNameConstraint: _*),
+      "email" -> email.verifying(emailConstraint: _*),
+      "password" -> tuple(
+        "main" -> text.verifying(userNameConstraint: _*),
+        "confirm" -> text
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      ),
+      "companyName" -> text.verifying(companyNameConstraint: _*),
+      "sendNoticeMail" -> boolean
+    )(ModifyUser.fromForm)(ModifyUser.toForm)
+  )
+
   def newSiteOwnerForm(implicit lang: Lang) = Form(
     mapping(
       "siteId" -> longNumber,
@@ -106,6 +125,27 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     DB.withConnection { implicit conn =>
       Ok(views.html.admin.editUser(StoreUser.listUsers()))
     }
+  }}
+
+  def modifyUserStart(userId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    DB.withConnection { implicit conn =>
+      Ok(views.html.admin.modifyUser(modifyUserForm.fill(ModifyUser(StoreUser.withSite(userId)))))
+    }
+  }}
+
+  def modifyUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    modifyUserForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in UserMaintenance.modifyUser.")
+        BadRequest(views.html.admin.modifyUser(formWithErrors))
+      },
+      newUser => DB.withConnection { implicit conn =>
+        newUser.update
+        Redirect(
+          routes.UserMaintenance.editUser
+        ).flashing("message" -> Messages("userIsUpdated"))
+      }
+    )
   }}
 
   def deleteUser(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
