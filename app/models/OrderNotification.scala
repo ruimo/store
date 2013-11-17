@@ -70,4 +70,34 @@ object OrderNotification {
     ).as(
       simple *
     )
+
+  def listBySite(siteId: Long)(implicit conn: Connection): Seq[StoreUser] =
+    SQL(
+      """
+      select * from store_user
+      inner join site_user on store_user.store_user_id = site_user.store_user_id
+      inner join order_notification on order_notification.store_user_id = store_user.store_user_id
+      where site_user.site_id = {siteId}
+      and deleted = FALSE
+      """
+    ).on(
+      'siteId -> siteId
+    ).as(
+      StoreUser.simple *
+    )
+
+  def listAdmin(implicit conn: Connection): Seq[StoreUser] =
+    SQL(
+      """
+      select * from store_user su
+      inner join order_notification on order_notification.store_user_id = su.store_user_id
+      where user_role = {userRole}
+      and not exists(select 'X' from site_user where store_user_id = su.store_user_id)
+      and deleted = FALSE
+      """
+    ).on(
+      'userRole -> UserRole.ADMIN.ordinal
+    ).as(
+      StoreUser.simple *
+    )
 }

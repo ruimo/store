@@ -193,3 +193,7 @@ userIsCreated=ユーザが作成されました。
 userIsUpdated=ユーザが更新されました。
 modifyUserTitle=ユーザの変更
 sendNoticeMail=注文時にメールで通知を受ける
+
+mail.buyer.subject=[Functional Store] ご注文ありがとうございました。 (#%d)
+mail.site.owner.subject=[Functional Store] 注文がありました。 (#%d)
+mail.admin.subject=[Functional Store] 注文がありました。 (#%d)

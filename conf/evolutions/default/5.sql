@@ -10,7 +10,13 @@ create table order_notification (
 
 create sequence order_notification_seq start with 1000;
 
+alter table transaction_shipping add column box_count integer default 1 not null ;
+alter table transaction_shipping add column box_name varchar(32) default '-' not null ;
+
 # --- !Downs
 drop table order_notification;
 
 drop sequence order_notification_seq;
+
+alter table transaction_shipping drop column box_count;
+alter table transaction_shipping drop column box_name;

@@ -3,6 +3,7 @@ package controllers
 import play.api._
 import data.Form
 import db.DB
+import libs.concurrent.Akka
 import play.api.mvc._
 import models._
 import play.api.Play.current
@@ -13,7 +14,7 @@ import java.util.regex.Pattern
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import i18n.{Lang, Messages}
-import helpers.Enums
+import helpers.{NotificationMail, Enums}
 import controllers.I18n.I18nAware
 import java.sql.Connection
 import org.joda.time.DateTime
@@ -171,7 +172,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           ShoppingCartItem.removeForUser(login.userId)
           val tran = persister.load(tranId, LocaleInfo.getDefault)
           val address = Address.byId(tran.shippingTable.head._2.head.addressId)
-          
+          NotificationMail.orderCompleted(loginSession.get, tran, address)
           Ok(views.html.showTransactionJa(tran, address))
         }
         catch {

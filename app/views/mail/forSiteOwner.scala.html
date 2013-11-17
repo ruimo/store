@@ -1,19 +1,20 @@
 @(
   login: LoginSession,
+  site: Site,
+  owner: StoreUser,
   tran: PersistedTransaction,
   addr: Address,
   metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
 )
 @import org.joda.time.format.DateTimeFormat
-@login.storeUser.companyName.getOrElse("")
-@login.storeUser.firstName @login.storeUser.lastName 様
+@site.name
+@owner.firstName @owner.lastName 様
 
-この度はFunctional Storeをご利用頂きまして
-誠にありがとうございます。
-ご注文を以下の内容で承りましたので、お知らせします。
+お世話になっております。
+下記の注文がありましたので、お知らせします。
+対応よろしくお願いします。
 
 <ご注文商品>
-@tran.siteTable.map { site =>@site.name
 @tran.itemTable(site.id.get).map { it =>
 @{it._1.name}/@Messages("item.size." + metadata(site.id.get -> it._2.itemId)(SiteItemNumericMetadataType.SHIPPING_SIZE).metadata)/@{it._2.quantity}点/@{f"%,.0f".format(it._2.amount)}円 }
 小計 @{f"%,.0f".format(tran.itemTotal(site.id.get))}円
@@ -25,11 +26,14 @@
 }
 配送希望日 @{DateTimeFormat.forPattern(Messages("shipping.date.format")).print(tran.shippingTable(site.id.get).head.shippingDate)}
 
-}
 <合計>
-商品計 @{f"%,.0f".format(tran.itemGrandTotal + tran.outerTaxGrandTotal)}円/個数 @{tran.itemQuantity.values.fold(0L){_+_}}点
-送料計 @{f"%,.0f".format(tran.boxGrandTotal)}円/個数 @{tran.boxQuantity.values.fold(0){_+_}}点
-合計 @{f"%,.0f".format(tran.itemGrandTotal + tran.outerTaxGrandTotal + tran.boxGrandTotal)}円
+商品計 @{f"%,.0f".format(tran.itemTotal(site.id.get) + tran.outerTaxTotal(site.id.get))}円/個数 @{tran.itemQuantity(site.id.get)}点
+送料計 @{f"%,.0f".format(tran.boxTotal(site.id.get))}円/個数 @{tran.boxQuantity(site.id.get)}点
+合計 @{f"%,.0f".format(tran.itemTotal(site.id.get) + tran.outerTaxTotal(site.id.get) + tran.boxTotal(site.id.get))}円
+
+<ご注文者様>
+@{login.storeUser.companyName.getOrElse("")} @{login.storeUser.firstName} @{login.storeUser.lastName}様
+メールアドレス： @login.storeUser.email
 
 <お届け先>
 @addr.firstName　@addr.lastName
