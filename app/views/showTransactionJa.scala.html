@@ -1,5 +1,8 @@
 @(
-  tran: PersistedTransaction, addr: Address
+  tran: PersistedTransaction, 
+  addr: Address,
+  textMetadata: Map[Long, Map[ItemTextMetadataType, ItemTextMetadata]],
+  siteItemMetadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -9,44 +12,95 @@
 @import helper._
 
 @main(Messages("end.transaction"), Some(loginSession)) {
-  <h1>取引番号は @tran.header.id.get です。後日のお問い合わせのためお控えください。</h1>
+  <h1 class="tranMessage">ご注文番号は @tran.header.id.get です。後日のお問い合わせのためお控えください。</h1>
 
-  <h1>合計額</h1>
-  <h2>@amount(tran.header.totalAmount)</h2>
-
-  <h1>お買い上げ商品</h1>
+  <h1 class="items">ご注文商品</h1>
   <table class="itemTable" border="0">
     <tr class="itemTableHeader">
-      <th>@Messages("site")</th>
-      <th>@Messages("itemName")</th>
+      <th class="itemName">@Messages("itemName")</th>
+      <th class="siteName">@Messages("site")</th>
+      <th class="size">サイズ</th>
+      <th class="quantity">数量</th>
       <th>@Messages("subtotal")</th>
     </tr>
     @tran.siteTable.map { site =>
       @tran.itemTable(site.id.get).map { e =>
         <tr class="itemTableBody">
-          <td class="siteName">@site.name</td>
           <td class="itemName">@e._1.name</td>
+          <td class="siteName">@site.name</td>
+          <td class="size">
+            @{siteItemMetadata(site.id.get -> e._2.itemId).get(SiteItemNumericMetadataType.SHIPPING_SIZE) match {
+                case Some(md) => Messages("item.size." + md.metadata)
+                case None => ""
+              }}
+          </td>
+          <td class="quantity">@e._2.quantity</td>
           <td class="itemPrice">@amount(e._2.amount)</td>
         </tr>
       }
     }
+    <tr class="itemTableBody">
+      <td colspan="4">小計</td>
+      <td>@amount(tran.itemGrandTotal)</td>
+    </tr>
+    <tr class="itemTableBody">
+      <td colspan="4">外税額</td>
+      <td>@amount(tran.outerTaxGrandTotal)</td>
+    </tr>
+    <tr class="itemTableBody">
+      <td colspan="4">商品計</td>
+      <td>@amount(tran.itemGrandTotal +tran.outerTaxGrandTotal)</td>
+    </tr>
   </table>
 
-  <h1>送料</h1>
+  <h1 class="shippingFee">送料</h1>
+
+  @tran.siteTable.map { site =>
+  <h2 class="siteName">@site.name</h2>
+
   <table class="shipping">
     <tr class="itemTableHeader">
-      <th>店舗</th>
+      <th>箱</th>
+      <th>箱単価</th>
+      <th>数量</th>
       <th>金額</th>
     </tr>
-    @tran.siteTable.map { site =>
-      @tran.shippingTable(site.id.get).map { e =>
-        <tr class="shippingTableBody">
-          <td class="site">@site.name</td>
-          <td class="boxPrice">@amount(e.amount)</td>
-        </tr>
-      }
+    @tran.shippingTable(site.id.get).map { e =>
+      <tr class="shippingTableBody">
+        <td class="boxName">@e.boxName</td>
+        <td class="boxUnitPrice">@amount(e.amount / e.boxCount)</td>
+        <td class="boxQuantity">@e.boxCount 箱</td>
+        <td class="boxAmount">@amount(e.amount)</td>
+      </tr>
     }
-    </table>
+  </table>
+  <h2 class="shippingDate">
+    配送希望日： @shippingDate(tran.shippingTable(site.id.get).head.shippingDate)
+  </h2>
+  }
+
+  <h1 class="grandTotalTitle">合計</h1>
+  <table class="grandTotalTable">
+    <tr class="grandTotalHeader">
+      <th></th>
+      <th>数量</th>
+      <th>小計</th>
+    </tr>
+    <tr class="grandTotalBody">
+      <td>商品計</td>
+      <td>@tran.itemGrandQuantity</td>
+      <td>@amount(tran.itemGrandTotal + tran.outerTaxGrandTotal)</td>
+    </tr>
+    <tr class="grandTotalBody">
+      <td>送料計</td>
+      <td>@tran.boxGrandQuantity 箱</td>
+      <td>@amount(tran.boxGrandTotal)</td>
+    </tr>
+    <tr class="grandTotalBody">
+      <td colspan="2">合計</td>
+      <td>@amount(tran.itemGrandTotal + tran.outerTaxGrandTotal + tran.boxGrandTotal)</td>
+    </tr>
+  </table>
 
   <h1>送付先</h1>
   @address(addr)

@@ -438,6 +438,7 @@ case class PersistedTransaction(
   ) {
     (map, e) => map.updated(e._1, e._2.map(_._2.quantity).foldLeft(0L)(_ + _))
   }
+  lazy val itemGrandQuantity: Long = itemQuantity.values.fold(0L)(_ + _)
   lazy val boxTotal: Map[Long, BigDecimal] = shippingTable.foldLeft(
     LongMap[BigDecimal]()
   ) {
@@ -449,6 +450,7 @@ case class PersistedTransaction(
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.boxCount).foldLeft(0)(_ + _))
   }
+  lazy val boxGrandQuantity: Int = boxQuantity.values.fold(0)(_ + _)
   lazy val outerTaxTotal: Map[Long, BigDecimal] = taxTable.foldLeft(
     LongMap[BigDecimal]()
   ) {

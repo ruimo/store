@@ -174,7 +174,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           val tran = persister.load(tranId, LocaleInfo.getDefault)
           val address = Address.byId(tran.shippingTable.head._2.head.addressId)
           NotificationMail.orderCompleted(loginSession.get, tran, address)
-          Ok(views.html.showTransactionJa(tran, address))
+          Ok(views.html.showTransactionJa(tran, address, textMetadata(tran), siteItemMetadata(tran)))
         }
         catch {
           case e: CannotShippingException => {
@@ -183,5 +183,42 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         }
       }
     }
+  }
+
+  def textMetadata(
+    tran: PersistedTransaction
+  )(
+    implicit conn: Connection
+  ): Map[Long, Map[ItemTextMetadataType, ItemTextMetadata]] = {
+    val buf = scala.collection.mutable.HashMap[Long, Map[ItemTextMetadataType, ItemTextMetadata]]()
+    tran.itemTable.foreach { e =>
+      val items = e._2
+      items.foreach { it =>
+        val tranItem = it._2
+        val itemId = tranItem.itemId
+        buf.update(itemId, ItemTextMetadata.allById(tranItem.itemId))
+      }
+    }
+
+    buf.toMap
+  }
+
+  def siteItemMetadata(
+    tran: PersistedTransaction
+  )(
+    implicit conn: Connection
+  ): Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = {
+    val buf = scala.collection.mutable.HashMap[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]()
+    tran.itemTable.foreach { e =>
+      val siteId = e._1
+      val items = e._2
+      items.foreach { it =>
+        val tranItem = it._2
+        val itemId = tranItem.itemId
+        buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
+      }
+    }
+
+    buf.toMap
   }
 }
