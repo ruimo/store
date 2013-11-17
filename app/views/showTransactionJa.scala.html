@@ -12,7 +12,14 @@
 @import helper._
 
 @main(Messages("end.transaction"), Some(loginSession)) {
-  <h1 class="tranMessage">ご注文番号は @tran.header.id.get です。後日のお問い合わせのためお控えください。</h1>
+  <div class="transactionEndMessage">
+  ご注文ありがとうございました。<br>
+  ご登録のメールアドレス宛にご注文の内容を送付いたしました。
+  商品の発送をもってご請求させていただきます。
+  ご注文番号は「@{tran.header.id.get}」です。
+  内容確認のためお控えください。
+  発送が終了しましたら発送元より再度メールにてご連絡をさせていただきます。
+  </div>
 
   <h1 class="items">ご注文商品</h1>
   <table class="itemTable" border="0">
