@@ -106,6 +106,7 @@ tel2=Tel2
 tel3=Tel3
 finalize.transaction=Purchase items
 itemMetadata=Item metadata
+itemTextMetadata=Item metadata(Text)
 itemMetadataType=Metadata type
 cannot.ship.title = Cannot ship items
 cannot.ship = Cannot ship these items
