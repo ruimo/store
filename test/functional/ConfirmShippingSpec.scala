@@ -262,7 +262,7 @@ class ConfirmShippingSpec extends Specification {
         browser.find("table.shipping")
           .find("tr.shippingTableBody", 0)
           .find("td.boxQuantity")
-          .getText === "3 個"
+          .getText === "3 箱"
 
         browser.find("table.shipping")
           .find("tr.shippingTableBody", 0)
@@ -282,7 +282,7 @@ class ConfirmShippingSpec extends Specification {
         browser.find("table.shipping", 1)
           .find("tr.shippingTableBody", 0)
           .find("td.boxQuantity")
-          .getText === "10 個"
+          .getText === "10 箱"
 
         browser.find("table.shipping", 1)
           .find("tr.shippingTableBody", 0)
@@ -302,7 +302,7 @@ class ConfirmShippingSpec extends Specification {
         browser.find("table.shipping", 1)
           .find("tr.shippingTableBody", 1)
           .find("td.boxQuantity")
-          .getText === "8 個"
+          .getText === "8 箱"
 
         browser.find("table.shipping", 1)
           .find("tr.shippingTableBody", 1)
@@ -313,7 +313,7 @@ class ConfirmShippingSpec extends Specification {
         browser.find("table.salesTotal")
           .find("tr.salesTotalBody", 0)
           .find("td.itemQuantity")
-          .getText === (15 + 28 + 40) + " 個"
+          .getText === "" + (15 + 28 + 40)
 
         // Total amount(including outer tax)
         browser.find("table.salesTotal")
@@ -331,7 +331,7 @@ class ConfirmShippingSpec extends Specification {
         browser.find("table.salesTotal")
           .find("tr.salesTotalBody", 1)
           .find("td.itemQuantity")
-          .getText === (3 + 10 + 8) + " 個"
+          .getText === (3 + 10 + 8) + " 箱"
 
         // Shipping fee
         browser.find("table.salesTotal")
