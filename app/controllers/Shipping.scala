@@ -44,7 +44,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       "tel1" -> text.verifying(Messages("error.number"), z => TelPattern.matcher(z).matches),
       "tel2" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
       "tel3" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
-      "shippingDate" -> jodaDate(Messages("shipping.date.format"))
+      "shippingDate" -> jodaDate(Messages("shipping.date.format")),
+      "comment" -> text.verifying(maxLength(2048))
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 

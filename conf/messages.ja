@@ -198,3 +198,4 @@ sendNoticeMail=注文時にメールで通知を受ける
 mail.buyer.subject=[Functional Store] ご注文ありがとうございました。 (#%d)
 mail.site.owner.subject=[Functional Store] 注文がありました。 (#%d)
 mail.admin.subject=[Functional Store] 注文がありました。 (#%d)
+shippingComment=お伝えすることがあれば、こちらにご記入ください

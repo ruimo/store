@@ -64,7 +64,8 @@ class AddressSpec extends Specification {
                 "address5",
                 "tel1",
                 "tel2",
-                "tel3"
+                "tel3",
+                "comment"
               ), i.toLong
             )
           }
@@ -90,7 +91,8 @@ class AddressSpec extends Specification {
               "address5",
               "tel1",
               "tel2",
-              "tel3"
+              "tel3",
+              "comment"
             ), ShippingAddressHistory.HistoryMaxCount
           )
 
@@ -134,7 +136,8 @@ class AddressSpec extends Specification {
               "address5",
               "tel1",
               "tel2",
-              "tel3"
+              "tel3",
+              "comment"
             ), 1L
           )
 
@@ -156,7 +159,8 @@ class AddressSpec extends Specification {
               "address5",
               "tel1",
               "tel2",
-              "tel3"
+              "tel3",
+              "comment"
             ), 2L
           )
 
