@@ -90,7 +90,7 @@ trait NeedLogin extends Controller with HasLogger {
   }}
 
   def logoff(uriOnLogoffSuccess: String) = Action { implicit request =>
-    Redirect(uriOnLogoffSuccess).withSession(session - LoginUserKey)
+    Redirect(routes.Application.index).withSession(session - LoginUserKey)
   }
 
   def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
