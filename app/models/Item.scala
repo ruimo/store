@@ -33,6 +33,10 @@ case class ItemNumericMetadata(
   id: Pk[Long] = NotAssigned, itemId: Long, metadataType: ItemNumericMetadataType, metadata: Long
 ) extends NotNull
 
+case class ItemTextMetadata(
+  id: Pk[Long] = NotAssigned, itemId: Long, metadataType: ItemTextMetadataType, metadata: String
+) extends NotNull
+
 case class SiteItem(itemId: Long, siteId: Long) extends NotNull
 
 case class SiteItemNumericMetadata(
@@ -120,7 +124,8 @@ object Item {
   ): PagedRecords[(
     Item, ItemName, ItemDescription, Site, ItemPriceHistory, 
     Map[ItemNumericMetadataType, ItemNumericMetadata],
-    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Map[ItemTextMetadataType, ItemTextMetadata]
   )] = {
     val sqlBody = """
       inner join item_name on item.item_id = item_name.item_id
@@ -168,9 +173,10 @@ object Item {
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
+      val textMetadata = ItemTextMetadata.allById(itemId)
       val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-      (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata)
+      (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata, textMetadata)
     }}
 
     val count = SQL(
@@ -745,6 +751,97 @@ object ItemNumericMetadata {
     SQL(
       """
       delete from item_numeric_metadata
+      where item_id = {itemId}
+      and metadata_type = {metadataType}
+      """
+    ).on(
+      'itemId -> itemId,
+      'metadataType -> metadataType
+    ).executeUpdate()
+  }
+}
+
+object ItemTextMetadata {
+  val simple = {
+    SqlParser.get[Pk[Long]]("item_text_metadata.item_text_metadata_id") ~
+    SqlParser.get[Long]("item_text_metadata.item_id") ~
+    SqlParser.get[Int]("item_text_metadata.metadata_type") ~
+    SqlParser.get[String]("item_text_metadata.metadata") map {
+      case id~itemId~metadata_type~metadata =>
+        ItemTextMetadata(id, itemId, ItemTextMetadataType.byIndex(metadata_type), metadata)
+    }
+  }
+
+  def createNew(
+    item: Item, metadataType: ItemTextMetadataType, metadata: String
+  )(implicit conn: Connection): ItemTextMetadata = add(item.id.get, metadataType, metadata)
+
+  def add(
+    itemId: Long, metadataType: ItemTextMetadataType, metadata: String
+  )(implicit conn: Connection): ItemTextMetadata = {
+    SQL(
+      """
+      insert into item_text_metadata(item_text_metadata_id, item_id, metadata_type, metadata)
+      values (
+        (select nextval('item_text_metadata_seq')),
+        {itemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'itemId -> itemId,
+      'metadataType -> metadataType.ordinal,
+      'metadata -> metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('item_text_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    ItemTextMetadata(Id(id), itemId, ItemTextMetadataType.byIndex(metadataType.ordinal), metadata)
+  }
+
+  def apply(
+    item: Item, metadataType: ItemTextMetadataType
+  )(implicit conn: Connection): ItemTextMetadata = SQL(
+    """
+    select * from item_text_metadata
+    where item_id = {itemId}
+    and metadata_type = {metadataType}
+    """
+  ).on(
+    'itemId -> item.id.get,
+    'metadataType -> metadataType.ordinal
+  ).as(
+    ItemTextMetadata.simple.single
+  )
+
+  def all(item: Item)(implicit conn: Connection): Map[ItemTextMetadataType, ItemTextMetadata] = allById(item.id.get)
+
+  def allById(itemId: Long)(implicit conn: Connection): Map[ItemTextMetadataType, ItemTextMetadata] = SQL(
+    "select * from item_text_metadata where item_id = {itemId} "
+  ).on(
+    'itemId -> itemId
+  ).as(
+    ItemTextMetadata.simple *
+  ).foldLeft(new HashMap[ItemTextMetadataType, ItemTextMetadata]) {
+    (map, e) => map.updated(e.metadataType, e)
+  }
+
+  def update(itemId: Long, metadataType: ItemTextMetadataType, metadata: String)(implicit conn: Connection) {
+    SQL(
+      """
+      update item_text_metadata set metadata = {metadata}
+      where item_id = {itemId} and metadata_type = {metadataType}
+      """
+    ).on(
+      'metadata -> metadata,
+      'itemId -> itemId,
+      'metadataType -> metadataType.ordinal
+    ).executeUpdate()
+  }
+
+  def remove(itemId: Long, metadataType: Int)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from item_text_metadata
       where item_id = {itemId}
       and metadata_type = {metadataType}
       """

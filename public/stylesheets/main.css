@@ -164,6 +164,13 @@ tr.userTableBody {
     background-color: DarkGreen;
 }
 
+.grandTotalTable {
+    width: 600px;
+    cell-spacing: 1px;
+    vertical-align: top;
+    background-color: DarkGreen;
+}
+
 .salesTotal {
     width: 600px;
     cell-spacing: 1px;
@@ -188,12 +195,27 @@ tr.userTableBody {
     color: White;
 }
 
+.grandTotalHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
+.shippingTableBody {
+    vertical-align: top;
+    background-color: White;
+}
+
 .shippingTableBody {
     vertical-align: top;
     background-color: White;
 }
 
 .salesTotalBody {
+    vertical-align: top;
+    background-color: White;
+}
+
+.grandTotalBody {
     vertical-align: top;
     background-color: White;
 }
@@ -307,4 +329,10 @@ tr.userTableBody {
 
 .queryItemTable {
   width: 80%;
+}
+
+.transactionEndMessage {
+  border-style: solid;
+  border-width: 1px;
+  font-size: 140%;
 }

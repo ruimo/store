@@ -24,10 +24,13 @@ POST    /admin/addItemName               controllers.ItemMaintenance.addItemName
 GET     /admin/removeItemName            controllers.ItemMaintenance.removeItemName(itemId: Long, localeId: Long)
 
 POST    /admin/addItemMetadata           controllers.ItemMaintenance.addItemMetadata(id: Long)
+POST    /admin/addItemTextMetadata       controllers.ItemMaintenance.addItemTextMetadata(id: Long)
 POST    /admin/addSiteItemMetadata       controllers.ItemMaintenance.addSiteItemMetadata(id: Long)
 POST    /admin/changeItemMetadata        controllers.ItemMaintenance.changeItemMetadata(id: Long)
+POST    /admin/changeItemTextMetadata    controllers.ItemMaintenance.changeItemTextMetadata(id: Long)
 POST    /admin/changeSiteItemMetadata    controllers.ItemMaintenance.changeSiteItemMetadata(id: Long)
 GET     /admin/removeItemMetadata        controllers.ItemMaintenance.removeItemMetadata(itemId: Long, metadataType: Int)
+GET     /admin/removeItemTextMetadata    controllers.ItemMaintenance.removeItemTextMetadata(itemId: Long, metadataType: Int)
 GET     /admin/removeSiteItemMetadata    controllers.ItemMaintenance.removeSiteItemMetadata(itemId: Long, siteId: Long, metadataType: Int)
 
 POST    /admin/addSiteItem               controllers.ItemMaintenance.addSiteItem(id: Long)

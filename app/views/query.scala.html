@@ -6,8 +6,10 @@
     models.ItemDescription,
     models.Site,
     models.ItemPriceHistory,
-    Map[models.ItemNumericMetadataType, models.ItemNumericMetadata],
-    Map[models.SiteItemNumericMetadataType, models.SiteItemNumericMetadata])]
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Map[ItemTextMetadataType, ItemTextMetadata]
+  )]
 )(
   implicit lang: Lang,
   request: RequestHeader,

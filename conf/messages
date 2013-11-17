@@ -106,6 +106,7 @@ tel2=Tel2
 tel3=Tel3
 finalize.transaction=Purchase items
 itemMetadata=Item metadata
+itemTextMetadata=Item metadata(Text)
 itemMetadataType=Metadata type
 cannot.ship.title = Cannot ship items
 cannot.ship = Cannot ship these items
@@ -163,3 +164,9 @@ userIsCreated=User is created.
 userIsUpdated=User is updated.
 modifyUserTitle=Modify User
 sendNoticeMail=Receive notice mail when order is placed.
+
+mail.buyer.subject=[Functional Store] Order confirmation (#%d)
+mail.site.owner.subject=[Functional Store] Order request (#%d)
+mail.admin.subject=[Functional Store] Order request (#%d)
+shippingComment=Comment
+register.shipping=Register

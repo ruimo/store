@@ -38,6 +38,8 @@ case class TransactionLogShipping(
   itemClass: Long,
   boxSize: Int,
   taxId: Long,
+  boxCount: Int,
+  boxName: String,
   shippingDate: Long
 ) extends NotNull
 
@@ -248,25 +250,27 @@ object TransactionLogShipping {
     SqlParser.get[Long]("transaction_shipping.item_class") ~
     SqlParser.get[Int]("transaction_shipping.box_size") ~
     SqlParser.get[Long]("transaction_shipping.tax_id") ~
+    SqlParser.get[Int]("transaction_shipping.box_count") ~
+    SqlParser.get[String]("transaction_shipping.box_name") ~
     SqlParser.get[java.util.Date]("transaction_shipping.shipping_date") map {
-      case id~transactionId~amount~addressId~itemClass~boxSize~taxId~shippingDate =>
-        TransactionLogShipping(id, transactionId, amount, addressId, itemClass, boxSize, taxId, shippingDate.getTime)
+      case id~transactionId~amount~addressId~itemClass~boxSize~taxId~boxCount~boxName~shippingDate =>
+        TransactionLogShipping(id, transactionId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate.getTime)
     }
   }
 
   def createNew(
     transactionSiteId: Long, amount: BigDecimal, addressId: Long,
-    itemClass: Long, boxSize: Int, taxId: Long, shippingDate: Long
+    itemClass: Long, boxSize: Int, taxId: Long, boxCount: Int, boxName: String, shippingDate: Long
   )(implicit conn: Connection): TransactionLogShipping = {
     SQL(
       """
       insert into transaction_shipping (
         transaction_shipping_id, transaction_site_id, amount, address_id,
-        item_class, box_size, tax_id, shipping_date
+        item_class, box_size, tax_id, box_count, box_name, shipping_date
       ) values (
         (select nextval('transaction_shipping_seq')),
         {transactionSiteId}, {amount}, {addressId},
-        {itemClass}, {boxSize}, {taxId}, {shippingDate}
+        {itemClass}, {boxSize}, {taxId}, {boxCount}, {boxName}, {shippingDate}
       )
       """
     ).on(
@@ -276,12 +280,14 @@ object TransactionLogShipping {
       'itemClass -> itemClass,
       'boxSize -> boxSize,
       'taxId -> taxId,
+      'boxCount -> boxCount,
+      'boxName -> boxName,
       'shippingDate -> new java.sql.Date(shippingDate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_shipping_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, shippingDate)
+    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogShipping] =
@@ -421,6 +427,36 @@ case class PersistedTransaction(
   ) {
     (map, e) => map.updated(e.id.get, e)
   }
+  lazy val itemTotal: Map[Long, BigDecimal] = itemTable.foldLeft(
+    LongMap[BigDecimal]()
+  ) {
+    (map, e) => map.updated(e._1, e._2.map(_._2.amount).foldLeft(BigDecimal(0))(_ + _))
+  }
+  lazy val itemGrandTotal: BigDecimal = itemTotal.values.fold(BigDecimal(0))(_ + _)
+  lazy val itemQuantity: Map[Long, Long] = itemTable.foldLeft(
+    LongMap[Long]()
+  ) {
+    (map, e) => map.updated(e._1, e._2.map(_._2.quantity).foldLeft(0L)(_ + _))
+  }
+  lazy val itemGrandQuantity: Long = itemQuantity.values.fold(0L)(_ + _)
+  lazy val boxTotal: Map[Long, BigDecimal] = shippingTable.foldLeft(
+    LongMap[BigDecimal]()
+  ) {
+    (map, e) => map.updated(e._1, e._2.map(_.amount).foldLeft(BigDecimal(0))(_ + _))
+  }
+  lazy val boxGrandTotal: BigDecimal = boxTotal.values.fold(BigDecimal(0))(_ + _)
+  lazy val boxQuantity: Map[Long, Int] = shippingTable.foldLeft(
+    LongMap[Int]()
+  ) {
+    (map, e) => map.updated(e._1, e._2.map(_.boxCount).foldLeft(0)(_ + _))
+  }
+  lazy val boxGrandQuantity: Int = boxQuantity.values.fold(0)(_ + _)
+  lazy val outerTaxTotal: Map[Long, BigDecimal] = taxTable.foldLeft(
+    LongMap[BigDecimal]()
+  ) {
+    (map, e) => map.updated(e._1, e._2.filter(_.taxType == TaxType.OUTER_TAX).map(_.amount).foldLeft(BigDecimal(0))(_ + _))
+  }
+  lazy val outerTaxGrandTotal: BigDecimal = outerTaxTotal.values.fold(BigDecimal(0))(_ + _)
 }
 
 case class TransactionSummaryEntry(
@@ -606,7 +642,8 @@ case class TransactionDetail(
   unitPrice: BigDecimal,
   quantity: Int,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
-  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
 ) extends NotNull
 
 object TransactionDetail {
@@ -646,8 +683,9 @@ object TransactionDetail {
       parser *
     ).map { e =>
       val metadata = ItemNumericMetadata.allById(e._4)
+      val textMetadata = ItemTextMetadata.allById(e._4)
       val siteMetadata = SiteItemNumericMetadata.all(e._5, e._4)
-      TransactionDetail(e._1, e._2, e._3, metadata, siteMetadata)
+      TransactionDetail(e._1, e._2, e._3, metadata, siteMetadata, textMetadata)
     }
   }
 }
@@ -691,7 +729,7 @@ class TransactionPersister {
     tran.shippingTotal.table.foreach { e =>
       TransactionLogShipping.createNew(
         siteLog.id.get, e.boxTotal, tran.shippingAddress.id.get, e.itemClass, e.shippingBox.boxSize,
-        e.boxTaxInfo.taxId, tran.shippingDate.tables(e.site.id.get).shippingDate
+        e.boxTaxInfo.taxId, e.boxQuantity, e.shippingBox.boxName, tran.shippingDate.tables(e.site.id.get).shippingDate
       )
     }
   }

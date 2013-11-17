@@ -3,6 +3,7 @@ package controllers
 import play.api._
 import data.Form
 import db.DB
+import libs.concurrent.Akka
 import play.api.mvc._
 import models._
 import play.api.Play.current
@@ -13,7 +14,7 @@ import java.util.regex.Pattern
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import i18n.{Lang, Messages}
-import helpers.Enums
+import helpers.{NotificationMail, Enums}
 import controllers.I18n.I18nAware
 import java.sql.Connection
 import org.joda.time.DateTime
@@ -43,7 +44,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       "tel1" -> text.verifying(Messages("error.number"), z => TelPattern.matcher(z).matches),
       "tel2" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
       "tel3" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
-      "shippingDate" -> jodaDate(Messages("shipping.date.format"))
+      "shippingDate" -> jodaDate(Messages("shipping.date.format")),
+      "comment" -> text.verifying(maxLength(2048))
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 
@@ -171,8 +173,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           ShoppingCartItem.removeForUser(login.userId)
           val tran = persister.load(tranId, LocaleInfo.getDefault)
           val address = Address.byId(tran.shippingTable.head._2.head.addressId)
-          
-          Ok(views.html.showTransactionJa(tran, address))
+          NotificationMail.orderCompleted(loginSession.get, tran, address)
+          Ok(views.html.showTransactionJa(tran, address, textMetadata(tran), siteItemMetadata(tran)))
         }
         catch {
           case e: CannotShippingException => {
@@ -181,5 +183,42 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         }
       }
     }
+  }
+
+  def textMetadata(
+    tran: PersistedTransaction
+  )(
+    implicit conn: Connection
+  ): Map[Long, Map[ItemTextMetadataType, ItemTextMetadata]] = {
+    val buf = scala.collection.mutable.HashMap[Long, Map[ItemTextMetadataType, ItemTextMetadata]]()
+    tran.itemTable.foreach { e =>
+      val items = e._2
+      items.foreach { it =>
+        val tranItem = it._2
+        val itemId = tranItem.itemId
+        buf.update(itemId, ItemTextMetadata.allById(tranItem.itemId))
+      }
+    }
+
+    buf.toMap
+  }
+
+  def siteItemMetadata(
+    tran: PersistedTransaction
+  )(
+    implicit conn: Connection
+  ): Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = {
+    val buf = scala.collection.mutable.HashMap[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]()
+    tran.itemTable.foreach { e =>
+      val siteId = e._1
+      val items = e._2
+      items.foreach { it =>
+        val tranItem = it._2
+        val itemId = tranItem.itemId
+        buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
+      }
+    }
+
+    buf.toMap
   }
 }

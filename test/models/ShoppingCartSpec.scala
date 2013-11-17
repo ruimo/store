@@ -427,7 +427,7 @@ class ShoppingCartSpec extends Specification {
               itemId = item1.id.get,
               quantity = 4
             ),
-            name1(Ja), desc1, site1, ph1, taxHistory1, Map(), Map()
+            name1(Ja), desc1, site1, ph1, taxHistory1, Map(), Map(), Map()
           )
 
           val e2 = ShoppingCartTotalEntry(
@@ -439,7 +439,7 @@ class ShoppingCartSpec extends Specification {
               itemId = item2.id.get,
               quantity = 4
             ),
-            name2(Ja), desc2, site2, ph2, taxHistory1, Map(), Map()
+            name2(Ja), desc2, site2, ph2, taxHistory1, Map(), Map(), Map()
           )
 
           val total = ShoppingCartTotal(

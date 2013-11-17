@@ -14,28 +14,30 @@ import org.postgresql.util.PSQLException
 import java.sql.SQLException
 import org.joda.time.DateTime
 
-case class ChangeItem(
-  id: Long,
-  siteMap: Map[Long, Site],
-  langTable: Seq[(String, String)],
-  itemNameTableForm: Form[ChangeItemNameTable],
-  newItemNameForm: Form[ChangeItemName],
-  siteNameTable: Seq[(String, String)],
-  siteItemTable: Seq[(Site, SiteItem)],
-  newSiteItemForm: Form[ChangeSiteItem],
-  updateCategoryForm: Form[ChangeItemCategory],
-  categoryTable: Seq[(String, String)],
-  itemDescriptionTableForm: Form[ChangeItemDescriptionTable],
-  newItemDescriptionForm: Form[ChangeItemDescription],
-  itemPriceTableForm: Form[ChangeItemPriceTable],
-  newItemPriceForm: Form[ChangeItemPrice],
-  taxTable: Seq[(String, String)],
-  currencyTable: Seq[(String, String)],
-  itemInSiteTable: Seq[(String, String)],
-  itemMetadataTableForm: Form[ChangeItemMetadataTable],
-  newItemMetadataForm: Form[ChangeItemMetadata],
-  siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
-  newSiteItemMetadataForm: Form[ChangeSiteItemMetadata]
+class ChangeItem(
+  val id: Long,
+  val siteMap: Map[Long, Site],
+  val langTable: Seq[(String, String)],
+  val itemNameTableForm: Form[ChangeItemNameTable],
+  val newItemNameForm: Form[ChangeItemName],
+  val siteNameTable: Seq[(String, String)],
+  val siteItemTable: Seq[(Site, SiteItem)],
+  val newSiteItemForm: Form[ChangeSiteItem],
+  val updateCategoryForm: Form[ChangeItemCategory],
+  val categoryTable: Seq[(String, String)],
+  val itemDescriptionTableForm: Form[ChangeItemDescriptionTable],
+  val newItemDescriptionForm: Form[ChangeItemDescription],
+  val itemPriceTableForm: Form[ChangeItemPriceTable],
+  val newItemPriceForm: Form[ChangeItemPrice],
+  val taxTable: Seq[(String, String)],
+  val currencyTable: Seq[(String, String)],
+  val itemInSiteTable: Seq[(String, String)],
+  val itemMetadataTableForm: Form[ChangeItemMetadataTable],
+  val newItemMetadataForm: Form[ChangeItemMetadata],
+  val siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
+  val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata],
+  val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
+  val newItemTextMetadataForm: Form[ChangeItemTextMetadata]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -132,13 +134,17 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     e => (e.ordinal.toString, e.toString)
   }
 
+  lazy val itemTextMetadataTable: Seq[(String, String)] = ItemTextMetadataType.all.map {
+    e => (e.ordinal.toString, e.toString)
+  }
+
   lazy val siteItemMetadataTable: Seq[(String, String)] = SiteItemNumericMetadataType.all.map {
     e => (e.ordinal.toString, e.toString)
   }
 
   def startChangeItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     Ok(views.html.admin.changeItem(
-      ChangeItem(
+      new ChangeItem(
         id,
         siteListAsMap,
         LocaleInfo.localeTable,
@@ -159,7 +165,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         createItemMetadataTable(id),
         addItemMetadataForm,
         createSiteItemMetadataTable(id),
-        addSiteItemMetadataForm
+        addSiteItemMetadataForm,
+        createItemTextMetadataTable(id),
+        addItemTextMetadataForm
       )
     ))
   }}
@@ -186,6 +194,17 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeItemMetadataTable.apply)(ChangeItemMetadataTable.unapply)
   )
 
+  val changeItemTextMetadataForm = Form(
+    mapping(
+      "itemMetadatas" -> seq(
+        mapping(
+          "metadataType" -> number,
+          "metadata" -> text
+        ) (ChangeItemTextMetadata.apply)(ChangeItemTextMetadata.unapply)
+      )
+    ) (ChangeItemTextMetadataTable.apply)(ChangeItemTextMetadataTable.unapply)
+  )
+
   val changeSiteItemMetadataForm = Form(
     mapping(
       "siteItemMetadatas" -> seq(
@@ -210,6 +229,13 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "metadataType" -> number,
       "metadata" -> longNumber
     ) (ChangeItemMetadata.apply)(ChangeItemMetadata.unapply)
+  )
+
+  val addItemTextMetadataForm = Form(
+    mapping(
+      "metadataType" -> number,
+      "metadata" -> text
+    ) (ChangeItemTextMetadata.apply)(ChangeItemTextMetadata.unapply)
   )
 
   val addSiteItemMetadataForm = Form(
@@ -240,6 +266,16 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
+  def createItemTextMetadataTable(id: Long): Form[ChangeItemTextMetadataTable] = {
+    DB.withConnection { implicit conn => {
+      val itemMetadatas = ItemTextMetadata.allById(id).values.map {
+        n => ChangeItemTextMetadata(n.metadataType.ordinal, n.metadata)
+      }.toSeq
+
+      changeItemTextMetadataForm.fill(ChangeItemTextMetadataTable(itemMetadatas))
+    }}
+  }
+
   def createSiteItemMetadataTable(id: Long): Form[ChangeSiteItemMetadataTable] = {
     DB.withConnection { implicit conn => {
       val itemMetadatas = SiteItemNumericMetadata.allById(id).values.map {
@@ -256,7 +292,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -277,7 +313,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -297,7 +335,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -318,7 +356,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -335,7 +375,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           case e: UniqueConstraintException => {
             BadRequest(
               views.html.admin.changeItem(
-                ChangeItem(
+                new ChangeItem(
                   id,
                   siteListAsMap,
                   LocaleInfo.localeTable,
@@ -356,7 +396,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createItemMetadataTable(id),
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm
+                  addSiteItemMetadataForm,
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
                 )
               )
             )
@@ -379,6 +421,16 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def removeItemMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       ItemNumericMetadata.remove(itemId, metadataType)
+    }
+
+    Redirect(
+      routes.ItemMaintenance.startChangeItem(itemId)
+    )
+  }}
+
+  def removeItemTextMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    DB.withConnection { implicit conn =>
+      ItemTextMetadata.remove(itemId, metadataType)
     }
 
     Redirect(
@@ -426,7 +478,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -447,7 +499,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -464,7 +518,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           case e: UniqueConstraintException => {
             BadRequest(
               views.html.admin.changeItem(
-                ChangeItem(
+                new ChangeItem(
                   id,
                   siteListAsMap,
                   LocaleInfo.localeTable,
@@ -485,7 +539,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createItemMetadataTable(id),
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm
+                  addSiteItemMetadataForm,
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
                 )
               )
             )
@@ -530,7 +586,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -551,7 +607,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -601,7 +659,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -622,7 +680,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -642,7 +702,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -663,7 +723,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -680,7 +742,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           case e: UniqueConstraintException => {
             BadRequest(
               views.html.admin.changeItem(
-                ChangeItem(
+                new ChangeItem(
                   id,
                   siteListAsMap,
                   LocaleInfo.localeTable,
@@ -704,7 +766,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createItemMetadataTable(id),
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm
+                  addSiteItemMetadataForm,
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
                 )
               )
             )
@@ -773,7 +837,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -794,7 +858,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -814,7 +880,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -835,7 +901,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -852,7 +920,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           case e: UniqueConstraintException => {
             BadRequest(
               views.html.admin.changeItem(
-                ChangeItem(
+                new ChangeItem(
                   id,
                   siteListAsMap,
                   LocaleInfo.localeTable,
@@ -876,7 +944,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createItemMetadataTable(id),
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm
+                  addSiteItemMetadataForm,
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
                 )
               )
             )
@@ -904,7 +974,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.changeItemMetadata." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               itemId,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -925,7 +995,52 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               formWithErrors,
               addItemMetadataForm,
               createSiteItemMetadataTable(itemId),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(itemId),
+              addItemTextMetadataForm
+            )
+          )
+        )
+      },
+      newMetadata => {
+        newMetadata.update(itemId)
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(itemId)
+        ).flashing("message" -> Messages("itemIsUpdated"))
+      }
+    )
+  }}
+
+  def changeItemTextMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    changeItemTextMetadataForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.changeItemTextMetadata." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            new ChangeItem(
+              itemId,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(itemId),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(itemId),
+              addSiteItemForm,
+              createItemCategoryForm(itemId),
+              createCategoryTable,
+              createItemDescriptionTable(itemId),
+              addItemDescriptionForm,
+              createItemPriceTable(itemId),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(itemId),
+              createItemMetadataTable(itemId),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(itemId),
+              addSiteItemMetadataForm,
+              formWithErrors,
+              addItemTextMetadataForm
             )
           )
         )
@@ -945,7 +1060,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.changeSiteItemMetadata." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               itemId,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -966,7 +1081,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(itemId),
               addItemMetadataForm,
               formWithErrors,
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(itemId),
+              addItemTextMetadataForm
             )
           )
         )
@@ -986,7 +1103,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         logger.error("Validation error in ItemMaintenance.addItemMetadata." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -1007,7 +1124,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               formWithErrors,
               createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
             )
           )
         )
@@ -1024,7 +1143,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           case e: UniqueConstraintException => {
             BadRequest(
               views.html.admin.changeItem(
-                ChangeItem(
+                new ChangeItem(
                   id,
                   siteListAsMap,
                   LocaleInfo.localeTable,
@@ -1047,7 +1166,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                     .fill(newMetadata)
                     .withError("metadataType", "unique.constraint.violation"),
                   createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm
+                  addSiteItemMetadataForm,
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
                 )
               )
             )
@@ -1057,13 +1178,13 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }}
 
-  def addSiteItemMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addSiteItemMetadataForm.bindFromRequest.fold(
+  def addItemTextMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    addItemTextMetadataForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addSiteItemMetadata." + formWithErrors + ".")
+        logger.error("Validation error in ItemMaintenance.addItemTextMetadata." + formWithErrors + ".")
         BadRequest(
           views.html.admin.changeItem(
-            ChangeItem(
+            new ChangeItem(
               id,
               siteListAsMap,
               LocaleInfo.localeTable,
@@ -1084,6 +1205,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createItemMetadataTable(id),
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
               formWithErrors
             )
           )
@@ -1101,7 +1224,88 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           case e: UniqueConstraintException => {
             BadRequest(
               views.html.admin.changeItem(
-                ChangeItem(
+                new ChangeItem(
+                  id,
+                  siteListAsMap,
+                  LocaleInfo.localeTable,
+                  createItemNameTable(id),
+                  addItemNameForm,
+                  createSiteTable,
+                  createSiteItemTable(id),
+                  addSiteItemForm,
+                  createItemCategoryForm(id),
+                  createCategoryTable,
+                  createItemDescriptionTable(id),
+                  addItemDescriptionForm,
+                  createItemPriceTable(id),
+                  addItemPriceForm,
+                  taxTable,
+                  currencyTable,
+                  createSiteTable(id),
+                  createItemMetadataTable(id),
+                  addItemMetadataForm,
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm,
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
+                    .fill(newMetadata)
+                    .withError("metadataType", "unique.constraint.violation")
+                )
+              )
+            )
+          }
+        }
+      }
+    )
+  }}
+
+  def addSiteItemMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    addSiteItemMetadataForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.addSiteItemMetadata." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            new ChangeItem(
+              id,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(id),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(id),
+              addSiteItemForm,
+              createItemCategoryForm(id),
+              createCategoryTable,
+              createItemDescriptionTable(id),
+              addItemDescriptionForm,
+              createItemPriceTable(id),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(id),
+              createItemMetadataTable(id),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(id),
+              formWithErrors,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm
+            )
+          )
+        )
+      },
+      newMetadata => {
+        try {
+          newMetadata.add(id)
+
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(id)
+          ).flashing("message" -> Messages("itemIsUpdated"))
+        }
+        catch {
+          case e: UniqueConstraintException => {
+            BadRequest(
+              views.html.admin.changeItem(
+                new ChangeItem(
                   id,
                   siteListAsMap,
                   LocaleInfo.localeTable,
@@ -1124,7 +1328,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm
                     .fill(newMetadata)
-                    .withError("metadataType", "unique.constraint.violation")
+                    .withError("metadataType", "unique.constraint.violation"),
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm
                 )
               )
             )

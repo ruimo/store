@@ -10,7 +10,7 @@
 @import helpers.Formatter.yyyy_mm_dd
 
 @main(Messages("confirm.shipping.address"), Some(loginSession)) {
-  <h1 class="itemsTitle">お買い上げ商品</h1>
+  <h1 class="itemsTitle">ご注文商品</h1>
   @if(tran.itemTotal.notEmpty) {
     <table class="itemTable" border="0">
       <tr class="itemTableHeader">
@@ -59,7 +59,7 @@
       <tr class="itemTableHeader">
         <th class="boxNameHeader">箱</th>
         <th class="boxUnitPriceHeader">箱単価</th>
-        <th class="boxQuantityHeader">個数</th>
+        <th class="boxQuantityHeader">@Messages("quantity")</th>
         <th class="boxPriceHeader">金額</th>
       </tr>
 
@@ -68,7 +68,7 @@
           <tr class="shippingTableBody">
             <td class="boxName">@e3.shippingBox.boxName</td>
             <td class="boxUnitPrice">@amount(e3.boxUnitPrice)</td>
-            <td class="boxQuantity">@e3.boxQuantity 個</td>
+            <td class="boxQuantity">@e3.boxQuantity 箱</td>
             <td class="boxPrice">@amount(e3.boxTotal)</td>
           </tr>
         }
@@ -81,17 +81,17 @@
   <table class="salesTotal">
     <tr class="salesTotalHeader">
       <th class="header"></th>
-      <th class="quantityHeader">個数</th>
+      <th class="quantityHeader">@Messages("quantity")</th>
       <th class="subtotalHeader">小計</th>
     </tr>
     <tr class="salesTotalBody">
       <td class="itemTotal">商品計</td>
-      <td class="itemQuantity">@tran.itemTotal.quantity 個</td>
+      <td class="itemQuantity">@tran.itemTotal.quantity</td>
       <td class="itemPrice">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
     <tr class="salesTotalBody">
       <td class="shippingTotal">送料計</td>
-      <td class="itemQuantity" style="text-align: right;">@tran.shippingTotal.boxQuantity 個</td>
+      <td class="itemQuantity" style="text-align: right;">@tran.shippingTotal.boxQuantity 箱</td>
       <td class="itemPrice" style="text-align: right;">@amount(tran.shippingTotal.boxTotal)</td>
     </tr>
     <tr class="salesTotalBody">

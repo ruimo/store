@@ -20,7 +20,8 @@ case class ShoppingCartTotalEntry(
   itemPriceHistory: ItemPriceHistory,
   taxHistory: TaxHistory,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
-  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
 ) extends NotNull {
   lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
   lazy val quantity: Int = shoppingCartItem.quantity
@@ -232,9 +233,10 @@ object ShoppingCartItem {
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val taxHistory = TaxHistory.at(priceHistory.taxId, now)
       val metadata = ItemNumericMetadata.allById(itemId)
+      val textMetadata = ItemTextMetadata.allById(itemId)
       val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata)
+      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata, textMetadata)
     }
   )
 

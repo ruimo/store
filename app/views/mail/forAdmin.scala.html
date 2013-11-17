@@ -1,19 +1,19 @@
 @(
   login: LoginSession,
+  admin: StoreUser,
   tran: PersistedTransaction,
   addr: Address,
   metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
 )
 @import org.joda.time.format.DateTimeFormat
-@login.storeUser.companyName.getOrElse("")
-@login.storeUser.firstName @login.storeUser.lastName 様
+<ご注文者様>
+@{login.storeUser.companyName.getOrElse("")} @{login.storeUser.firstName} @{login.storeUser.lastName}様
+メールアドレス： @login.storeUser.email
 
-この度はFunctional Storeをご利用頂きまして
-誠にありがとうございます。
-ご注文を以下の内容で承りましたので、お知らせします。
+<店舗>
+@tran.siteTable.map { site =>@site.name
 
 <ご注文商品>
-@tran.siteTable.map { site =>@site.name
 @tran.itemTable(site.id.get).map { it =>
 @{it._1.name}/@Messages("item.size." + metadata(site.id.get -> it._2.itemId)(SiteItemNumericMetadataType.SHIPPING_SIZE).metadata)/@{it._2.quantity}点/@{f"%,.0f".format(it._2.amount)}円 }
 小計 @{f"%,.0f".format(tran.itemTotal(site.id.get))}円
@@ -45,3 +45,4 @@
 
 ---
 Functional Store
+
