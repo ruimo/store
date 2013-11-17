@@ -41,15 +41,15 @@
     }
     <tr class="itemTableBody">
       <td colspan="4">小計</td>
-      <td>@amount(tran.itemGrandTotal)</td>
+      <td class="subtotal">@amount(tran.itemGrandTotal)</td>
     </tr>
     <tr class="itemTableBody">
       <td colspan="4">外税額</td>
-      <td>@amount(tran.outerTaxGrandTotal)</td>
+      <td class="outerTaxAmount">@amount(tran.outerTaxGrandTotal)</td>
     </tr>
     <tr class="itemTableBody">
       <td colspan="4">商品計</td>
-      <td>@amount(tran.itemGrandTotal +tran.outerTaxGrandTotal)</td>
+      <td class="grandTotal">@amount(tran.itemGrandTotal +tran.outerTaxGrandTotal)</td>
     </tr>
   </table>
 
@@ -70,7 +70,7 @@
         <td class="boxName">@e.boxName</td>
         <td class="boxUnitPrice">@amount(e.amount / e.boxCount)</td>
         <td class="boxQuantity">@e.boxCount 箱</td>
-        <td class="boxAmount">@amount(e.amount)</td>
+        <td class="boxPrice">@amount(e.amount)</td>
       </tr>
     }
   </table>
@@ -80,25 +80,25 @@
   }
 
   <h1 class="grandTotalTitle">合計</h1>
-  <table class="grandTotalTable">
-    <tr class="grandTotalHeader">
-      <th></th>
-      <th>数量</th>
-      <th>小計</th>
+  <table class="salesTotal">
+    <tr class="salesTotalHeader">
+      <th class="header"></th>
+      <th class="quantityHeader">数量</th>
+      <th class="subtotalHeader">小計</th>
     </tr>
-    <tr class="grandTotalBody">
-      <td>商品計</td>
-      <td>@tran.itemGrandQuantity</td>
-      <td>@amount(tran.itemGrandTotal + tran.outerTaxGrandTotal)</td>
+    <tr class="salesTotalBody">
+      <td class="itemTotal">商品計</td>
+      <td class="itemQuantity">@tran.itemGrandQuantity</td>
+      <td class="itemPrice">@amount(tran.itemGrandTotal + tran.outerTaxGrandTotal)</td>
     </tr>
-    <tr class="grandTotalBody">
-      <td>送料計</td>
-      <td>@tran.boxGrandQuantity 箱</td>
-      <td>@amount(tran.boxGrandTotal)</td>
+    <tr class="salesTotalBody">
+      <td class="shippingTotal">送料計</td>
+      <td class="itemQuantity">@tran.boxGrandQuantity 箱</td>
+      <td class="itemPrice">@amount(tran.boxGrandTotal)</td>
     </tr>
-    <tr class="grandTotalBody">
-      <td colspan="2">合計</td>
-      <td>@amount(tran.itemGrandTotal + tran.outerTaxGrandTotal + tran.boxGrandTotal)</td>
+    <tr class="salesTotalBody">
+      <td class="total" colspan="2">合計</td>
+      <td class="itemPrice">@amount(tran.itemGrandTotal + tran.outerTaxGrandTotal + tran.boxGrandTotal)</td>
     </tr>
   </table>
 
