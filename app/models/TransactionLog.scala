@@ -640,7 +640,8 @@ case class TransactionDetail(
   unitPrice: BigDecimal,
   quantity: Int,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
-  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
 ) extends NotNull
 
 object TransactionDetail {
@@ -680,8 +681,9 @@ object TransactionDetail {
       parser *
     ).map { e =>
       val metadata = ItemNumericMetadata.allById(e._4)
+      val textMetadata = ItemTextMetadata.allById(e._4)
       val siteMetadata = SiteItemNumericMetadata.all(e._5, e._4)
-      TransactionDetail(e._1, e._2, e._3, metadata, siteMetadata)
+      TransactionDetail(e._1, e._2, e._3, metadata, siteMetadata, textMetadata)
     }
   }
 }
