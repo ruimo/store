@@ -67,19 +67,28 @@ object Site {
     'offset -> page * pageSize
   ).as(simple *)
 
-  def tableForDropDown(implicit conn: Connection): Seq[(String, String)] =
+  def tableForDropDown(implicit login: LoginSession, conn: Connection): Seq[(String, String)] =
     SQL(
-      "select * from site order by site_name"
+      """
+      select * from site
+      """ +
+      login.siteUser.map("where site_id = " + _.siteId).getOrElse("") +
+      """
+      order by site_name
+      """
     ).as(simple *).map {
       e => e.id.toString -> e.name
     }
 
-  def tableForDropDown(itemId: Long)(implicit conn: Connection): Seq[(String, String)] =
+  def tableForDropDown(itemId: Long)(implicit login: LoginSession,  conn: Connection): Seq[(String, String)] =
     SQL(
       """
       select * from site
       inner join site_item on site.site_id = site_item.site_id
       where site_item.item_id = {itemId}
+      """ +
+      login.siteUser.map("and site.site_id = " + _.siteId).getOrElse("") +
+      """
       order by site_name
       """
     ).on(

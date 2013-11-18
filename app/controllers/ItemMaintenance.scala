@@ -454,13 +454,13 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeSiteItem.apply)(ChangeSiteItem.unapply)
   )
 
-  def createSiteTable: Seq[(String, String)] = {
+  def createSiteTable(implicit login: LoginSession): Seq[(String, String)] = {
     DB.withConnection { implicit conn => {
       Site.tableForDropDown
     }}
   }
 
-  def createSiteTable(id: Long): Seq[(String, String)] = {
+  def createSiteTable(id: Long)(implicit login: LoginSession): Seq[(String, String)] = {
     DB.withConnection { implicit conn => {
       Site.tableForDropDown(id)
     }}
