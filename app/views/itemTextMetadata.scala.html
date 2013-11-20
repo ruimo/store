@@ -1,0 +1,9 @@
+@(t: ItemTextMetadataType, v: String)(implicit lang: Lang)
+
+@import java.util.Locale
+
+@{
+  t match {
+    case ItemTextMetadataType.ABOUT_HEIGHT => v
+  }
+}

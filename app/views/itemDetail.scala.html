@@ -32,6 +32,13 @@
           </tr>
         }
 
+        @detail.itemTextMetadata.map { e =>
+          <tr class="itemTextMetadata">
+            <td class="itemTextMetadata@(e._1)Header">@Messages("itemTextMetadata" + e._1)</td>
+            <td class="itemTextMetadata@(e._1)">@itemTextMetadata(e._1, e._2.metadata)</td>
+          </tr>
+        }
+
         <tr class="itemDetailItemPrice">
           <td class="label">@Messages("price")</td>
           <td class="value">@amount(detail.price)</td>

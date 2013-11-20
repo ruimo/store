@@ -170,3 +170,4 @@ mail.site.owner.subject=[Functional Store] Order request (#%d)
 mail.admin.subject=[Functional Store] Order request (#%d)
 shippingComment=Comment
 register.shipping=Register
+itemTextMetadataABOUT_HEIGHT=Height

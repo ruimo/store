@@ -200,3 +200,4 @@ mail.site.owner.subject=[Functional Store] 注文がありました。 (#%d)
 mail.admin.subject=[Functional Store] 注文がありました。 (#%d)
 shippingComment=お伝えすることがあれば、こちらにご記入ください
 register.shipping=送り先を確定する
+itemTextMetadataABOUT_HEIGHT=高さ
