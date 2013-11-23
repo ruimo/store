@@ -15,7 +15,7 @@
 }
 
 @main(Messages("enter.shipping.address"), Some(loginSession)) {
-  <h1>@Messages("enter.shipping.address")</h1>
+  <h1 class="enterShippingAddress">@Messages("enter.shipping.address")</h1>
 
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">

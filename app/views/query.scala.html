@@ -56,7 +56,7 @@
     }
   </table>
   <br>
-  <div style="width: 80%; text-align: right;">
+  <div class="pagingPanel">
     <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
             onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage - 1, list.pageSize)'">
       &lt;
