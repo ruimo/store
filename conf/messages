@@ -171,3 +171,7 @@ mail.admin.subject=[Functional Store] Order request (#%d)
 shippingComment=Comment
 register.shipping=Register
 itemTextMetadataABOUT_HEIGHT=Height
+siteItemMetadataSTOCK=Stock
+siteItemMetadataPROMOTION=Promotion
+siteItemMetadataSHIPPING_SIZE=Shipping size
+siteItemMetadataHIDE=Hide

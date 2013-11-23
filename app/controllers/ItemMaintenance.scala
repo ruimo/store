@@ -130,16 +130,16 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     CurrencyInfo.tableForDropDown
   }
 
-  lazy val itemMetadataTable: Seq[(String, String)] = ItemNumericMetadataType.all.map {
-    e => (e.ordinal.toString, e.toString)
+  def itemMetadataTable(implicit lang: Lang): Seq[(String, String)] = ItemNumericMetadataType.all.map {
+    e => (e.ordinal.toString, Messages("itemNumericMetadata" + e.toString))
   }
 
-  lazy val itemTextMetadataTable: Seq[(String, String)] = ItemTextMetadataType.all.map {
-    e => (e.ordinal.toString, e.toString)
+  def itemTextMetadataTable(implicit lang: Lang): Seq[(String, String)] = ItemTextMetadataType.all.map {
+    e => (e.ordinal.toString, Messages("itemTextMetadata" + e.toString))
   }
 
-  lazy val siteItemMetadataTable: Seq[(String, String)] = SiteItemNumericMetadataType.all.map {
-    e => (e.ordinal.toString, e.toString)
+  def siteItemMetadataTable(implicit lang: Lang): Seq[(String, String)] = SiteItemNumericMetadataType.all.map {
+    e => (e.ordinal.toString, Messages("siteItemMetadata" + e.toString))
   }
 
   def startChangeItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>

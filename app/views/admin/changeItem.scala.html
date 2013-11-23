@@ -82,7 +82,7 @@
           @Messages("remove")
         </button>
 
-        @ItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt)
+        @Messages("itemNumericMetadata" + ItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt))
         <div style="display: none;">
         @inputText(field("metadataType"), 'type -> "hidden")(
           helper.FieldConstructor(simpleField.f), implicitly
@@ -109,7 +109,7 @@
           @Messages("remove")
         </button>
 
-        @ItemTextMetadataType.byIndex(field("metadataType").value.get.toInt)
+        @Messages("itemTextMetadata" + ItemTextMetadataType.byIndex(field("metadataType").value.get.toInt))
         <div style="display: none;">
         @inputText(field("metadataType"), 'type -> "hidden")(
           helper.FieldConstructor(simpleField.f), implicitly

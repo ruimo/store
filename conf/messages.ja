@@ -201,3 +201,7 @@ mail.admin.subject=[Functional Store] 注文がありました。 (#%d)
 shippingComment=お伝えすることがあれば、こちらにご記入ください
 register.shipping=送り先を確定する
 itemTextMetadataABOUT_HEIGHT=高さ
+siteItemMetadataSTOCK=在庫
+siteItemMetadataPROMOTION=販促
+siteItemMetadataSHIPPING_SIZE=送料サイズ
+siteItemMetadataHIDE=非表示
