@@ -41,7 +41,10 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
     )
   }}
 
-  def editCategory = isAuthenticated { implicit login => forSuperUser { implicit request => {
-    Ok(views.html.admin.editCategory())
-  }}}
+  def editCategory(start: Int, size: Int) = isAuthenticated { implicit login => forSuperUser { implicit request => 
+    DB.withConnection { implicit conn => {
+      val page = Category.list(page = start, pageSize = size)
+      Ok(views.html.admin.editCategory(page))
+    }}
+  }}
 }
