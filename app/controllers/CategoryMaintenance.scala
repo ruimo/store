@@ -5,10 +5,12 @@ import play.api.data.validation.Constraints._
 import play.api.mvc.Controller
 import controllers.I18n.I18nAware
 import play.api.data.Form
-import models.{LocaleInfo, CreateCategory, Category}
+import models.{LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName}
 import play.api.i18n.Messages
 import play.api.db.DB
 import play.api.Play.current
+
+import play.api.libs.json._
 
 object CategoryMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createCategoryForm = Form(
@@ -47,4 +49,35 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
       Ok(views.html.admin.editCategory(p))
     }}
   }}
+
+
+  def categoryPathTree = isAuthenticated { implicit login => forSuperUser { implicit request => 
+    DB.withConnection { implicit conn => {
+      val locale = LocaleInfo.byLang(lang)
+      val pathTree = Category.root.map { r => 
+        Json.toJson(
+          Map(
+            "id" -> Json.toJson(r.id.get),
+            "text" -> Json.toJson(CategoryName.get(locale,r)),
+            "children" -> Json.toJson(categoryChildren(r, locale))
+          )
+        )
+      }
+      Ok(Json.toJson(pathTree))
+    }}
+  }}
+
+  def categoryChildren(category: Category, locale: LocaleInfo) : Seq[JsValue] =  
+    DB.withConnection { implicit conn => {
+        CategoryPath.children(category).map { c => 
+          Json.toJson(
+            Map(
+              "id" -> Json.toJson(c.id.get), 
+              "text" -> Json.toJson(CategoryName.get(locale, c)),
+              "children" -> Json.toJson(categoryChildren(c,locale))
+            )
+          )
+        }
+    }}
+  
 }
