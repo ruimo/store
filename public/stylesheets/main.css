@@ -336,3 +336,19 @@ tr.userTableBody {
   border-width: 1px;
   font-size: 140%;
 }
+
+.shoppingCartTable {
+  width: 80%;
+}
+
+.toEnterShippingAddress {
+  width: 90%;
+}
+
+.toEnterShippingAddressInner {
+  float: right; padding: 20px;
+}
+
+.pagingPanel {
+  width: 80%; text-align: right;
+}

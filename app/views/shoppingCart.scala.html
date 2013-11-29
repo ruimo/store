@@ -7,10 +7,10 @@
 )
 
 @main(Messages("shopping.cart"), Some(loginSession)) {
-  <h2>@Messages("shopping.cart")</h2>
+  <h2 class="shoppingCart">@Messages("shopping.cart")</h2>
 
   @if(! list.table.isEmpty) {
-    <table style="width: 80%;">
+    <table class="shoppingCartTable">
       <tr>
         <th>@Messages("itemName")</th>
         <th>@Messages("site")</th>
@@ -47,12 +47,12 @@
       }
     </table>
 
-    <div style="width: 90%;">
-      <div style="float: right; padding: 20px;">
+    <div class="toEnterShippingAddress">
+      <div class="toEnterShippingAddressInner">
         <a href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.address")</a>
       </div>
     </div>
   } else {
-    <h2>@Messages("shopping.cart.empty")</h2>
+    <h2 class="shoppingCartEmpty">@Messages("shopping.cart.empty")</h2>
   }
 }
