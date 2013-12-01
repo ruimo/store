@@ -1,0 +1,41 @@
+@(
+  list: Seq[(Transporter, Option[TransporterName])]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("editTransporterTitle"), Some(loginSession)) {
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+  <h1 class="title">@Messages("editTransporterTitle")</h1>
+
+  <table class="transporterTable">
+    <tr>
+      <th class="transporterTableHeaderId transporterHeader">id</th>
+      <th class="transporterTableHeaderName transporterHeader">@Messages("transporterName")</th>
+    </tr>
+    @list.map { e =>
+    <tr class="transporterTableBody">
+      <td class="transporterTableId">
+        <a href="@routes.TransporterMaintenance.startChangeTransporter(e._1.id.get)">@e._1.id</a>
+      </td>
+      <td class="transporterTableName">
+        @e._2.map(_.transporterName).getOrElse("-")
+      </td>
+    </tr>
+    }
+  </table>
+}
+

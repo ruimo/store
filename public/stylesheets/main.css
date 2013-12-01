@@ -352,3 +352,9 @@ tr.userTableBody {
 .pagingPanel {
   width: 80%; text-align: right;
 }
+
+.transporterTable {
+  width: 80%;
+  cell-spacing: 1px;
+  vertical-align: top;
+}

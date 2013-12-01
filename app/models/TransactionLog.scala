@@ -62,10 +62,17 @@ case class TransactionLogItem(
   amount: BigDecimal
 ) extends NotNull
 
+case class ShippingInfo(
+  transporterId: Long,
+  slipCode: String
+) extends NotNull
+
 case class TransactionShipStatus(
   id: Pk[Long] = NotAssigned,
   transactionSiteId: Long,
-  status: TransactionStatus
+  status: TransactionStatus,
+  lastUpdate: Long,
+  shippingInfo: Option[ShippingInfo]
 ) extends NotNull
 
 case class ShippingDateEntry(
@@ -468,6 +475,8 @@ case class TransactionSummaryEntry(
   siteName: String,
   shippingFee: BigDecimal,
   status: TransactionStatus,
+  statusLastUpdate: Long,
+  shipStatus: Option[ShippingInfo],
   buyer: StoreUser,
   shippingDate: Long
 ) extends NotNull
@@ -476,12 +485,20 @@ object TransactionShipStatus {
   val simple = {
     SqlParser.get[Pk[Long]]("transaction_status.transaction_status_id") ~
     SqlParser.get[Long]("transaction_status.transaction_site_id") ~
-    SqlParser.get[Int]("transaction_status.status") map {
-      case id~tranSiteId~status => TransactionShipStatus(id, tranSiteId, TransactionStatus.byIndex(status))
+    SqlParser.get[Int]("transaction_status.status") ~
+    SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
+    SqlParser.get[Option[String]]("transaction_status.slip_code") ~
+    SqlParser.get[java.util.Date]("transaction_status.last_update") map {
+      case id~tranSiteId~status~transporterId~slipCode~lastUpdate =>
+        if (transporterId.isDefined)
+          TransactionShipStatus(id, tranSiteId, TransactionStatus.byIndex(status),
+                                lastUpdate.getTime, Some(ShippingInfo(transporterId.get, slipCode.get)))
+        else
+          TransactionShipStatus(id, tranSiteId, TransactionStatus.byIndex(status), lastUpdate.getTime, None)
     }
   }
   
-  def apply(id: Long)(implicit conn: Connection): TransactionShipStatus =
+  def byId(id: Long)(implicit conn: Connection): TransactionShipStatus =
     SQL(
       """
       select * from transaction_status where transaction_status_id = {id}
@@ -493,32 +510,39 @@ object TransactionShipStatus {
     )
 
   def createNew(
-    transactionSiteId: Long, status: TransactionStatus
+    transactionSiteId: Long, status: TransactionStatus, lastUpdate: Long, shippingInfo: Option[ShippingInfo]
   )(implicit conn: Connection): TransactionShipStatus = {
     SQL(
       """
       insert into transaction_status (
-        transaction_status_id, transaction_site_id, status
+        transaction_status_id, transaction_site_id, status,
+        transporter_id, slip_code, last_update
       ) values (
         (select nextval('transaction_status_seq')),
-        {transactionSiteId}, {status}
+        {transactionSiteId}, {status},
+        {transporterId}, {slipCode}, {lastUpdate}
       )
       """
     ).on(
       'transactionSiteId -> transactionSiteId,
-      'status -> status.ordinal
+      'status -> status.ordinal,
+      'transporterId -> shippingInfo.map(_.transporterId),
+      'slipCode -> shippingInfo.map(_.slipCode),
+      'lastUpdate -> new java.sql.Date(lastUpdate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_status_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionShipStatus(Id(id), transactionSiteId, status)
+    TransactionShipStatus(Id(id), transactionSiteId, status, lastUpdate, shippingInfo)
   }
 
   def update(
     siteUser: Option[SiteUser], transactionSiteId: Long, status: TransactionStatus
   )(implicit conn: Connection): Int = SQL(
     """
-    update transaction_status set status = {status}
+    update transaction_status
+    set status = {status},
+    last_update = current_timestamp
     where transaction_site_id = {tranSiteId}
     """ + (
       siteUser match {
@@ -536,6 +560,33 @@ object TransactionShipStatus {
     'status -> status.ordinal,
     'tranSiteId -> transactionSiteId
   ).executeUpdate()
+
+  def updateShippingInfo(
+    siteUser: Option[SiteUser], transactionSiteId: Long, transporterId: Long, slipCode: String
+  )(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_status
+    set transporter_id = {transporterId},
+    slip_code = {slipCode},
+    last_update = current_timestamp
+    where transaction_site_id = {tranSiteId}
+    """ + (
+      siteUser match {
+        case None => ""
+        case Some(u) => "and " + u.siteId + " = " +
+          """
+          (
+            select site_id from transaction_site
+            where transaction_site.transaction_site_id = transaction_status.transaction_site_id
+          )
+          """
+      }
+    )
+  ).on(
+    'tranSiteId -> transactionSiteId,
+    'transporterId -> transporterId,
+    'slipCode -> slipCode
+  ).executeUpdate()
 }
 
 object TransactionSummary {
@@ -549,11 +600,16 @@ object TransactionSummary {
     SqlParser.get[java.math.BigDecimal]("shipping") ~
     SqlParser.get[Int]("status") ~
     StoreUser.simple ~
-    SqlParser.get[java.util.Date]("shipping_date") map {
-      case id~siteId~time~amount~address~siteName~shippingFee~status~user~shippingDate =>
+    SqlParser.get[java.util.Date]("shipping_date") ~
+    SqlParser.get[java.util.Date]("transaction_status.last_update") ~ 
+    SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
+    SqlParser.get[Option[String]]("transaction_status.slip_code") map {
+      case id~siteId~time~amount~address~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode =>
         TransactionSummaryEntry(
           id, siteId, time.getTime, amount, address, siteName,
-          shippingFee, TransactionStatus.byIndex(status), user, shippingDate.getTime
+          shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
+          if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
+          user, shippingDate.getTime
         )
     }
   }
@@ -569,6 +625,9 @@ object TransactionSummary {
       site.site_name,
       shipping,
       coalesce(transaction_status.status, 0) status,
+      transaction_status.last_update,
+      transaction_status.transporter_id,
+      transaction_status.slip_code,
       store_user.*,
       base.shipping_date
     from (
@@ -717,7 +776,7 @@ class TransactionPersister {
       tran.bySite(site).taxAmount
     )
 
-    TransactionShipStatus.createNew(siteLog.id.get, TransactionStatus.ORDERED)
+    TransactionShipStatus.createNew(siteLog.id.get, TransactionStatus.ORDERED, System.currentTimeMillis, None)
     saveShippingTotal(siteLog, tran.bySite(site))
     saveTax(siteLog, tran.bySite(site))
     saveItem(siteLog, tran.bySite(site))

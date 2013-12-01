@@ -4,64 +4,64 @@
 
 @if(address.hasName) {
   <tr class="shippingTableBody">
-    <td>お名前</td><td>@address.firstName @address.lastName</td>
+    <td>お名前</td><td class="name">@address.firstName @address.lastName</td>
   </tr>
 }
 @if(address.hasKanaName) {
   <tr class="shippingTableBody">
-    <td>フリガナ</td><td>@address.firstNameKana @address.lastNameKana</td>
+    <td>フリガナ</td><td class="nameKana">@address.firstNameKana @address.lastNameKana</td>
   </tr>
 }
 @if(address.hasZip) {
   <tr class="shippingTableBody">
-    <td>〒</td><td>@address.zip1 - @address.zip2</td>
+    <td>〒</td><td class="zip">@address.zip1 - @address.zip2</td>
   </tr>
 }
 <tr class="shippingTableBody">
   <td class="addressHeader">ご住所</td>
   <td class="address">
     @if(! address.prefecture.isUnknown) {
-      @address.prefecture<br>
+      <span class="prefecture">@address.prefecture</span><br>
     }
 
     @if(!address.address1.isEmpty) {
-      @address.address1<br>
+      <span class="address1">@address.address1</span><br>
     }
 
     @if(!address.address2.isEmpty) {
-      @address.address2<br>
+      <span class="address2">@address.address2</span><br>
     }
 
     @if(!address.address3.isEmpty) {
-      @address.address3<br>
+      <span class="address3">@address.address3</span><br>
     }
 
     @if(!address.address4.isEmpty) {
-      @address.address4<br>
+      <span class="address4">@address.address4</span><br>
     }
 
     @if(!address.address5.isEmpty) {
-      @address.address5<br>
+      <span class="address5">@address.address5</span><br>
     }
   </td>
 </tr>
 @if(!address.tel1.isEmpty) {
   <tr class="shippingTableBody">
-    <td>TEL</td><td>@address.tel1</td>
+    <td>TEL</td><td class="tel1">@address.tel1</td>
   </tr>
 }
 @if(!address.tel2.isEmpty) {
   <tr class="shippingTableBody">
-    <td></td><td>@address.tel2</td>
+    <td></td><td class="tel2">@address.tel2</td>
   </tr>
 }
 @if(!address.tel3.isEmpty) {
   <tr class="shippingTableBody">
-    <td></td><td>@address.tel3</td>
+    <td></td><td class="tel3">@address.tel3</td>
   </tr>
 }
 @if(!address.comment.isEmpty) {
   <tr class="shippingTableBody">
-    <td>コメント</td><td>@address.comment</td>
+    <td>コメント</td><td class="comment">@address.comment</td>
   </tr>
 }

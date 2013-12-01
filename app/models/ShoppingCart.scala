@@ -19,9 +19,9 @@ case class ShoppingCartTotalEntry(
   site: Site,
   itemPriceHistory: ItemPriceHistory,
   taxHistory: TaxHistory,
-  itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
-  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
-  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
+  itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata] = Map(),
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = Map(),
+  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata] = Map()
 ) extends NotNull {
   lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
   lazy val quantity: Int = shoppingCartItem.quantity

@@ -10,6 +10,7 @@ import play.api.mvc.Controller
 import play.api.db.DB
 import play.api.i18n.Messages
 import play.api.Play.current
+import scala.collection.immutable.LongMap
 
 object TransactionMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val changeStatusForm = Form(
@@ -19,6 +20,13 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     )(ChangeTransactionStatus.apply)(ChangeTransactionStatus.unapply)
   )
 
+  def entryShippingInfoForm = Form(
+    mapping(
+      "transporterId" -> longNumber,
+      "slipCode" -> text.verifying(nonEmpty, maxLength(128))
+    )(ChangeShippingInfo.apply)(ChangeShippingInfo.unapply)
+  )
+
   def statusDropDown(implicit lang: Lang): Seq[(String, String)] =
     classOf[TransactionStatus].getEnumConstants.foldLeft(List[(String, String)]()) {
       (list, e) => (e.ordinal.toString, Messages("transaction.status." + e.toString)) :: list
@@ -26,10 +34,18 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
 
   def index = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
+      val list = TransactionSummary.list(login.siteUser)
       Ok(
         views.html.admin.transactionMaintenance(
-          TransactionSummary.list(login.siteUser),
-          changeStatusForm, statusDropDown
+          list,
+          changeStatusForm, statusDropDown,
+          list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+            (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+          },
+          Transporter.tableForDropDown,
+          Transporter.listWithName.foldLeft(LongMap[String]()) {
+            (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+          }
         )
       )
     }
@@ -38,14 +54,23 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   def setStatus = isAuthenticated { implicit login => forAdmin { implicit request =>
     changeStatusForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in TransactionMaintenance.setStatus.")
+        logger.error("Validation error in TransactionMaintenance.setStatus. " + formWithErrors)
         DB.withConnection { implicit conn =>
+          val list = TransactionSummary.list(
+            if (login.isAdmin) None else login.siteUser
+          )
+
           BadRequest(
             views.html.admin.transactionMaintenance(
-              TransactionSummary.list(
-                if (login.isAdmin) None else login.siteUser
-              ),
-              changeStatusForm, statusDropDown
+              list,
+              changeStatusForm, statusDropDown,
+              list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+                (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+              },
+              Transporter.tableForDropDown,
+              Transporter.listWithName.foldLeft(LongMap[String]()) {
+                (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+              }
             )
           )
         }
@@ -69,5 +94,39 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
         )
       )
     }
+  }}
+
+  def entryShippingInfo(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    entryShippingInfoForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
+        DB.withConnection { implicit conn =>
+          val list = TransactionSummary.list(
+            if (login.isAdmin) None else login.siteUser
+          )
+
+          BadRequest(
+            views.html.admin.transactionMaintenance(
+              list,
+              changeStatusForm, statusDropDown,
+
+              list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+                (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+              }.updated(id, formWithErrors),
+              Transporter.tableForDropDown,
+              Transporter.listWithName.foldLeft(LongMap[String]()) {
+                (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+              }
+            )
+          )
+        }
+      },
+      newShippingInfo => {
+        DB.withConnection { implicit conn =>
+          newShippingInfo.save(login.siteUser, id)
+          Redirect(routes.TransactionMaintenance.index)
+        }
+      }
+    )
   }}
 }

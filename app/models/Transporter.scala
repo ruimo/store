@@ -19,14 +19,18 @@ case class TransporterName(
 ) extends NotNull
 
 object Transporter {
-   val simple = {
-     SqlParser.get[Pk[Long]]("transporter.transporter_id") map {
-       case id => Transporter(id)
-     }
-   }
+  val simple = {
+    SqlParser.get[Pk[Long]]("transporter.transporter_id") map {
+      case id => Transporter(id)
+    }
+  }
 
   val withName = Transporter.simple ~ TransporterName.simple map {
     case t~name => (t, name)
+  }
+
+  val withNameOpt = Transporter.simple ~ (TransporterName.simple ?) map {
+    case trans~name => (trans, name)
   }
 
   def list(implicit conn: Connection): Seq[Transporter] =
@@ -36,6 +40,21 @@ object Transporter {
       """
     ).as(
       simple *
+    )
+
+  def listWithName(implicit conn: Connection, lang: Lang): Seq[(Transporter, Option[TransporterName])] =
+    SQL(
+      """
+      select *
+      from transporter
+      left outer join transporter_name on transporter_name.transporter_id = transporter.transporter_id
+      and transporter_name.locale_id = {localeId}
+      order by transporter.transporter_id
+      """
+    ).on(
+      'localeId -> LocaleInfo.byLang(lang).id
+    ).as(
+      withNameOpt *
     )
 
   def tableForDropDown(implicit lang: Lang, conn: Connection): Seq[(String, String)] = 
@@ -111,5 +130,58 @@ object TransporterName {
 
     val id = SQL("select currval('transporter_name_seq')").as(SqlParser.scalar[Long].single)
     TransporterName(Id(id), locale.id, transporterId, name)
+  }
+
+  def list(transporterId: Long)(implicit conn: Connection): Map[LocaleInfo, TransporterName] =
+    SQL(
+      """
+      select * from transporter_name where transporter_id = {id}
+      """
+    ).on(
+      'id -> transporterId
+    ).as(simple * ).map { e =>
+      LocaleInfo(e.localeId) -> e
+    }.toMap
+
+  def update(transporterId: Long, localeId: Long, transporterName: String)(implicit conn: Connection) {
+    SQL(
+      """
+      update transporter_name set transporter_name = {transporterName}
+      where transporter_id = {transporterId} and locale_id = {localeId}
+      """
+    ).on(
+      'transporterName -> transporterName,
+      'transporterId -> transporterId,
+      'localeId -> localeId
+    ).executeUpdate()
+  }
+
+  def add(transporterId: Long, localeId: Long, transporterName: String)(implicit conn: Connection) {
+    SQL(
+      """
+      insert into transporter_name (transporter_name_id, transporter_id, locale_id, transporter_name)
+      values (
+        (select nextval('transporter_name_seq')),
+        {transporterId}, {localeId}, {transporterName}
+      )
+      """
+    ).on(
+      'transporterId -> transporterId,
+      'localeId -> localeId,
+      'transporterName -> transporterName
+    ).executeUpdate()
+  }
+
+  def remove(id: Long, localeId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from transporter_name
+      where transporter_id = {id}
+      and locale_id = {localeId}
+      """
+    ).on(
+      'id -> id,
+      'localeId -> localeId
+    ).executeUpdate()
   }
 }

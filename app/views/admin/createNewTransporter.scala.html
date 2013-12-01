@@ -1,0 +1,54 @@
+@(
+  myForm: Form[models.CreateTransporter], langTable: Seq[(String, String)]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("createNewTransporterTitle"), Some(loginSession)) {
+  <h1 class="title">@Messages("createNewTransporterTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @helper.form(action = helper.CSRF(routes.TransporterMaintenance.createNewTransporter()), 'id -> "createNewTransporterForm") {
+    @select(
+      myForm("langId"), 
+      langTable, 
+      '_label -> Messages("language"),
+      '_showConstraints -> false
+    )
+
+    @helper.inputText(
+      myForm("transporterName"),
+      '_label -> Messages("transporterName"), 'size -> 24, 'maxlength -> 32
+    )
+
+    <input type="submit" value=@Messages("register")>
+  }
+
+  <br>
+  <a href="@routes.TransporterMaintenance.index()">
+    @Messages("backTo", Messages("transporterMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}
+
