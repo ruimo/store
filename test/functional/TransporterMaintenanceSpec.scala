@@ -215,7 +215,8 @@ class TransporterMaintenanceSpec extends Specification {
 
           browser.fill("#transporterName").`with`("Transporter02")
           browser.click("select[id='localeId'] option[value='" + LocaleInfo.En.id + "']")
-          browser.find("#addTransporterName").click()
+          browser.webDriver
+            .findElement(By.id("addTransporterName")).click()
 
           browser.title === Messages("changeTransporterTitle")
           browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsUpdated"))
@@ -258,10 +259,10 @@ class TransporterMaintenanceSpec extends Specification {
 
           browser.fill("#transporterName").`with`("Transporter02")
           browser.click("select[id='localeId'] option[value='" + LocaleInfo.En.id + "']")
-          browser.find("#addTransporterName").click()
-
+          browser.webDriver
+            .findElement(By.id("addTransporterName")).click()
+          
           browser.title === Messages("changeTransporterTitle")
-
           browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
