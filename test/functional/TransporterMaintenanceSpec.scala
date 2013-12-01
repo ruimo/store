@@ -13,6 +13,7 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import play.api.db.DB
 import models.{TransporterName, Transporter, LocaleInfo, Site}
+import org.openqa.selenium.By
 
 class TransporterMaintenanceSpec extends Specification {
   "Transporter maitenance" should {
@@ -64,7 +65,9 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
+        browser.webDriver
+          .findElement(By.id("langId"))
+          .findElement(By.cssSelector("option[value=\"" + LocaleInfo.Ja.id + "\"]")).click()
         browser.fill("#transporterName").`with`("Transporter01")
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
         browser.find(".message").getText() === Messages("transporterIsCreated")
@@ -73,8 +76,15 @@ class TransporterMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
 
-        browser.click("select[id='langId'] option[value='" + LocaleInfo.En.id + "']")
+        browser.webDriver
+          .findElement(By.id("langId"))
+          .findElement(By.cssSelector("option[value=\"" + LocaleInfo.En.id + "\"]")).click()
         browser.fill("#transporterName").`with`("Transporter02")
+
+        println("*** en? = " + browser.webDriver
+          .findElement(By.id("langId"))
+          .findElement(By.cssSelector("option[value=\"" + LocaleInfo.En.id + "\"]")).isSelected)
+
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
         browser.find(".message").getText() === Messages("transporterIsCreated")
 
