@@ -14,6 +14,7 @@ import play.api.test.FakeApplication
 import play.api.db.DB
 import models.{TransporterName, Transporter, LocaleInfo, Site}
 import org.openqa.selenium.By
+import java.util.concurrent.TimeUnit
 
 class TransporterMaintenanceSpec extends Specification {
   "Transporter maitenance" should {
@@ -45,7 +46,7 @@ class TransporterMaintenanceSpec extends Specification {
         browser.fill("#transporterName").`with`("Transporter01")
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-        browser.find(".message").getText() === Messages("transporterIsCreated")
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
 
         DB.withConnection { implicit conn =>
           val list = Transporter.listWithName
@@ -70,7 +71,8 @@ class TransporterMaintenanceSpec extends Specification {
           .findElement(By.cssSelector("option[value=\"" + LocaleInfo.Ja.id + "\"]")).click()
         browser.fill("#transporterName").`with`("Transporter01")
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
-        browser.find(".message").getText() === Messages("transporterIsCreated")
+
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
@@ -81,17 +83,13 @@ class TransporterMaintenanceSpec extends Specification {
           .findElement(By.cssSelector("option[value=\"" + LocaleInfo.En.id + "\"]")).click()
         browser.fill("#transporterName").`with`("Transporter02")
 
-        println("*** en? = " + browser.webDriver
-          .findElement(By.id("langId"))
-          .findElement(By.cssSelector("option[value=\"" + LocaleInfo.En.id + "\"]")).isSelected)
-
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
-        browser.find(".message").getText() === Messages("transporterIsCreated")
+
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
 
         var list: Seq[(Transporter, Option[TransporterName])] = null
         DB.withConnection { implicit conn =>
           list = Transporter.listWithName
-println("*** list = " + list)
           list.size === 2
           val name0 = list(0)._2.get
           name0.localeId === LocaleInfo.Ja.id
@@ -125,7 +123,7 @@ println("*** list = " + list)
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
-          browser.find(".message").getText() === Messages("transporterIsCreated")
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
           
           val list = Transporter.listWithName
           val trans = list.head
@@ -142,7 +140,7 @@ println("*** list = " + list)
           browser.find("#changeTransporterName").click()
 
           browser.title === Messages("changeTransporterTitle")
-          browser.find(".message").getText() === Messages("transporterIsUpdated")
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsUpdated"))
           
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter02"
@@ -164,7 +162,8 @@ println("*** list = " + list)
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
-          browser.find(".message").getText() === Messages("transporterIsCreated")
+
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
           
           val list = Transporter.listWithName
           val trans = list.head
@@ -200,7 +199,8 @@ println("*** list = " + list)
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
-          browser.find(".message").getText() === Messages("transporterIsCreated")
+
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
           
           val list = Transporter.listWithName
           val trans = list.head
@@ -218,7 +218,7 @@ println("*** list = " + list)
           browser.find("#addTransporterName").click()
 
           browser.title === Messages("changeTransporterTitle")
-          browser.find(".message").getText() === Messages("transporterIsUpdated")
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
@@ -242,7 +242,8 @@ println("*** list = " + list)
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
-          browser.find(".message").getText() === Messages("transporterIsCreated")
+
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsCreated"))
           
           val list = Transporter.listWithName
           val trans = list.head
@@ -260,7 +261,8 @@ println("*** list = " + list)
           browser.find("#addTransporterName").click()
 
           browser.title === Messages("changeTransporterTitle")
-          browser.find(".message").getText() === Messages("transporterIsUpdated")
+
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
@@ -269,7 +271,8 @@ println("*** list = " + list)
 
           browser.find(".removeTransporterName", 0).click();
           browser.title === Messages("changeTransporterTitle")
-          browser.find(".message").getText() === Messages("transporterIsUpdated")
+
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").hasText(Messages("transporterIsUpdated"))
           
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.En.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter02"
