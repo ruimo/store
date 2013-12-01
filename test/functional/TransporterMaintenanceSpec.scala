@@ -81,6 +81,7 @@ class TransporterMaintenanceSpec extends Specification {
         var list: Seq[(Transporter, Option[TransporterName])] = null
         DB.withConnection { implicit conn =>
           list = Transporter.listWithName
+println("*** list = " + list)
           list.size === 2
           val name0 = list(0)._2.get
           name0.localeId === LocaleInfo.Ja.id
