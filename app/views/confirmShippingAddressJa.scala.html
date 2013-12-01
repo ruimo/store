@@ -104,8 +104,10 @@
   @address(tran.shippingAddress)
 
   <br>
-  <a class="backToShoppingLink" href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
-  <a class="backToShippingLink" href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+  <div class="menuPanel">
+    <a class="backToShoppingLink" href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
+    <a class="backToShippingLink" href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+  </div>
 
   <br>
   <br>
