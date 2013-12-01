@@ -1,7 +1,6 @@
 package models
 
 import java.sql.SQLException
-;
 
 object ExceptionMapper {
   def mapException[T](block: => T): T = try {
@@ -16,6 +15,14 @@ object ExceptionMapper {
           case "23505" => throw new UniqueConstraintException(e)
           case _ => throw e
         }
+        case "org.h2.jdbc.JdbcSQLException" => {
+println("*** org.h2.jdbc.JdbcSQLException getSQLState = " + e.getSQLState())
+          e.getSQLState() match {
+            case "23505" => throw new UniqueConstraintException(e)
+            case _ => throw e
+          }
+        }
+
         case _ => throw e
       }
     }
