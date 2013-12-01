@@ -1,25 +1,70 @@
 @(
+  entry: TransactionSummaryEntry,
   transactionSiteId: Long,
   status: Int,
   myForm: Form[models.ChangeTransactionStatus],
-  statusTable: Seq[(String, String)]
+  statusTable: Seq[(String, String)],
+  entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
+  transporterTable: Seq[(String, String)],
+  transporters: scala.collection.immutable.LongMap[String]
 )(implicit lang: Lang, request: RequestHeader)
 
 @import helper._
 
-@form(action = helper.CSRF(routes.TransactionMaintenance.setStatus)) {
-  @defining(myForm.fill(ChangeTransactionStatus(transactionSiteId, status))) { f =>
-    @inputText(f("transactionSiteId"), 'type -> "hidden", '_showConstraints -> false)(
-      helper.FieldConstructor(simpleField.f), implicitly
-    )
+<table class="shippingStatusTable">
+  <tr>
+    <td>
+      @form(action = helper.CSRF(routes.TransactionMaintenance.setStatus)) {
+        @defining(myForm.fill(ChangeTransactionStatus(entry.transactionSiteId, entry.status.ordinal))) { f =>
+          @inputText(f("transactionSiteId"), 'type -> "hidden", '_showConstraints -> false)(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
 
-    @select(
-      f("status"), statusTable, '_showConstraints -> false
-    )(
-      helper.FieldConstructor(simpleField.f), implicitly
-    )
-    <input type="submit" value=@Messages("update")> 
+          @select(
+            f("status"), statusTable, '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+          <input id="changeShippingStatusButton" type="submit" value=@Messages("update")> 
+        }
+      }
+    </td>
+  <td>
+    @Messages("lastUpdate"): <span class="lastUpdate">@lastUpdate(entry.statusLastUpdate)</span>
+  </td>
+ </tr>
+</table>
+@entry.status match {
+  case TransactionStatus.ORDERED => {
+    @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingInfo(entry.transactionSiteId))) {
+      @select(
+        entryShippingInfoForms(entry.transactionSiteId)("transporterId"),
+        transporterTable,
+        '_label -> Messages("transporter"),
+        '_showConstraints -> false
+      )
+      @inputText(
+        entryShippingInfoForms(entry.transactionSiteId)("slipCode"),
+        '_label -> Messages("slipCode"), 'size -> 16, 'maxlength -> 128
+      )
+
+      <input class="changeShippingInfoButton" type="submit" value="@Messages("entryShippingInfo")">
+    }
+  }
+
+  case TransactionStatus.SHIPPED => {
+    <table class="shippingStatusTable">
+      <tr>
+        <td class="transporterHeader">@Messages("transporter")</td>
+        <td class="transporter">@entry.shipStatus.map(t => transporters(t.transporterId)).getOrElse("-")</td>
+      </tr>
+      <tr>
+        <td class="slipCodeHeader">@Messages("slipCode")</td>
+        <td class="slipCode">@entry.shipStatus.map(_.slipCode).getOrElse("-")</td>
+      </tr>
+    </table>
+  }
+
+  case TransactionStatus.CANCELED => {
   }
 }
-
-
