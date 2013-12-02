@@ -103,10 +103,10 @@ class CategorySpec extends Specification {
           root.size === 1
           root.head === parent
 
-          CategoryName.get(LocaleInfo.Ja, parent) === "植木"
-          CategoryName.get(LocaleInfo.En, parent) === "Plant"
-          CategoryName.get(LocaleInfo.Ja, child) === "果樹"
-          CategoryName.get(LocaleInfo.En, child) === "Fruit Tree"
+          CategoryName.get(LocaleInfo.Ja, parent) === Option("植木")
+          CategoryName.get(LocaleInfo.En, parent) === Option("Plant")
+          CategoryName.get(LocaleInfo.Ja, child) === Option("果樹")
+          CategoryName.get(LocaleInfo.En, child) === Option("Fruit Tree")
 
           CategoryPath.parent(parent) === None
           CategoryPath.children(parent).size === 1

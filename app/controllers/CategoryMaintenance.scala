@@ -67,7 +67,7 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
               "key" -> Json.toJson(c.id.get), 
               "title" -> Json.toJson(CategoryName.get(locale, c)),
               "isFolder" -> Json.toJson(true),
-              "children" -> Json.toJson(categoryChildren(CategoryPath.children(c),locale))
+              "children" -> Json.toJson(categoryChildren(CategoryPath.childrenNames(c,locale).map{c=>c._1},locale))
             )
           )
         }
