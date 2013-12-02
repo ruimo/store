@@ -386,28 +386,28 @@ class TransactionSpec extends Specification {
           )
 
           val ship1 = TransactionShipStatus.createNew(
-            tranSite1.id.get, TransactionStatus.ORDERED
+            tranSite1.id.get, TransactionStatus.ORDERED, System.currentTimeMillis, None
           )
           val ship2 = TransactionShipStatus.createNew(
-            tranSite2.id.get, TransactionStatus.ORDERED
+            tranSite2.id.get, TransactionStatus.ORDERED, System.currentTimeMillis, None
           )
 
-          TransactionShipStatus(ship1.id.get).status === TransactionStatus.ORDERED
-          TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus.byId(ship1.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus.byId(ship2.id.get).status === TransactionStatus.ORDERED
 
           TransactionShipStatus.update(
             Some(siteUser1), tranSite2.id.get, TransactionStatus.CANCELED
           )
 
-          TransactionShipStatus(ship1.id.get).status === TransactionStatus.ORDERED
-          TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus.byId(ship1.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus.byId(ship2.id.get).status === TransactionStatus.ORDERED
 
           TransactionShipStatus.update(
             Some(siteUser1), tranSite1.id.get, TransactionStatus.CANCELED
           )
 
-          TransactionShipStatus(ship1.id.get).status === TransactionStatus.CANCELED
-          TransactionShipStatus(ship2.id.get).status === TransactionStatus.ORDERED
+          TransactionShipStatus.byId(ship1.id.get).status === TransactionStatus.CANCELED
+          TransactionShipStatus.byId(ship2.id.get).status === TransactionStatus.ORDERED
         }
       }
     }

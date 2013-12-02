@@ -1,7 +1,10 @@
 @(
   tran: Seq[TransactionSummaryEntry],
-  myForm: Form[models.ChangeTransactionStatus],
-  statusTable: Seq[(String, String)]
+  myForm: Form[ChangeTransactionStatus],
+  statusTable: Seq[(String, String)],
+  entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
+  transporterTable: Seq[(String, String)],
+  transporters: scala.collection.immutable.LongMap[String]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -38,9 +41,7 @@
         <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee)</td>
         <td class="transactionShipping">@amount(e.shippingFee)</td>
         <td class="buyer">
-          @{e.buyer.companyName.getOrElse("-")}<br>
-          @{e.buyer.firstName + " " + e.buyer.middleName.getOrElse("") + " " + e.buyer.lastName}<br>
-          @{e.buyer.email}
+          @buyer(e.buyer)
         </td>
         <td class="transactionAddress">
           <table>
@@ -48,20 +49,7 @@
           </table>
         </td>
         <td>
-          @form(action = helper.CSRF(routes.TransactionMaintenance.setStatus)) {
-            @defining(myForm.fill(ChangeTransactionStatus(e.transactionSiteId, e.status.ordinal))) { f =>
-              @inputText(f("transactionSiteId"), 'type -> "hidden", '_showConstraints -> false)(
-                helper.FieldConstructor(simpleField.f), implicitly
-              )
-
-              @select(
-                f("status"), statusTable, '_showConstraints -> false
-              )(
-                helper.FieldConstructor(simpleField.f), implicitly
-              )
-              <input type="submit" value=@Messages("update")> 
-            }
-          }
+          @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters)
         </td>
       </tr>
     }

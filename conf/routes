@@ -61,6 +61,15 @@ GET     /admin/startCreateNewTax         controllers.TaxMaintenance.startCreateN
 POST    /admin/createNewTax              controllers.TaxMaintenance.createNewTax
 GET     /admin/editTax                   controllers.TaxMaintenance.editTax
 
+GET     /admin/transporterMaintenance    controllers.TransporterMaintenance.index
+GET     /admin/startCreateNewTransporter controllers.TransporterMaintenance.startCreateNewTransporter
+POST    /admin/createNewTransporter      controllers.TransporterMaintenance.createNewTransporter
+GET     /admin/editTransporter           controllers.TransporterMaintenance.editTransporter
+GET     /admin/startChangeTransporter    controllers.TransporterMaintenance.startChangeTransporter(id: Long)
+GET     /admin/removeTransporterName     controllers.TransporterMaintenance.removeTransporterName(id: Long, localeId: Long)
+POST    /admin/changeTransporterName     controllers.TransporterMaintenance.changeTransporterName(id: Long)
+POST    /admin/addTransporterName        controllers.TransporterMaintenance.addTransporterName(id: Long)
+
 GET     /admin/userMaintenance           controllers.UserMaintenance.index
 GET     /admin/startCreateNewSuperUser   controllers.UserMaintenance.startCreateNewSuperUser
 POST    /admin/createNewSuperUser        controllers.UserMaintenance.createNewSuperUser
@@ -84,6 +93,7 @@ GET     /admin/getItemDetailPicture      controllers.ItemPictures.getDetailPictu
 GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index
 POST    /admin/setStatus                 controllers.TransactionMaintenance.setStatus
 GET     /admin/transactionDetail         controllers.TransactionMaintenance.detail(tranSiteId: Long)
+POST    /admin/entryShippingInfo         controllers.TransactionMaintenance.entryShippingInfo(id: Long)
 
 GET     /query                           controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
 GET     /itemDetail                      controllers.ItemDetail.show(itemId: Long, siteId: Long)

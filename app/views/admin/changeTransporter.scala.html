@@ -1,0 +1,110 @@
+@(
+  c: ChangeTransporter
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@nameForm(field: Field) = {
+  <tr>
+    <td>
+      <button type="button"
+              class="removeTransporterName"
+              onclick="location.href='@routes.TransporterMaintenance.removeTransporterName(c.id, field("localeId").value.get.toLong)';">
+        @Messages("remove")
+      </button>
+
+      <span class="langName">@Messages("lang." + LocaleInfo(field("localeId").value.get.toLong).lang)</span>
+      <div style="display: none;">
+      @inputText(field("localeId"), 'type -> "hidden")(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+      </div>
+    </td>
+    <td>
+      @inputText(
+        field("transporterName")
+      )(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+  </tr>
+}
+
+@main(Messages("changeTransporterTitle"), Some(loginSession)) {
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+<h1 class="title">@Messages("changeTransporterTitle")</h1>
+<h2 class="transporterId">@Messages("transporter") Id: @c.id</h2>
+
+<h2 class="transporterName">@Messages("transporterName")</h2>
+
+<table class="changeTransporterTable">
+  @form(action = helper.CSRF(routes.TransporterMaintenance.changeTransporterName(c.id))) {
+    <tr class="transporterHeader">
+      <th>@Messages("language")</th>
+      <th>@Messages("transporterName")</th>
+    </tr>
+
+    @repeat(c.transporterNameTableForm("transporterNames")) { name => @nameForm(name) }
+
+    <tr>
+      <td colspan="2">
+        <input id="changeTransporterName" style="float: right;" type="submit" value=@Messages("update")>
+      </td>
+    </tr>
+  }
+
+    @form(action = helper.CSRF(routes.TransporterMaintenance.addTransporterName(c.id))) {
+      <tr>
+        <td>
+          @select(
+            c.newTransporterNameForm("localeId"), 
+            c.langTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newTransporterNameForm("transporterName"), '_label -> ""
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <input id="addTransporterName" style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+</table>
+
+  <br>
+  <a href="@routes.TransporterMaintenance.index()">
+    @Messages("backTo", Messages("transporterMaintenanceTitle"))
+  </a>
+
+  <br>
+  <a href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}

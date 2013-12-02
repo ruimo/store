@@ -1,0 +1,25 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: models.LoginSession
+)
+
+@main(Messages("transporterMaintenanceTitle"), Some(loginSession)) {
+  <h1 class="title">@Messages("transporterMaintenanceTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.TransporterMaintenance.startCreateNewTransporter()">
+      @Messages("createNewTransporterMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.TransporterMaintenance.editTransporter()">
+      @Messages("editTransporterMenu")
+    </a>
+  </div>
+
+  <a class="backLink" href="@routes.Admin.index()">
+    @Messages("backTo", Messages("adminTitle"))
+  </a>
+}
