@@ -54,29 +54,20 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
   def categoryPathTree = isAuthenticated { implicit login => forSuperUser { implicit request => 
     DB.withConnection { implicit conn => {
       val locale = LocaleInfo.byLang(lang)
-      val pathTree = Category.root.map { r => 
-        Json.toJson(
-          Map(
-            "key" -> Json.toJson(r.id.get),
-            "title" -> Json.toJson(CategoryName.get(locale,r)),
-            "isFolder" -> Json.toJson(true),
-            "children" -> Json.toJson(categoryChildren(r, locale))
-          )
-        )
-      }
+      val pathTree = categoryChildren(Category.root,locale)
       Ok(Json.toJson(pathTree))
     }}
   }}
 
-  def categoryChildren(category: Category, locale: LocaleInfo) : Seq[JsValue] =  
+  def categoryChildren(categories: Seq[Category], locale: LocaleInfo) : Seq[JsValue] =  
     DB.withConnection { implicit conn => {
-        CategoryPath.children(category).map { c => 
+        categories.map { c => 
           Json.toJson(
             Map(
               "key" -> Json.toJson(c.id.get), 
               "title" -> Json.toJson(CategoryName.get(locale, c)),
               "isFolder" -> Json.toJson(true),
-              "children" -> Json.toJson(categoryChildren(c,locale))
+              "children" -> Json.toJson(categoryChildren(CategoryPath.children(c),locale))
             )
           )
         }
