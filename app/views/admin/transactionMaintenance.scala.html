@@ -41,9 +41,7 @@
         <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee)</td>
         <td class="transactionShipping">@amount(e.shippingFee)</td>
         <td class="buyer">
-          <span class="companyName">@{e.buyer.companyName.getOrElse("-")}</span><br>
-          <span class="name">@{e.buyer.firstName + " " + e.buyer.middleName.getOrElse("") + " " + e.buyer.lastName}</span><br>
-          <span class="email">@{e.buyer.email}</span>
+          @buyer(e.buyer)
         </td>
         <td class="transactionAddress">
           <table>
@@ -51,63 +49,7 @@
           </table>
         </td>
         <td>
-          <table class="shippingStatusTable">
-            <tr>
-              <td>
-                @form(action = helper.CSRF(routes.TransactionMaintenance.setStatus)) {
-                  @defining(myForm.fill(ChangeTransactionStatus(e.transactionSiteId, e.status.ordinal))) { f =>
-                    @inputText(f("transactionSiteId"), 'type -> "hidden", '_showConstraints -> false)(
-                      helper.FieldConstructor(simpleField.f), implicitly
-                    )
-
-                    @select(
-                      f("status"), statusTable, '_showConstraints -> false
-                    )(
-                      helper.FieldConstructor(simpleField.f), implicitly
-                    )
-                    <input id="changeShippingStatusButton" type="submit" value=@Messages("update")> 
-                  }
-                }
-              </td>
-              <td>
-                @Messages("lastUpdate"): <span class="lastUpdate">@lastUpdate(e.statusLastUpdate)</span>
-              </td>
-            </tr>
-          </table>
-          @e.status match {
-            case TransactionStatus.ORDERED => {
-              @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingInfo(e.transactionSiteId))) {
-                @select(
-                  entryShippingInfoForms(e.transactionSiteId)("transporterId"),
-                  transporterTable,
-                  '_label -> Messages("transporter"),
-                  '_showConstraints -> false
-                )
-                @inputText(
-                  entryShippingInfoForms(e.transactionSiteId)("slipCode"),
-                  '_label -> Messages("slipCode"), 'size -> 16, 'maxlength -> 128
-                )
-
-                <input class="changeShippingInfoButton" type="submit" value="@Messages("entryShippingInfo")">
-              }
-            }
-
-            case TransactionStatus.SHIPPED => {
-              <table class="shippingStatusTable">
-                <tr>
-                  <td class="transporterHeader">@Messages("transporter")</td>
-                  <td class="transporter">@e.shipStatus.map(t => transporters(t.transporterId)).getOrElse("-")</td>
-                </tr>
-                <tr>
-                  <td class="slipCodeHeader">@Messages("slipCode")</td>
-                  <td class="slipCode">@e.shipStatus.map(_.slipCode).getOrElse("-")</td>
-                </tr>
-              </table>
-            }
-
-            case TransactionStatus.CANCELED => {
-            }
-          }
+          @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters)
         </td>
       </tr>
     }

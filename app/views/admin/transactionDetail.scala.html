@@ -2,7 +2,10 @@
   tranSummary: TransactionSummaryEntry,
   tran: Seq[TransactionDetail],
   myForm: Form[models.ChangeTransactionStatus],
-  statusTable: Seq[(String, String)]
+  statusTable: Seq[(String, String)],
+  entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
+  transporterTable: Seq[(String, String)],
+  transporters: scala.collection.immutable.LongMap[String]
 )(
   implicit lang: Lang,
   request: RequestHeader,
