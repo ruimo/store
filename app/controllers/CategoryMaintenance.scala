@@ -57,8 +57,9 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
       val pathTree = Category.root.map { r => 
         Json.toJson(
           Map(
-            "id" -> Json.toJson(r.id.get),
-            "text" -> Json.toJson(CategoryName.get(locale,r)),
+            "key" -> Json.toJson(r.id.get),
+            "title" -> Json.toJson(CategoryName.get(locale,r)),
+            "isFolder" -> Json.toJson(true),
             "children" -> Json.toJson(categoryChildren(r, locale))
           )
         )
@@ -72,8 +73,9 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
         CategoryPath.children(category).map { c => 
           Json.toJson(
             Map(
-              "id" -> Json.toJson(c.id.get), 
-              "text" -> Json.toJson(CategoryName.get(locale, c)),
+              "key" -> Json.toJson(c.id.get), 
+              "title" -> Json.toJson(CategoryName.get(locale, c)),
+              "isFolder" -> Json.toJson(true),
               "children" -> Json.toJson(categoryChildren(c,locale))
             )
           )
