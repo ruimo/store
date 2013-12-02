@@ -41,13 +41,15 @@
       </tr>
     }
   </table>
-  <br>
-  <a href="@routes.TransactionMaintenance.index()">
-    @Messages("backTo", Messages("transactionMaintenanceTitle"))
-  </a>
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.TransactionMaintenance.index()">
+      @Messages("backTo", Messages("transactionMaintenanceTitle"))
+    </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }
 

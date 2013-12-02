@@ -41,14 +41,16 @@ myForm: Form[models.CreateSite], langTable: Seq[(String, String)]
     <input type="submit" value=@Messages("register")>
   }
 
-  <br>
-  <a href="@routes.SiteMaintenance.index()">
-    @Messages("backTo", Messages("siteMaintenanceTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.SiteMaintenance.index()">
+      @Messages("backTo", Messages("siteMaintenanceTitle"))
+    </a>
 
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }
 
