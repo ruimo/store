@@ -41,14 +41,16 @@
     <input type="submit" value=@Messages("register")>
   }
 
-  <br>
-  <a href="@routes.TransporterMaintenance.index()">
-    @Messages("backTo", Messages("transporterMaintenanceTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.TransporterMaintenance.index()">
+      @Messages("backTo", Messages("transporterMaintenanceTitle"))
+    </a>
 
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }
 

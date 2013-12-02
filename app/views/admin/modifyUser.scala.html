@@ -33,13 +33,15 @@
     <input type="submit" id="modifyUser" value=@Messages("update")>
   }
 
-  <br>
-  <a href="@routes.UserMaintenance.index">
-    @Messages("backTo", Messages("userMaintenanceTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.UserMaintenance.index">
+      @Messages("backTo", Messages("userMaintenanceTitle"))
+    </a>
 
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }

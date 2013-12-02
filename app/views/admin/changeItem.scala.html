@@ -665,13 +665,15 @@
     @fileDetailUpload(c.id)
   </table>
 
-  <br>
-  <a href="@routes.ItemMaintenance.index()">
-    @Messages("backTo", Messages("itemMaintenanceTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.ItemMaintenance.index()">
+      @Messages("backTo", Messages("itemMaintenanceTitle"))
+    </a>
 
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }

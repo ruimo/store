@@ -5,6 +5,7 @@ loginTitle=Login
 firstSetupTitle=First setup
 firstSetupGuide=Register administrator
 itemMaintenanceTitle=Item Maintenance
+transporterMaintenanceTitle=Transporter Maintenance
 createNewItemMenu=Create new item
 createNewCategoryMenu=Create new category
 createNewTransporterMenu=Create new transporter

@@ -53,14 +53,16 @@
     <input type="submit" value=@Messages("register")>
   }
 
-  <br>
-  <a href="@routes.TaxMaintenance.index()">
-    @Messages("backTo", Messages("taxMaintenanceTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.TaxMaintenance.index()">
+      @Messages("backTo", Messages("taxMaintenanceTitle"))
+    </a>
 
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }
 
