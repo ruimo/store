@@ -18,8 +18,8 @@
   <h1 class="title">@Messages("editItemTitle")</h1>
 
   @helper.form(action=routes.ItemMaintenance.editItem()) {
-    <input type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
-    <input type="submit" value="@Messages("search.button.title")">
+    <input id="searchBox" type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
+    <input id="searchSubmit" type="submit" value="@Messages("search.button.title")">
   }
 
   <br>
@@ -42,13 +42,15 @@
     }
   </table>
 
-  <br>
-  <a href="@routes.ItemMaintenance.index()">
-    @Messages("backTo", Messages("itemMaintenanceTitle"))
-  </a>
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.ItemMaintenance.index()">
+      @Messages("backTo", Messages("itemMaintenanceTitle"))
+    </a>
 
-  <br>
-  <a href="@routes.Admin.index()">
-    @Messages("backTo", Messages("adminTitle"))
-  </a>
+    <br>
+    <a class="backLink" href="@routes.Admin.index()">
+      @Messages("backTo", Messages("adminTitle"))
+    </a>
+  </div>
 }
