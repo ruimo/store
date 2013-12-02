@@ -58,11 +58,22 @@ object TransporterMaintenance extends Controller with I18nAware with NeedLogin w
         logger.error("Validation error in TransporterMaintenance.createNewTransporter.")
         BadRequest(views.html.admin.createNewTransporter(formWithErrors, LocaleInfo.localeTable))
       },
-      newTransporter => DB.withConnection { implicit conn =>
-        newTransporter.save
-        Redirect(
-          routes.TransporterMaintenance.startCreateNewTransporter
-        ).flashing("message" -> Messages("transporterIsCreated"))
+      newTransporter => DB.withTransaction { implicit conn =>
+        try {
+          newTransporter.save
+          Redirect(
+            routes.TransporterMaintenance.startCreateNewTransporter
+          ).flashing("message" -> Messages("transporterIsCreated"))
+        }
+        catch {
+          case e: UniqueConstraintException =>
+            BadRequest(
+              views.html.admin.createNewTransporter(
+                createTransporterForm.fill(newTransporter).withError("transporterName", "unique.constraint.violation"),
+                LocaleInfo.localeTable
+              )
+            )
+        }
       }
     )
   }}
