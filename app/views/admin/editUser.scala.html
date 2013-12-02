@@ -53,7 +53,12 @@
 </table>
 
 <div class="menuPanel">
-<br>
+  <br>
+  <a class="backLink" href="@routes.UserMaintenance.index">
+    @Messages("backTo", Messages("userMaintenanceTitle"))
+  </a>
+
+  <br>
   <a class="backLink" href="@routes.Admin.index()">
     @Messages("backTo", Messages("adminTitle"))
   </a>
