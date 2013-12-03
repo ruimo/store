@@ -27,8 +27,8 @@ class CategorySpec extends Specification {
           root.size === 1
           root.head === cat
 
-          CategoryName.get(LocaleInfo.Ja, cat) === "植木"
-          CategoryName.get(LocaleInfo.En, cat) === "Plant"
+          CategoryName.get(LocaleInfo.Ja, cat) === Some("植木")
+          CategoryName.get(LocaleInfo.En, cat) === Some("Plant")
 
           CategoryPath.parent(cat) === None
           CategoryPath.children(cat).size === 0
@@ -103,10 +103,10 @@ class CategorySpec extends Specification {
           root.size === 1
           root.head === parent
 
-          CategoryName.get(LocaleInfo.Ja, parent) === Option("植木")
-          CategoryName.get(LocaleInfo.En, parent) === Option("Plant")
-          CategoryName.get(LocaleInfo.Ja, child) === Option("果樹")
-          CategoryName.get(LocaleInfo.En, child) === Option("Fruit Tree")
+          CategoryName.get(LocaleInfo.Ja, parent) === Some("植木")
+          CategoryName.get(LocaleInfo.En, parent) === Some("Plant")
+          CategoryName.get(LocaleInfo.Ja, child) === Some("果樹")
+          CategoryName.get(LocaleInfo.En, child) === Some("Fruit Tree")
 
           CategoryPath.parent(parent) === None
           CategoryPath.children(parent).size === 1
