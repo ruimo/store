@@ -17,7 +17,6 @@ class CategorySpec extends Specification {
     "Can create new category." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         TestHelper.removePreloadedRecords()
-
         DB.withConnection { implicit conn => {
           val cat = Category.createNew(
             Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
@@ -35,9 +34,25 @@ class CategorySpec extends Specification {
 
           CategoryPath.childrenNames(cat, LocaleInfo.Ja).size === 0
           CategoryPath.childrenNames(cat, LocaleInfo.En).size === 0
+
+          existingId = cat.id.get
         }}
       }
     }
+
+    "Can select single category." in {
+    running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val cat = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          Category.get(cat.id.get) === Some(cat)
+          Category.get(cat.id.get+1000) === None
+        }}
+      }
+    }
+
 
     "List category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {

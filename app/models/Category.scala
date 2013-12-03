@@ -175,6 +175,12 @@ object Category {
 
     Category(Id(categoryId))
   }
+
+  def get(id: Long)(implicit conn: Connection) : Option[Category] = SQL(
+      """
+      select category_id from category where category_id = {category_id}
+      """
+    ).on('category_id -> id).as(SqlParser.scalar[Pk[Long]].singleOpt).map(Category(_))
 }
 
 object CategoryName {

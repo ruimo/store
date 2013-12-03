@@ -16,7 +16,8 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
   val createCategoryForm = Form(
     mapping(
       "langId" -> longNumber,
-      "categoryName" -> text.verifying(nonEmpty, maxLength(32))
+      "categoryName" -> text.verifying(nonEmpty, maxLength(32)),
+      "parent" -> optional(longNumber)
     ) (CreateCategory.apply)(CreateCategory.unapply)
   )
 
@@ -61,13 +62,18 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
 
   def categoryChildren(categories: Seq[Category], locale: LocaleInfo) : Seq[JsValue] =  
     DB.withConnection { implicit conn => {
-        categories.map { c => 
+        categories.filter{ c =>
+          CategoryName.get(locale, c) match {
+            case Some(_) => true
+            case _ => false
+          }
+        } map { c => 
           Json.toJson(
             Map(
               "key" -> Json.toJson(c.id.get), 
               "title" -> Json.toJson(CategoryName.get(locale, c)),
               "isFolder" -> Json.toJson(true),
-              "children" -> Json.toJson(categoryChildren(CategoryPath.childrenNames(c,locale).map{c=>c._1},locale))
+              "children" -> Json.toJson(categoryChildren(CategoryPath.children(c),locale))
             )
           )
         }
