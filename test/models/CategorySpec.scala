@@ -142,6 +142,14 @@ class CategorySpec extends Specification {
 
           CategoryPath.childrenNames(child, LocaleInfo.Ja).size === 0
           CategoryPath.childrenNames(child, LocaleInfo.En).size === 0
+
+          var pathList = CategoryPath.listNamesWithParent(LocaleInfo.Ja)
+          pathList.contains((parent,CategoryName(LocaleInfo.Ja,parent.id.get,"植木"))) === true
+          pathList.contains((parent,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
+          pathList.contains((child,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
+
+
+
         }
       }}
     }
