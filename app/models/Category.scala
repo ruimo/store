@@ -274,4 +274,22 @@ object CategoryPath {
       'path_length -> depth,
       'locale_id -> locale.id
     ).as(withName *)
+
+  def listNamesWithParent(locale: LocaleInfo)(implicit conn: Connection): Seq[(Category, CategoryName)] = 
+    SQL(
+      """
+      select p.ancestor, n.locale_id, n.category_id, n.category_name
+        from category_path p inner join category_name n
+          on p.descendant = n.category_id 
+        where path_length <= 1 
+          and locale_id = {locale_id}
+      """
+    ).on('locale_id -> locale.id).as(
+      SqlParser.get[Pk[Long]]("category_path.ancestor") ~ 
+      SqlParser.get[Long]("category_name.locale_id") ~
+      SqlParser.get[Long]("category_name.category_id") ~
+      SqlParser.get[String]("category_name.category_name") map {
+        case p ~ locale ~ cat ~ name => (Category(p), CategoryName(LocaleInfo(locale),cat,name))
+      } *
+    )
 }
