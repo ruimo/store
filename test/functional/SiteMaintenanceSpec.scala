@@ -18,7 +18,7 @@ class SiteMaintenanceSpec extends Specification {
   "Site maitenance" should {
     "Can create new site." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         browser.goTo(
