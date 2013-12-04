@@ -34,8 +34,6 @@ class CategorySpec extends Specification {
 
           CategoryPath.childrenNames(cat, LocaleInfo.Ja).size === 0
           CategoryPath.childrenNames(cat, LocaleInfo.En).size === 0
-
-          existingId = cat.id.get
         }}
       }
     }
