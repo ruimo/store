@@ -44,7 +44,8 @@ GET     /admin/removeItemDescription     controllers.ItemMaintenance.removeItemD
 GET     /admin/categoryMaintenance       controllers.CategoryMaintenance.index
 GET     /admin/startCreateNewCategory    controllers.CategoryMaintenance.startCreateNewCategory
 POST    /admin/createNewCategory         controllers.CategoryMaintenance.createNewCategory
-GET     /admin/editCategory              controllers.CategoryMaintenance.editCategory
+GET     /admin/editCategory              controllers.CategoryMaintenance.editCategory(start: Int = 0, size: Int = 10)
+GET     /admin/categoryPathTree          controllers.CategoryMaintenance.categoryPathTree
 
 POST    /admin/addItemPrice              controllers.ItemMaintenance.addItemPrice(id: Long)
 POST    /admin/changeItemPrice           controllers.ItemMaintenance.changeItemPrice(id: Long)

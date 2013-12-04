@@ -5,16 +5,19 @@ import play.api.data.validation.Constraints._
 import play.api.mvc.Controller
 import controllers.I18n.I18nAware
 import play.api.data.Form
-import models.{LocaleInfo, CreateCategory}
+import models.{LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName}
 import play.api.i18n.Messages
 import play.api.db.DB
 import play.api.Play.current
+
+import play.api.libs.json._
 
 object CategoryMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createCategoryForm = Form(
     mapping(
       "langId" -> longNumber,
-      "categoryName" -> text.verifying(nonEmpty, maxLength(32))
+      "categoryName" -> text.verifying(nonEmpty, maxLength(32)),
+      "parent" -> optional(longNumber)
     ) (CreateCategory.apply)(CreateCategory.unapply)
   )
 
@@ -41,7 +44,39 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
     )
   }}
 
-  def editCategory = isAuthenticated { implicit login => forSuperUser { implicit request => {
-    Ok(views.html.admin.editCategory())
-  }}}
+  def editCategory(start: Int  = 0, size: Int = 10) = isAuthenticated { implicit login => forSuperUser { implicit request => 
+    DB.withConnection { implicit conn => {
+      val p = Category.list(page = start, pageSize = size, locale = LocaleInfo.byLang(lang))
+      Ok(views.html.admin.editCategory(p))
+    }}
+  }}
+
+
+  def categoryPathTree = isAuthenticated { implicit login => forSuperUser { implicit request => 
+    DB.withConnection { implicit conn => {
+      val locale = LocaleInfo.byLang(lang)
+      val pathTree = categoryChildren(Category.root,locale)
+      Ok(Json.toJson(pathTree))
+    }}
+  }}
+
+  def categoryChildren(categories: Seq[Category], locale: LocaleInfo) : Seq[JsValue] =  
+    DB.withConnection { implicit conn => {
+        categories.filter{ c =>
+          CategoryName.get(locale, c) match {
+            case Some(_) => true
+            case _ => false
+          }
+        } map { c => 
+          Json.toJson(
+            Map(
+              "key" -> Json.toJson(c.id.get), 
+              "title" -> Json.toJson(CategoryName.get(locale, c)),
+              "isFolder" -> Json.toJson(true),
+              "children" -> Json.toJson(categoryChildren(CategoryPath.children(c),locale))
+            )
+          )
+        }
+    }}
+  
 }

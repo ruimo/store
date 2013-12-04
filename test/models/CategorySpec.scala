@@ -17,7 +17,6 @@ class CategorySpec extends Specification {
     "Can create new category." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         TestHelper.removePreloadedRecords()
-
         DB.withConnection { implicit conn => {
           val cat = Category.createNew(
             Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
@@ -27,8 +26,8 @@ class CategorySpec extends Specification {
           root.size === 1
           root.head === cat
 
-          CategoryName.get(LocaleInfo.Ja, cat) === "植木"
-          CategoryName.get(LocaleInfo.En, cat) === "Plant"
+          CategoryName.get(LocaleInfo.Ja, cat) === Some("植木")
+          CategoryName.get(LocaleInfo.En, cat) === Some("Plant")
 
           CategoryPath.parent(cat) === None
           CategoryPath.children(cat).size === 0
@@ -38,6 +37,20 @@ class CategorySpec extends Specification {
         }}
       }
     }
+
+    "Can select single category." in {
+    running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val cat = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          Category.get(cat.id.get) === Some(cat)
+          Category.get(cat.id.get+1000) === None
+        }}
+      }
+    }
+
 
     "List category" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
@@ -103,10 +116,10 @@ class CategorySpec extends Specification {
           root.size === 1
           root.head === parent
 
-          CategoryName.get(LocaleInfo.Ja, parent) === "植木"
-          CategoryName.get(LocaleInfo.En, parent) === "Plant"
-          CategoryName.get(LocaleInfo.Ja, child) === "果樹"
-          CategoryName.get(LocaleInfo.En, child) === "Fruit Tree"
+          CategoryName.get(LocaleInfo.Ja, parent) === Some("植木")
+          CategoryName.get(LocaleInfo.En, parent) === Some("Plant")
+          CategoryName.get(LocaleInfo.Ja, child) === Some("果樹")
+          CategoryName.get(LocaleInfo.En, child) === Some("Fruit Tree")
 
           CategoryPath.parent(parent) === None
           CategoryPath.children(parent).size === 1

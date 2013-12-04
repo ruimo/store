@@ -175,6 +175,12 @@ object Category {
 
     Category(Id(categoryId))
   }
+
+  def get(id: Long)(implicit conn: Connection) : Option[Category] = SQL(
+      """
+      select category_id from category where category_id = {category_id}
+      """
+    ).on('category_id -> id).as(SqlParser.scalar[Pk[Long]].singleOpt).map(Category(_))
 }
 
 object CategoryName {
@@ -187,8 +193,8 @@ object CategoryName {
     }
   }
 
-  def get(locale: LocaleInfo, category: Category)(implicit conn: Connection): String = get(locale, category.id.get)
-  def get(locale: LocaleInfo, categoryId: Long)(implicit conn: Connection): String = 
+  def get(locale: LocaleInfo, category: Category)(implicit conn: Connection): Option[String] = get(locale, category.id.get)
+  def get(locale: LocaleInfo, categoryId: Long)(implicit conn: Connection): Option[String] = 
     SQL(
       """
       select category_name from category_name
@@ -197,7 +203,7 @@ object CategoryName {
     ).on(
       'category_id -> categoryId,
       'locale_id -> locale.id
-    ).as(SqlParser.scalar[String].single)
+    ).as(SqlParser.scalar[String].singleOpt)
 }
 
 object CategoryPath {
