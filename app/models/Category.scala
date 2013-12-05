@@ -56,6 +56,26 @@ object Category {
     """
   ).as(Category.simple *)
 
+
+  def root(locale: LocaleInfo)(implicit conn: Connection): Seq[Category] = SQL(
+    """
+    select * 
+    from category c inner join category_name n 
+      on c.category_id = n.category_id
+    where 
+      not exists ( 
+        select 'X' 
+          from category_path p 
+          where c.category_id = p.descendant 
+            and c.category_id <> p.ancestor)
+      and n.locale_id = {locale_id}
+
+    """
+    ).on(
+      'locale_id -> locale.id
+    ).as(Category.simple *)
+
+
   val withName = Category.simple ~ CategoryName.simple map {
     case cat~name => (cat, name)
   }
