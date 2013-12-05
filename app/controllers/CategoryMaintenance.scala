@@ -52,31 +52,59 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
   }}
 
 
+
+  case class CategoryTree(key: Long, title: String, isFolder: Boolean = true, children: Seq[CategoryTree])
+
+  implicit object CategoryTreeFormat extends Format[CategoryTree] {
+    def reads(json: JsValue): JsResult[CategoryTree] = JsSuccess(CategoryTree(
+      (json \ "key").as[Long],
+      (json \ "title").as[String],
+      (json \ "isFolder").as[Boolean],
+      (json \ "chidlren").as[Seq[CategoryTree]]))
+
+    def writes(ct: CategoryTree): JsValue = JsObject(List(
+      "key" -> JsNumber(ct.key),
+      "title" -> JsString(ct.title),
+      "isFolder" -> JsBoolean(ct.isFolder),
+      "children" -> JsArray(ct.children.map(CategoryTreeFormat.writes))
+    ))
+  }
+
   def categoryPathTree = isAuthenticated { implicit login => forSuperUser { implicit request => 
     DB.withConnection { implicit conn => {
       val locale = LocaleInfo.byLang(lang)
+
+      // list of parent-name pairs
+ //     val pns : Seq[(Category, CategoryName)] = CategoryPath.listNamesWithParent(locale)
+
+      /* to be folded into recursive JSON structure of:
+            [ {"key":      category_id,
+               "title":    category_name,
+               "isFolder": true,
+               "children": [ 
+                 ... 
+               ] },
+                 ... ] */
+
+  //    pns.foldLeft(Map[String, JsValue])
+
+
       val pathTree = categoryChildren(Category.root,locale)
       Ok(Json.toJson(pathTree))
     }}
   }}
 
-  def categoryChildren(categories: Seq[Category], locale: LocaleInfo) : Seq[JsValue] =  
+
+  def categoryChildren(categories: Seq[Category], locale: LocaleInfo) : Seq[CategoryTree] =  
     DB.withConnection { implicit conn => {
-        categories.filter{ c =>
-          CategoryName.get(locale, c) match {
+        categories.filter{ c => CategoryName.get(locale, c) match {
             case Some(_) => true
             case _ => false
-          }
-        } map { c => 
-          Json.toJson(
-            Map(
-              "key" -> Json.toJson(c.id.get), 
-              "title" -> Json.toJson(CategoryName.get(locale, c)),
-              "isFolder" -> Json.toJson(true),
-              "children" -> Json.toJson(categoryChildren(CategoryPath.children(c),locale))
-            )
-          )
-        }
+        }} map { c => CategoryTree(
+          key = c.id.get,
+          title = CategoryName.get(locale, c).get,
+          children = categoryChildren(CategoryPath.children(c),locale)
+        )}
     }}
   
 }
