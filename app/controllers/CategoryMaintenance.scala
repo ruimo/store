@@ -52,31 +52,69 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
   }}
 
 
+  /* Seq[CategoryNode] to be folded into recursive JSON structure and vice versa:
+        [ {"key":      category_id,
+           "title":    category_name,
+           "isFolder": true,
+           "children": [ 
+             ... 
+           ] },
+             ... ] 
+  */
+  case class CategoryNode(key: Long, title: String, isFolder: Boolean = true, children: Seq[CategoryNode])
+
+  implicit object CategoryNodeFormat extends Format[CategoryNode] {
+    def reads(json: JsValue): JsResult[CategoryNode] = JsSuccess(CategoryNode(
+      (json \ "key").as[Long],
+      (json \ "title").as[String],
+      (json \ "isFolder").as[Boolean],
+      (json \ "chidlren").as[Seq[CategoryNode]]))
+
+    def writes(ct: CategoryNode): JsValue = JsObject(List(
+      "key" -> JsNumber(ct.key),
+      "title" -> JsString(ct.title),
+      "isFolder" -> JsBoolean(ct.isFolder),
+      "children" -> JsArray(ct.children.map(CategoryNodeFormat.writes))
+    ))
+  }
+
   def categoryPathTree = isAuthenticated { implicit login => forSuperUser { implicit request => 
     DB.withConnection { implicit conn => {
       val locale = LocaleInfo.byLang(lang)
-      val pathTree = categoryChildren(Category.root,locale)
+
+      // list of parent-name pairs
+      val pns : Seq[(Category, CategoryName)] = CategoryPath.listNamesWithParent(locale)
+
+      val idToName : Map[Long, CategoryName] = pns.map{ t => (t._2.categoryId, t._2) }.toMap
+
+      //map of Category to list of its child CategoryNames
+      val pnSubTrees : Map[Long, Seq[Long]] = 
+        pns.foldLeft(Map[Long, Seq[Long]]()) { (subTree, pn) =>
+          val p = pn._1
+          val name = pn._2
+          val pid = p.id.get
+          val myid = name.categoryId
+          val childrenIds = subTree.get(pid).getOrElse(Seq())
+
+          subTree + (pid -> (if (myid == pid) childrenIds else childrenIds :+ myid))
+        }
+
+
+      def categoryChildren(categoryIds: Seq[Long]): Seq[CategoryNode] =
+        categoryIds map { id => 
+          CategoryNode(
+            key=id, 
+            title = idToName(id).name, 
+            children = categoryChildren(pnSubTrees(id))
+          ) 
+        }
+
+      val roots : Seq[Long] = Category.root(locale) map { _.id.get }
+
+      val pathTree = categoryChildren(roots)
+
+      //val pathTree = categoryChildren(Category.root,locale)
       Ok(Json.toJson(pathTree))
     }}
-  }}
-
-  def categoryChildren(categories: Seq[Category], locale: LocaleInfo) : Seq[JsValue] =  
-    DB.withConnection { implicit conn => {
-        categories.filter{ c =>
-          CategoryName.get(locale, c) match {
-            case Some(_) => true
-            case _ => false
-          }
-        } map { c => 
-          Json.toJson(
-            Map(
-              "key" -> Json.toJson(c.id.get), 
-              "title" -> Json.toJson(CategoryName.get(locale, c)),
-              "isFolder" -> Json.toJson(true),
-              "children" -> Json.toJson(categoryChildren(CategoryPath.children(c),locale))
-            )
-          )
-        }
-    }}
-  
+  }}  
 }
