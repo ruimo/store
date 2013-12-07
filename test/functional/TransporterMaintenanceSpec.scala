@@ -20,7 +20,7 @@ class TransporterMaintenanceSpec extends Specification {
   "Transporter maitenance" should {
     "Validation error will shown" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         browser.goTo(
@@ -35,7 +35,7 @@ class TransporterMaintenanceSpec extends Specification {
 
     "Can create new transporter." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         browser.goTo(
@@ -60,7 +60,7 @@ class TransporterMaintenanceSpec extends Specification {
 
     "Can list transporters." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         browser.goTo(
@@ -111,7 +111,7 @@ class TransporterMaintenanceSpec extends Specification {
 
     "Can change transporter name." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         DB.withConnection { implicit conn =>
           implicit val lang = Lang("ja")
           val user = loginWithTestUser(browser)
@@ -150,7 +150,7 @@ class TransporterMaintenanceSpec extends Specification {
 
     "Validation error when changing transporter name." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         DB.withConnection { implicit conn =>
           implicit val lang = Lang("ja")
           val user = loginWithTestUser(browser)
@@ -185,101 +185,100 @@ class TransporterMaintenanceSpec extends Specification {
       }}
     }
 
-// Dont run on HTMLUNIT.
-//     "Can add transporter name." in {
-//       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-//       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-//         DB.withConnection { implicit conn =>
-//           implicit val lang = Lang("ja")
-//           val user = loginWithTestUser(browser)
+    "Can add transporter name." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        DB.withConnection { implicit conn =>
+          implicit val lang = Lang("ja")
+          val user = loginWithTestUser(browser)
 
-//           browser.goTo(
-//             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
-//             + "?lang=" + lang.code
-//           )
-//           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
-//           browser.fill("#transporterName").`with`("Transporter01")
-//           browser.find("#createNewTransporterForm").find("input[type='submit']").click
+          browser.goTo(
+            "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
+            + "?lang=" + lang.code
+          )
+          browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
+          browser.fill("#transporterName").`with`("Transporter01")
+          browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-//           browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
-          
-//           val list = Transporter.listWithName
-//           val trans = list.head
-          
-//           browser.goTo(
-//             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
-//             + "&lang=" + lang.code
-//           )
-//           browser.title === Messages("changeTransporterTitle")
-//           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
-//           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+       
+          val list = Transporter.listWithName
+          val trans = list.head
+       
+          browser.goTo(
+            "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
+            + "&lang=" + lang.code
+          )
+          browser.title === Messages("changeTransporterTitle")
+          browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
+          browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
 
-//           browser.fill("#transporterName").`with`("Transporter02")
-//           browser.click("select[id='localeId'] option[value='" + LocaleInfo.En.id + "']")
-//           browser.webDriver
-//             .findElement(By.id("addTransporterName")).click()
+          browser.fill("#transporterName").`with`("Transporter02")
+          browser.click("select[id='localeId'] option[value='" + LocaleInfo.En.id + "']")
+          browser.webDriver
+            .findElement(By.id("addTransporterName")).click()
 
-//           browser.title === Messages("changeTransporterTitle")
-// //          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+          browser.title === Messages("changeTransporterTitle")
+//          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
 
-//           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
-//           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
-//           browser.find(".langName", 1).getText() === Messages("lang." + LocaleInfo.En.lang)
-//           browser.find("#transporterNames_1__transporterName").getValue() === "Transporter02"
-//         }
-//       }}
-//     }
+          browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
+          browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
+          browser.find(".langName", 1).getText() === Messages("lang." + LocaleInfo.En.lang)
+          browser.find("#transporterNames_1__transporterName").getValue() === "Transporter02"
+        }
+      }}
+    }
 
-//     "Can delete transporter name." in {
-//       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-//       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-//         DB.withConnection { implicit conn =>
-//           implicit val lang = Lang("ja")
-//           val user = loginWithTestUser(browser)
+    "Can delete transporter name." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        DB.withConnection { implicit conn =>
+          implicit val lang = Lang("ja")
+          val user = loginWithTestUser(browser)
 
-//           browser.goTo(
-//             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
-//             + "?lang=" + lang.code
-//           )
-//           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
-//           browser.fill("#transporterName").`with`("Transporter01")
-//           browser.find("#createNewTransporterForm").find("input[type='submit']").click
+          browser.goTo(
+            "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
+            + "?lang=" + lang.code
+          )
+          browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
+          browser.fill("#transporterName").`with`("Transporter01")
+          browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-//           browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
-          
-//           val list = Transporter.listWithName
-//           val trans = list.head
-          
-//           browser.goTo(
-//             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
-//             + "&lang=" + lang.code
-//           )
-//           browser.title === Messages("changeTransporterTitle")
-//           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
-//           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+       
+          val list = Transporter.listWithName
+          val trans = list.head
+       
+          browser.goTo(
+            "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
+            + "&lang=" + lang.code
+          )
+          browser.title === Messages("changeTransporterTitle")
+          browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
+          browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
 
-//           browser.fill("#transporterName").`with`("Transporter02")
-//           browser.click("select[id='localeId'] option[value='" + LocaleInfo.En.id + "']")
-//           browser.webDriver
-//             .findElement(By.id("addTransporterName")).click()
-          
-//           browser.title === Messages("changeTransporterTitle")
-// //          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+          browser.fill("#transporterName").`with`("Transporter02")
+          browser.click("select[id='localeId'] option[value='" + LocaleInfo.En.id + "']")
+          browser.webDriver
+            .findElement(By.id("addTransporterName")).click()
+       
+          browser.title === Messages("changeTransporterTitle")
+//          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
 
-//           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
-//           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
-//           browser.find(".langName", 1).getText() === Messages("lang." + LocaleInfo.En.lang)
-//           browser.find("#transporterNames_1__transporterName").getValue() === "Transporter02"
+          browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
+          browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
+          browser.find(".langName", 1).getText() === Messages("lang." + LocaleInfo.En.lang)
+          browser.find("#transporterNames_1__transporterName").getValue() === "Transporter02"
 
-//           browser.find(".removeTransporterName", 0).click();
-//           browser.title === Messages("changeTransporterTitle")
+          browser.find(".removeTransporterName", 0).click();
+          browser.title === Messages("changeTransporterTitle")
 
-//           browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
-          
-//           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.En.lang)
-//           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter02"
-//         }
-//       }}
-//     }
+          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+       
+          browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.En.lang)
+          browser.find("#transporterNames_0__transporterName").getValue() === "Transporter02"
+        }
+      }}
+    }
   }
 }
