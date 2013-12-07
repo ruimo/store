@@ -26,10 +26,10 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+        browser.takeScreenShot()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
-
         browser.find(".globalErrorMessage").getText() === Messages("inputError")
         browser.find("#transporterName_field").find("dd.error").getText() === Messages("error.required")
       }}
@@ -43,7 +43,8 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+        browser.takeScreenShot()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("createNewTransporterTitle")
         browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
@@ -70,7 +71,8 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+        browser.takeScreenShot()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.webDriver
           .findElement(By.id("langId"))
@@ -83,7 +85,7 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.webDriver
           .findElement(By.id("langId"))
@@ -107,7 +109,7 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.editTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("editTransporterTitle")
         browser.find(".transporterTableId", 0).find("a").getText() === list(0)._1.id.get.toString
@@ -129,7 +131,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
@@ -143,7 +145,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -172,7 +174,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
@@ -187,7 +189,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -213,7 +215,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
@@ -228,7 +230,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -261,7 +263,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
@@ -276,7 +278,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+          browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -295,7 +297,7 @@ class TransporterMaintenanceSpec extends Specification {
           browser.find(".langName", 1).getText() === Messages("lang." + LocaleInfo.En.lang)
           browser.find("#transporterNames_1__transporterName").getValue() === "Transporter02"
 
-          browser.find(".removeTransporterName", 0).click();
+          browser.find(".removeTransporterName", 0).click()
           browser.title === Messages("changeTransporterTitle")
 
           browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
