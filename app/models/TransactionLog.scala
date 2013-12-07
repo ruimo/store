@@ -72,7 +72,8 @@ case class TransactionShipStatus(
   transactionSiteId: Long,
   status: TransactionStatus,
   lastUpdate: Long,
-  shippingInfo: Option[ShippingInfo]
+  shippingInfo: Option[ShippingInfo],
+  mailSent: Boolean
 ) extends NotNull
 
 case class ShippingDateEntry(
@@ -488,13 +489,18 @@ object TransactionShipStatus {
     SqlParser.get[Int]("transaction_status.status") ~
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
+    SqlParser.get[Boolean]("transaction_status.mail_sent") ~
     SqlParser.get[java.util.Date]("transaction_status.last_update") map {
-      case id~tranSiteId~status~transporterId~slipCode~lastUpdate =>
+      case id~tranSiteId~status~transporterId~slipCode~mailSent~lastUpdate =>
         if (transporterId.isDefined)
-          TransactionShipStatus(id, tranSiteId, TransactionStatus.byIndex(status),
-                                lastUpdate.getTime, Some(ShippingInfo(transporterId.get, slipCode.get)))
+          TransactionShipStatus(
+            id, tranSiteId, TransactionStatus.byIndex(status),
+            lastUpdate.getTime, Some(ShippingInfo(transporterId.get, slipCode.get)), mailSent
+          )
         else
-          TransactionShipStatus(id, tranSiteId, TransactionStatus.byIndex(status), lastUpdate.getTime, None)
+          TransactionShipStatus(
+            id, tranSiteId, TransactionStatus.byIndex(status), lastUpdate.getTime, None, mailSent
+          )
     }
   }
   
@@ -533,7 +539,7 @@ object TransactionShipStatus {
 
     val id = SQL("select currval('transaction_status_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionShipStatus(Id(id), transactionSiteId, status, lastUpdate, shippingInfo)
+    TransactionShipStatus(Id(id), transactionSiteId, status, lastUpdate, shippingInfo, false)
   }
 
   def update(
@@ -587,6 +593,32 @@ object TransactionShipStatus {
     'transporterId -> transporterId,
     'slipCode -> slipCode
   ).executeUpdate()
+
+  def getByTransactionSiteId(tranSiteId: Long)(implicit conn: Connection): Option[TransactionShipStatus] =
+    SQL(
+      """
+      select * from transaction_status where transaction_site_id = {id}
+      """
+    ).on(
+      'id -> tranSiteId
+    ).as(
+      simple.singleOpt
+    )
+
+  def byTransactionSiteId(tranSiteId: Long)(implicit conn: Connection) =
+    getByTransactionSiteId(tranSiteId).get
+
+  def mailSent(tranSiteId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      update transaction_status
+      set mail_sent = TRUE
+      where transaction_site_id = {tranSiteId}
+      """
+    ).on(
+      'tranSiteId -> tranSiteId
+    ).executeUpdate()
+  }
 }
 
 object TransactionSummary {

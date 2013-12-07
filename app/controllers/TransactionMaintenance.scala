@@ -11,6 +11,7 @@ import play.api.db.DB
 import play.api.i18n.Messages
 import play.api.Play.current
 import scala.collection.immutable.LongMap
+import helpers.NotificationMail
 
 object TransactionMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val changeStatusForm = Form(
@@ -129,15 +130,23 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       },
       newShippingInfo => {
         DB.withConnection { implicit conn =>
-          newShippingInfo.save(login.siteUser, tranSiteId)
-          sendNotificationMail(tranId, tranSiteId, newShippingInfo)
+          newShippingInfo.save(login.siteUser, tranSiteId) {
+            sendNotificationMail(tranId, tranSiteId, newShippingInfo, LocaleInfo.getDefault)
+          }
           Redirect(routes.TransactionMaintenance.index)
         }
       }
     )
   }}
 
-  def sendNotificationMail(l: Long, l1: Long, info: ChangeShippingInfo) {}
-
-
+  def sendNotificationMail(
+    tranId: Long, tranSiteId: Long, info: ChangeShippingInfo, locale: LocaleInfo
+  )(implicit loginSession: LoginSession) {
+    DB.withConnection { implicit conn =>
+      val persister = new TransactionPersister()
+      val tran = persister.load(tranId, locale)
+      val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+      NotificationMail.shipCompleted(loginSession, tran, address)
+    }
+  }
 }

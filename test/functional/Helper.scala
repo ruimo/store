@@ -6,6 +6,8 @@ import play.api.Play.current
 import play.api.test.TestBrowser
 
 object Helper {
+  val disableMailer = Map("disable.mailer" -> true)
+
   // password == password
   def createTestUser(): StoreUser = DB.withConnection { implicit conn =>
     StoreUser.create(

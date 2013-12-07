@@ -182,6 +182,7 @@ sendNoticeMail=Receive notice mail when order is placed.
 mail.buyer.subject=[Functional Store] Order confirmation (#%d)
 mail.site.owner.subject=[Functional Store] Order request (#%d)
 mail.admin.subject=[Functional Store] Order request (#%d)
+mail.shipping.buyer.subject=[Functional Store] Shipping notification (#%d)
 shippingComment=Comment
 register.shipping=Register
 itemTextMetadataABOUT_HEIGHT=Height

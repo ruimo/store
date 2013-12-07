@@ -14,39 +14,81 @@ import play.api.Play
 import controllers.HasLogger
 
 object NotificationMail extends HasLogger {
+  val disableMailer = Play.current.configuration.getBoolean("disable.mailer").getOrElse(false)
   val from = Play.current.configuration.getString("order.email.from").get
 
   def orderCompleted(
     login: LoginSession, tran: PersistedTransaction, addr: Address
   )(implicit conn: Connection) {
-    val buf = scala.collection.mutable.HashMap[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]()
-    tran.itemTable.foreach { e =>
-      val siteId = e._1
-      val items = e._2
-      items.foreach { it =>
-        val tranItem = it._2
-        val itemId = tranItem.itemId
-        buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
-      }
-    }
-    val metadata = buf.toMap
+    val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
 
     sendToBuyer(login, tran, addr, metadata)
     sendToStoreOwner(login, tran, addr, metadata)
     sendToAdmin(login, tran, addr, metadata)
   }
 
+  def shipCompleted(
+    login: LoginSession, tran: PersistedTransaction, addr: Address
+  )(implicit conn: Connection) {
+    val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
+    sendShippingNotificationToBuyer(login, tran, addr, metadata)
+  }
+
+  def retrieveMetadata(
+    tran: PersistedTransaction
+  )(
+    implicit conn: Connection
+  ): Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = {
+    val buf = scala.collection.mutable.HashMap[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]()
+    tran.itemTable.foreach {
+      e =>
+        val siteId = e._1
+        val items = e._2
+        items.foreach {
+          it =>
+            val tranItem = it._2
+            val itemId = tranItem.itemId
+            buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
+        }
+    }
+    val metadata = buf.toMap
+    metadata
+  }
+
   def sendToBuyer(
     login: LoginSession, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   ) {
-    Akka.system.scheduler.scheduleOnce(0.microsecond) {
-      val mail = use[MailerPlugin].email
-      mail.setSubject(Messages("mail.buyer.subject").format(tran.header.id.get))
-      mail.addRecipient(login.storeUser.email)
-      mail.addFrom(from)
-      mail.send(views.html.mail.forBuyer(login, tran, addr, metadata).toString)
-      logger.info("Ordering confirmation sent to " + login.storeUser.email)
+    logger.info("Sending confirmation sent to " + login.storeUser.email)
+    val body = views.html.mail.forBuyer(login, tran, addr, metadata).toString
+    if (! disableMailer) {
+      Akka.system.scheduler.scheduleOnce(0.microsecond) {
+        val mail = use[MailerPlugin].email
+        mail.setSubject(Messages("mail.buyer.subject").format(tran.header.id.get))
+        mail.addRecipient(login.storeUser.email)
+        mail.addFrom(from)
+        mail.send(body)
+        logger.info("Ordering confirmation sent to " + login.storeUser.email)
+      }
+    }
+  }
+
+  def sendShippingNotificationToBuyer(
+    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
+  ) {
+    logger.info("Sending shipping notification sent to " + login.storeUser.email)
+    val body = views.html.mail.shippingNotificationForBuyer(login, tran, addr, metadata).toString
+
+    if (! disableMailer) {
+      Akka.system.scheduler.scheduleOnce(0.microsecond) {
+        val mail = use[MailerPlugin].email
+        mail.setSubject(Messages("mail.shipping.buyer.subject").format(tran.header.id.get))
+        mail.addRecipient(login.storeUser.email)
+        mail.addFrom(from)
+        mail.send(body)
+        logger.info("Shipping notification sent to " + login.storeUser.email)
+      }
     }
   }
 
@@ -56,13 +98,17 @@ object NotificationMail extends HasLogger {
   )(implicit conn: Connection) {
     tran.siteTable.foreach { site =>
       OrderNotification.listBySite(site.id.get).foreach { owner =>
-        Akka.system.scheduler.scheduleOnce(0.microsecond) {
-          val mail = use[MailerPlugin].email
-          mail.setSubject(Messages("mail.site.owner.subject").format(tran.header.id.get))
-          mail.addRecipient(owner.email)
-          mail.addFrom(from)
-          mail.send(views.html.mail.forSiteOwner(login, site, owner, tran, addr, metadata).toString)
-          logger.info("Ordering confirmation for site owner sent to " + owner.email)
+        logger.info("Sending ordering confirmation for site owner sent to " + owner.email)
+        val body = views.html.mail.forSiteOwner(login, site, owner, tran, addr, metadata).toString
+        if (! disableMailer) {
+          Akka.system.scheduler.scheduleOnce(0.microsecond) {
+            val mail = use[MailerPlugin].email
+            mail.setSubject(Messages("mail.site.owner.subject").format(tran.header.id.get))
+            mail.addRecipient(owner.email)
+            mail.addFrom(from)
+            mail.send(body)
+            logger.info("Ordering confirmation for site owner sent to " + owner.email)
+          }
         }
       }
     }
@@ -73,13 +119,17 @@ object NotificationMail extends HasLogger {
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   )(implicit conn: Connection) {
     OrderNotification.listAdmin.foreach { admin =>
-      Akka.system.scheduler.scheduleOnce(0.microsecond) {
-        val mail = use[MailerPlugin].email
-        mail.setSubject(Messages("mail.admin.subject").format(tran.header.id.get))
-        mail.addRecipient(admin.email)
-        mail.addFrom(from)
-        mail.send(views.html.mail.forAdmin(login, admin, tran, addr, metadata).toString)
-        logger.info("Ordering confirmation for admin sent to " + admin.email)
+      logger.info("Sending ordering confirmation for admin sent to " + admin.email)
+      val body = views.html.mail.forAdmin(login, admin, tran, addr, metadata).toString
+      if (! disableMailer) {
+        Akka.system.scheduler.scheduleOnce(0.microsecond) {
+          val mail = use[MailerPlugin].email
+          mail.setSubject(Messages("mail.admin.subject").format(tran.header.id.get))
+          mail.addRecipient(admin.email)
+          mail.addFrom(from)
+          mail.send(body)
+          logger.info("Ordering confirmation for admin sent to " + admin.email)
+        }
       }
     }
   }

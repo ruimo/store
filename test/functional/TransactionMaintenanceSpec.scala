@@ -26,10 +26,11 @@ import org.joda.time.LocalTime
 
 class TransactionMaintenanceSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
+  val conf = inMemoryDatabase() ++ Helper.disableMailer
 
   "Transaction maitenance" should {
     "Validation error will shown" in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val app = FakeApplication(additionalConfiguration = conf)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val tax = Tax.createNew
@@ -50,6 +51,10 @@ class TransactionMaintenanceSpec extends Specification {
         SiteItem.createNew(site1, item1)
         SiteItem.createNew(site2, item2)
         SiteItem.createNew(site1, item3)
+
+        SiteItemNumericMetadata.createNew(site1.id.get, item1.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, 1L)
+        SiteItemNumericMetadata.createNew(site2.id.get, item2.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, 1L)
+        SiteItemNumericMetadata.createNew(site1.id.get, item3.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, 1L)
 
         val itemName1 = ItemName.createNew(item1, Map(Ja -> "植木1"))
         val itemName2 = ItemName.createNew(item2, Map(Ja -> "植木2"))
