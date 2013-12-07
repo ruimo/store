@@ -34,9 +34,9 @@
   </td>
  </tr>
 </table>
-@entry.status match {
-  case TransactionStatus.ORDERED => {
-    @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingInfo(entry.transactionSiteId))) {
+@entry.shipStatus match {
+  case None => {
+    @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingInfo(entry.transactionId, entry.transactionSiteId))) {
       @select(
         entryShippingInfoForms(entry.transactionSiteId)("transporterId"),
         transporterTable,
@@ -52,19 +52,16 @@
     }
   }
 
-  case TransactionStatus.SHIPPED => {
+  case Some(shippingInfo) => {
     <table class="shippingStatusTable">
       <tr>
         <td class="transporterHeader">@Messages("transporter")</td>
-        <td class="transporter">@entry.shipStatus.map(t => transporters(t.transporterId)).getOrElse("-")</td>
+        <td class="transporter">@transporters(shippingInfo.transporterId)</td>
       </tr>
       <tr>
         <td class="slipCodeHeader">@Messages("slipCode")</td>
-        <td class="slipCode">@entry.shipStatus.map(_.slipCode).getOrElse("-")</td>
+        <td class="slipCode">@shippingInfo.slipCode</td>
       </tr>
     </table>
-  }
-
-  case TransactionStatus.CANCELED => {
   }
 }

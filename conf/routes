@@ -93,7 +93,7 @@ GET     /admin/getItemDetailPicture      controllers.ItemPictures.getDetailPictu
 GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index
 POST    /admin/setStatus                 controllers.TransactionMaintenance.setStatus
 GET     /admin/transactionDetail         controllers.TransactionMaintenance.detail(tranSiteId: Long)
-POST    /admin/entryShippingInfo         controllers.TransactionMaintenance.entryShippingInfo(id: Long)
+POST    /admin/entryShippingInfo         controllers.TransactionMaintenance.entryShippingInfo(tranId: Long, tranSiteId: Long)
 
 GET     /query                           controllers.ItemQuery.query(q, page:Int ?= 0, pageSize:Int ?= 10)
 GET     /itemDetail                      controllers.ItemDetail.show(itemId: Long, siteId: Long)

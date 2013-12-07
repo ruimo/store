@@ -102,7 +102,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }}
 
-  def entryShippingInfo(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+  def entryShippingInfo(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     entryShippingInfoForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
@@ -118,7 +118,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
 
               list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
                 (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-              }.updated(id, formWithErrors),
+              }.updated(tranSiteId, formWithErrors),
               Transporter.tableForDropDown,
               Transporter.listWithName.foldLeft(LongMap[String]()) {
                 (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
@@ -129,10 +129,15 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       },
       newShippingInfo => {
         DB.withConnection { implicit conn =>
-          newShippingInfo.save(login.siteUser, id)
+          newShippingInfo.save(login.siteUser, tranSiteId)
+          sendNotificationMail(tranId, tranSiteId, newShippingInfo)
           Redirect(routes.TransactionMaintenance.index)
         }
       }
     )
   }}
+
+  def sendNotificationMail(l: Long, l1: Long, info: ChangeShippingInfo) {}
+
+
 }
