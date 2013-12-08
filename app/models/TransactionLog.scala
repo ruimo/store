@@ -233,6 +233,18 @@ object TransactionLogSite {
     TransactionLogSite(Id(id), transactionId, siteId, totalAmount, taxAmount)
   }
 
+  def byId(id: Long)(implicit conn: Connection): TransactionLogSite =
+    SQL(
+      """
+      select * from transaction_site
+      where transaction_site_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogSite] = {
     SQL(
       """
@@ -426,9 +438,9 @@ object TransactionLogItem {
 case class PersistedTransaction(
   header: TransactionLogHeader,
   siteTable: Seq[Site],
-  shippingTable: Map[Long, Seq[TransactionLogShipping]],
-  taxTable: Map[Long, Seq[TransactionLogTax]],
-  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]]
+  shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
+  taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
+  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]] // First key = siteId
 ) extends NotNull {
   lazy val sites: Map[Long, Site] = siteTable.foldLeft(
     LongMap[Site]()
@@ -479,7 +491,8 @@ case class TransactionSummaryEntry(
   statusLastUpdate: Long,
   shipStatus: Option[ShippingInfo],
   buyer: StoreUser,
-  shippingDate: Long
+  shippingDate: Long,
+  mailSent: Boolean
 ) extends NotNull
 
 object TransactionShipStatus {
@@ -635,13 +648,14 @@ object TransactionSummary {
     SqlParser.get[java.util.Date]("shipping_date") ~
     SqlParser.get[java.util.Date]("transaction_status.last_update") ~ 
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
-    SqlParser.get[Option[String]]("transaction_status.slip_code") map {
-      case id~siteId~time~amount~address~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode =>
+    SqlParser.get[Option[String]]("transaction_status.slip_code") ~
+    SqlParser.get[Boolean]("transaction_status.mail_sent") map {
+      case id~siteId~time~amount~address~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent =>
         TransactionSummaryEntry(
           id, siteId, time.getTime, amount, address, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
-          user, shippingDate.getTime
+          user, shippingDate.getTime, mailSent
         )
     }
   }
@@ -660,6 +674,7 @@ object TransactionSummary {
       transaction_status.last_update,
       transaction_status.transporter_id,
       transaction_status.slip_code,
+      transaction_status.mail_sent,
       store_user.*,
       base.shipping_date
     from (

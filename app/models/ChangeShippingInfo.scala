@@ -16,8 +16,8 @@ case class ChangeShippingInfo(transporterId: Long, slipCode: String) {
     TransactionShipStatus.update(siteUser, transactionSiteId, TransactionStatus.SHIPPED)
     val status = TransactionShipStatus.byTransactionSiteId(transactionSiteId)
     if (! status.mailSent) {
-      sendMail
       TransactionShipStatus.mailSent(transactionSiteId)
+      sendMail
     }
   }
 }

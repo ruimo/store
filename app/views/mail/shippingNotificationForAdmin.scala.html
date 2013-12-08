@@ -1,0 +1,52 @@
+@(
+  login: LoginSession,
+  site: Site,
+  admin: StoreUser,
+  tran: PersistedTransaction,
+  addr: Address,
+  metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
+)
+@import org.joda.time.format.DateTimeFormat
+発送しました〜
+
+<ご注文者様>
+@{login.storeUser.companyName.getOrElse("")} @{login.storeUser.firstName} @{login.storeUser.lastName}様
+メールアドレス： @login.storeUser.email
+
+<店舗>
+@tran.siteTable.map { site =>@site.name
+
+<ご注文商品>
+@tran.itemTable(site.id.get).map { it =>
+@{it._1.name}/@Messages("item.size." + metadata(site.id.get -> it._2.itemId)(SiteItemNumericMetadataType.SHIPPING_SIZE).metadata)/@{it._2.quantity}点/@{f"%,.0f".format(it._2.amount)}円 }
+小計 @{f"%,.0f".format(tran.itemTotal(site.id.get))}円
+外税額 @{f"%,.0f".format(tran.outerTaxTotal(site.id.get))}円
+商品計 @{f"%,.0f".format(tran.itemTotal(site.id.get) + tran.outerTaxTotal(site.id.get))}円
+
+<送料>
+@tran.shippingTable(site.id.get).map { shipping => @{shipping.boxName}/@{f"%,.0f".format(shipping.amount / shipping.boxCount)}円/@{shipping.boxCount}点/小計 @{f"%,.0f".format(shipping.amount)}円
+}
+配送希望日 @{DateTimeFormat.forPattern(Messages("shipping.date.format")).print(tran.shippingTable(site.id.get).head.shippingDate)}
+
+}
+<合計>
+商品計 @{f"%,.0f".format(tran.itemGrandTotal + tran.outerTaxGrandTotal)}円/個数 @{tran.itemQuantity.values.fold(0L){_+_}}点
+送料計 @{f"%,.0f".format(tran.boxGrandTotal)}円/個数 @{tran.boxQuantity.values.fold(0){_+_}}点
+合計 @{f"%,.0f".format(tran.itemGrandTotal + tran.outerTaxGrandTotal + tran.boxGrandTotal)}円
+
+<お届け先>
+@addr.firstName　@addr.lastName
+@addr.firstNameKana　@addr.lastNameKana
+郵便番号：@{addr.zip1}-@{addr.zip2}
+都道府県：@addr.prefecture
+住所：
+@addr.address1
+@addr.address2
+@addr.address3
+電話番号：@addr.tel1
+配送希望日：@{DateTimeFormat.forPattern(Messages("shipping.date.format")).print(tran.shippingTable(tran.siteTable.head.id.get).head.shippingDate)}
+コメント：@addr.comment
+
+---
+Functional Store
+

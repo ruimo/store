@@ -29,39 +29,39 @@
         }
       }
     </td>
-  <td>
-    @Messages("lastUpdate"): <span class="lastUpdate">@lastUpdate(entry.statusLastUpdate)</span>
-  </td>
- </tr>
+    <td>
+      @Messages("lastUpdate"): <span class="lastUpdate">@lastUpdate(entry.statusLastUpdate)</span>
+    </td>
+  </tr>
 </table>
-@entry.shipStatus match {
-  case None => {
-    @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingInfo(entry.transactionId, entry.transactionSiteId))) {
-      @select(
-        entryShippingInfoForms(entry.transactionSiteId)("transporterId"),
-        transporterTable,
-        '_label -> Messages("transporter"),
-        '_showConstraints -> false
-      )
-      @inputText(
-        entryShippingInfoForms(entry.transactionSiteId)("slipCode"),
-        '_label -> Messages("slipCode"), 'size -> 16, 'maxlength -> 128
-      )
+@if(entry.mailSent) {
+  <table class="shippingStatusTable">
+    <tr>
+      <td class="transporterHeader">@Messages("transporter")</td>
+      <td class="transporter">@{entry.shipStatus.map{info => transporters(info.transporterId)}.getOrElse("-")}</td>
+    </tr>
+    <tr>
+      <td class="slipCodeHeader">@Messages("slipCode")</td>
+      <td class="slipCode">@{entry.shipStatus.map{info => info.slipCode}.getOrElse("-")}</td>
+    </tr>
+  </table>
+} else {
+  @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingInfo(entry.transactionId, entry.transactionSiteId))) {
+    @select(
+      entryShippingInfoForms(entry.transactionSiteId)("transporterId"),
+      transporterTable,
+      '_label -> Messages("transporter"),
+      '_showConstraints -> false
+    )
+    @inputText(
+      entryShippingInfoForms(entry.transactionSiteId)("slipCode"),
+      '_label -> Messages("slipCode"), 'size -> 16, 'maxlength -> 128
+    )
 
-      <input class="changeShippingInfoButton" type="submit" value="@Messages("entryShippingInfo")">
-    }
+    <input class="changeShippingInfoButton" type="submit" value="@Messages("entryShippingInfo")">
   }
 
-  case Some(shippingInfo) => {
-    <table class="shippingStatusTable">
-      <tr>
-        <td class="transporterHeader">@Messages("transporter")</td>
-        <td class="transporter">@transporters(shippingInfo.transporterId)</td>
-      </tr>
-      <tr>
-        <td class="slipCodeHeader">@Messages("slipCode")</td>
-        <td class="slipCode">@shippingInfo.slipCode</td>
-      </tr>
-    </table>
+  @form(action = helper.CSRF(routes.TransactionMaintenance.cancelShipping(entry.transactionId, entry.transactionSiteId))) {
+    <input class="cancelShippingButton" type="submit" value="@Messages("cancelShipping")">
   }
 }

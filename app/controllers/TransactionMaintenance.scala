@@ -107,7 +107,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     entryShippingInfoForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
-        DB.withConnection { implicit conn =>
+        DB.withTransaction { implicit conn =>
           val list = TransactionSummary.list(
             if (login.isAdmin) None else login.siteUser
           )
@@ -116,7 +116,6 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             views.html.admin.transactionMaintenance(
               list,
               changeStatusForm, statusDropDown,
-
               list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
                 (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
               }.updated(tranSiteId, formWithErrors),
@@ -139,6 +138,18 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     )
   }}
 
+  def cancelShipping(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    DB.withTransaction { implicit conn =>
+      TransactionShipStatus.update(login.siteUser, tranSiteId, TransactionStatus.CANCELED)
+      val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
+      if (! status.mailSent) {
+        TransactionShipStatus.mailSent(tranSiteId)
+        sendCancelMail(tranId, tranSiteId, LocaleInfo.getDefault)
+      }
+      Redirect(routes.TransactionMaintenance.index)
+    }
+  }}
+
   def sendNotificationMail(
     tranId: Long, tranSiteId: Long, info: ChangeShippingInfo, locale: LocaleInfo
   )(implicit loginSession: LoginSession) {
@@ -146,7 +157,20 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       val persister = new TransactionPersister()
       val tran = persister.load(tranId, locale)
       val address = Address.byId(tran.shippingTable.head._2.head.addressId)
-      NotificationMail.shipCompleted(loginSession, tran, address)
+      val siteId = TransactionLogSite.byId(tranSiteId).siteId
+      NotificationMail.shipCompleted(loginSession, siteId, tran, address)
+    }
+  }
+
+  def sendCancelMail(
+    tranId: Long, tranSiteId: Long, locale: LocaleInfo
+  )(implicit loginSession: LoginSession) {
+    DB.withConnection { implicit conn =>
+      val persister = new TransactionPersister()
+      val tran = persister.load(tranId, locale)
+      val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+      val siteId = TransactionLogSite.byId(tranSiteId).siteId
+      NotificationMail.shipCanceled(loginSession, siteId, tran, address)
     }
   }
 }
