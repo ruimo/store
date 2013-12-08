@@ -25,4 +25,10 @@ object Helper {
 
     user
   }
+
+  def takeScreenShot(browser: TestBrowser) {
+    val stack = (new Throwable()).getStackTrace()(1)
+    val fname = "screenShots/" + stack.getFileName() + "_" + stack.getLineNumber() + ".png"
+    browser.takeScreenShot(fname)
+  }
 }

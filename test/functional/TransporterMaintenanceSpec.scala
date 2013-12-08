@@ -26,6 +26,7 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
+        takeScreenShot(browser)
         browser.takeScreenShot()
         browser.await().atMost(5, TimeUnit.SECONDS).until("#createNewTransporterForm").areDisplayed()
 
