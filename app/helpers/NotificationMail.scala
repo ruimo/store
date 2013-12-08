@@ -87,7 +87,9 @@ object NotificationMail extends HasLogger {
   def sendShippingNotificationToBuyer(
     login: LoginSession, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
-  ) {
+  )(implicit conn: Connection) {
+    val buyer = StoreUser(tran.header.userId)
+
     logger.info("Sending shipping notification for buyer sent to " + login.storeUser.email)
     val body = views.html.mail.shippingNotificationForBuyer(login, tran, addr, metadata).toString
 
@@ -95,7 +97,7 @@ object NotificationMail extends HasLogger {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
         val mail = use[MailerPlugin].email
         mail.setSubject(Messages("mail.shipping.buyer.subject").format(tran.header.id.get))
-        mail.addRecipient(login.storeUser.email)
+        mail.addRecipient(buyer.email)
         mail.addFrom(from)
         mail.send(body)
         logger.info("Shipping notification for buyer sent to " + login.storeUser.email)
