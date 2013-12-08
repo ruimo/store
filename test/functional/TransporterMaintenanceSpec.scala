@@ -27,8 +27,7 @@ class TransporterMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
         takeScreenShot(browser)
-        browser.takeScreenShot()
-        browser.await().atMost(5, TimeUnit.SECONDS).until("#createNewTransporterForm").areDisplayed()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("#createNewTransporterForm").areDisplayed()
 
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
         browser.find(".globalErrorMessage").getText() === Messages("inputError")
@@ -44,15 +43,15 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.takeScreenShot()
-        browser.await().atMost(5, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
+        takeScreenShot(browser)
+        browser.await().atMost(30, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
 
         browser.title === Messages("createNewTransporterTitle")
         browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
         browser.fill("#transporterName").`with`("Transporter01")
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
 
         DB.withConnection { implicit conn =>
           val list = Transporter.listWithName
@@ -72,8 +71,8 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.takeScreenShot()
-        browser.await().atMost(5, TimeUnit.SECONDS).until("#langId").areDisplayed()
+        takeScreenShot(browser)
+        browser.await().atMost(30, TimeUnit.SECONDS).until("#langId").areDisplayed()
 
         browser.webDriver
           .findElement(By.id("langId"))
@@ -81,12 +80,12 @@ class TransporterMaintenanceSpec extends Specification {
         browser.fill("#transporterName").`with`("Transporter01")
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).until("#langId").areDisplayed()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("#langId").areDisplayed()
 
         browser.webDriver
           .findElement(By.id("langId"))
@@ -95,7 +94,7 @@ class TransporterMaintenanceSpec extends Specification {
 
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
 
         var list: Seq[(Transporter, Option[TransporterName])] = null
         DB.withConnection { implicit conn =>
@@ -110,7 +109,7 @@ class TransporterMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.TransporterMaintenance.editTransporter().url + "?lang=" + lang.code
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".transporterTableId").areDisplayed()
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".transporterTableId").areDisplayed()
 
         browser.title === Messages("editTransporterTitle")
         browser.find(".transporterTableId", 0).find("a").getText() === list(0)._1.id.get.toString
@@ -132,12 +131,12 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
           
           val list = Transporter.listWithName
           val trans = list.head
@@ -146,7 +145,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".langName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -156,7 +155,7 @@ class TransporterMaintenanceSpec extends Specification {
           browser.find("#changeTransporterName").click()
 
           browser.title === Messages("changeTransporterTitle")
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
           
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter02"
@@ -175,13 +174,13 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
           
           val list = Transporter.listWithName
           val trans = list.head
@@ -190,7 +189,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".langName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -216,13 +215,13 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
        
           val list = Transporter.listWithName
           val trans = list.head
@@ -231,7 +230,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".langName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -243,7 +242,7 @@ class TransporterMaintenanceSpec extends Specification {
             .findElement(By.id("addTransporterName")).click()
 
           browser.title === Messages("changeTransporterTitle")
-//          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+//          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
@@ -264,13 +263,13 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startCreateNewTransporter().url
             + "?lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
 
           browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
           browser.fill("#transporterName").`with`("Transporter01")
           browser.find("#createNewTransporterForm").find("input[type='submit']").click
 
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsCreated"))
        
           val list = Transporter.listWithName
           val trans = list.head
@@ -279,7 +278,7 @@ class TransporterMaintenanceSpec extends Specification {
             "http://localhost:3333" + controllers.routes.TransporterMaintenance.startChangeTransporter(trans._1.id.get).url
             + "&lang=" + lang.code
           )
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".langName").areDisplayed()
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
           browser.title === Messages("changeTransporterTitle")
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -291,7 +290,7 @@ class TransporterMaintenanceSpec extends Specification {
             .findElement(By.id("addTransporterName")).click()
        
           browser.title === Messages("changeTransporterTitle")
-//          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+//          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter01"
@@ -301,7 +300,7 @@ class TransporterMaintenanceSpec extends Specification {
           browser.find(".removeTransporterName", 0).click()
           browser.title === Messages("changeTransporterTitle")
 
-          browser.await().atMost(5, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
+          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
        
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.En.lang)
           browser.find("#transporterNames_0__transporterName").getValue() === "Transporter02"
