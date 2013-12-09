@@ -93,7 +93,7 @@ object NotificationMail extends HasLogger {
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
 
-    logger.info("Sending shipping notification for buyer sent to " + login.storeUser.email)
+    logger.info("Sending shipping notification for buyer sent to " + buyer.email)
     val body = views.html.mail.shippingNotificationForBuyer(
       login, tran, addr, metadata, buyer, status
     ).toString
@@ -105,7 +105,7 @@ object NotificationMail extends HasLogger {
         mail.addRecipient(buyer.email)
         mail.addFrom(from)
         mail.send(body)
-        logger.info("Shipping notification for buyer sent to " + login.storeUser.email)
+        logger.info("Shipping notification for buyer sent to " + buyer.email)
       }
     }
   }
@@ -115,8 +115,8 @@ object NotificationMail extends HasLogger {
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
     status: TransactionShipStatus
   )(implicit conn: Connection) {
-    logger.info("Sending cancel notification for buyer sent to " + login.storeUser.email)
     val buyer = StoreUser(tran.header.userId)
+    logger.info("Sending cancel notification for buyer sent to " + buyer.email)
     val body = views.html.mail.cancelNotificationForBuyer(
       login, tran, addr, metadata, buyer, status
     ).toString
@@ -128,7 +128,7 @@ object NotificationMail extends HasLogger {
         mail.addRecipient(buyer.email)
         mail.addFrom(from)
         mail.send(body)
-        logger.info("Shipping cancel notification for buyer sent to " + login.storeUser.email)
+        logger.info("Shipping cancel notification for buyer sent to " + buyer.email)
       }
     }
   }
