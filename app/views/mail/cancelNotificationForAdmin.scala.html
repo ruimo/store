@@ -4,7 +4,9 @@
   admin: StoreUser,
   tran: PersistedTransaction,
   addr: Address,
-  metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
+  metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+  buyer: StoreUser,
+  status: TransactionShipStatus
 )
 @import org.joda.time.format.DateTimeFormat
 キャンセルしました〜
