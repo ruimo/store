@@ -12,6 +12,7 @@ import models.PersistedTransaction
 import java.sql.Connection
 import play.api.Play
 import controllers.HasLogger
+import collection.immutable.LongMap
 
 object NotificationMail extends HasLogger {
   val disableMailer = Play.current.configuration.getBoolean("disable.mailer").getOrElse(false)
@@ -29,22 +30,22 @@ object NotificationMail extends HasLogger {
 
   def shipCompleted(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
-    sendShippingNotificationToBuyer(login, tran, addr, metadata, status)
-    sendShippingNotificationToStoreOwner(login, siteId, tran, addr, metadata, status)
-    sendShippingNotificationToAdmin(login, siteId, tran, addr, metadata, status)
+    sendShippingNotificationToBuyer(login, tran, addr, metadata, status, transporters)
+    sendShippingNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
+    sendShippingNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
   }
 
   def shipCanceled(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
-    sendCancelNotificationToBuyer(login, tran, addr, metadata, status)
-    sendCancelNotificationToStoreOwner(login, siteId, tran, addr, metadata, status)
-    sendCancelNotificationToAdmin(login, siteId, tran, addr, metadata, status)
+    sendCancelNotificationToBuyer(login, tran, addr, metadata, status, transporters)
+    sendCancelNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
+    sendCancelNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
   }
 
   def retrieveMetadata(
@@ -89,13 +90,13 @@ object NotificationMail extends HasLogger {
   def sendShippingNotificationToBuyer(
     login: LoginSession, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
 
     logger.info("Sending shipping notification for buyer sent to " + buyer.email)
     val body = views.html.mail.shippingNotificationForBuyer(
-      login, tran, addr, metadata, buyer, status
+      login, tran, addr, metadata, buyer, status, transporters
     ).toString
 
     if (! disableMailer) {
@@ -113,12 +114,12 @@ object NotificationMail extends HasLogger {
   def sendCancelNotificationToBuyer(
     login: LoginSession, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     logger.info("Sending cancel notification for buyer sent to " + buyer.email)
     val body = views.html.mail.cancelNotificationForBuyer(
-      login, tran, addr, metadata, buyer, status
+      login, tran, addr, metadata, buyer, status, transporters
     ).toString
 
     if (! disableMailer) {
@@ -158,7 +159,7 @@ object NotificationMail extends HasLogger {
   def sendShippingNotificationToStoreOwner(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     tran.siteTable.foreach { site =>
@@ -166,7 +167,7 @@ object NotificationMail extends HasLogger {
         OrderNotification.listBySite(site.id.get).foreach { owner =>
           logger.info("Sending shipping confirmation for site owner " + site + " sent to " + owner.email)
           val body = views.html.mail.shippingNotificationForSiteOwner(
-            login, site, owner, tran, addr, metadata, buyer, status
+            login, site, owner, tran, addr, metadata, buyer, status, transporters
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
@@ -186,7 +187,7 @@ object NotificationMail extends HasLogger {
   def sendCancelNotificationToStoreOwner(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     tran.siteTable.foreach { site =>
@@ -194,7 +195,7 @@ object NotificationMail extends HasLogger {
         OrderNotification.listBySite(site.id.get).foreach { owner =>
           logger.info("Sending cancel confirmation for site owner " + site + " sent to " + owner.email)
           val body = views.html.mail.cancelNotificationForSiteOwner(
-            login, site, owner, tran, addr, metadata, buyer, status
+            login, site, owner, tran, addr, metadata, buyer, status, transporters
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
@@ -234,7 +235,7 @@ object NotificationMail extends HasLogger {
   def sendShippingNotificationToAdmin(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     tran.siteTable.foreach { site =>
@@ -242,7 +243,7 @@ object NotificationMail extends HasLogger {
         OrderNotification.listAdmin.foreach { admin =>
           logger.info("Sending shipping notification for admin sent to " + admin.email)
           val body = views.html.mail.shippingNotificationForAdmin(
-            login, site, admin, tran, addr, metadata, buyer, status
+            login, site, admin, tran, addr, metadata, buyer, status, transporters
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
@@ -262,7 +263,7 @@ object NotificationMail extends HasLogger {
   def sendCancelNotificationToAdmin(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus
+    status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     tran.siteTable.foreach { site =>
@@ -270,7 +271,7 @@ object NotificationMail extends HasLogger {
         OrderNotification.listAdmin.foreach { admin =>
           logger.info("Sending cancel notification for admin sent to " + admin.email)
           val body = views.html.mail.cancelNotificationForAdmin(
-            login, site, admin, tran, addr, metadata, buyer, status
+            login, site, admin, tran, addr, metadata, buyer, status, transporters
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {

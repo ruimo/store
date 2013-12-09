@@ -8,6 +8,7 @@ import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.Lang
 import java.sql.Connection
+import collection.immutable.LongMap
 
 case class Transporter(id: Pk[Long] = NotAssigned) extends NotNull
 
@@ -74,6 +75,22 @@ object Transporter {
       withName *
     ).map {
       e => e._1.id.get.toString -> e._2.transporterName
+    }
+  }
+
+  def mapWithName(locale: LocaleInfo)(implicit conn: Connection): LongMap[String] = {
+    SQL(
+      """
+      select * from transporter
+      inner join transporter_name on transporter.transporter_id = transporter_name.transporter_id
+      where locale_id = {localeId}
+      """
+    ).on(
+      'localeId -> locale.id
+    ).as(
+      withName *
+    ).foldLeft(LongMap[String]()) {
+      (map, e) => map.updated(e._1.id.get, e._2.transporterName)
     }
   }
 

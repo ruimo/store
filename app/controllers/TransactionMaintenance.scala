@@ -159,7 +159,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       val tran = persister.load(tranId, locale)
       val address = Address.byId(tran.shippingTable.head._2.head.addressId)
       val siteId = TransactionLogSite.byId(tranSiteId).siteId
-      NotificationMail.shipCompleted(loginSession, siteId, tran, address, status)
+      val transporters = Transporter.mapWithName(locale)
+      NotificationMail.shipCompleted(loginSession, siteId, tran, address, status, transporters)
     }
   }
 
@@ -171,7 +172,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       val tran = persister.load(tranId, locale)
       val address = Address.byId(tran.shippingTable.head._2.head.addressId)
       val siteId = TransactionLogSite.byId(tranSiteId).siteId
-      NotificationMail.shipCanceled(loginSession, siteId, tran, address, status)
+      val transporters = Transporter.mapWithName(locale)
+      NotificationMail.shipCanceled(loginSession, siteId, tran, address, status, transporters)
     }
   }
 }

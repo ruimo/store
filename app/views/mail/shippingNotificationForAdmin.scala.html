@@ -6,7 +6,8 @@
   addr: Address,
   metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
   buyer: StoreUser,
-  status: TransactionShipStatus
+  status: TransactionShipStatus,
+  transporters: scala.collection.immutable.LongMap[String]
 )
 @import org.joda.time.format.DateTimeFormat
 発送しました〜
