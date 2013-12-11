@@ -6,6 +6,7 @@
 )
 
 @main(Messages("adminTitle"), Some(loginSession)) {
+} {
   <h1 class="title">@Messages("adminTitle")</h1>
 
   @flash.get("message").map { message =>

@@ -246,6 +246,7 @@
 }
 
 @main(Messages("changeItemTitle"), Some(loginSession)) {
+} {
   @flash.get("errorMessage").map { message =>
     <div class="globalErrorMessage">
       @message

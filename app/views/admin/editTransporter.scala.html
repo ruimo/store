@@ -8,6 +8,7 @@
 )
 
 @main(Messages("editTransporterTitle"), Some(loginSession)) {
+} {
   @flash.get("errorMessage").map { message =>
     <div class="globalErrorMessage">
       @message

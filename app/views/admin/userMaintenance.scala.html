@@ -5,6 +5,7 @@
 )
 
 @main(Messages("userMaintenanceTitle"), Some(loginSession)) {
+} {
   <h1 class="title">@Messages("userMaintenanceTitle")</h1>
 
   @if(loginSession.isSuperUser) {

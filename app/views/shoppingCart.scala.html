@@ -7,6 +7,7 @@
 )
 
 @main(Messages("shopping.cart"), Some(loginSession)) {
+} {
   <h2 class="shoppingCart">@Messages("shopping.cart")</h2>
 
   @if(! list.table.isEmpty) {

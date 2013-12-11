@@ -10,6 +10,7 @@
 @import helpers.Formatter.yyyy_mm_dd
 
 @main(Messages("confirm.shipping.address"), Some(loginSession)) {
+} {
   <h1 class="itemsTitle">ご注文商品</h1>
   @if(tran.itemTotal.notEmpty) {
     <table class="itemTable" border="0">
