@@ -358,3 +358,7 @@ tr.userTableBody {
   cell-spacing: 1px;
   vertical-align: top;
 }
+
+#catTree {
+  padding: 10px;
+}

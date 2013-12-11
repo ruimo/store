@@ -235,3 +235,4 @@ lastUpdate=最終更新
 slipCode=伝票番号
 entryShippingInfo=登録・メールを送る
 cancelShipping=キャンセル
+parentCategory=親カテゴリ
