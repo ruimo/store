@@ -33,7 +33,7 @@ object NotificationMail extends HasLogger {
     status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
-    sendShippingNotificationToBuyer(login, tran, addr, metadata, status, transporters)
+    sendShippingNotificationToBuyer(login, siteId, tran, addr, metadata, status, transporters)
     sendShippingNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
     sendShippingNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
   }
@@ -43,7 +43,7 @@ object NotificationMail extends HasLogger {
     status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
-    sendCancelNotificationToBuyer(login, tran, addr, metadata, status, transporters)
+    sendCancelNotificationToBuyer(login, siteId, tran, addr, metadata, status, transporters)
     sendCancelNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
     sendCancelNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
   }
@@ -88,7 +88,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendShippingNotificationToBuyer(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
     status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
@@ -96,7 +96,7 @@ object NotificationMail extends HasLogger {
 
     logger.info("Sending shipping notification for buyer sent to " + buyer.email)
     val body = views.html.mail.shippingNotificationForBuyer(
-      login, tran, addr, metadata, buyer, status, transporters
+      login, siteId, tran, addr, metadata, buyer, status, transporters
     ).toString
 
     if (! disableMailer) {
@@ -112,14 +112,14 @@ object NotificationMail extends HasLogger {
   }
 
   def sendCancelNotificationToBuyer(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
     status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     logger.info("Sending cancel notification for buyer sent to " + buyer.email)
     val body = views.html.mail.cancelNotificationForBuyer(
-      login, tran, addr, metadata, buyer, status, transporters
+      login, siteId, tran, addr, metadata, buyer, status, transporters
     ).toString
 
     if (! disableMailer) {
