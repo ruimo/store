@@ -15,6 +15,14 @@
 }
 
 @main(Messages("enter.shipping.address"), Some(loginSession)) {
+  <script type="text/javascript">
+    $(function() {
+      $("#shippingDateTextBox").datepicker({
+        dateFormat: 'yy年mm月dd日'
+      });
+    });
+  </script>
+
   <h1 class="enterShippingAddress">@Messages("enter.shipping.address")</h1>
 
   @if(myForm.hasErrors) {
@@ -92,7 +100,7 @@
 
     @inputText(
       myForm("shippingDate"),
-      '_label -> Messages("shipping.date")
+      '_label -> Messages("shipping.date"), 'id-> "shippingDateTextBox"
     )
 
     @helper.textarea(
