@@ -62,6 +62,6 @@
   }
 
   @form(action = helper.CSRF(routes.TransactionMaintenance.cancelShipping(entry.transactionId, entry.transactionSiteId))) {
-    <input class="cancelShippingButton" type="submit" value="@Messages("cancelShipping")">
+    <button class="cancelShippingButton" type="button" onclick="cancelTran(this);">@Messages("cancelShipping")</button>
   }
 }

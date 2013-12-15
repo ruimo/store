@@ -14,7 +14,37 @@
 @import helper._
 
 @main(Messages("transactionMaintenanceTitle"), Some(loginSession)) {
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
+  <script type="text/javascript">
+    $(function() {
+      $("#submitDialog").dialog({
+        autoOpen: false,
+        title: '@Messages("cancelDialogTitle")',
+        modal: true,
+        buttons: {
+          '@Messages("doCancel")': function(e) {
+            $(this).prop("formToSubmit").submit();
+            $(this).dialog("close");
+          },
+          '@Messages("abortCancel")': function(e) {
+            $(this).dialog("close");
+          }
+        }
+      })
+    });
+
+    var cancelTran = function(btn) {
+      var dlg = $("#submitDialog");
+      dlg.prop("formToSubmit", btn.parentElement);
+      dlg.dialog("open");
+    };
+  </script>
 } {
+  <div id="submitDialog">
+    @Messages("confirmCancel")
+  </div>
+
   <h1 class="title">@Messages("transactionMaintenanceTitle")</h1>
 
   <table class="transactionSummaryTable" border="0">

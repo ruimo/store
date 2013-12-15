@@ -236,3 +236,7 @@ slipCode=伝票番号
 entryShippingInfo=登録・メールを送る
 cancelShipping=キャンセル
 parentCategory=親カテゴリ
+cancelDialogTitle=取引のキャンセル
+doCancel=取引をキャンセルする
+abortCancel=キャンセルを取りやめる
+confirmCancel=本当に取引をキャンセルしてよろしいですか？

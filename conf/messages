@@ -206,3 +206,7 @@ slipCode=Slip code
 entryShippingInfo=Entry and mail
 cancelShipping=Cancel
 parentCategory=Parent category
+cancelDialogTitle=Transaction cancellation
+doCancel=Cancel transaction
+abortCancel=Abort cancellation
+confirmCancel=Really cancel this transaction?
