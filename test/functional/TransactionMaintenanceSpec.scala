@@ -115,8 +115,36 @@ class TransactionMaintenanceSpec extends Specification {
         // Cancel transaction.
         browser.find(".cancelShippingButton").click()
 
+        // Dialog should be shown.
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-buttonset").find("button", 0).click()
+
         browser.find(".shippingStatusTable").find(".transporter").getText === "-"
         browser.find(".shippingStatusTable").find(".slipCode").getText === "-"
+      }}
+    }
+
+    "Abort transaction cancelation" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        // Cancel transaction.
+        browser.find(".cancelShippingButton").click()
+
+        // Dialog should be shown.
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-buttonset").find("button", 1).click()
+
+        // Aborted. Transporter/slip code form are still shown.
+        find("#transporterId_field") must be_!=(null)
+        find("#slipCode_field") must be_!=(null)
       }}
     }
   }
