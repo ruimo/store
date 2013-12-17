@@ -111,7 +111,10 @@ class CategorySpec extends Specification {
             parent,
             Map(LocaleInfo.Ja -> "果樹", LocaleInfo.En -> "Fruit Tree")
           )
-
+          val child2 = Category.createNew(
+            parent,
+            Map(LocaleInfo.En -> "English Only Tree")
+          )
           val root = Category.root
           root.size === 1
           root.head === parent
@@ -120,9 +123,12 @@ class CategorySpec extends Specification {
           CategoryName.get(LocaleInfo.En, parent) === Some("Plant")
           CategoryName.get(LocaleInfo.Ja, child) === Some("果樹")
           CategoryName.get(LocaleInfo.En, child) === Some("Fruit Tree")
+          CategoryName.get(LocaleInfo.Ja, child2) === None
+          CategoryName.get(LocaleInfo.En, child2) === Some("English Only Tree")
+          
 
           CategoryPath.parent(parent) === None
-          CategoryPath.children(parent).size === 1
+          CategoryPath.children(parent).size === 2
           CategoryPath.parent(child) === Some(parent)
           CategoryPath.children(child).size === 0
 
@@ -134,7 +140,7 @@ class CategorySpec extends Specification {
           jaName.name === "果樹"
 
           val enChildNames = CategoryPath.childrenNames(parent, LocaleInfo.En)
-          enChildNames.size === 1
+          enChildNames.size === 2
           val (enCat, enName) = enChildNames.head
           enCat === child
           enName.locale === LocaleInfo.En
@@ -147,6 +153,7 @@ class CategorySpec extends Specification {
           pathList.contains((parent,CategoryName(LocaleInfo.Ja,parent.id.get,"植木"))) === true
           pathList.contains((parent,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
           pathList.contains((child,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
+          pathList.contains((child2,CategoryName(LocaleInfo.En,child2.id.get,"English Only Tree"))) === true
 
 
 

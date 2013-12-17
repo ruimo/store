@@ -60,17 +60,28 @@ object Category {
   def root(locale: LocaleInfo)(implicit conn: Connection): Seq[Category] = SQL(
     """
     select * 
-    from category c inner join category_name n 
-      on c.category_id = n.category_id
+    from category c 
+      inner join category_name n on c.category_id = n.category_id
+      inner join locale l on n.locale_id = l.locale_id
     where 
       not exists ( 
         select 'X' 
           from category_path p 
           where c.category_id = p.descendant 
             and c.category_id <> p.ancestor)
-      and n.locale_id = {locale_id}
+      and (
+        (precedence = (
+          select max(precedence) 
+            from locale ll 
+              inner join category_name nn on ll.locale_id = nn.locale_id 
+            where nn.category_id = n.category_id) 
+          and c.category_id not in (
+            select category_id 
+              from category_name 
+              where locale_id = 1))
+        or n.locale_id = 1 )
 
-    """
+    """ replaceAll(" +"," ")
     ).on(
       'locale_id -> locale.id
     ).as(Category.simple *)
@@ -299,11 +310,23 @@ object CategoryPath {
     SQL(
       """
       select p.ancestor, n.locale_id, n.category_id, n.category_name
-        from category_path p inner join category_name n
-          on p.descendant = n.category_id 
-        where path_length <= 1 
-          and locale_id = {locale_id}
-      """
+        from category_path p 
+          inner join category_name n on p.descendant = n.category_id 
+          inner join locale l on n.locale_id = l.locale_id
+        where 
+          path_length <= 1
+          and (
+            (precedence = (
+              select max(precedence) 
+                from locale ll 
+                  inner join category_name nn on ll.locale_id = nn.locale_id 
+                where nn.category_id = n.category_id) 
+              and category_id not in (
+                select category_id 
+                  from category_name 
+                  where locale_id = {locale_id}))
+            or n.locale_id = {locale_id})
+      """ replaceAll(" +"," ")
     ).on('locale_id -> locale.id).as(
       SqlParser.get[Pk[Long]]("category_path.ancestor") ~ 
       SqlParser.get[Long]("category_name.locale_id") ~
