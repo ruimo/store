@@ -238,5 +238,5 @@ cancelShipping=キャンセル
 parentCategory=親カテゴリ
 cancelDialogTitle=取引のキャンセル
 doCancel=取引をキャンセルする
-abortCancel=キャンセルを取りやめる
+abortCancel=キャンセルしない
 confirmCancel=本当に取引をキャンセルしてよろしいですか？
