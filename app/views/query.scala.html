@@ -1,5 +1,5 @@
 @(message: String,
-  queryString: String,
+  queryString: List[String],
   list: PagedRecords[(
     models.Item,
     models.ItemName,
@@ -21,7 +21,8 @@
 @main(Messages("item.list"), loginSession) {
 } {
   @helper.form(action=routes.ItemQuery.query(queryString)) {
-    <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
+    <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")"
+           value="@queryString.headOption.getOrElse("")">
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
   }
 

@@ -11,6 +11,7 @@ import collection.immutable.{HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
+import annotation.tailrec
 
 case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
 
@@ -117,7 +118,7 @@ object Item {
   }
 
   def list(
-    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: String, page: Int = 0, pageSize: Int = 10,
+    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: List[String], page: Int = 0, pageSize: Int = 10,
     showHidden: Boolean = false, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
@@ -151,44 +152,75 @@ object Item {
     else "") +
     """
       and item_description.locale_id = {localeId}
-      and (item_name.item_name like {query} or item_description.description like {query})
-    """
+    """ +
+    createQueryConditionSql(queryString)
 
-    val list = SQL(
+    val sql = SQL(
       """
       select * from item
       """ + sqlBody + """
       order by item_name.item_name
       limit {pageSize} offset {offset}
       """
-    ).on(
-      'localeId -> locale.id,
-      'query -> ("%" + queryString + "%"),
-      'pageSize -> pageSize,
-      'offset -> page * pageSize
-    ).as(
-      itemParser *
-    ).map {e => {
-      val itemId = e._1.id.get
-      val itemPriceId = e._4.id.get
-      val priceHistory = ItemPriceHistory.at(itemPriceId, now)
-      val metadata = ItemNumericMetadata.allById(itemId)
-      val textMetadata = ItemTextMetadata.allById(itemId)
-      val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
-
-      (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata, textMetadata)
-    }}
-
-    val count = SQL(
-      "select count(*) from item" + sqlBody
-    ).on(
-      'localeId -> locale.id,
-      'query -> ("%" + queryString + "%")
-    ).as(
-      SqlParser.scalar[Long].single
     )
 
+    val list = applyQueryString(queryString, sql)
+      .on(
+        'localeId -> locale.id,
+        'pageSize -> pageSize,
+        'offset -> page * pageSize
+      ).as(
+        itemParser *
+      ).map {e => {
+        val itemId = e._1.id.get
+        val itemPriceId = e._4.id.get
+        val priceHistory = ItemPriceHistory.at(itemPriceId, now)
+        val metadata = ItemNumericMetadata.allById(itemId)
+        val textMetadata = ItemTextMetadata.allById(itemId)
+        val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
+
+        (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata, textMetadata)
+      }}
+
+    val countSql = SQL(
+      "select count(*) from item" + sqlBody
+    )
+
+    val count = applyQueryString(queryString, countSql)
+      .on(
+        'localeId -> locale.id
+      ).as(
+        SqlParser.scalar[Long].single
+      )
+
     PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, list)
+  }
+
+  def createQueryConditionSql(q: List[String]): String = {
+    val buf = new StringBuilder
+
+    @tailrec def createQueryConditionSql(idx: Int): String = {
+        if (idx < q.size) {
+          buf.append(
+            f"and (item_name.item_name like {query$idx%d} or item_description.description like {query$idx%d}) "
+          )
+          createQueryConditionSql(idx + 1)
+        }
+      else buf.toString
+    }
+
+    createQueryConditionSql(0)
+  }
+
+  def applyQueryString(queryString: List[String], sql: SimpleSql[Row]): SimpleSql[Row] = {
+    @tailrec def applyQueryString(idx: Int, queryString: List[String], sql: SimpleSql[Row]): SimpleSql[Row] = queryString match {
+      case List() => sql
+      case head::tail => applyQueryString(
+        idx + 1, tail, sql.on(Symbol("query" + idx) -> ("%" + head + "%"))
+      )
+    }
+
+    applyQueryString(0, queryString, sql)
   }
 
   def listBySite(

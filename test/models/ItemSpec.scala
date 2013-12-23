@@ -292,7 +292,7 @@ class ItemSpec extends Specification {
 
           val time = date("2013-01-04").getTime
 
-          val pages = Item.list(None, LocaleInfo.Ja, "", now = time)
+          val pages = Item.list(None, LocaleInfo.Ja, List(), now = time)
           pages.pageCount === 1
           pages.currentPage === 0
           pages.pageSize === 10
@@ -338,6 +338,12 @@ class ItemSpec extends Specification {
           list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
         }}
       }
+    }
+
+    "Can create sql for item query." in {
+      Item.createQueryConditionSql(List("Hello", "World")) ===
+        "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
+        "and (item_name.item_name like {query1} or item_description.description like {query1}) "
     }
   }
 }

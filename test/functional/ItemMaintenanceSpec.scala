@@ -53,7 +53,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find(".message").getText() === Messages("itemIsCreated")
 
-        val itemList = Item.list(None, LocaleInfo.Ja, "").records
+        val itemList = Item.list(None, LocaleInfo.Ja, List()).records
 
         itemList.size === 1
         itemList.head._2.name === "ItemName01"

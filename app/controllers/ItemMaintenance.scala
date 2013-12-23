@@ -101,14 +101,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       login.role match {
         case SuperUser =>
           val list = Item.list(
-            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = q, page = start, 
+            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = List(q), page = start,
             pageSize = size, showHidden = true
           )
           Ok(views.html.admin.editItem(q, list.records))
 
         case SiteOwner(siteOwner) =>
           val list = Item.list(
-            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = q, page = start,
+            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = List(q), page = start,
             pageSize = size, showHidden = true
           )
           Ok(views.html.admin.editItem(q, list.records))

@@ -1,0 +1,72 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@*
+This is a sample query page for checkboxes.
+*@
+
+@main(Messages("item.list"), loginSession) {
+} {
+  @helper.form(action=routes.ItemQuery.queryByCheckBox()) {
+    <input id="chk0" type="checkbox" name="queryCheckBox" value="常緑">
+    <label for="chk0">常緑</label>
+
+    <input id="chk1" type="checkbox" name="queryCheckBox" value="落葉">
+    <label for="chk1">落葉</label>
+
+    <input id="chk2" type="checkbox" name="queryCheckBox" value="針葉">
+    <label for="chk2">針葉</label>
+
+    <input id="chk3" type="checkbox" name="queryCheckBox" value="広葉">
+    <label for="chk3">広葉</label>
+
+    <input id="chk4" type="checkbox" name="queryCheckBox" value="高木">
+    <label for="chk4">高木</label>
+
+    <input id="chk5" type="checkbox" name="queryCheckBox" value="中木">
+    <label for="chk5">中木</label>
+
+    <input id="chk6" type="checkbox" name="queryCheckBox" value="低木">
+    <label for="chk6">低木</label>
+
+    <input id="chk7" type="checkbox" name="queryCheckBox" value="グランドカバー">
+    <label for="chk7">グランドカバー</label>
+
+    <hr>
+
+    <input id="chk8" type="checkbox" name="queryCheckBox" value="果実">
+    <label for="chk8">果実</label>
+
+    <input id="chk9" type="checkbox" name="queryCheckBox" value="花">
+    <label for="chk9">花</label>
+
+    <input id="chk10" type="checkbox" name="queryCheckBox" value="香り">
+    <label for="chk10">香り</label>
+
+    <input id="chk11" type="checkbox" name="queryCheckBox" value="葉芽">
+    <label for="chk11">葉芽</label>
+
+    <input id="chk12" type="checkbox" name="queryCheckBox" value="樹形">
+    <label for="chk12">樹形</label>
+
+    <hr>
+
+    <input id="chk13" type="checkbox" name="queryCheckBox" value="日向を好む">
+    <label for="chk13">日向を好む</label>
+
+    <input id="chk14" type="checkbox" name="queryCheckBox" value="半日陰を好む">
+    <label for="chk14">半日陰を好む</label>
+
+    <input id="chk15" type="checkbox" name="queryCheckBox" value="日陰に耐える">
+    <label for="chk15">日陰に耐える</label>
+
+    <br>
+
+    <div id="queryByCheckBoxButtonPanel">
+      <input type="submit" id="queryByCheckBoxButton" value=@Messages("search.button.title")>
+    </div>
+  }
+}

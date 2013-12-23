@@ -6,7 +6,7 @@
 
 @main("Functional Store", loginSession) {
 } {
-  @helper.form(action=routes.ItemQuery.query("")) {
+  @helper.form(action=routes.ItemQuery.query(List())) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
   }
