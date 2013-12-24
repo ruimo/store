@@ -1,0 +1,81 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@*
+This is a sample query page for raio.
+*@
+
+@main(Messages("item.list"), loginSession) {
+} {
+  @helper.form(action=routes.ItemQuery.queryByRadio()) {
+    <input id="itemQueryRadio01" type="radio" name="queryText" value="常緑">
+    <label for="itemQueryRadio01">常緑</label>
+
+    <input id="itemQueryRadio02" type="radio" name="queryText" value="落葉">
+    <label for="itemQueryRadio02">落葉</label>
+
+    <input id="itemQueryRadio03" type="radio" name="queryText" value="針葉">
+    <label for="itemQueryRadio03">針葉</label>
+
+    <input id="itemQueryRadio04" type="radio" name="queryText" value="広葉">
+    <label for="itemQueryRadio04">広葉</label>
+
+    <input id="itemQueryRadio05" type="radio" name="queryText" value="高木">
+    <label for="itemQueryRadio05">高木</label>
+
+    <input id="itemQueryRadio06" type="radio" name="queryText" value="中木">
+    <label for="itemQueryRadio06">中木</label>
+
+    <input id="itemQueryRadio07" type="radio" name="queryText" value="低木">
+    <label for="itemQueryRadio07">低木</label>
+
+    <input id="itemQueryRadio08" type="radio" name="queryText" value="グランドカバー">
+    <label for="itemQueryRadio08">グランドカバー</label>
+
+    <input id="itemQueryRadio09" type="radio" name="queryText" value="">
+    <label for="itemQueryRadio09">指定しない</label>
+
+    <hr>
+
+    <input id="itemQueryRadio10" type="radio" name="queryText2" value="果実">
+    <label for="itemQueryRadio10">果実</label>
+
+    <input id="itemQueryRadio11" type="radio" name="queryText2" value="花">
+    <label for="itemQueryRadio11">花</label>
+
+    <input id="itemQueryRadio12" type="radio" name="queryText2" value="香り">
+    <label for="itemQueryRadio12">香り</label>
+
+    <input id="itemQueryRadio13" type="radio" name="queryText2" value="葉芽">
+    <label for="itemQueryRadio13">葉芽</label>
+
+    <input id="itemQueryRadio14" type="radio" name="queryText2" value="樹形">
+    <label for="itemQueryRadio14">樹形</label>
+
+    <input id="itemQueryRadio15" type="radio" name="queryText2" value="">
+    <label for="itemQueryRadio15">指定しない</label>
+
+    <hr>
+
+    <input id="itemQueryRadio16" type="radio" name="queryText3" value="日向を好む">
+    <label for="itemQueryRadio16">日向を好む</label>
+
+    <input id="itemQueryRadio17" type="radio" name="queryText3" value="半日陰を好む">
+    <label for="itemQueryRadio17">半日陰を好む</label>
+
+    <input id="itemQueryRadio18" type="radio" name="queryText3" value="日陰に耐える">
+    <label for="itemQueryRadio18">日陰に耐える</label>
+
+    <input id="itemQueryRadio18" type="radio" name="queryText3" value="">
+    <label for="itemQueryRadio18">指定しない</label>
+
+    <br>
+
+    <div id="queryByCheckBoxButtonPanel">
+      <input type="submit" id="queryByCheckBoxButton" value=@Messages("search.button.title")>
+    </div>
+  }
+}

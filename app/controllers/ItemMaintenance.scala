@@ -13,6 +13,7 @@ import models.CreateItem
 import org.postgresql.util.PSQLException
 import java.sql.SQLException
 import org.joda.time.DateTime
+import helpers.QueryString
 
 class ChangeItem(
   val id: Long,
@@ -101,14 +102,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       login.role match {
         case SuperUser =>
           val list = Item.list(
-            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = List(q), page = start,
+            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = QueryString(q), page = start,
             pageSize = size, showHidden = true
           )
           Ok(views.html.admin.editItem(q, list.records))
 
         case SiteOwner(siteOwner) =>
           val list = Item.list(
-            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = List(q), page = start,
+            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = QueryString(q), page = start,
             pageSize = size, showHidden = true
           )
           Ok(views.html.admin.editItem(q, list.records))

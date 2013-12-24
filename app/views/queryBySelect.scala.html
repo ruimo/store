@@ -1,0 +1,51 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@*
+This is a sample query page for select.
+*@
+
+@main(Messages("item.list"), loginSession) {
+} {
+  @helper.form(action=routes.ItemQuery.queryByCheckBox()) {
+    <label for="sel0">性質</label>
+    <select id="sel0" name="queryText">
+      <option value="">-</option>
+      <option value="常緑">常緑</option>
+      <option value="落葉">落葉</option>
+      <option value="針葉">針葉</option>
+      <option value="広葉">広葉</option>
+      <option value="高木">高木</option>
+      <option value="中木">中木</option>
+      <option value="低木">低木</option>
+      <option value="グランドカバー">グランドカバー</option>
+    </select>
+
+    <label for="sel1">特徴</label>
+    <select id="sel1" name="queryText">
+      <option value="">-</option>
+      <option value="果実">果実</option>
+      <option value="花">花</option>
+      <option value="香り">香り</option>
+      <option value="葉芽">葉芽</option>
+      <option value="樹形">樹形</option>
+    </select>
+
+    <label for="sel2">光</label>
+    <select id="sel2" name="queryText">
+      <option value="">-</option>
+      <option value="日向を好む">日向を好む</option>
+      <option value="半日陰を好む">半日陰を好む</option>
+      <option value="日陰に耐える">日陰に耐える</option>
+    </select>
+
+    <br>
+
+    <div id="queryByCheckBoxButtonPanel">
+      <input type="submit" id="queryByCheckBoxButton" value=@Messages("search.button.title")>
+    </div>
+  }
+}

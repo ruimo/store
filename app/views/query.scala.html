@@ -1,5 +1,5 @@
 @(message: String,
-  queryString: List[String],
+queryString: helpers.QueryString,
   list: PagedRecords[(
     models.Item,
     models.ItemName,
@@ -20,9 +20,9 @@
 
 @main(Messages("item.list"), loginSession) {
 } {
-  @helper.form(action=routes.ItemQuery.query(queryString)) {
+  @helper.form(action=routes.ItemQuery.query(queryString.table.toList)) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")"
-           value="@queryString.headOption.getOrElse("")">
+           value="@queryString.toString">
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
   }
 
@@ -60,12 +60,12 @@
   <br>
   <div class="pagingPanel">
     <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
-            onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage - 1, list.pageSize)'">
+            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage - 1, list.pageSize)'">
       &lt;
     </button>
     Page @{list.currentPage + 1}/@list.pageCount
     <button type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
-            onclick="location.href='@routes.ItemQuery.query(queryString, list.currentPage + 1, list.pageSize)'">
+            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage + 1, list.pageSize)'">
       &gt;
     </button>
   </div>

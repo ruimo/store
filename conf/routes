@@ -98,6 +98,8 @@ POST    /admin/cancelShipping            controllers.TransactionMaintenance.canc
 
 GET     /query                           controllers.ItemQuery.query(q: List[String], page:Int ?= 0, pageSize:Int ?= 10)
 GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(page:Int ?= 0, pageSize:Int ?= 10)
+GET     /queryBySelect                   controllers.ItemQuery.queryBySelect(page:Int ?= 0, pageSize:Int ?= 10)
+GET     /queryByRadio                    controllers.ItemQuery.queryByRadio(page:Int ?= 0, pageSize:Int ?= 10)
 GET     /itemDetail                      controllers.ItemDetail.show(itemId: Long, siteId: Long)
 GET     /addToCart                       controllers.Purchase.addToCart(siteId: Long, itemId: Long)
 GET     /showShoppingCart                controllers.Purchase.showShoppingCart

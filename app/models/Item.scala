@@ -12,6 +12,7 @@ import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
 import annotation.tailrec
+import helpers.QueryString
 
 case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
 
@@ -118,7 +119,7 @@ object Item {
   }
 
   def list(
-    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: List[String], page: Int = 0, pageSize: Int = 10,
+    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString, page: Int = 0, pageSize: Int = 10,
     showHidden: Boolean = false, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
@@ -196,7 +197,7 @@ object Item {
     PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, list)
   }
 
-  def createQueryConditionSql(q: List[String]): String = {
+  def createQueryConditionSql(q: QueryString): String = {
     val buf = new StringBuilder
 
     @tailrec def createQueryConditionSql(idx: Int): String = {
@@ -212,13 +213,15 @@ object Item {
     createQueryConditionSql(0)
   }
 
-  def applyQueryString(queryString: List[String], sql: SimpleSql[Row]): SimpleSql[Row] = {
-    @tailrec def applyQueryString(idx: Int, queryString: List[String], sql: SimpleSql[Row]): SimpleSql[Row] = queryString match {
-      case List() => sql
-      case head::tail => applyQueryString(
-        idx + 1, tail, sql.on(Symbol("query" + idx) -> ("%" + head + "%"))
-      )
-    }
+  def applyQueryString(queryString: QueryString, sql: SimpleSql[Row]): SimpleSql[Row] = {
+    @tailrec
+    def applyQueryString(idx: Int, queryString: QueryString, sql: SimpleSql[Row]): SimpleSql[Row] = 
+      queryString.toList match {
+        case List() => sql
+        case head::tail => applyQueryString(
+          idx + 1, QueryString(tail), sql.on(Symbol("query" + idx) -> ("%" + head + "%"))
+        )
+      }
 
     applyQueryString(0, queryString, sql)
   }

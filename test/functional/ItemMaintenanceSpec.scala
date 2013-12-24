@@ -23,6 +23,7 @@ import java.net.{HttpURLConnection, URL}
 import java.io.{BufferedReader, InputStreamReader}
 import java.text.SimpleDateFormat
 import java.sql.Date.{valueOf => date}
+import helpers.QueryString
 
 class ItemMaintenanceSpec extends Specification {
   "Item maintenance should" should {
@@ -53,7 +54,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find(".message").getText() === Messages("itemIsCreated")
 
-        val itemList = Item.list(None, LocaleInfo.Ja, List()).records
+        val itemList = Item.list(None, LocaleInfo.Ja, QueryString()).records
 
         itemList.size === 1
         itemList.head._2.name === "ItemName01"

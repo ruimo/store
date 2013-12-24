@@ -13,6 +13,7 @@ import anorm.Id
 import java.util.Locale
 
 import java.sql.Date.{valueOf => date}
+import helpers.QueryString
 
 class ItemSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -292,7 +293,7 @@ class ItemSpec extends Specification {
 
           val time = date("2013-01-04").getTime
 
-          val pages = Item.list(None, LocaleInfo.Ja, List(), now = time)
+          val pages = Item.list(None, LocaleInfo.Ja, QueryString(), now = time)
           pages.pageCount === 1
           pages.currentPage === 0
           pages.pageSize === 10
@@ -341,7 +342,7 @@ class ItemSpec extends Specification {
     }
 
     "Can create sql for item query." in {
-      Item.createQueryConditionSql(List("Hello", "World")) ===
+      Item.createQueryConditionSql(QueryString(List("Hello", "World"))) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) "
     }
