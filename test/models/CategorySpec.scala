@@ -200,18 +200,77 @@ class CategorySpec extends Specification {
       }
     }
     
-    // "be able to move category between different parent nodes" in {
+    "be able to move category under some parent node to root" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
 
-    // }
+        DB.withConnection { implicit conn => 
+          val parent = Category.createNew(Map(LocaleInfo.Ja -> "生物") )
+          val child1 = Category.createNew(parent, Map(LocaleInfo.Ja -> "植物"))
+          val child2 = Category.createNew(parent, Map(LocaleInfo.Ja -> "動物"))
 
-    // "be able to move category under some parent node to root" in {
+          val child11 = Category.createNew(child1, Map(LocaleInfo.Ja -> "歩く木"))
+
+          Category.move(child11, None)
+
+          CategoryPath.parent(child11) === None
+
+          CategoryPath.children(child1).size === 0
+
+          CategoryPath.children(child2).size === 0
+
+        }
+      }
+    }
 
 
-    // }
+    "be able to move root category to under some parent" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
 
-    // "be able to move root category to under some parent" in {
+        DB.withConnection { implicit conn => 
+          val parent = Category.createNew(Map(LocaleInfo.Ja -> "生物") )
+          val child1 = Category.createNew(parent, Map(LocaleInfo.Ja -> "植物"))
+          val child2 = Category.createNew(parent, Map(LocaleInfo.Ja -> "動物"))
 
-    // }
+          val child11 = Category.createNew(child1, Map(LocaleInfo.Ja -> "歩く木"))
+
+          Category.move(child11, Some(child2))
+
+          CategoryPath.parent(child11).get === child2
+
+          CategoryPath.children(child1).size === 0
+
+          CategoryPath.children(child2).size === 1
+
+        }
+      }
+    }
+    
+    "be able to move category under some parent node to root" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => 
+          val parent = Category.createNew(Map(LocaleInfo.Ja -> "生物") )
+          val child1 = Category.createNew(parent, Map(LocaleInfo.Ja -> "植物"))
+          val child2 = Category.createNew(parent, Map(LocaleInfo.Ja -> "動物"))
+
+          val child11 = Category.createNew(child1, Map(LocaleInfo.Ja -> "歩く木"))
+
+          val parent2 = Category.createNew(Map(LocaleInfo.Ja -> "石油"))
+
+          Category.move(parent2, Some(parent))
+
+          CategoryPath.parent(parent2) === Some(parent)
+
+          CategoryPath.children(parent2).size === 0
+
+          CategoryPath.children(parent).size === 3
+
+        }
+      }
+    }
 
     // "make specified category as root when category and parent is same"{
 
