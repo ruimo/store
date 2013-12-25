@@ -176,13 +176,32 @@ class CategorySpec extends Specification {
         }}
       }
     }
-    // "be able to move category between different parent nodes" in {
 
+    "be able to move category between different parent nodes" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
 
-    // }
+        DB.withConnection { implicit conn => 
+          val parent = Category.createNew(Map(LocaleInfo.Ja -> "生物") )
+          val child1 = Category.createNew(parent, Map(LocaleInfo.Ja -> "植物"))
+          val child2 = Category.createNew(parent, Map(LocaleInfo.Ja -> "動物"))
+
+          val child11 = Category.createNew(child1, Map(LocaleInfo.Ja -> "歩く木"))
+
+          Category.move(child11, Some(child2))
+
+          CategoryPath.parent(child11).get === child2
+
+          CategoryPath.children(child1).size === 0
+
+          CategoryPath.children(child2).size === 1
+
+        }
+      }
+    }
     
     // "be able to move category between different parent nodes" in {
-    
+
     // }
 
     // "be able to move category under some parent node to root" in {

@@ -322,7 +322,9 @@ object CategoryPath {
     SQL(
       """
       select ancestor from category_path
-      where descendant = {category_id} and ancestor <> {category_id}
+      where descendant = {category_id} 
+        and ancestor <> {category_id}
+        and path_length = 1
       """
     ).on(
       'category_id -> categoryId
