@@ -212,6 +212,66 @@ object Category {
       select category_id from category where category_id = {category_id}
       """
     ).on('category_id -> id).as(SqlParser.scalar[Pk[Long]].singleOpt).map(Category(_))
+
+  def rename(category: Category, newNames: Map[LocaleInfo, String])(implicit conn: Connection) : Unit =
+    rename(category.id.get, newNames)
+
+  def rename(category_id : Long, newNames: Map[LocaleInfo, String])(implicit conn: Connection) : Unit =
+    newNames foreach { case (locale, name) =>
+      SQL(
+        """
+        update category_name
+        set category_name = {category_name}
+        where category_id = {category_id}
+          and locale_id = {locale_id}
+        """
+      ).on(
+        'category_name -> name,
+        'category_id -> category_id,
+        'locale_id -> locale.id
+      ).executeUpdate()
+    }
+
+  def move(category: Category, parent: Option[Category]) = {
+    DB.withTransaction { implicit conn =>
+      SQL(
+        """
+        delete from category_path
+        where
+          descendant in (
+            select descendant as id
+            from category_path
+            where ancestor = {moving_id})
+          and ancestor in (
+            select ancestor as id
+            from category_path
+            where descendant = {moving_id}
+            and ancestor != descendant)
+        """
+      ) on (
+        'moving_id -> category.id.get
+      ) executeUpdate
+
+      parent filter { _ != category } map { par =>
+        SQL(
+          """
+          insert into category_path (ancestor, descendant, path_length)
+            select
+              supertree.ancestor,
+              subtree.descendant,
+              supertree.path_length + subtree.path_length + 1 as path_length
+            from category_path as supertree
+              cross join category_path as subtree
+            where supertree.descendant = {new_parent_id}
+              and subtree.ancestor = {moving_id}
+          """
+        ) on (
+          'moving_id -> category.id.get,
+          'new_parent_id -> par.id.get
+        ) executeUpdate
+      }
+    }
+  }
 }
 
 object CategoryName {

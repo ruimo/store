@@ -160,5 +160,43 @@ class CategorySpec extends Specification {
         }
       }}
     }
+
+    "be able to rename category name." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val cat = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          
+          Category.rename(cat, Map(LocaleInfo.Ja -> "うえき"))
+
+          CategoryName.get(LocaleInfo.Ja, cat) === Some("うえき")
+          CategoryName.get(LocaleInfo.En, cat) === Some("Plant")
+        }}
+      }
+    }
+    // "be able to move category between different parent nodes" in {
+
+
+    // }
+    
+    // "be able to move category between different parent nodes" in {
+    
+    // }
+
+    // "be able to move category under some parent node to root" in {
+
+
+    // }
+
+    // "be able to move root category to under some parent" in {
+
+    // }
+
+    // "make specified category as root when category and parent is same"{
+
+    // }
+
   }
 }
