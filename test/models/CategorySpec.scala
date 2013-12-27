@@ -272,9 +272,46 @@ class CategorySpec extends Specification {
       }
     }
 
-    // "make specified category as root when category and parent is same"{
+    "reject when category and parent is same" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
 
-    // }
+        DB.withConnection { implicit conn =>
+          val parent = Category.createNew(Map(LocaleInfo.Ja -> "生物") )
+          val child1 = Category.createNew(parent, Map(LocaleInfo.Ja -> "植物"))
+          val child2 = Category.createNew(parent, Map(LocaleInfo.Ja -> "動物"))
 
+          val child11 = Category.createNew(child1, Map(LocaleInfo.Ja -> "歩く木"))
+
+          Category.move(child1, Some(child1)) must throwA[Exception]
+        
+          CategoryPath.parent(child1) === Some(parent)
+
+          CategoryPath.children(parent).size === 2
+
+        }
+      }
+    }
+
+    "reject when parent is one of descendant of category" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn =>
+          val parent = Category.createNew(Map(LocaleInfo.Ja -> "生物") )
+          val child1 = Category.createNew(parent, Map(LocaleInfo.Ja -> "植物"))
+          val child2 = Category.createNew(parent, Map(LocaleInfo.Ja -> "動物"))
+
+          val child11 = Category.createNew(child1, Map(LocaleInfo.Ja -> "歩く木"))
+
+          Category.move(parent, Some(child1)) must throwA[Exception]
+
+          CategoryPath.parent(child1) === Some(parent)
+
+          CategoryPath.children(parent).size === 2
+
+        }
+      }
+    }
   }
 }
