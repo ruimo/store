@@ -212,6 +212,81 @@ object Category {
       select category_id from category where category_id = {category_id}
       """
     ).on('category_id -> id).as(SqlParser.scalar[Pk[Long]].singleOpt).map(Category(_))
+
+  def rename(category: Category, newNames: Map[LocaleInfo, String])(implicit conn: Connection) : Unit =
+    rename(category.id.get, newNames)
+
+  def rename(category_id : Long, newNames: Map[LocaleInfo, String])(implicit conn: Connection) : Unit =
+    newNames foreach { case (locale, name) =>
+      SQL(
+        """
+        update category_name
+        set category_name = {category_name}
+        where category_id = {category_id}
+          and locale_id = {locale_id}
+        """
+      ).on(
+        'category_name -> name,
+        'category_id -> category_id,
+        'locale_id -> locale.id
+      ).executeUpdate()
+    }
+
+  def move(category: Category, parent: Option[Category])(implicit conn: Connection) = {
+    parent map { p =>
+      SQL("select count(*) from category_path where ancestor = {a} and descendant = {d}")
+        .on('a -> category.id.get, 'd -> p.id.get)
+        .as(SqlParser.scalar[Long].single)
+    } match {
+      // Some category's descendants cannot be its parent.
+      // So at least one of following two should be true to proceed:
+      // 1. parent is None
+      // 2. parent is not included in category's descendant set, which is true when above query returns 0.
+      // For both case, parent.map results in None.
+      case None /*parent is None*/ | Some(0L) /*sql returns 0*/ =>
+        DB.withTransaction { implicit conn =>
+          SQL(
+            """
+            delete from category_path
+            where
+              descendant in (
+                select descendant as id
+                from category_path
+                where ancestor = {moving_id})
+              and ancestor in (
+                select ancestor as id
+                from category_path
+                where descendant = {moving_id}
+                and ancestor != descendant)
+            """
+          ) on (
+            'moving_id -> category.id.get
+          ) executeUpdate
+
+          parent map { par =>
+            SQL(
+              """
+              insert into category_path (ancestor, descendant, path_length)
+                select
+                  supertree.ancestor,
+                  subtree.descendant,
+                  supertree.path_length + subtree.path_length + 1 as path_length
+                from category_path as supertree
+                  cross join category_path as subtree
+                where supertree.descendant = {new_parent_id}
+                  and subtree.ancestor = {moving_id}
+              """
+            ) on (
+              'moving_id -> category.id.get,
+              'new_parent_id -> par.id.get
+            ) executeUpdate
+          }
+        }
+
+      // here you cannot do anything.
+      case Some(_) => {throw new Exception("Unnable to move category."); }
+    }
+  }
 }
 
 object CategoryName {
@@ -262,7 +337,9 @@ object CategoryPath {
     SQL(
       """
       select ancestor from category_path
-      where descendant = {category_id} and ancestor <> {category_id}
+      where descendant = {category_id} 
+        and ancestor <> {category_id}
+        and path_length = 1
       """
     ).on(
       'category_id -> categoryId
