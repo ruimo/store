@@ -366,3 +366,7 @@ tr.userTableBody {
 #queryByCheckBoxButtonPanel {
   padding: 10px;
 }
+
+#loginPanel {
+  display:inline-block;
+}
