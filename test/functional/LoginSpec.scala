@@ -19,6 +19,7 @@ class LoginSpec extends Specification {
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
         browser.title === Messages("loginTitle")
+        browser.find("#loginWelcomeMessage").size === 0
       }
     }
 
@@ -51,6 +52,9 @@ class LoginSpec extends Specification {
         browser.fill("#password").`with`("password")
         browser.click("#doLoginButton")
         browser.title === Messages("adminTitle")
+
+        browser.find("#loginWelcomeMessage").getText === 
+          String.format(Messages("login.welcome"), "Admin", "", "Manager")
       }
     }
   }

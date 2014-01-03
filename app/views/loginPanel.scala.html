@@ -1,0 +1,33 @@
+@(loginSession: Option[LoginSession])(
+  implicit lang: Lang,
+  request: RequestHeader
+)
+
+@loginLink() = {
+  <button type="button" id="loginButton"
+          onclick="location.href='@routes.Admin.startLogin(request.uri)';">
+    @Messages("login")
+  </button>
+}
+
+@logoffLink(login: LoginSession) = {
+  <span id="loginWelcomeMessage">
+    @String.format(
+      Messages("login.welcome"),
+      login.storeUser.firstName,
+      login.storeUser.middleName,
+      login.storeUser.lastName
+    )
+  </span>
+  <button type="button" id="loginButton"
+          onclick="location.href='@routes.Admin.logoff(request.uri)';">
+    @Messages("logoff")
+  </button>
+}
+
+<div id="loginPanel">
+  @{loginSession match {
+    case None => loginLink()
+    case Some(login) => logoffLink(login)
+  }}
+</div>

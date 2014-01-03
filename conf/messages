@@ -210,3 +210,4 @@ cancelDialogTitle=Transaction cancellation
 doCancel=Cancel transaction
 abortCancel=Abort cancellation
 confirmCancel=Really cancel this transaction?
+login.welcome=Welcome %1$s %3$s

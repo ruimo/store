@@ -240,3 +240,4 @@ cancelDialogTitle=取引のキャンセル
 doCancel=取引をキャンセルする
 abortCancel=キャンセルしない
 confirmCancel=本当に取引をキャンセルしてよろしいですか？
+login.welcome=いらっしゃいませ%1$s %3$s様

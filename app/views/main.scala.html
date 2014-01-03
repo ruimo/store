@@ -3,20 +3,6 @@
   request: RequestHeader
 )
 
-@loginLink() = {
-  <button type="button" id="loginButton"
-          onclick="location.href='@routes.Admin.startLogin(request.uri)';">
-    @Messages("login")
-  </button>
-}
-
-@logoffLink() = {
-  <button type="button" id="loginButton"
-          onclick="location.href='@routes.Admin.logoff(request.uri)';">
-    @Messages("logoff")
-  </button>
-}
-
 <!DOCTYPE html>
 
 <html>
@@ -36,10 +22,7 @@
       <li><a href="/">TOP</a></li>
       <li><a href="/showShoppingCart">@Messages("shopping.cart")</a></li>
       <li>
-        @{loginSession match {
-          case None => loginLink()
-          case Some(login) => logoffLink()
-        }}
+        @loginPanel(loginSession)
       </li>
     </ul>
   </div>
