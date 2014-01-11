@@ -1,0 +1,28 @@
+@(
+  queryString: helpers.QueryString,
+  list: PagedRecords[(
+    models.Item,
+    models.ItemName,
+    models.ItemDescription,
+    models.Site,
+    models.ItemPriceHistory,
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Map[ItemTextMetadataType, ItemTextMetadata]
+  )],
+  pageSize: Int
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+<span class="pageSize">
+  @if(list.pageSize == pageSize) {
+    @pageSize
+  } else {
+    <a href="javascript:void(0)"
+       onclick="location.href='@routes.ItemQuery.query(queryString.toList, 0, pageSize, list.orderBy.toString)'">
+      @pageSize
+    </a>
+  }
+</span>

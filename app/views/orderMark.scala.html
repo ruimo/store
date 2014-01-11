@@ -1,0 +1,36 @@
+@(
+  label: String,
+  queryString: helpers.QueryString,
+  orderByColumn: String,
+  list: PagedRecords[(
+    models.Item,
+    models.ItemName,
+    models.ItemDescription,
+    models.Site,
+    models.ItemPriceHistory,
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Map[ItemTextMetadataType, ItemTextMetadata]
+  )]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@if(list.orderBy.columnName == orderByColumn) {
+  <a href="javascript:void(0)"
+     onclick="location.href='@routes.ItemQuery.query(queryString.toList, 0, list.pageSize, list.orderBy.invert.toString)'">
+    @label
+    @if(list.orderBy.order == Asc) {
+      <span class="orderByAscMark orderByMark">↓</span>
+    } else {
+      <span class="orderByDescMark orderByMark">↑</span>
+    }
+  </a>
+} else {
+  <a href="javascript:void(0)"
+     onclick="location.href='@routes.ItemQuery.query(queryString.toList, 0, list.pageSize, orderByColumn)'">
+    @label
+  </a>
+}
