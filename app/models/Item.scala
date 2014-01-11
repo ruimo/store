@@ -132,7 +132,8 @@ object Item {
     siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString,
     page: Int = 0, pageSize: Int = 10,
     showHidden: Boolean = false, now: Long = System.currentTimeMillis,
-    orderBy: OrderBy = ItemListDefaultOrderBy
+    orderBy: OrderBy = ItemListDefaultOrderBy,
+    additionalColumn: String = ""
   )(
     implicit conn: Connection
   ): PagedRecords[(
@@ -178,8 +179,10 @@ object Item {
     """ +
     createQueryConditionSql(queryString)
 
+    val columns = if (additionalColumn.isEmpty) "*" else "*, " + additionalColumn
+
     val sql = SQL(
-      s"select * from item $sqlBody order by $orderBy limit {pageSize} offset {offset}"
+      s"select $columns from item $sqlBody order by $orderBy limit {pageSize} offset {offset}"
     )
 
     val list = applyQueryString(queryString, sql)

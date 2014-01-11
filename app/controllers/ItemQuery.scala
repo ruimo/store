@@ -11,11 +11,14 @@ import helpers.QueryString
 
 object ItemQuery extends Controller with I18nAware with NeedLogin {
   def query(
-    qs: List[String], page: Int, pageSize: Int, orderBySpec: String
+    qs: List[String], page: Int, pageSize: Int, orderBySpec: String, additionalCol: String
   ) = Action { implicit request => DB.withConnection { implicit conn => {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
     implicit val login = loginSession(request, conn)
-    val list = Item.list(None, LocaleInfo.byLang(lang), queryString, page, pageSize, orderBy = OrderBy(orderBySpec))
+    val list = Item.list(
+      None, LocaleInfo.byLang(lang), queryString, page, pageSize, orderBy = OrderBy(orderBySpec),
+      additionalColumn = additionalCol
+    )
     Ok(views.html.query("", queryString, list))
   }}}
 
