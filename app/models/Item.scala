@@ -13,6 +13,7 @@ import play.api.data.Form
 import org.joda.time.DateTime
 import annotation.tailrec
 import helpers.QueryString
+import play.api.Play
 
 case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
 
@@ -47,6 +48,7 @@ case class SiteItemNumericMetadata(
 
 object Item {
   val ItemListDefaultOrderBy = OrderBy("item_name.item_name", Asc)
+  val ItemListQueryColumnsToAdd = Play.current.configuration.getString("item.list.query.columns.add").get
 
   val simple = {
     SqlParser.get[Pk[Long]]("item.item_id") ~
@@ -132,8 +134,7 @@ object Item {
     siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString,
     page: Int = 0, pageSize: Int = 10,
     showHidden: Boolean = false, now: Long = System.currentTimeMillis,
-    orderBy: OrderBy = ItemListDefaultOrderBy,
-    additionalColumn: String = ""
+    orderBy: OrderBy = ItemListDefaultOrderBy
   )(
     implicit conn: Connection
   ): PagedRecords[(
@@ -179,7 +180,7 @@ object Item {
     """ +
     createQueryConditionSql(queryString)
 
-    val columns = if (additionalColumn.isEmpty) "*" else "*, " + additionalColumn
+    val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
     val sql = SQL(
       s"select $columns from item $sqlBody order by $orderBy limit {pageSize} offset {offset}"
