@@ -1,5 +1,5 @@
 @(message: String,
-queryString: helpers.QueryString,
+  queryString: helpers.QueryString,
   list: PagedRecords[(
     models.Item,
     models.ItemName,
@@ -18,6 +18,38 @@ queryString: helpers.QueryString,
 
 @import helper._
 
+@changePageSizeLink(pageSize: Int) = {
+  <span class="pageSize">
+    @if(list.pageSize == pageSize) {
+      @pageSize
+    } else {
+      <a href="javascript:void(0)"
+         onclick="location.href='@routes.ItemQuery.query(queryString.toList, 0, pageSize, list.orderBy.toString)'">
+        @pageSize
+      </a>
+    }
+  </span>
+}
+
+@orderMark(label: String, orderByColumn: String) = {
+  @if(list.orderBy.columnName == orderByColumn) {
+    <a href="javascript:void(0)"
+       onclick="location.href='@routes.ItemQuery.query(queryString.toList, 0, list.pageSize, list.orderBy.invert.toString)'">
+      @label
+      @if(list.orderBy.order == Asc) {
+        <span class="orderByAscMark orderByMark">↓</span>
+      } else {
+        <span class="orderByDescMark orderByMark">↑</span>
+      }
+    </a>
+  } else {
+    <a href="javascript:void(0)"
+       onclick="location.href='@routes.ItemQuery.query(queryString.toList, 0, list.pageSize, orderByColumn)'">
+      @label
+    </a>
+  }
+}
+
 @main(Messages("item.list"), loginSession) {
 } {
   @helper.form(action=routes.ItemQuery.query(queryString.table.toList)) {
@@ -30,9 +62,9 @@ queryString: helpers.QueryString,
   <table class="queryItemTable">
     <tr class="queryItemTableHeader">
       <th></th>
-      <th>@Messages("itemName")</th>
-      <th>@Messages("site")</th>
-      <th>@Messages("unitPrice")</th>
+      <th>@orderMark(Messages("itemName"), "item_name.item_name")</th>
+      <th>@orderMark(Messages("site"), "site.site_name")</th>
+      <th>@orderMark(Messages("unitPrice"), "item_price_history.unit_price")</th>
       <th></th>
     </tr>
 
@@ -60,12 +92,13 @@ queryString: helpers.QueryString,
   <br>
   <div class="pagingPanel">
     <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
-            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage - 1, list.pageSize)'">
+            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage - 1, list.pageSize, list.orderBy.toString)'">
       &lt;
     </button>
     Page @{list.currentPage + 1}/@list.pageCount
+    (@changePageSizeLink(10), @changePageSizeLink(25), @changePageSizeLink(50))
     <button type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
-            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage + 1, list.pageSize)'">
+            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage + 1, list.pageSize, list.orderBy.toString)'">
       &gt;
     </button>
   </div>

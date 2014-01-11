@@ -103,14 +103,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         case SuperUser =>
           val list = Item.list(
             siteUser = None, locale = LocaleInfo.byLang(lang), queryString = QueryString(q), page = start,
-            pageSize = size, showHidden = true
+            pageSize = size, showHidden = true, orderBy = Item.ItemListDefaultOrderBy
           )
           Ok(views.html.admin.editItem(q, list.records))
 
         case SiteOwner(siteOwner) =>
           val list = Item.list(
             siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = QueryString(q), page = start,
-            pageSize = size, showHidden = true
+            pageSize = size, showHidden = true, orderBy = Item.ItemListDefaultOrderBy
           )
           Ok(views.html.admin.editItem(q, list.records))
       }

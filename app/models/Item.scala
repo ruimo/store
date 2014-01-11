@@ -8,7 +8,7 @@ import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{HashMap, IntMap}
-import java.sql.Connection
+import java.sql.{Timestamp, Connection}
 import play.api.data.Form
 import org.joda.time.DateTime
 import annotation.tailrec
@@ -46,6 +46,8 @@ case class SiteItemNumericMetadata(
 ) extends NotNull
 
 object Item {
+  val ItemListDefaultOrderBy = OrderBy("item_name.item_name", Asc)
+
   val simple = {
     SqlParser.get[Pk[Long]]("item.item_id") ~
     SqlParser.get[Long]("item.category_id") map {
@@ -54,6 +56,12 @@ object Item {
   }
 
   val itemParser = Item.simple~ItemName.simple~ItemDescription.simple~ItemPrice.simple~Site.simple map {
+    case item~itemName~itemDescription~itemPrice~site => (
+      item, itemName, itemDescription, itemPrice, site
+    )
+  }
+
+  val itemListParser = Item.simple~ItemName.simple~ItemDescription.simple~ItemPriceHistory.simple~Site.simple map {
     case item~itemName~itemDescription~itemPrice~site => (
       item, itemName, itemDescription, itemPrice, site
     )
@@ -118,9 +126,13 @@ object Item {
     Item(Id(itemId), categoryId)
   }
 
+  // Do not pass user input directly into orderBy argument. That will
+  // be SQL injection vulnerability.
   def list(
-    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString, page: Int = 0, pageSize: Int = 10,
-    showHidden: Boolean = false, now: Long = System.currentTimeMillis
+    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString,
+    page: Int = 0, pageSize: Int = 10,
+    showHidden: Boolean = false, now: Long = System.currentTimeMillis,
+    orderBy: OrderBy = ItemListDefaultOrderBy
   )(
     implicit conn: Connection
   ): PagedRecords[(
@@ -133,6 +145,7 @@ object Item {
       inner join item_name on item.item_id = item_name.item_id
       inner join item_description on item.item_id = item_description.item_id
       inner join item_price on item.item_id = item_price.item_id 
+      inner join item_price_history on item_price.item_price_id = item_price_history.item_price_id
       inner join site_item on item.item_id = site_item.item_id and item_price.site_id = site_item.site_id
       inner join site on site_item.site_id = site.site_id
       where item_name.locale_id = {localeId}
@@ -153,34 +166,37 @@ object Item {
     else "") +
     """
       and item_description.locale_id = {localeId}
+      and item_price_history.item_price_history_id = (
+        select iph.item_price_history_id
+        from item_price_history iph
+        where
+          iph.item_price_id = item_price.item_price_id and
+          iph.valid_until > {now}
+          order by iph.valid_until
+          limit 1
+      )
     """ +
     createQueryConditionSql(queryString)
 
     val sql = SQL(
-      """
-      select * from item
-      """ + sqlBody + """
-      order by item_name.item_name
-      limit {pageSize} offset {offset}
-      """
+      s"select * from item $sqlBody order by $orderBy limit {pageSize} offset {offset}"
     )
 
     val list = applyQueryString(queryString, sql)
       .on(
         'localeId -> locale.id,
         'pageSize -> pageSize,
-        'offset -> page * pageSize
+        'offset -> page * pageSize,
+        'now -> new Timestamp(now)
       ).as(
-        itemParser *
+        itemListParser *
       ).map {e => {
         val itemId = e._1.id.get
-        val itemPriceId = e._4.id.get
-        val priceHistory = ItemPriceHistory.at(itemPriceId, now)
         val metadata = ItemNumericMetadata.allById(itemId)
         val textMetadata = ItemTextMetadata.allById(itemId)
         val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
 
-        (e._1, e._2, e._3, e._5, priceHistory, metadata, siteMetadata, textMetadata)
+        (e._1, e._2, e._3, e._5, e._4, metadata, siteMetadata, textMetadata)
       }}
 
     val countSql = SQL(
@@ -189,12 +205,13 @@ object Item {
 
     val count = applyQueryString(queryString, countSql)
       .on(
-        'localeId -> locale.id
+        'localeId -> locale.id,
+        'now -> new Timestamp(now)
       ).as(
         SqlParser.scalar[Long].single
       )
 
-    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, list)
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
   }
 
   def createQueryConditionSql(q: QueryString): String = {
