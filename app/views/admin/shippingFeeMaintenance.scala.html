@@ -1,0 +1,23 @@
+@(shippingCountries: List[String])(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("shippingFeeMaintenanceTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("shippingFeeMaintenanceTitle")</h1>
+
+  @shippingCountries.map { country =>
+    <div class="menuItem">
+      <a href="@routes.ShippingFeeMaintenance.withCountry(country)">
+        @Messages("country." + country)
+      </a>
+    </div>
+  }
+
+  <div class="menuPanel">
+    @admin.backToAdminTop()
+  </div>
+}
+

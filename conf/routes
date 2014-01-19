@@ -103,6 +103,9 @@ GET     /admin/editShippingBox           controllers.ShippingBoxMaintenance.edit
 GET     /admin/startChangeShippingBox    controllers.ShippingBoxMaintenance.startChangeShippingBox(id: Long)
 POST    /admin/changeShippingBox         controllers.ShippingBoxMaintenance.changeShippingBox
 
+GET     /admin/shippingFeeMaintenance    controllers.ShippingFeeMaintenance.index
+GET     /admin/shippingFeeWithCountry    controllers.ShippingFeeMaintenance.withCountry(country: String)
+
 GET     /query                           controllers.ItemQuery.query(q: List[String], page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "item_name.item_name")
 GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(page:Int ?= 0, pageSize:Int ?= 10)
 GET     /queryBySelect                   controllers.ItemQuery.queryBySelect(page:Int ?= 0, pageSize:Int ?= 10)

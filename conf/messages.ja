@@ -251,3 +251,5 @@ shippingBoxIsUpdated=箱情報が更新されました
 editShippingBoxTitle=箱情報の更新
 changeShippingBoxTitle=箱情報の変更
 createNewShippingBoxTitle=箱情報の新規作成
+shippingFeeMaintenanceTitle=送料管理
+country.JPN=日本
