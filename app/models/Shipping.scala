@@ -113,6 +113,10 @@ object ShippingBox {
     }
   }
 
+  val withSite = Site.simple ~ simple map {
+    case site~shippingBox => (site, shippingBox)
+  }
+
   def createNew(
     siteId: Long, itemClass: Long, boxSize: Int, boxName: String
   )(implicit conn: Connection): ShippingBox = {
@@ -135,6 +139,17 @@ object ShippingBox {
     ShippingBox(Id(id), siteId, itemClass, boxSize, boxName)
   }
 
+  def apply(id: Long)(implicit conn: Connection): ShippingBox =
+    SQL(
+      """
+      select * from shipping_box where shipping_box_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
   def apply(siteId: Long, itemClass: Long)(implicit conn: Connection): ShippingBox =
     SQL(
       """
@@ -150,13 +165,51 @@ object ShippingBox {
   def list(siteId: Long)(implicit conn: Connection): Seq[ShippingBox] =
     SQL(
       """
-      select * fromo shipping_box where siteId = {siteId} order by itemClass
+      select * from shipping_box where site_id = {siteId} order by item_class
       """
     ).on(
       'siteId -> siteId
     ).as(
       simple *
     )
+
+  def list(implicit conn: Connection): Seq[(Site, ShippingBox)] =
+    SQL(
+      """
+      select * from shipping_box
+      inner join site on site.site_id = shipping_box.site_id
+      order by site.site_name, item_class
+      """
+    ).as(
+      withSite *
+    )
+
+  def update(
+    id: Long,
+    siteId: Long,
+    itemClass: Long,
+    boxSize: Int,
+    boxName: String
+  ) (
+    implicit conn: Connection
+  ) {
+    SQL(
+      """
+      update shipping_box
+      set site_id = {siteId},
+        item_class = {itemClass},
+        box_size = {boxSize},
+        box_name = {boxName}
+      where shipping_box_id = {id}
+      """
+    ).on(
+      'id -> id,
+      'siteId -> siteId,
+      'itemClass -> itemClass,
+      'boxSize -> boxSize,
+      'boxName -> boxName
+    ).executeUpdate()
+  }
 }
 
 object ShippingFee {

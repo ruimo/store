@@ -1,0 +1,45 @@
+@(
+  list: Seq[(Site, ShippingBox)]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("editShippingBoxTitle"), Some(loginSession)) {
+} {
+<h1 class="title">@Messages("editShippingBoxTitle")</h1>
+
+  <table class="shippingBoxTable">
+    <tr>
+      <th class="shippingBoxTableHeaderId shippingBoxHeader">id</th>
+      <th class="shippingBoxTableHeaderSite shippingBoxHeader">@Messages("site")</th>
+      <th class="shippingBoxTableHeaderItemClass shippingBoxHeader">@Messages("itemShippingClass")</th>
+      <th class="shippingBoxTableHeaderBoxSize shippingBoxHeader">@Messages("size")</th>
+      <th class="shippingBoxTableHeaderBoxName shippingBoxHeader">@Messages("boxName")</th>
+    </tr>
+
+    @list.map { e =>
+    <tr class="shippingBoxBody">
+      <td class="shippingBoxTableBodyId">
+        <a href="@routes.ShippingBoxMaintenance.startChangeShippingBox(e._2.id.get)">@e._2.id</a>
+      </td>
+      <td class="shippingBoxTableBodySite">@e._1.name</td>
+      <td class="shippingBoxTableBodyItemClass">@e._2.itemClass</td>
+      <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
+      <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
+    </tr>
+    }
+  </table>
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.ShippingBoxMaintenance.index()">
+      @Messages("backTo", Messages("shippingBoxMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}
+

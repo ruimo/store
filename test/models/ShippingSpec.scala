@@ -335,5 +335,40 @@ class ShippingSpec extends Specification {
       byType(TaxType.INNER_TAX) === BigDecimal(8 * 34 * 3 / 108)
       byType(TaxType.NON_TAX) === BigDecimal(0)
     }
+
+    "Can list shipping box." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val itemClass1 = 1L
+          val itemClass2 = 2L
+      
+          val box1 = ShippingBox.createNew(
+            site1.id.get, itemClass1, 10, "小箱1"
+          )
+          val box2 = ShippingBox.createNew(
+            site1.id.get, itemClass2, 11, "小箱2"
+          )
+          val box3 = ShippingBox.createNew(
+            site2.id.get, itemClass1, 12, "小箱3"
+          )
+
+          val listBySite1 = ShippingBox.list(site1.id.get)
+          listBySite1.size === 2
+          listBySite1(0) === box1
+          listBySite1(1) === box2
+
+          val listBySite2 = ShippingBox.list(site2.id.get)
+          listBySite2.size === 1
+          listBySite2(0) === box3
+
+          val list = ShippingBox.list
+          list.size === 3
+        }
+      }
+    }
   }
 }
