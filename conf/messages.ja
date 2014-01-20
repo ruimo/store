@@ -253,3 +253,5 @@ changeShippingBoxTitle=箱情報の変更
 createNewShippingBoxTitle=箱情報の新規作成
 shippingFeeMaintenanceTitle=送料管理
 country.JPN=日本
+record.already.deleted=該当レコードは削除されました。
+country=国

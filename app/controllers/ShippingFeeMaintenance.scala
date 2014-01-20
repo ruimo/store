@@ -13,9 +13,6 @@ import play.api.Play.current
 import models.CreateShippingBox
 
 object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
-  lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
-  lazy val shippingCountries: List[String] = config.getStringList("shipping.countries").get.toList
-
   val createShippingBoxForm = Form(
     mapping(
       "siteId" -> longNumber,
@@ -25,14 +22,29 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
     ) (CreateShippingBox.apply)(CreateShippingBox.unapply)
   )
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.shippingFeeMaintenance(shippingCountries))
-  }}
+  def startFeeMaintenance(boxId: Long) = isAuthenticated { implicit login =>
+    forSuperUser { implicit request =>
+      DB.withConnection { implicit conn =>
+        ShippingBox.getWithSite(boxId) match {
+          case Some(rec) => {
+            val list = ShippingFee.listWithHistory(boxId, System.currentTimeMillis)
+            Ok(views.html.admin.shippingFeeMaintenance(rec, list))
+          }
+          case None =>
+            Redirect(
+              routes.ShippingFeeMaintenance.startFeeMaintenance(boxId)
+            ).flashing("message" -> Messages("record.already.deleted"))
+        }
+      }
+    }
+  }
 
-  def withCountry(country: String) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    val cc = CountryCode.byName(country);
-    val prefectures = Prefecture.table(cc)
+  def withCountry(boxId: Long, country: String) = isAuthenticated { implicit login =>
+    forSuperUser { implicit request =>
+      val cc = CountryCode.byName(country);
+      val prefectures = Prefecture.table(cc)
 
-    Ok("")
-  }}
+      Ok("")
+    }
+  }
 }

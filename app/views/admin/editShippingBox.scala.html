@@ -17,6 +17,7 @@
       <th class="shippingBoxTableHeaderItemClass shippingBoxHeader">@Messages("itemShippingClass")</th>
       <th class="shippingBoxTableHeaderBoxSize shippingBoxHeader">@Messages("size")</th>
       <th class="shippingBoxTableHeaderBoxName shippingBoxHeader">@Messages("boxName")</th>
+      <th class="shippingBoxTableHeaderFee shippingBoxHeader"></th>
     </tr>
 
     @list.map { e =>
@@ -28,6 +29,11 @@
       <td class="shippingBoxTableBodyItemClass">@e._2.itemClass</td>
       <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
       <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
+      <td>
+        <a href="@routes.ShippingFeeMaintenance.startFeeMaintenance(e._2.id.get)">
+          @Messages("shippingFeeMaintenanceTitle")
+        </a>
+      </td>
     </tr>
     }
   </table>

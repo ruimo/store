@@ -150,6 +150,19 @@ object ShippingBox {
       simple.single
     )
 
+  def getWithSite(id: Long)(implicit conn: Connection): Option[(Site, ShippingBox)] =
+    SQL(
+      """
+      select * from shipping_box
+      inner join site on site.site_id = shipping_box.site_id
+      where shipping_box_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      withSite.singleOpt
+    )
+
   def apply(siteId: Long, itemClass: Long)(implicit conn: Connection): ShippingBox =
     SQL(
       """
@@ -223,6 +236,10 @@ object ShippingFee {
     }
   }
 
+  val withHistory = simple ~ (ShippingFeeHistory.simple ?) map {
+    case fee~feeHistory => (fee, feeHistory)
+  }
+
   def createNew(
     shippingBoxId: Long, countryCode: CountryCode, locationCode: Int
   )(implicit conn: Connection): ShippingFee = {
@@ -262,6 +279,30 @@ object ShippingFee {
       'locationCode -> locationCode
     ).as(
       simple.single
+    )
+
+  def listWithHistory(
+    boxId: Long, now: Long
+  )(implicit conn: Connection): Seq[(ShippingFee, Option[ShippingFeeHistory])] =
+    SQL(
+      """
+      select * from shipping_fee sf
+      left join shipping_fee_history sfh on sf.shipping_fee_id = sfh.shipping_fee_id
+      where (sfh.valid_until > {now} or sfh.valid_until is null)
+      and sf.shipping_box_id = {boxId}
+      and not exists (
+        select * from shipping_fee_history sfh2
+        where sf.shipping_fee_id = sfh2.shipping_fee_id
+        and sfh2.valid_until > {now}
+        and sfh2.valid_until < sfh.valid_until
+      )
+      order by sf.shipping_fee_id, sf.country_code, sf.location_code
+      """
+    ).on(
+      'now -> new java.sql.Timestamp(now),
+      'boxId -> boxId
+    ).as(
+      withHistory *
     )
 }
 

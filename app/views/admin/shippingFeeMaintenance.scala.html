@@ -1,4 +1,7 @@
-@(shippingCountries: List[String])(
+@(
+  rec: (Site, ShippingBox),
+  list: Seq[(ShippingFee, Option[ShippingFeeHistory])]
+)(
   implicit lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
@@ -8,12 +11,38 @@
 } {
   <h1 class="title">@Messages("shippingFeeMaintenanceTitle")</h1>
 
-  @shippingCountries.map { country =>
-    <div class="menuItem">
-      <a href="@routes.ShippingFeeMaintenance.withCountry(country)">
-        @Messages("country." + country)
-      </a>
-    </div>
+  <table class="shippingFeeHeader">
+    <tr class="header">
+      <th class="site">@Messages("site")</th>
+      <th class="boxName">@Messages("boxName")</th>
+    </tr>
+    <tr class="body">
+      <td class="site">@rec._1.name</td>
+      <td class="boxName">@rec._2.boxName</td>
+    </tr>
+  </table>
+
+  @if(! list.isEmpty) {
+    <table class="shippingFeeList">
+      <tr class="header">
+        <th class="country">@Messages("country")</th>
+        <th class="prefecture">@Messages("prefecture")</th>
+        <th class="shippingFee">@Messages("shipping.fee")</th>
+      </tr>
+      @list.map { e =>
+        <tr class="body">
+          <td class="country">
+            @Messages("country." + e._1.countryCode)
+          </td>
+          <td class="prefecture">
+            @JapanPrefecture.byIndex(e._1.locationCode)
+          </td>
+          <td class="shippingFee">
+            @e._2.map { his => @amount(his.fee) }.getOrElse("")
+          </td>
+        </tr>
+      }
+    </table>
   }
 
   <div class="menuPanel">

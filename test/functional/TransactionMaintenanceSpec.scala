@@ -116,7 +116,7 @@ class TransactionMaintenanceSpec extends Specification {
         browser.find(".cancelShippingButton").click()
 
         // Dialog should be shown.
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.await().atMost(65, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
         browser.find(".ui-dialog-buttonset").find("button", 0).click()
 
         browser.find(".shippingStatusTable").find(".transporter").getText === "-"
