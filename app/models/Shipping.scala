@@ -236,6 +236,17 @@ object ShippingFee {
     }
   }
 
+  def apply(id: Long)(implicit conn: Connection): ShippingFee =
+    SQL(
+      """
+      select * from shipping_fee where shipping_fee_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
   val withHistory = simple ~ (ShippingFeeHistory.simple ?) map {
     case fee~feeHistory => (fee, feeHistory)
   }
