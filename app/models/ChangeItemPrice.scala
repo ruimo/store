@@ -3,11 +3,12 @@ package models
 import play.api.db.DB
 import play.api.Play.current
 import org.joda.time.DateTime
+import java.sql.Connection
 
 case class ChangeItemPriceTable(
   itemPrices: Seq[ChangeItemPrice]
 ) {
-  def update() {
+  def update()(implicit conn: Connection) {
     itemPrices.foreach {
       _.update()
     }
@@ -18,17 +19,13 @@ case class ChangeItemPrice(
   siteId: Long, itemPriceId: Long, itemPriceHistoryId: Long, taxId: Long,
   currencyId: Long, unitPrice: BigDecimal, validUntil: DateTime
 ) {
-  def update() {
-    DB.withTransaction { implicit conn =>
-      ItemPriceHistory.update(itemPriceHistoryId, taxId, currencyId, unitPrice, validUntil)
-    }
+  def update()(implicit conn: Connection) {
+    ItemPriceHistory.update(itemPriceHistoryId, taxId, currencyId, unitPrice, validUntil)
   }
 
-  def add(itemId: Long) {
+  def add(itemId: Long)(implicit conn: Connection) {
     ExceptionMapper.mapException {
-      DB.withTransaction { implicit conn =>
-        ItemPriceHistory.add(itemId, siteId, taxId, currencyId, unitPrice, validUntil)
-      }
+      ItemPriceHistory.add(itemId, siteId, taxId, currencyId, unitPrice, validUntil)
     }
   }
 }

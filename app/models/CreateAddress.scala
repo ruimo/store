@@ -3,6 +3,7 @@ package models
 import play.api.db.DB
 import play.api.Play.current
 import org.joda.time.DateTime
+import java.sql.Connection
 
 case class CreateAddress(
   countryCode: CountryCode,
@@ -30,37 +31,35 @@ case class CreateAddress(
   lazy val hasKanaName: Boolean = !firstNameKana.isEmpty || !lastNameKana.isEmpty
   lazy val hasZip: Boolean = !zip1.isEmpty || !zip2.isEmpty || !zip3.isEmpty
 
-  def save(userId: Long): Address = {
-    DB.withTransaction { implicit conn =>
-      val addr = Address(
-        countryCode = this.countryCode,
-        firstName = this.firstName,
-        middleName = this.middleName,
-        lastName = this.lastName,
-        firstNameKana = this.firstNameKana,
-        lastNameKana = this.lastNameKana,
-        zip1 = this.zip1,
-        zip2 = this.zip2,
-        zip3 = this.zip3,
-        prefecture = this.prefecture,
-        address1 = this.address1,
-        address2 = this.address2,
-        address3 = this.address3,
-        address4 = this.address4,
-        address5 = this.address5,
-        tel1 = this.tel1,
-        tel2 = this.tel2,
-        tel3 = this.tel3,
-        comment = this.comment
-      )
+  def save(userId: Long)(implicit conn: Connection): Address = {
+    val addr = Address(
+      countryCode = this.countryCode,
+      firstName = this.firstName,
+      middleName = this.middleName,
+      lastName = this.lastName,
+      firstNameKana = this.firstNameKana,
+      lastNameKana = this.lastNameKana,
+      zip1 = this.zip1,
+      zip2 = this.zip2,
+      zip3 = this.zip3,
+      prefecture = this.prefecture,
+      address1 = this.address1,
+      address2 = this.address2,
+      address3 = this.address3,
+      address4 = this.address4,
+      address5 = this.address5,
+      tel1 = this.tel1,
+      tel2 = this.tel2,
+      tel3 = this.tel3,
+      comment = this.comment
+    )
 
-      ShoppingCartItem.sites(userId).foreach { siteId =>
-        ShoppingCartShipping.updateOrInsert(userId, siteId, shippingDate.getMillis)
-      }
-
-      ShippingAddressHistory.createNew(userId, addr)
-      addr
+    ShoppingCartItem.sites(userId).foreach { siteId =>
+      ShoppingCartShipping.updateOrInsert(userId, siteId, shippingDate.getMillis)
     }
+
+    ShippingAddressHistory.createNew(userId, addr)
+    addr
   }
 }
 

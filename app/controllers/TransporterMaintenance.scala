@@ -131,7 +131,9 @@ object TransporterMaintenance extends Controller with I18nAware with NeedLogin w
         )
       },
       newTransporter => {
-        newTransporter.update(id)
+        DB.withTransaction { implicit conn =>
+          newTransporter.update(id)
+        }
         Redirect(
           routes.TransporterMaintenance.startChangeTransporter(id)
         ).flashing("message" -> Messages("transporterIsUpdated"))
@@ -156,8 +158,9 @@ object TransporterMaintenance extends Controller with I18nAware with NeedLogin w
       },
       newTransporter => {
         try {
-          newTransporter.add(id)
-
+          DB.withConnection { implicit conn =>
+            newTransporter.add(id)
+          }
           Redirect(
             routes.TransporterMaintenance.startChangeTransporter(id)
           ).flashing("message" -> Messages("transporterIsUpdated"))

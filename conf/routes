@@ -107,6 +107,7 @@ GET     /admin/startFeeMentenance        controllers.ShippingFeeMaintenance.star
 GET     /admin/startFeeMentenanceNow     controllers.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId: Long)
 GET     /admin/editShippingFeeHistory    controllers.ShippingFeeMaintenance.editHistory(feeId: Long)
 POST    /admin/changeHistory             controllers.ShippingFeeMaintenance.changeHistory(feeId: Long)
+POST    /admin/addHistory                controllers.ShippingFeeMaintenance.addHistory(feeId: Long)
 
 GET     /query                           controllers.ItemQuery.query(q: List[String], page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "item_name.item_name")
 GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(page:Int ?= 0, pageSize:Int ?= 10)

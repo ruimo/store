@@ -39,6 +39,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
     mapping(
       "histories" -> seq(
         mapping(
+          "historyId" -> longNumber,
           "taxId" -> longNumber,
           "fee" -> bigDecimal.verifying(min(BigDecimal(0))),
           "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
@@ -47,10 +48,19 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
     ) (ChangeFeeHistoryTable.apply)(ChangeFeeHistoryTable.unapply)
   )
 
+  val addFeeHistoryForm = Form(
+    mapping(
+      "historyId" -> ignored(0L),
+      "taxId" -> longNumber,
+      "fee" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
+    ) (ChangeFeeHistory.apply)(ChangeFeeHistory.unapply)
+  )
+
   def createFeeHistoryForm(feeId: Long): Form[ChangeFeeHistoryTable] = {
     DB.withConnection { implicit conn => {
       val histories = ShippingFeeHistory.list(feeId).map {
-        h => ChangeFeeHistory(h.taxId, h.fee, new DateTime(h.validUntil))
+        h => ChangeFeeHistory(h.id.get, h.taxId, h.fee, new DateTime(h.validUntil))
       }.toSeq
 
       changeFeeHistoryForm.fill(ChangeFeeHistoryTable(histories))
@@ -69,7 +79,9 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
         formWithErrors => {
           logger.error("Validation error in ShippingFeeMaintenance.startFeeMaintenance.")
           BadRequest(
-            views.html.admin.shippingFeeMaintenance(formWithErrors, None, List())
+            views.html.admin.shippingFeeMaintenance(
+              formWithErrors, None, List()
+            )
           )
         },
         newDate => feeMaintenance(newDate.boxId, newDate.now.getMillis)
@@ -85,8 +97,12 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
       ShippingBox.getWithSite(boxId) match {
         case Some(rec) => {
           val list = ShippingFee.listWithHistory(boxId, now)
-          Ok(views.html.admin.shippingFeeMaintenance(
-            feeMaintenanceForm.fill(FeeMaintenance(boxId, new DateTime(now))), Some(rec), list)
+          Ok(
+            views.html.admin.shippingFeeMaintenance(
+              feeMaintenanceForm.fill(FeeMaintenance(boxId, new DateTime(now))),
+              Some(rec),
+              list
+            )
           )
         }
         case None =>
@@ -103,20 +119,27 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
       val box = ShippingBox(fee.shippingBoxId)
       val form = createFeeHistoryForm(feeId)
 
-      Ok(views.html.admin.shippingFeeHistoryMaintenance(box, fee, form, Tax.tableForDropDown))
+      Ok(
+        views.html.admin.shippingFeeHistoryMaintenance(
+          box, fee, form, addFeeHistoryForm, Tax.tableForDropDown
+        )
+      )
     }
   }}
 
   def changeHistory(feeId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
+    DB.withTransaction { implicit conn =>
       val fee = ShippingFee(feeId)
-      val box = ShippingBox(fee.shippingBoxId)
 
       changeFeeHistoryForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ShippingFeeMaintenance.changeHistory." + formWithErrors + ".")
           BadRequest(
-            views.html.admin.shippingFeeHistoryMaintenance(box, fee, formWithErrors, Tax.tableForDropDown)
+            views.html.admin.shippingFeeHistoryMaintenance(
+              ShippingBox(fee.shippingBoxId),
+              fee,
+              formWithErrors, addFeeHistoryForm, Tax.tableForDropDown
+            )
           )
         },
         newHistories => {
@@ -127,5 +150,32 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
         }            
       )
     }
+  }}
+
+  def addHistory(feeId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    addFeeHistoryForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ShippingFeeMaintenance.addHistory." + formWithErrors + ".")
+        DB.withConnection { implicit conn =>
+          val fee = ShippingFee(feeId)
+
+          BadRequest(
+            views.html.admin.shippingFeeHistoryMaintenance(
+              ShippingBox(fee.shippingBoxId),
+              fee,
+              createFeeHistoryForm(feeId), formWithErrors, Tax.tableForDropDown
+            )
+          )
+        }
+      },
+      newHistory => {
+        DB.withTransaction { implicit conn =>
+          newHistory.add(feeId)
+        }
+        Redirect(
+          routes.ShippingFeeMaintenance.editHistory(feeId)
+        ).flashing("message" -> Messages("shippingFeeHistoryAdded"))
+      }
+    )
   }}
 }

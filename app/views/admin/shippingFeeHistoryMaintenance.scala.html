@@ -2,6 +2,7 @@
   box: ShippingBox,
   fee: ShippingFee,
   updateForm: Form[ChangeFeeHistoryTable],
+  addForm: Form[ChangeFeeHistory],
   taxTable: Seq[(String, String)]
 )(
   implicit lang: Lang,
@@ -34,6 +35,10 @@
         @repeat(updateForm("histories")) { his =>
           <tr>
             <td>
+              @inputText(his("historyId"), 'type -> "hidden")(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+
               @select(
                 his("taxId"),
                 taxTable,
@@ -64,6 +69,42 @@
         <tr>
           <td colspan="3">
             <input style="float: right;" type="submit" value=@Messages("update")>
+          </td>
+        </tr>
+      }
+
+      @form(action = helper.CSRF(routes.ShippingFeeMaintenance.addHistory(fee.id.get))) {
+        <tr>
+          <td>
+            @select(
+              addForm("taxId"),
+              taxTable,
+              '_showConstraints -> false
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+
+          <td>
+            @inputText(
+              addForm("fee")
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+    
+          <td>
+            @inputText(
+              addForm("validUntil")
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="3">
+            <input style="float: right;" type="submit" value=@Messages("add")>
           </td>
         </tr>
       }

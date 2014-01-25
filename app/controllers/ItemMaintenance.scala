@@ -89,7 +89,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItem => {
-        newItem.save()
+        DB.withConnection { implicit conn =>
+          newItem.save()
+        }
         Redirect(
           routes.ItemMaintenance.startCreateNewItem
         ).flashing("message" -> Messages("itemIsCreated"))
@@ -322,7 +324,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItem => {
-        newItem.update(id)
+        DB.withConnection { implicit conn =>
+          newItem.update(id)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(id)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -509,7 +513,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       },
       newSiteItem => {
         try {
-          newSiteItem.add(id)
+          DB.withConnection { implicit conn =>
+            newSiteItem.add(id)
+          }
 
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
@@ -616,10 +622,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItemCategory => {
-        newItemCategory.update(id)
-          Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
-          ).flashing("message" -> Messages("itemIsUpdated"))
+        DB.withConnection { implicit conn =>
+          newItemCategory.update(id)
+        }
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(id)
+        ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
   }}
@@ -689,7 +697,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItem => {
-        newItem.update(id)
+        DB.withTransaction { implicit conn =>
+          newItem.update(id)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(id)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -867,7 +877,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newPrice => {
-        newPrice.update()
+        DB.withConnection { implicit conn =>
+          newPrice.update()
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(id)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -911,8 +923,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       },
       newHistory => {
         try {
-          newHistory.add(id)
-
+          DB.withConnection { implicit conn =>
+            newHistory.add(id)
+          }
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
           ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1004,7 +1017,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newMetadata => {
-        newMetadata.update(itemId)
+        DB.withTransaction { implicit conn =>
+          newMetadata.update(itemId)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(itemId)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1047,7 +1062,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newMetadata => {
-        newMetadata.update(itemId)
+        DB.withTransaction { implicit conn =>
+          newMetadata.update(itemId)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(itemId)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1090,7 +1107,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newMetadata => {
-        newMetadata.update(itemId)
+        DB.withConnection { implicit conn =>
+          newMetadata.update(itemId)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(itemId)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1296,7 +1315,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       },
       newMetadata => {
         try {
-          newMetadata.add(id)
+          DB.withConnection { implicit conn =>
+            newMetadata.add(id)
+          }
 
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)

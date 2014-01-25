@@ -11,8 +11,6 @@ case class CreateShippingBox(
   boxName: String
 ) {
   def save(implicit conn: Connection) {
-    DB.withConnection { implicit conn =>
-      ShippingBox.createNew(siteId, itemClass, boxSize, boxName)
-    }
+    ShippingBox.createNew(siteId, itemClass, boxSize, boxName)
   }
 }

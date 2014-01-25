@@ -7,11 +7,9 @@ import java.sql.Connection
 case class ChangeItemNameTable(
   itemNames: Seq[ChangeItemName]
 ) {
-  def update(itemId: Long) {
-    DB.withTransaction { implicit conn =>
-      itemNames.foreach {
-        _.update(itemId)
-      }
+  def update(itemId: Long)(implicit conn: Connection) {
+    itemNames.foreach {
+      _.update(itemId)
     }
   }
 }

@@ -328,6 +328,25 @@ object ShippingFeeHistory {
     }
   }
 
+  def update(
+    historyId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
+  )(implicit conn: Connection) {
+    SQL(
+      """
+      update shipping_fee_history
+      set tax_id = {taxId},
+        fee = {fee},
+        valid_until = {validUntil}
+      where shipping_fee_history_id = {historyId}
+      """
+    ).on(
+      'historyId -> historyId,
+      'taxId -> taxId,
+      'fee -> fee.bigDecimal,
+      'validUntil -> new java.sql.Timestamp(validUntil)
+    ).executeUpdate()
+  }
+
   def createNew(
     feeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
   )(implicit conn: Connection): ShippingFeeHistory = {
