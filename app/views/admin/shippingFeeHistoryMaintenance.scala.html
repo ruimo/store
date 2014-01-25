@@ -13,7 +13,17 @@
 @import helper._
 
 @main(Messages("shippingFeeHistoryMaintenanceTitle"), Some(loginSession)) {
+<script>
+var removeHistory = function(id) {
+  $('#removeHistoryId').val(id);
+  $('#removeHistoryForm').submit();
+};
+</script>
 } {
+  <form id="removeHistoryForm" method="POST" action="@helper.CSRF(routes.ShippingFeeMaintenance.removeHistory)">
+    <input id="removeHistoryId" type="hidden" name="historyId">
+  </form>
+
   <h1 class="title">@Messages("shippingFeeHistoryMaintenanceTitle")</h1>
 
   <table class="shippingFeeHistory shippingInfo">
@@ -30,15 +40,24 @@
 
     <table class="shippingFeeHistory history">
       <tr class="header">
+        <th></th>
+        <th>@Messages("tax")</th>
+        <th>@Messages("price")</th>
+        <th>@Messages("validUntil")</th>
       </tr>
       @form(action = helper.CSRF(routes.ShippingFeeMaintenance.changeHistory(fee.id.get))) {
-        @repeat(updateForm("histories")) { his =>
+        @repeat(updateForm("histories"), min = 0) { his =>
           <tr>
             <td>
               @inputText(his("historyId"), 'type -> "hidden")(
                 helper.FieldConstructor(simpleField.f), implicitly
               )
 
+              <button type="button" onclick="removeHistory(@his("historyId").value.map(_.toLong).getOrElse(0));">
+                @Messages("remove")
+              </button>
+            </td>
+            <td>
               @select(
                 his("taxId"),
                 taxTable,
@@ -67,7 +86,7 @@
         }
 
         <tr>
-          <td colspan="3">
+          <td colspan="4">
             <input style="float: right;" type="submit" value=@Messages("update")>
           </td>
         </tr>
@@ -75,6 +94,7 @@
 
       @form(action = helper.CSRF(routes.ShippingFeeMaintenance.addHistory(fee.id.get))) {
         <tr>
+          <td></td>
           <td>
             @select(
               addForm("taxId"),
@@ -103,11 +123,21 @@
         </tr>
 
         <tr>
-          <td colspan="3">
+          <td colspan="4">
             <input style="float: right;" type="submit" value=@Messages("add")>
           </td>
         </tr>
       }
     </table>
   </table>
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.ShippingBoxMaintenance.index()">
+      @Messages("backTo", Messages("shippingBoxMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
 }

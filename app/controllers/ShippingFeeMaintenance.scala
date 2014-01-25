@@ -57,6 +57,10 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
     ) (ChangeFeeHistory.apply)(ChangeFeeHistory.unapply)
   )
 
+  val removeForm = Form(
+    "historyId" -> longNumber
+  )
+
   def createFeeHistoryForm(feeId: Long): Form[ChangeFeeHistoryTable] = {
     DB.withConnection { implicit conn => {
       val histories = ShippingFeeHistory.list(feeId).map {
@@ -177,5 +181,17 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
         ).flashing("message" -> Messages("shippingFeeHistoryAdded"))
       }
     )
+  }}
+
+  def removeHistory = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    val historyId = removeForm.bindFromRequest.get
+    DB.withConnection { implicit conn =>
+      val his = ShippingFeeHistory(historyId)
+      ShippingFeeHistory.remove(historyId)
+
+      Redirect(
+        routes.ShippingFeeMaintenance.editHistory(his.shippingFeeId)
+      ).flashing("message" -> Messages("shippingFeeHistoryRemoved"))
+    }
   }}
 }

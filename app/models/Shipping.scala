@@ -328,6 +328,17 @@ object ShippingFeeHistory {
     }
   }
 
+  def apply(id: Long)(implicit conn: Connection): ShippingFeeHistory = SQL(
+    """
+    select * from shipping_fee_history
+    where shipping_fee_history_id = {id}
+    """
+  ).on(
+    'id -> id
+  ).as(
+    simple.single
+  )
+
   def update(
     historyId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
   )(implicit conn: Connection) {
@@ -344,6 +355,17 @@ object ShippingFeeHistory {
       'taxId -> taxId,
       'fee -> fee.bigDecimal,
       'validUntil -> new java.sql.Timestamp(validUntil)
+    ).executeUpdate()
+  }
+
+  def remove(id: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from shipping_fee_history
+      where shipping_fee_history_id = {id}
+      """
+    ).on(
+      'id -> id
     ).executeUpdate()
   }
 

@@ -72,8 +72,11 @@
             @JapanPrefecture.byIndex(e._1.locationCode)
           </td>
           <td class="shippingFee">
+            @e._2.map { his => @amount(his.fee) }.getOrElse("-")
+          </td>
+          <td class="edit">
             <a href="@routes.ShippingFeeMaintenance.editHistory(e._1.id.get)">
-              @e._2.map { his => @amount(his.fee) }.getOrElse("")
+              @Messages("edit")
             </a>
           </td>
         </tr>
