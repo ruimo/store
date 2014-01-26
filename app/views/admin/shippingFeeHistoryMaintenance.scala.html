@@ -132,6 +132,15 @@ var removeHistory = function(id) {
   </table>
 
   <div class="menuPanel">
+    <a class="backLink" href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box.id.get)">
+      @Messages("backTo", Messages("shippingFeeMaintenanceTitle"))
+    </a>
+
+    <br>
+    <a class="backLink" href="@routes.ShippingBoxMaintenance.editShippingBox()">
+      @Messages("backTo", Messages("editShippingBoxTitle"))
+    </a>
+
     <br>
     <a class="backLink" href="@routes.ShippingBoxMaintenance.index()">
       @Messages("backTo", Messages("shippingBoxMaintenanceTitle"))

@@ -230,3 +230,7 @@ date=Date
 date.query=Date to show
 shippingFeeHistoryMaintenanceTitle=Shipping fee history maintenance
 edit=Edit
+create.new.shipping.fee.engry=New shipping fee entry
+createShippingFeeTitle=Create new shipping fee entry
+shippingFeeIsUpdated=Shipping fee is updated
+shippingFeeIsRemoved=Shipping fee is removed

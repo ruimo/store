@@ -315,6 +315,38 @@ object ShippingFee {
     ).as(
       withHistory *
     )
+
+  def list(boxId: Long, countryCode: CountryCode)(implicit conn: Connection): Seq[ShippingFee] =
+    SQL(
+      """
+      select * from shipping_fee
+      where shipping_box_id = {boxId}
+      and country_code = {countryCode}
+      """
+    ).on(
+      'boxId -> boxId,
+      'countryCode -> countryCode.code
+    ).as(
+      simple *
+    )
+
+  def removeWithHistories(feeId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from shipping_fee_history where shipping_fee_id = {feeId}
+      """
+    ).on(
+      'feeId -> feeId
+    ).executeUpdate()
+
+    SQL(
+      """
+      delete from shipping_fee where shipping_fee_id = {feeId}
+      """
+    ).on(
+      'feeId -> feeId
+    ).executeUpdate()
+  }
 }
 
 object ShippingFeeHistory {

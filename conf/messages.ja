@@ -260,3 +260,7 @@ date=日付
 date.query=表示する日付
 shippingFeeHistoryMaintenanceTitle=送料履歴管理
 edit=編集
+create.new.shipping.fee.engry=新規送料エントリーの作成
+createShippingFeeTitle=新規送料エントリーの作成
+shippingFeeIsUpdated=送料エントリーが更新されました
+shippingFeeIsRemoved=送料エントリーを削除しました
