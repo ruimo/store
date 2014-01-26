@@ -65,6 +65,7 @@ object ShippingBoxMaintenance extends Controller with I18nAware with NeedLogin w
   }}
 
   def startChangeShippingBox(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+println("*** id = " + id)
     DB.withConnection { implicit conn =>
       val rec = ShippingBox(id)
       Ok(

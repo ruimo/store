@@ -234,3 +234,4 @@ create.new.shipping.fee.engry=New shipping fee entry
 createShippingFeeTitle=Create new shipping fee entry
 shippingFeeIsUpdated=Shipping fee is updated
 shippingFeeIsRemoved=Shipping fee is removed
+no.records.found=No records found

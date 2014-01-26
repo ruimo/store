@@ -264,3 +264,4 @@ create.new.shipping.fee.engry=新規送料エントリーの作成
 createShippingFeeTitle=新規送料エントリーの作成
 shippingFeeIsUpdated=送料エントリーが更新されました
 shippingFeeIsRemoved=送料エントリーを削除しました
+no.records.found=レコードがありません

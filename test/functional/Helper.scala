@@ -31,4 +31,8 @@ object Helper {
     val fname = "screenShots/" + stack.getFileName() + "_" + stack.getLineNumber() + ".png"
     browser.takeScreenShot(fname)
   }
+
+  def doWith[T](arg: T)(func: T => Unit) {
+    func(arg)
+  }
 }

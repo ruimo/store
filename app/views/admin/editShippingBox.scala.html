@@ -9,7 +9,7 @@
 @main(Messages("editShippingBoxTitle"), Some(loginSession)) {
 } {
 <h1 class="title">@Messages("editShippingBoxTitle")</h1>
-
+  @if(! list.isEmpty) {
   <table class="shippingBoxTable">
     <tr>
       <th class="shippingBoxTableHeaderId shippingBoxHeader">id</th>
@@ -21,22 +21,25 @@
     </tr>
 
     @list.map { e =>
-    <tr class="shippingBoxBody">
-      <td class="shippingBoxTableBodyId">
-        <a href="@routes.ShippingBoxMaintenance.startChangeShippingBox(e._2.id.get)">@e._2.id</a>
-      </td>
-      <td class="shippingBoxTableBodySite">@e._1.name</td>
-      <td class="shippingBoxTableBodyItemClass">@e._2.itemClass</td>
-      <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
-      <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
-      <td>
-        <a href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(e._2.id.get)">
-          @Messages("shippingFeeMaintenanceTitle")
-        </a>
-      </td>
-    </tr>
+      <tr class="shippingBoxBody">
+        <td class="shippingBoxTableBodyId">
+          <a href="@routes.ShippingBoxMaintenance.startChangeShippingBox(e._2.id.get)">@e._2.id</a>
+        </td>
+        <td class="shippingBoxTableBodySite">@e._1.name</td>
+        <td class="shippingBoxTableBodyItemClass">@e._2.itemClass</td>
+        <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
+        <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
+        <td>
+          <a href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(e._2.id.get)">
+            @Messages("shippingFeeMaintenanceTitle")
+          </a>
+        </td>
+      </tr>
     }
   </table>
+  } else {
+    <span class="norecord">@Messages("no.records.found")</span>
+  }
 
   <div class="menuPanel">
     <br>
