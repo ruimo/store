@@ -372,17 +372,17 @@ tr.userTableBody {
 }
 
 .shippingFeeHistoryDate {
-  padding: 10px;
+  margin: 10px;
 }
 
 .shippingFeeHeader {
-  padding: 10px;
+  margin: 10px;
 }
 
 .shippingFeeList {
-  padding: 10px;
+  margin: 10px;
 }
 
 .newShippingFeeEntry {
-  padding: 10px;
+  margin: 10px;
 }
