@@ -21,17 +21,36 @@
       $("#now").datepicker({
         dateFormat: 'yy年mm月dd日'
       });
+
+      $("#removeFeeDialog").dialog({
+        autoOpen: false,
+        title: '@Messages("removeShippingFeeTitle")',
+        modal: true,
+        buttons: {
+          '@Messages("remove")': function(e) {
+            $('#removeShippingFeeForm').submit();
+            $(this).dialog("close");
+          },
+          '@Messages("cancel")': function(e) {
+            $(this).dialog("close");
+          }
+        }
+      });
     });
 
-    var removeFee = function(id) {
+    var removeFee = function(id, msg) {
+      var dlg = $("#removeFeeDialog");
+      dlg.html(msg);
       $('#removeFeeId').val(id);
-      $('#removeShippingFeeForm').submit();
+      dlg.dialog("open")
     };
   </script>
 } {
   <form id="removeShippingFeeForm" method="POST" action="@helper.CSRF(routes.ShippingFeeMaintenance.removeFee(myForm("boxId").value.get.toLong))">
     <input id="removeFeeId" type="hidden" name="feeId">
   </form>
+  <div id="removeFeeDialog">
+  </div>
 
   <h1 class="title">@Messages("shippingFeeMaintenanceTitle")</h1>
 
@@ -62,6 +81,7 @@
     <table class="shippingFeeHistoryDate">
       <tr>
         <th>@Messages("date.query")</th>
+        <th></th>
       </tr>
       <tr>
         <td>
@@ -85,6 +105,8 @@
         <th class="country">@Messages("country")</th>
         <th class="prefecture">@Messages("prefecture")</th>
         <th class="shippingFee">@Messages("shipping.fee")</th>
+        <th></th>
+        <th></th>
       </tr>
       @list.map { e =>
         <tr class="body">
@@ -103,7 +125,7 @@
             </a>
           </td>
           <td class="delete">
-            <a href="#" onclick="removeFee(@e._1.id.get); return false;">
+            <button type="button" onclick='removeFee(@e._1.id.get, "@Messages("removeShippingFee", rec.get._1.name, rec.get._2.boxName, JapanPrefecture.byIndex(e._1.locationCode))");'>
               @Messages("remove")
             </a>
           </td>

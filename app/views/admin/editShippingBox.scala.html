@@ -64,7 +64,7 @@ var removeBox = function(id, msg) {
         <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
         <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
         <td>
-          <button type="button" onclick='removeBox(@e._2.id.get, "@Messages("removeShippingBox", e._1.name, e._2.boxName)")'>
+          <button type="button" onclick='removeBox(@e._2.id.get, "@Messages("removeShippingBox", e._1.name, e._2.boxName)");'>
             @Messages("remove")
           </button>
           <a href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(e._2.id.get)">

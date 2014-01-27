@@ -242,5 +242,26 @@ class ShippingMaintenanceSpec extends Specification {
         }
       }}
     }
+
+    "Remove fee record" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val box1 = ShippingBox.createNew(site1.id.get, 1, 2, "box1")
+        val fee1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.北海道.code)
+        val fee2 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+        
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        
+
+      }}
+    }
   }
 }

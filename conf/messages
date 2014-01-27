@@ -238,4 +238,6 @@ no.records.found=No records found
 removeShippingBox=Remove {1} of {0}. Shipping fee data associated with this box will be all deleted. Are you sure?
 cancel=Cancel
 removeShippingBoxTitle=Remove shipping box
+removeShippingFeeTitle=Remove shipping fee
 shippingBoxIsRemoved=Shipping box is remove
+removeShippingFee=Remove {1} of {0}'s shipping fee to {2}. Are you sure?

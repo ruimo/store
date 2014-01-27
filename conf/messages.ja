@@ -268,4 +268,6 @@ no.records.found=レコードがありません
 removeShippingBox={0}の{1}を削除します。この箱の送料データも削除されます。よろしいですか？
 cancel=キャンセル
 removeShippingBoxTitle=配送用の箱の削除
+removeShippingFeeTitle=送料データの削除
 shippingBoxIsRemoved=配送用の箱が削除されました
+removeShippingFee={0}の{1}の{2}宛ての送料データを削除します。よろしいですか？
