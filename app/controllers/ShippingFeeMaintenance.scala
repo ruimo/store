@@ -23,7 +23,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
   lazy val ShippingToCountries = Play.current.configuration.getStringList("ship.to.countries").get.map {
     CountryCode.byName(_)
   }
-  lazy val CountryDropDown = ShippingToCountries.map {
+  def countryDropDown(implicit lang: Lang) = ShippingToCountries.map {
     c => String.valueOf(c.code()) -> Messages("country." + c.name)
   }
   val LocationCodeTable = Map(
@@ -114,7 +114,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
           logger.error("Validation error in ShippingFeeMaintenance.startFeeMaintenance.")
           BadRequest(
             views.html.admin.shippingFeeMaintenance(
-              formWithErrors, None, List(), createFeeForm, CountryDropDown
+              formWithErrors, None, List(), createFeeForm, countryDropDown
             )
           )
         },
@@ -137,7 +137,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
               Some(rec),
               list,
               createFeeForm,
-              CountryDropDown
+              countryDropDown
             )
           )
         }

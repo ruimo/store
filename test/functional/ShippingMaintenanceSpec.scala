@@ -174,7 +174,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.fill("#boxName").`with`("boxName2")
 
         browser.find("#changeShippingBoxForm").find("input[type='submit']").click
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded;
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".title").areDisplayed
 
         DB.withConnection { implicit conn =>
           val box = ShippingBox(box1.id.get)
@@ -182,6 +182,29 @@ class ShippingMaintenanceSpec extends Specification {
           box.boxSize === 200
           box.boxName === "boxName2"
         }
+      }}
+    }
+
+    "Fee maintenance without records" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val box1 = ShippingBox.createNew(site1.id.get, 1, 2, "box1")
+        
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        browser.find("table.shippingFeeHeader").find(".body").find(".site").getText === "商店1"
+        browser.find("table.shippingFeeHeader").find(".body").find(".boxName").getText === "box1"
+
+        browser.find(".shippingFeeList").find(".body").getTexts.size === 0
+
+Thread.sleep(10000)
       }}
     }
   }
