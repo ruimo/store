@@ -223,6 +223,26 @@ object ShippingBox {
       'boxName -> boxName
     ).executeUpdate()
   }
+
+  def removeWithChildren(boxId: Long)(implicit conn: Connection) {
+    // Histories will be cascade deleted.
+
+    SQL(
+      """
+      delete from shipping_fee where shipping_box_id = {boxId}
+      """
+    ).on(
+      'boxId -> boxId
+    ).executeUpdate()
+
+    SQL(
+      """
+      delete from shipping_box where shipping_box_id = {boxId}
+      """
+    ).on(
+      'boxId -> boxId
+    ).executeUpdate()
+  }
 }
 
 object ShippingFee {

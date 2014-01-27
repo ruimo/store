@@ -235,3 +235,7 @@ createShippingFeeTitle=Create new shipping fee entry
 shippingFeeIsUpdated=Shipping fee is updated
 shippingFeeIsRemoved=Shipping fee is removed
 no.records.found=No records found
+removeShippingBox=Remove {1} of {0}. Shipping fee data associated with this box will be all deleted. Are you sure?
+cancel=Cancel
+removeShippingBoxTitle=Remove shipping box
+shippingBoxIsRemoved=Shipping box is remove

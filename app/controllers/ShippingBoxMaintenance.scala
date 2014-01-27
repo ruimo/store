@@ -31,6 +31,10 @@ object ShippingBoxMaintenance extends Controller with I18nAware with NeedLogin w
     ) (ChangeShippingBox.apply)(ChangeShippingBox.unapply)
   )
     
+  val removeBoxForm = Form(
+    "boxId" -> longNumber
+  )
+
   def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Ok(views.html.admin.shippingBoxMaintenance())
   }}
@@ -64,8 +68,18 @@ object ShippingBoxMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }}
 
+  def removeShippingBox = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    val boxId = removeBoxForm.bindFromRequest.get
+    DB.withTransaction { implicit conn =>
+      ShippingBox.removeWithChildren(boxId)
+    }
+
+    Redirect(
+      routes.ShippingBoxMaintenance.editShippingBox()
+    ).flashing("message" -> Messages("shippingBoxIsRemoved"))
+  }}
+
   def startChangeShippingBox(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-println("*** id = " + id)
     DB.withConnection { implicit conn =>
       val rec = ShippingBox(id)
       Ok(

@@ -12,9 +12,11 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import play.api.db.DB
 import play.api.i18n.{Messages, Lang}
-import models.{ShippingBox, LocaleInfo, Site}
+import models._
 import org.openqa.selenium.By
 import java.util.concurrent.TimeUnit
+import play.api.test.TestServer
+import play.api.test.FakeApplication
 
 class ShippingMaintenanceSpec extends Specification {
   "Shipping fee maintenance" should {
@@ -203,8 +205,41 @@ class ShippingMaintenanceSpec extends Specification {
         browser.find("table.shippingFeeHeader").find(".body").find(".boxName").getText === "box1"
 
         browser.find(".shippingFeeList").find(".body").getTexts.size === 0
+      }}
+    }
 
-Thread.sleep(10000)
+    "Fee maintenance with records" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val box1 = ShippingBox.createNew(site1.id.get, 1, 2, "box1")
+        val fee1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.北海道.code)
+        val fee2 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+        
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        doWith(browser.find("table.shippingFeeHeader").find(".body")) { e =>
+          e.find(".site").getText === "商店1"
+          e.find(".boxName").getText === "box1"
+        }
+
+        doWith(browser.find(".shippingFeeList").find(".body", 0)) { e =>
+          e.find(".country").getText === Messages("country.JPN")
+          e.find(".prefecture").getText === JapanPrefecture.北海道.toString
+          e.find(".shippingFee").getText === "-"
+        }
+
+        doWith(browser.find(".shippingFeeList").find(".body", 1)) { e =>
+          e.find(".country").getText === Messages("country.JPN")
+          e.find(".prefecture").getText === JapanPrefecture.東京都.toString
+          e.find(".shippingFee").getText === "-"
+        }
       }}
     }
   }

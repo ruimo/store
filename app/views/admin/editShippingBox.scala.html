@@ -7,7 +7,41 @@
 )
 
 @main(Messages("editShippingBoxTitle"), Some(loginSession)) {
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
+<script>
+$(function() {
+  $("#removeBoxDialog").dialog({
+    autoOpen: false,
+    title: '@Messages("removeShippingBoxTitle")',
+    modal: true,
+    buttons: {
+      '@Messages("remove")': function(e) {
+        $('#removeBoxForm').submit();
+        $(this).dialog("close");
+      },
+      '@Messages("cancel")': function(e) {
+        $(this).dialog("close");
+      }
+    }
+  });
+});
+
+var removeBox = function(id, msg) {
+  var dlg = $("#removeBoxDialog");
+  dlg.html(msg);
+  $('#removeBoxId').val(id);
+  dlg.dialog("open")
+};
+</script>
 } {
+<div id="removeBoxDialog">
+</div>
+
+<form id="removeBoxForm" method="POST" action="@helper.CSRF(routes.ShippingBoxMaintenance.removeShippingBox)">
+  <input id="removeBoxId" type="hidden" name="boxId">
+</form>
+
 <h1 class="title">@Messages("editShippingBoxTitle")</h1>
   @if(! list.isEmpty) {
   <table class="shippingBoxTable">
@@ -30,6 +64,9 @@
         <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
         <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
         <td>
+          <button type="button" onclick='removeBox(@e._2.id.get, "@Messages("removeShippingBox", e._1.name, e._2.boxName)")'>
+            @Messages("remove")
+          </button>
           <a href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(e._2.id.get)">
             @Messages("shippingFeeMaintenanceTitle")
           </a>

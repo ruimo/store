@@ -102,6 +102,7 @@ POST    /admin/createNewShippingBox      controllers.ShippingBoxMaintenance.crea
 GET     /admin/editShippingBox           controllers.ShippingBoxMaintenance.editShippingBox(page: Int ?= 0, pageSize: Int ?= 100)
 GET     /admin/startChangeShippingBox    controllers.ShippingBoxMaintenance.startChangeShippingBox(id: Long)
 POST    /admin/changeShippingBox         controllers.ShippingBoxMaintenance.changeShippingBox
+POST    /admin/removeShippingBox         controllers.ShippingBoxMaintenance.removeShippingBox
 
 GET     /admin/startFeeMentenance        controllers.ShippingFeeMaintenance.startFeeMaintenance
 GET     /admin/startFeeMentenanceNow     controllers.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId: Long)
