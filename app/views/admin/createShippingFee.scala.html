@@ -15,7 +15,7 @@
 } {
   <h1 class="title">@Messages("createShippingFeeTitle")</h1>
 
-  @form(action = helper.CSRF(routes.ShippingFeeMaintenance.createShippingFee(boxId))) {
+  @form(action = helper.CSRF(routes.ShippingFeeMaintenance.createShippingFee(boxId)), 'id->"createShippingFeeForm") {
     @inputText(myForm("feeId"), 'type -> "hidden", '_showConstraints -> false)(
       helper.FieldConstructor(simpleField.f), implicitly
     )

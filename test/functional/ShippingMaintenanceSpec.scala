@@ -86,6 +86,22 @@ class ShippingMaintenanceSpec extends Specification {
             rec.boxName === "BoxName"
           }
         }
+
+        // Creating with the same site and item class will cause duplicated error.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.startCreateShippingBox().url + "?lang=" + lang.code
+        )
+        
+        browser.title === Messages("createNewShippingBoxTitle")
+        browser.find("#siteId").find("option[value=\"" + site2.id.get + "\"]").click()
+
+        browser.fill("#itemClass").`with`("1")
+        browser.fill("#boxSize").`with`("3")
+        browser.fill("#boxName").`with`("BoxName2")
+        browser.find("#createNewShippingBoxForm").find("input[type='submit']").click
+
+        browser.find(".globalErrorMessage").getText === Messages("inputError")
+        browser.find("#itemClass_field").find("dd.error").getText === Messages("duplicatedItemClass")
       }}      
     }
 
@@ -259,8 +275,58 @@ class ShippingMaintenanceSpec extends Specification {
         )
 
         browser.title === Messages("shippingFeeMaintenanceTitle")
-        
+        browser.find(".shippingFeeList").find(".body", 0).find(".delete").find("button").click
 
+        // Dialog should be shown.
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        // Cancel
+        browser.find(".ui-dialog-buttonset").find("button", 1).click()
+        browser.find(".shippingFeeList").find(".body").getTexts.size === 2
+
+        browser.find(".shippingFeeList").find(".body", 0).find(".delete").find("button").click
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        // do removal
+        browser.find(".ui-dialog-buttonset").find("button", 0).click()
+        browser.find(".shippingFeeList").find(".body").getTexts.size === 1
+      }}
+    }
+
+    "Create fee record" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val box1 = ShippingBox.createNew(site1.id.get, 1, 2, "box1")
+        
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        browser.find("#createShippingFeeEntryButton").click()
+        
+        // No prefectures are checked.
+        browser.find("input:not(:checked)[type='checkbox']").getTexts.size === JapanPrefecture.all.length
+
+        // Check Tokyo and Kanagawa.
+        browser.find("input[type='checkbox'][value='" + JapanPrefecture.東京都.code + "']").click()
+        browser.find("input[type='checkbox'][value='" + JapanPrefecture.神奈川県.code + "']").click()
+        browser.find("#createShippingFeeForm").find("input[type='submit']").click
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+
+        doWith(browser.find(".shippingFeeList").find(".body", 0)) { e =>
+          e.find(".country").getText === Messages("country.JPN")
+          e.find(".prefecture").getText === JapanPrefecture.東京都.toString
+          e.find(".shippingFee").getText === "-"
+        }
+
+        doWith(browser.find(".shippingFeeList").find(".body", 1)) { e =>
+          e.find(".country").getText === Messages("country.JPN")
+          e.find(".prefecture").getText === JapanPrefecture.神奈川県.toString
+          e.find(".shippingFee").getText === "-"
+        }
       }}
     }
   }

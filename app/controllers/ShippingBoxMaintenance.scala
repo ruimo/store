@@ -10,6 +10,7 @@ import play.api.db.DB
 import play.api.i18n.Messages
 import play.api.Play.current
 import models.CreateShippingBox
+import play.api.i18n.Lang
 
 object ShippingBoxMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createShippingBoxForm = Form(
@@ -46,18 +47,31 @@ object ShippingBoxMaintenance extends Controller with I18nAware with NeedLogin w
   }}
 
   def createNewShippingBox = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    createShippingBoxForm.bindFromRequest.fold(
+    val form = createShippingBoxForm.bindFromRequest
+
+    form.fold(
       formWithErrors => {
-        logger.error("Validation error in ShippingBoxMaintenance.createNewShippingBox.")
+        logger.error("Validation error in ShippingBoxMaintenance.createNewShippingBox. " + formWithErrors)
         DB.withConnection { implicit conn =>
           BadRequest(views.html.admin.createNewShippingBox(formWithErrors, Site.tableForDropDown))
         }
       },
       newShippingBox => DB.withConnection { implicit conn =>
-        newShippingBox.save
-        Redirect(
-          routes.ShippingBoxMaintenance.startCreateShippingBox
-        ).flashing("message" -> Messages("shippingBoxIsCreated"))
+        try {
+          newShippingBox.save
+
+          Redirect(
+            routes.ShippingBoxMaintenance.startCreateShippingBox
+          ).flashing("message" -> Messages("shippingBoxIsCreated"))
+        }
+        catch {
+          case e: UniqueConstraintException =>
+            BadRequest(
+              views.html.admin.createNewShippingBox(
+                form.withError("itemClass", Messages("duplicatedItemClass")), Site.tableForDropDown
+              )
+            )
+        }
       }
     )
   }}
