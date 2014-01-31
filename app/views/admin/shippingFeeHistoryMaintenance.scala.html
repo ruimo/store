@@ -53,7 +53,8 @@ var removeHistory = function(id) {
                 helper.FieldConstructor(simpleField.f), implicitly
               )
 
-              <button type="button" onclick="removeHistory(@his("historyId").value.map(_.toLong).getOrElse(0));">
+              <button type="button" class="removeHistoryButton"
+                      onclick="removeHistory(@his("historyId").value.map(_.toLong).getOrElse(0));">
                 @Messages("remove")
               </button>
             </td>
@@ -87,7 +88,7 @@ var removeHistory = function(id) {
 
         <tr>
           <td colspan="4">
-            <input style="float: right;" type="submit" value=@Messages("update")>
+            <input id="updateShippingFeeHistoryButton" style="float: right;" type="submit" value=@Messages("update")>
           </td>
         </tr>
       }
@@ -124,7 +125,7 @@ var removeHistory = function(id) {
 
         <tr>
           <td colspan="4">
-            <input style="float: right;" type="submit" value=@Messages("add")>
+            <input id="addShippingFeeHistoryButton" style="float: right;" type="submit" value=@Messages("add")>
           </td>
         </tr>
       }
