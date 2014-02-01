@@ -242,3 +242,4 @@ removeShippingFeeTitle=Remove shipping fee
 shippingBoxIsRemoved=Shipping box is remove
 removeShippingFee=Remove {1} of {0}'s shipping fee to {2}. Are you sure?
 duplicatedItemClass=This item class is already used in this store.
+csvDownload=Download as CSV

@@ -20,7 +20,7 @@ import play.api.test.FakeApplication
 
 class ShippingMaintenanceSpec extends Specification {
   "Shipping fee maintenance" should {
-    "Validation error in creating shipping box" in {
+    "Should occur validation error in creating shipping box" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -105,7 +105,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}      
     }
 
-    "Edit without records" in {
+    "Can edit without records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -119,7 +119,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}
     }
 
-    "Edit with some records" in {
+    "Can edit with some records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -154,7 +154,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}
     }
 
-    "Edit one box record with validation error" in {
+    "Can edit one box record with validation error" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -203,7 +203,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}
     }
 
-    "Fee maintenance without records" in {
+    "Can maintenance fee without records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -224,7 +224,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}
     }
 
-    "Fee maintenance with records" in {
+    "Can maintenance fee with records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -259,7 +259,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}
     }
 
-    "Remove fee record" in {
+    "Can remove fee record" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -291,7 +291,7 @@ class ShippingMaintenanceSpec extends Specification {
       }}
     }
 
-    "Create fee record" in {
+    "Can create fee record" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -327,6 +327,131 @@ class ShippingMaintenanceSpec extends Specification {
           e.find(".prefecture").getText === JapanPrefecture.神奈川県.toString
           e.find(".shippingFee").getText === "-"
         }
+      }}
+    }
+
+    "Show validation error when adding fee" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val box1 = ShippingBox.createNew(site1.id.get, 1, 2, "box1")
+        val fee1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.北海道.code)
+        val fee2 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+        val tax1 = Tax.createNew
+        val taxName1 = TaxName.createNew(tax1, LocaleInfo.Ja, "tax01")
+        val tax2 = Tax.createNew
+        val taxName2 = TaxName.createNew(tax2, LocaleInfo.Ja, "tax02")
+        
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        // Edit fee for tokyo.
+        browser.find(".shippingFeeList").find(".body", 0).find(".edit").find("a").click
+
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        doWith(browser.find(".shippingFeeHistory").find(".body")) { rec =>
+          rec.find(".boxName").getText === "box1"
+          rec.find(".country").getText === "日本"
+          rec.find(".prefecture").getText === "北海道"
+        }
+        
+        browser.find("#taxId").find("option", 0).getText === "tax01"
+        browser.find("#taxId").find("option", 1).getText === "tax02"
+
+        browser.find("#addShippingFeeHistoryButton").click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).until("#fee_field").areDisplayed()
+        browser.find("#fee_field").find(".error").getText === Messages("error.number")
+        browser.find("#validUntil_field").find(".error").getText === Messages("error.date")
+      }}
+    }
+
+    "Can add, edit, delete fee" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val box1 = ShippingBox.createNew(site1.id.get, 1, 2, "box1")
+        val fee1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.北海道.code)
+        val fee2 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+        val tax1 = Tax.createNew
+        val taxName1 = TaxName.createNew(tax1, LocaleInfo.Ja, "tax01")
+        val tax2 = Tax.createNew
+        val taxName2 = TaxName.createNew(tax2, LocaleInfo.Ja, "tax02")
+        
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        // Edit fee for tokyo.
+        browser.find(".shippingFeeList").find(".body", 0).find(".edit").find("a").click
+
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        doWith(browser.find(".shippingFeeHistory").find(".body")) { rec =>
+          rec.find(".boxName").getText === "box1"
+          rec.find(".country").getText === "日本"
+          rec.find(".prefecture").getText === "北海道"
+        }
+        
+        browser.find("#taxId").find("option", 1).click()
+        browser.fill("#fee").`with`("123")
+        browser.fill("#validUntil").`with`("2015-01-23 11:22:33")
+
+        browser.find("#addShippingFeeHistoryButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.webDriver.findElement(By.id("histories_0__taxId")).findElement(
+          By.cssSelector("option[value='" + tax2.id.get + "']")
+        ).isSelected === true
+        browser.find("#histories_0__fee").getAttribute("value") === "123.00"
+        browser.find("#histories_0__validUntil").getAttribute("value") === "2015-01-23 11:22:33"
+
+        // Can change history.
+        browser.find("#histories_0__taxId").find("option[value='" + tax1.id.get + "']").click()
+        browser.fill("#histories_0__fee").`with`("234")
+        browser.fill("#histories_0__validUntil").`with`("2016-01-23 22:33:44")
+        browser.find("#updateShippingFeeHistoryButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        
+        browser.webDriver.findElement(By.id("histories_0__taxId")).findElement(
+          By.cssSelector("option[value='" + tax1.id.get + "']")
+        ).isSelected === true
+        browser.find("#histories_0__fee").getAttribute("value") === "234.00"
+        browser.find("#histories_0__validUntil").getAttribute("value") === "2016-01-23 22:33:44"
+
+        // Check fee history.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
+        )
+        browser.title === Messages("shippingFeeMaintenanceTitle")
+        doWith(browser.find(".shippingFeeList").find(".body", 0)) { e =>
+          e.find(".country").getText === Messages("country.JPN")
+          e.find(".prefecture").getText === JapanPrefecture.北海道.toString
+          e.find(".shippingFee").getText === "234円"
+        }
+
+        // Delete fee history.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.editHistory(fee1.id.get).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.find("button.removeHistoryButton").getTexts.size === 1
+        browser.find("button.removeHistoryButton").click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.find("button.removeHistoryButton").getTexts.size === 0
       }}
     }
   }

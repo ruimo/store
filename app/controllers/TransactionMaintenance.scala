@@ -176,4 +176,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       NotificationMail.shipCanceled(loginSession, siteId, tran, address, status, transporters)
     }
   }
+
+  def downloadCsv(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    Ok("")
+  }}
 }

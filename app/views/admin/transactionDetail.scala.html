@@ -18,6 +18,8 @@
 } {
   <h1 class="title">@Messages("transactionDetailTitle")</h1>
 
+  <a href="@routes.TransactionMaintenance.downloadCsv(tranSummary.transactionId, tranSummary.transactionSiteId)"
+     class="csvDownload">@Messages("csvDownload")</a>
   <table class="transactionDetailTable" border="0">
     <tr class="transactionDetailHeader">
       <th>@Messages("itemName")</th>
