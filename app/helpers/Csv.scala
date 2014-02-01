@@ -7,7 +7,7 @@ class Csv(fieldNames: List[String]) {
   val header = fieldNames.map(CsvField.toField).mkString(",")
 
   def createWriter(writer: Writer): CsvWriter = {
-    writer.write(header)
+    writer.write(header + "\r\n")
     createWriterWithoutHeader(writer)
   }
 
@@ -18,8 +18,16 @@ class CsvWriter(writer: Writer) {
   def print(record: String*): CsvWriter = printSeq(record)
 
   def printSeq(record: Seq[String]): CsvWriter = {
-    writer.write(record.map(CsvField.toField).mkString(","))
+    writer.write(record.map(CsvField.toField).mkString(",") + "\r\n")
     this
+  }
+
+  def flush() {
+    writer.flush()
+  }
+
+  def close() {
+    writer.close()
   }
 }
 

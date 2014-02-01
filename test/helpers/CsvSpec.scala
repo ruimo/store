@@ -14,6 +14,9 @@ class CsvSpec extends Specification {
       val writer = new StringWriter
       val csv = new Csv("A", "B,C")
       val csvWriter = csv.createWriter(writer)
+      csvWriter.print("12", "2\r\n3")
+      csvWriter.close()
+      writer.toString === "A,\"B,C\"\r\n12,\"2\r\n3\"\r\n"
     }
   }
 }
