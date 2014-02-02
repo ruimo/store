@@ -16,6 +16,7 @@ import java.io.{StringWriter, ByteArrayInputStream}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.MimeTypes
 import play.api.http.ContentTypes
+import views.csv.{TransactionDetailBodyCsv, TransactionDetailCsv}
 
 object TransactionMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val changeStatusForm = Form(
@@ -189,26 +190,11 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       )
     }
     val writer = new StringWriter
-    val csvWriter = new Csv(
-      Messages("csv.tran.detail.id"),
-      Messages("csv.tran.detail.date"),
-      Messages("csv.tran.detail.shippingDate"),
-      Messages("csv.tran.detail.itemName"),
-      Messages("csv.tran.detail.quantity"),
-      Messages("csv.tran.detail.amount")
-    ).createWriter(writer)
-    details.foreach { e =>
-      csvWriter.print(
-        tranId.toString,
-        Messages("csv.tran.detail.date.format").format(entry.transactionTime),
-        Messages("csv.tran.detail.shippingDate.format").format(entry.shippingDate),
-        e.itemName,
-        e.quantity.toString,
-        e.unitPrice.toString
-      )
-    }
+    val csvWriter = TransactionDetailCsv.instance.createWriter(writer)
+    val csvDetail = new TransactionDetailBodyCsv(csvWriter)
+    details.foreach { detail =>  csvDetail.print(tranId, entry, detail) }
 
-    val stream = new ByteArrayInputStream(writer.toString.getBytes("UTF-16BE"))
+    val stream = new ByteArrayInputStream(writer.toString.getBytes("Windows-31j"))
     val fileName = "tranDetail" + tranId + "-" + tranSiteId + ".csv"
 
     SimpleResult(
