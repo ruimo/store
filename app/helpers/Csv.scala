@@ -4,11 +4,11 @@ import java.io.Writer
 
 class Csv(fieldNames: List[String]) {
   def this(fieldNames: String*) = this(fieldNames.toList)
-  val header = fieldNames.map(CsvField.toField).mkString(",")
 
   def createWriter(writer: Writer): CsvWriter = {
-    writer.write(header)
-    createWriterWithoutHeader(writer)
+    val csvWriter = createWriterWithoutHeader(writer)
+    csvWriter.printSeq(fieldNames)
+    csvWriter
   }
 
   def createWriterWithoutHeader(writer: Writer): CsvWriter = new CsvWriter(writer)
@@ -19,6 +19,7 @@ class CsvWriter(writer: Writer) {
 
   def printSeq(record: Seq[String]): CsvWriter = {
     writer.write(record.map(CsvField.toField).mkString(","))
+    writer.append("\r\n")
     this
   }
 }

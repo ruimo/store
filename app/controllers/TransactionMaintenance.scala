@@ -6,12 +6,16 @@ import play.api.data.validation.Constraints._
 import models._
 import play.api.data.Form
 import controllers.I18n.I18nAware
-import play.api.mvc.Controller
+import play.api.mvc.{ResponseHeader, SimpleResult, Controller}
 import play.api.db.DB
 import play.api.i18n.Messages
 import play.api.Play.current
 import scala.collection.immutable.LongMap
-import helpers.NotificationMail
+import helpers.{Csv, NotificationMail}
+import java.io.{StringWriter, ByteArrayInputStream}
+import play.api.libs.iteratee.Enumerator
+import play.api.libs.MimeTypes
+import play.api.http.ContentTypes
 
 object TransactionMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val changeStatusForm = Form(
@@ -178,6 +182,45 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   }
 
   def downloadCsv(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    Ok("")
+    val (entry, details) = DB.withConnection { implicit conn =>
+      (
+        TransactionSummary.get(login.siteUser, tranSiteId).get,
+        TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), login.siteUser)
+      )
+    }
+    val writer = new StringWriter
+    val csvWriter = new Csv(
+      Messages("csv.tran.detail.id"),
+      Messages("csv.tran.detail.date"),
+      Messages("csv.tran.detail.shippingDate"),
+      Messages("csv.tran.detail.itemName"),
+      Messages("csv.tran.detail.quantity"),
+      Messages("csv.tran.detail.amount")
+    ).createWriter(writer)
+    details.foreach { e =>
+      csvWriter.print(
+        tranId.toString,
+        Messages("csv.tran.detail.date.format").format(entry.transactionTime),
+        Messages("csv.tran.detail.shippingDate.format").format(entry.shippingDate),
+        e.itemName,
+        e.quantity.toString,
+        e.unitPrice.toString
+      )
+    }
+
+    val stream = new ByteArrayInputStream(writer.toString.getBytes("UTF-16BE"))
+    val fileName = "tranDetail" + tranId + "-" + tranSiteId + ".csv"
+
+    SimpleResult(
+      header = ResponseHeader(
+        OK,
+        Map(
+          CONTENT_LENGTH -> "-1",
+          CONTENT_TYPE -> MimeTypes.forFileName(fileName).getOrElse(ContentTypes.BINARY),
+          CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
+        )
+      ),
+      body = Enumerator.fromStream(stream)
+    )
   }}
 }

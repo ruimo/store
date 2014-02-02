@@ -5,15 +5,12 @@ import java.io.StringWriter
 
 class CsvSpec extends Specification {
   "Csv" should {
-    "Has header" in {
-      val csv = new Csv("A", "B,C")
-      csv.header === "A,\"B,C\""
-    }
-
     "Can write csv." in {
       val writer = new StringWriter
       val csv = new Csv("A", "B,C")
       val csvWriter = csv.createWriter(writer)
+      csvWriter.print("1", "2")
+      writer.toString === "A,\"B,C\"\r\n1,2\r\n"
     }
   }
 }
