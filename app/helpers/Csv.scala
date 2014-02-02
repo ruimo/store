@@ -22,6 +22,14 @@ class CsvWriter(writer: Writer) {
     writer.append("\r\n")
     this
   }
+
+  def flush() {
+    writer.flush()
+  }
+
+  def close() {
+    writer.close()
+  }
 }
 
 object CsvField {
