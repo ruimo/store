@@ -279,5 +279,7 @@ csv.tran.detail.shippingDate=配送希望日
 csv.tran.detail.itemName=商品
 csv.tran.detail.quantity=数量
 csv.tran.detail.amount=金額
+csv.tran.detail.costPrice=原価
 csv.tran.detail.date.format=%1$tY/%1$tm/%1$td
 csv.tran.detail.shippingDate.format=%1$tY/%1$tm/%1$td
+costPrice=原価

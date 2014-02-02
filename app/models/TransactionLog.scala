@@ -59,7 +59,8 @@ case class TransactionLogItem(
   itemId: Long,
   itemPriceHistoryId: Long,
   quantity: Long,
-  amount: BigDecimal
+  amount: BigDecimal,
+  costPrice: BigDecimal
 ) extends NotNull
 
 case class ShippingInfo(
@@ -389,22 +390,24 @@ object TransactionLogItem {
     SqlParser.get[Long]("transaction_item.item_id") ~
     SqlParser.get[Long]("transaction_item.item_price_history_id") ~
     SqlParser.get[Int]("transaction_item.quantity") ~
-    SqlParser.get[java.math.BigDecimal]("transaction_item.amount") map {
-      case id~tranSiteId~itemId~priceHistoryId~quantity~amount =>
-        TransactionLogItem(id, tranSiteId, itemId, priceHistoryId, quantity, amount)
+    SqlParser.get[java.math.BigDecimal]("transaction_item.amount") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_item.cost_price") map {
+      case id~tranSiteId~itemId~priceHistoryId~quantity~amount~costPrice =>
+        TransactionLogItem(id, tranSiteId, itemId, priceHistoryId, quantity, amount, costPrice)
     }
   }
 
   def createNew(
-    transactionSiteId: Long, itemId: Long, itemPriceHistoryId: Long, quantity: Long, amount: BigDecimal
+    transactionSiteId: Long, itemId: Long, itemPriceHistoryId: Long, quantity: Long, amount: BigDecimal,
+    costPrice: BigDecimal
   )(implicit conn: Connection): TransactionLogItem = {
     SQL(
       """
       insert into transaction_item (
-        transaction_item_id, transaction_site_id, item_id, item_price_history_id, quantity, amount
+        transaction_item_id, transaction_site_id, item_id, item_price_history_id, quantity, amount, cost_price
       ) values (
         (select nextval('transaction_item_seq')),
-        {transactionSiteId}, {itemId}, {itemPriceHistoryId}, {quantity}, {amount}
+        {transactionSiteId}, {itemId}, {itemPriceHistoryId}, {quantity}, {amount}, {costPrice}
       )
       """
     ).on(
@@ -412,12 +415,13 @@ object TransactionLogItem {
       'itemId -> itemId,
       'itemPriceHistoryId -> itemPriceHistoryId,
       'quantity -> quantity,
-      'amount -> amount.bigDecimal
+      'amount -> amount.bigDecimal,
+      'costPrice -> costPrice.bigDecimal
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogItem(Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount)
+    TransactionLogItem(Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogItem] =
@@ -746,6 +750,7 @@ object TransactionSummary {
 case class TransactionDetail(
   itemName: String,
   unitPrice: BigDecimal,
+  costPrice: BigDecimal,
   quantity: Int,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
@@ -757,10 +762,11 @@ object TransactionDetail {
     SqlParser.get[String]("item_name.item_name") ~
     SqlParser.get[Int]("transaction_item.quantity") ~
     SqlParser.get[java.math.BigDecimal]("transaction_item.amount") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_item.cost_price") ~
     SqlParser.get[Long]("transaction_item.item_id") ~
     SqlParser.get[Long]("transaction_site.site_id") map {
-      case name~quantity~amount~itemId~siteId => (
-        name, BigDecimal(amount) / quantity, quantity, itemId, siteId
+      case name~quantity~amount~costPrice~itemId~siteId => (
+        name, BigDecimal(amount) / quantity, costPrice, quantity, itemId, siteId
       )
     }
   }
@@ -788,10 +794,10 @@ object TransactionDetail {
     ).as(
       parser *
     ).map { e =>
-      val metadata = ItemNumericMetadata.allById(e._4)
-      val textMetadata = ItemTextMetadata.allById(e._4)
-      val siteMetadata = SiteItemNumericMetadata.all(e._5, e._4)
-      TransactionDetail(e._1, e._2, e._3, metadata, siteMetadata, textMetadata)
+      val metadata = ItemNumericMetadata.allById(e._5)
+      val textMetadata = ItemTextMetadata.allById(e._5)
+      val siteMetadata = SiteItemNumericMetadata.all(e._6, e._5)
+      TransactionDetail(e._1, e._2, e._3, e._4, metadata, siteMetadata, textMetadata)
     }
   }
 }
@@ -865,7 +871,7 @@ class TransactionPersister {
     tran.itemTotal.table.foreach { e =>
       TransactionLogItem.createNew(
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
-        e.quantity, e.itemPrice
+        e.quantity, e.itemPrice, e.costPrice
       )
     }
   }

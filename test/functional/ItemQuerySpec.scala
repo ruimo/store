@@ -53,7 +53,7 @@ class ItemQuerySpec extends Specification {
         val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHistory = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
         )
         
         browser.goTo(
@@ -123,7 +123,7 @@ class ItemQuerySpec extends Specification {
         val itemDesc = ItemDescription.createNew(item, site, "松 常緑")
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHistory = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
         )
         
         // Search by two conditions name

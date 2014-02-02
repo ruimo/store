@@ -238,6 +238,11 @@
       )
     </td>
     <td>
+      @inputText(field("costPrice"))(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+    <td>
       @inputText(field("validUntil"))(
         helper.FieldConstructor(simpleField.f), implicitly
       )
@@ -524,6 +529,7 @@
         <th>@Messages("tax")</th>
         <th>@Messages("currency")</th>
         <th>@Messages("price")</th>
+        <th>@Messages("costPrice")</th>
         <th>@Messages("validUntil")</th>
       </tr>
 
@@ -576,6 +582,13 @@
         <td>
           @inputText(
             c.newItemPriceForm("itemPrice")
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newItemPriceForm("costPrice")
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )

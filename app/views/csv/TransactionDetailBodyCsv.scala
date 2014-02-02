@@ -16,7 +16,8 @@ class TransactionDetailBodyCsv(csvWriter: CsvWriter) {
       Messages("csv.tran.detail.shippingDate.format").format(tranSummary.shippingDate),
       detail.itemName,
       detail.quantity.toString,
-      detail.unitPrice.toString
+      detail.unitPrice.toString,
+      detail.costPrice.toString
     )
   }
 }

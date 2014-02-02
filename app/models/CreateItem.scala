@@ -6,7 +6,7 @@ import java.sql.Connection
 
 case class CreateItem(
   localeId: Long, siteId: Long, categoryId: Long, itemName: String, taxId: Long, 
-  currencyId: Long, price: BigDecimal, description: String
+  currencyId: Long, price: BigDecimal, costPrice: BigDecimal, description: String
 ) {
   def save()(implicit conn: Connection) {
     Item.createItem(this)

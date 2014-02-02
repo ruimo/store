@@ -10,6 +10,7 @@ object TransactionDetailCsv {
     Messages("csv.tran.detail.shippingDate"),
     Messages("csv.tran.detail.itemName"),
     Messages("csv.tran.detail.quantity"),
-    Messages("csv.tran.detail.amount")
+    Messages("csv.tran.detail.amount"),
+    Messages("csv.tran.detail.costPrice")
   )
 }
