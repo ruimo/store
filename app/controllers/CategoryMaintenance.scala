@@ -116,5 +116,21 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
       //val pathTree = categoryChildren(Category.root,locale)
       Ok(Json.toJson(pathTree))
     }}
-  }}  
+  }}
+
+  def moveCategory(categoryId: Long, parentCategoryId: Option[Long]) = isAuthenticated { implicit login => 
+    forSuperUser { implicit request =>
+      try {
+        DB.withConnection { implicit conn => 
+          Category.move(
+            Category.get(categoryId).get, 
+            parentCategoryId map {Category.get(_).get}
+          )
+        }
+        Ok
+      } catch {
+        case e => BadRequest
+      }
+    }
+  }
 }
