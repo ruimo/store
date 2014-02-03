@@ -2,6 +2,7 @@ package models
 
 import play.api.db.DB
 import play.api.Play.current
+import java.sql.Connection
 
 case class ChangeSiteItemTable(
   sites: Seq[ChangeSiteItem]
@@ -10,12 +11,10 @@ case class ChangeSiteItemTable(
 case class ChangeSiteItem(
   siteId: Long
 ) {
-  def add(itemId: Long) {
+  def add(itemId: Long)(implicit conn: Connection) {
     ExceptionMapper.mapException {
-      DB.withTransaction { implicit conn =>
-        SiteItem.add(itemId, siteId)
-        ItemPrice.add(itemId, siteId)
-      }
+      SiteItem.add(itemId, siteId)
+      ItemPrice.add(itemId, siteId)
     }
   }
 }

@@ -113,6 +113,10 @@ object ShippingBox {
     }
   }
 
+  val withSite = Site.simple ~ simple map {
+    case site~shippingBox => (site, shippingBox)
+  }
+
   def createNew(
     siteId: Long, itemClass: Long, boxSize: Int, boxName: String
   )(implicit conn: Connection): ShippingBox = {
@@ -135,6 +139,30 @@ object ShippingBox {
     ShippingBox(Id(id), siteId, itemClass, boxSize, boxName)
   }
 
+  def apply(id: Long)(implicit conn: Connection): ShippingBox =
+    SQL(
+      """
+      select * from shipping_box where shipping_box_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
+  def getWithSite(id: Long)(implicit conn: Connection): Option[(Site, ShippingBox)] =
+    SQL(
+      """
+      select * from shipping_box
+      inner join site on site.site_id = shipping_box.site_id
+      where shipping_box_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      withSite.singleOpt
+    )
+
   def apply(siteId: Long, itemClass: Long)(implicit conn: Connection): ShippingBox =
     SQL(
       """
@@ -150,13 +178,71 @@ object ShippingBox {
   def list(siteId: Long)(implicit conn: Connection): Seq[ShippingBox] =
     SQL(
       """
-      select * fromo shipping_box where siteId = {siteId} order by itemClass
+      select * from shipping_box where site_id = {siteId} order by item_class
       """
     ).on(
       'siteId -> siteId
     ).as(
       simple *
     )
+
+  def list(implicit conn: Connection): Seq[(Site, ShippingBox)] =
+    SQL(
+      """
+      select * from shipping_box
+      inner join site on site.site_id = shipping_box.site_id
+      order by site.site_name, item_class
+      """
+    ).as(
+      withSite *
+    )
+
+  def update(
+    id: Long,
+    siteId: Long,
+    itemClass: Long,
+    boxSize: Int,
+    boxName: String
+  ) (
+    implicit conn: Connection
+  ) {
+    SQL(
+      """
+      update shipping_box
+      set site_id = {siteId},
+        item_class = {itemClass},
+        box_size = {boxSize},
+        box_name = {boxName}
+      where shipping_box_id = {id}
+      """
+    ).on(
+      'id -> id,
+      'siteId -> siteId,
+      'itemClass -> itemClass,
+      'boxSize -> boxSize,
+      'boxName -> boxName
+    ).executeUpdate()
+  }
+
+  def removeWithChildren(boxId: Long)(implicit conn: Connection) {
+    // Histories will be cascade deleted.
+
+    SQL(
+      """
+      delete from shipping_fee where shipping_box_id = {boxId}
+      """
+    ).on(
+      'boxId -> boxId
+    ).executeUpdate()
+
+    SQL(
+      """
+      delete from shipping_box where shipping_box_id = {boxId}
+      """
+    ).on(
+      'boxId -> boxId
+    ).executeUpdate()
+  }
 }
 
 object ShippingFee {
@@ -168,6 +254,21 @@ object ShippingFee {
       case id~shippingBoxId~countryCode~locationCode =>
         ShippingFee(id, shippingBoxId, CountryCode.byIndex(countryCode), locationCode)
     }
+  }
+
+  def apply(id: Long)(implicit conn: Connection): ShippingFee =
+    SQL(
+      """
+      select * from shipping_fee where shipping_fee_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).as(
+      simple.single
+    )
+
+  val withHistory = simple ~ (ShippingFeeHistory.simple ?) map {
+    case fee~feeHistory => (fee, feeHistory)
   }
 
   def createNew(
@@ -210,6 +311,62 @@ object ShippingFee {
     ).as(
       simple.single
     )
+
+  def listWithHistory(
+    boxId: Long, now: Long
+  )(implicit conn: Connection): Seq[(ShippingFee, Option[ShippingFeeHistory])] =
+    SQL(
+      """
+      select * from shipping_fee sf
+      left join shipping_fee_history sfh on sf.shipping_fee_id = sfh.shipping_fee_id
+      where (sfh.valid_until > {now} or sfh.valid_until is null)
+      and sf.shipping_box_id = {boxId}
+      and not exists (
+        select * from shipping_fee_history sfh2
+        where sf.shipping_fee_id = sfh2.shipping_fee_id
+        and sfh2.valid_until > {now}
+        and sfh2.valid_until < sfh.valid_until
+      )
+      order by sf.shipping_fee_id, sf.country_code, sf.location_code
+      """
+    ).on(
+      'now -> new java.sql.Timestamp(now),
+      'boxId -> boxId
+    ).as(
+      withHistory *
+    )
+
+  def list(boxId: Long, countryCode: CountryCode)(implicit conn: Connection): Seq[ShippingFee] =
+    SQL(
+      """
+      select * from shipping_fee
+      where shipping_box_id = {boxId}
+      and country_code = {countryCode}
+      """
+    ).on(
+      'boxId -> boxId,
+      'countryCode -> countryCode.code
+    ).as(
+      simple *
+    )
+
+  def removeWithHistories(feeId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from shipping_fee_history where shipping_fee_id = {feeId}
+      """
+    ).on(
+      'feeId -> feeId
+    ).executeUpdate()
+
+    SQL(
+      """
+      delete from shipping_fee where shipping_fee_id = {feeId}
+      """
+    ).on(
+      'feeId -> feeId
+    ).executeUpdate()
+  }
 }
 
 object ShippingFeeHistory {
@@ -221,6 +378,47 @@ object ShippingFeeHistory {
     SqlParser.get[java.util.Date]("shipping_fee_history.valid_until") map {
       case id~feeId~taxId~fee~validUntil => ShippingFeeHistory(id, feeId, taxId, fee, validUntil.getTime)
     }
+  }
+
+  def apply(id: Long)(implicit conn: Connection): ShippingFeeHistory = SQL(
+    """
+    select * from shipping_fee_history
+    where shipping_fee_history_id = {id}
+    """
+  ).on(
+    'id -> id
+  ).as(
+    simple.single
+  )
+
+  def update(
+    historyId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
+  )(implicit conn: Connection) {
+    SQL(
+      """
+      update shipping_fee_history
+      set tax_id = {taxId},
+        fee = {fee},
+        valid_until = {validUntil}
+      where shipping_fee_history_id = {historyId}
+      """
+    ).on(
+      'historyId -> historyId,
+      'taxId -> taxId,
+      'fee -> fee.bigDecimal,
+      'validUntil -> new java.sql.Timestamp(validUntil)
+    ).executeUpdate()
+  }
+
+  def remove(id: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from shipping_fee_history
+      where shipping_fee_history_id = {id}
+      """
+    ).on(
+      'id -> id
+    ).executeUpdate()
   }
 
   def createNew(

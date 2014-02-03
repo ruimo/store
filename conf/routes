@@ -41,16 +41,16 @@ POST    /admin/addItemDescription        controllers.ItemMaintenance.addItemDesc
 POST    /admin/changeItemDescription     controllers.ItemMaintenance.changeItemDescription(id: Long)
 GET     /admin/removeItemDescription     controllers.ItemMaintenance.removeItemDescription(siteId: Long, itemId: Long, localeId: Long)
 
+POST    /admin/addItemPrice              controllers.ItemMaintenance.addItemPrice(id: Long)
+POST    /admin/changeItemPrice           controllers.ItemMaintenance.changeItemPrice(id: Long)
+GET     /admin/removeItemPrice           controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
+
 GET     /admin/categoryMaintenance       controllers.CategoryMaintenance.index
 GET     /admin/startCreateNewCategory    controllers.CategoryMaintenance.startCreateNewCategory
 POST    /admin/createNewCategory         controllers.CategoryMaintenance.createNewCategory
 GET     /admin/editCategory              controllers.CategoryMaintenance.editCategory(start: Int = 0, size: Int = 10)
 GET     /admin/categoryPathTree          controllers.CategoryMaintenance.categoryPathTree
 POST    /admin/categoryMove				 controllers.CategoryMaintenance.moveCategory(categoryId: Long, parentCategoryId: Option[Long])
-
-POST    /admin/addItemPrice              controllers.ItemMaintenance.addItemPrice(id: Long)
-POST    /admin/changeItemPrice           controllers.ItemMaintenance.changeItemPrice(id: Long)
-GET     /admin/removeItemPrice           controllers.ItemMaintenance.removeItemPrice(itemId: Long, siteId: Long, itemPriceHistoryId: Long)
 
 GET     /admin/siteMaintenance           controllers.SiteMaintenance.index
 GET     /admin/startCreateNewSite        controllers.SiteMaintenance.startCreateNewSite
@@ -96,6 +96,26 @@ POST    /admin/setStatus                 controllers.TransactionMaintenance.setS
 GET     /admin/transactionDetail         controllers.TransactionMaintenance.detail(tranSiteId: Long)
 POST    /admin/entryShippingInfo         controllers.TransactionMaintenance.entryShippingInfo(tranId: Long, tranSiteId: Long)
 POST    /admin/cancelShipping            controllers.TransactionMaintenance.cancelShipping(tranId: Long, tranSiteId: Long)
+GET     /admin/downloadCsv               controllers.TransactionMaintenance.downloadCsv(tranId: Long, tranSiteId: Long)
+
+GET     /admin/shippingBoxMaintenance    controllers.ShippingBoxMaintenance.index
+GET     /admin/startCreateShippingBox    controllers.ShippingBoxMaintenance.startCreateShippingBox
+POST    /admin/createNewShippingBox      controllers.ShippingBoxMaintenance.createNewShippingBox
+GET     /admin/editShippingBox           controllers.ShippingBoxMaintenance.editShippingBox(page: Int ?= 0, pageSize: Int ?= 100)
+GET     /admin/startChangeShippingBox    controllers.ShippingBoxMaintenance.startChangeShippingBox(id: Long)
+POST    /admin/changeShippingBox         controllers.ShippingBoxMaintenance.changeShippingBox
+POST    /admin/removeShippingBox         controllers.ShippingBoxMaintenance.removeShippingBox
+
+GET     /admin/startFeeMentenance        controllers.ShippingFeeMaintenance.startFeeMaintenance
+GET     /admin/startFeeMentenanceNow     controllers.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId: Long)
+GET     /admin/editShippingFeeHistory    controllers.ShippingFeeMaintenance.editHistory(feeId: Long)
+POST    /admin/removeShippingFeeHistory  controllers.ShippingFeeMaintenance.removeHistory
+POST    /admin/changeHistory             controllers.ShippingFeeMaintenance.changeHistory(feeId: Long)
+POST    /admin/addHistory                controllers.ShippingFeeMaintenance.addHistory(feeId: Long)
+POST    /admin/removeHistory             controllers.ShippingFeeMaintenance.removeHistory
+GET     /admin/startCreateShippingFee    controllers.ShippingFeeMaintenance.startCreateShippingFee
+POST    /admin/createShippingFee         controllers.ShippingFeeMaintenance.createShippingFee(boxId: Long)
+POST    /admin/removeFee                 controllers.ShippingFeeMaintenance.removeFee(boxId: Long)
 
 GET     /query                           controllers.ItemQuery.query(q: List[String], page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "item_name.item_name")
 GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(page:Int ?= 0, pageSize:Int ?= 10)

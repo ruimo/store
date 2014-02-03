@@ -1,0 +1,27 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("shippingBoxMaintenanceTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("shippingBoxMaintenanceTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.ShippingBoxMaintenance.startCreateShippingBox()">
+      @Messages("createNewShippingBoxMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.ShippingBoxMaintenance.editShippingBox()">
+      @Messages("editShippingBoxMenu")
+    </a>
+  </div>
+
+  <div class="menuPanel">
+    @admin.backToAdminTop()
+  </div>
+}
+

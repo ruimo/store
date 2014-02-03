@@ -51,6 +51,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "price" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
       "description" -> text.verifying(maxLength(2048))
     ) (CreateItem.apply)(CreateItem.unapply)
   )
@@ -89,7 +90,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItem => {
-        newItem.save()
+        DB.withConnection { implicit conn =>
+          newItem.save()
+        }
         Redirect(
           routes.ItemMaintenance.startCreateNewItem
         ).flashing("message" -> Messages("itemIsCreated"))
@@ -322,7 +325,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItem => {
-        newItem.update(id)
+        DB.withConnection { implicit conn =>
+          newItem.update(id)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(id)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -509,7 +514,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       },
       newSiteItem => {
         try {
-          newSiteItem.add(id)
+          DB.withConnection { implicit conn =>
+            newSiteItem.add(id)
+          }
 
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
@@ -616,10 +623,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItemCategory => {
-        newItemCategory.update(id)
-          Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
-          ).flashing("message" -> Messages("itemIsUpdated"))
+        DB.withConnection { implicit conn =>
+          newItemCategory.update(id)
+        }
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(id)
+        ).flashing("message" -> Messages("itemIsUpdated"))
       }
     )
   }}
@@ -689,7 +698,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newItem => {
-        newItem.update(id)
+        DB.withTransaction { implicit conn =>
+          newItem.update(id)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(id)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -801,6 +812,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           "taxId" -> longNumber,
           "currencyId" -> longNumber,
           "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+          "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
           "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
         ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
       )
@@ -815,6 +827,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
       "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
     ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
   )
@@ -824,7 +837,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       val histories = ItemPriceHistory.listByItemId(itemId).map {
         e => ChangeItemPrice(
           e._1.siteId, e._2.itemPriceId, e._2.id.get, e._2.taxId, 
-          e._2.currency.id, e._2.unitPrice, new DateTime(e._2.validUntil)
+          e._2.currency.id, e._2.unitPrice, e._2.costPrice, new DateTime(e._2.validUntil)
         )
       }.toSeq
 
@@ -867,7 +880,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newPrice => {
-        newPrice.update()
+        DB.withConnection { implicit conn =>
+          newPrice.update()
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(id)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -911,8 +926,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       },
       newHistory => {
         try {
-          newHistory.add(id)
-
+          DB.withConnection { implicit conn =>
+            newHistory.add(id)
+          }
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
           ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1004,7 +1020,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newMetadata => {
-        newMetadata.update(itemId)
+        DB.withTransaction { implicit conn =>
+          newMetadata.update(itemId)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(itemId)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1047,7 +1065,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newMetadata => {
-        newMetadata.update(itemId)
+        DB.withTransaction { implicit conn =>
+          newMetadata.update(itemId)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(itemId)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1090,7 +1110,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         )
       },
       newMetadata => {
-        newMetadata.update(itemId)
+        DB.withConnection { implicit conn =>
+          newMetadata.update(itemId)
+        }
         Redirect(
           routes.ItemMaintenance.startChangeItem(itemId)
         ).flashing("message" -> Messages("itemIsUpdated"))
@@ -1296,7 +1318,9 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       },
       newMetadata => {
         try {
-          newMetadata.add(id)
+          DB.withConnection { implicit conn =>
+            newMetadata.add(id)
+          }
 
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)

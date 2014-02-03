@@ -50,6 +50,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.fill("#itemName").`with`("ItemName01")
         browser.fill("#price").`with`("1234")
+        browser.fill("#costPrice").`with`("2345")
         browser.find("#createNewItemForm").find("input[type='submit']").click
 
         browser.find(".message").getText() === Messages("itemIsCreated")
@@ -61,6 +62,7 @@ class ItemMaintenanceSpec extends Specification {
         itemList.head._3.description === "Description01"
         itemList.head._4.name === "Store01"
         itemList.head._5.unitPrice === BigDecimal("1234")
+        itemList.head._5.costPrice === BigDecimal("2345")
       }}
     }
   }

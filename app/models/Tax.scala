@@ -108,6 +108,19 @@ object TaxName {
     }
   }
 
+  def apply(taxId: Long, locale: LocaleInfo)(implicit conn: Connection): TaxName =
+    SQL(
+      """
+      select * from tax_name
+      where tax_id = {id} and locale_id = {localeId}
+      """
+    ).on(
+      'id -> taxId,
+      'localeId -> locale.id
+    ).as(
+      simple.single
+    )
+
   def createNew(tax: Tax, locale: LocaleInfo, name: String)(implicit conn: Connection): TaxName = {
     SQL(
       """

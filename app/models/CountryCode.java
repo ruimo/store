@@ -1,5 +1,8 @@
 package models;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public enum CountryCode {
     ISL, // Iceland 352 IS
     IRL, // Ireland 372 IE
@@ -252,9 +255,22 @@ public enum CountryCode {
     RUS; // Russian Federation 643 RU
 
     private static final CountryCode byIndex[] = CountryCode.class.getEnumConstants();
+    private static final Map<String, CountryCode> byName = new HashMap<>();
+
+    static {
+        for (CountryCode cc: byIndex) {
+            byName.put(cc.toString(), cc);
+        }
+    }
 
     public static CountryCode byIndex(int index) {
         return byIndex[index];
+    }
+
+    public static CountryCode byName(String name) {
+        CountryCode cc = byName.get(name);
+        if (cc == null) throw new IllegalArgumentException("Name '" + name + "' not found.");
+        return cc;
     }
 
     public int code() {

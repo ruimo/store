@@ -335,5 +335,96 @@ class ShippingSpec extends Specification {
       byType(TaxType.INNER_TAX) === BigDecimal(8 * 34 * 3 / 108)
       byType(TaxType.NON_TAX) === BigDecimal(0)
     }
+
+    "Can list shipping box." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val itemClass1 = 1L
+          val itemClass2 = 2L
+      
+          val box1 = ShippingBox.createNew(
+            site1.id.get, itemClass1, 10, "小箱1"
+          )
+          val box2 = ShippingBox.createNew(
+            site1.id.get, itemClass2, 11, "小箱2"
+          )
+          val box3 = ShippingBox.createNew(
+            site2.id.get, itemClass1, 12, "小箱3"
+          )
+
+          val listBySite1 = ShippingBox.list(site1.id.get)
+          listBySite1.size === 2
+          listBySite1(0) === box1
+          listBySite1(1) === box2
+
+          val listBySite2 = ShippingBox.list(site2.id.get)
+          listBySite2.size === 1
+          listBySite2(0) === box3
+
+          val list = ShippingBox.list
+          list.size === 3
+        }
+      }
+    }
+
+    "Can list shipping fee." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val itemClass1 = 1L
+      
+          val box1 = ShippingBox.createNew(
+            site1.id.get, itemClass1, 10, "小箱1"
+          )
+
+          val fee1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
+          val fee2 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.千葉県.code())
+
+          val tax1 = Tax.createNew
+          val his1 = ShippingFeeHistory.createNew(
+            fee1.id.get, tax1.id.get, BigDecimal("100"), date("2013-12-31").getTime
+          )
+          val his2 = ShippingFeeHistory.createNew(
+            fee1.id.get, tax1.id.get, BigDecimal("200"), date("9999-12-31").getTime
+          )
+
+          val list1 = ShippingFee.listWithHistory(box1.id.get, date("2013-12-30").getTime)
+          list1.size === 2
+          list1(0)._1.shippingBoxId === box1.id.get
+          list1(0)._1.countryCode === CountryCode.JPN
+          list1(0)._1.locationCode === JapanPrefecture.東京都.code()
+          list1(0)._2.get.shippingFeeId === fee1.id.get
+          list1(0)._2.get.taxId === tax1.id.get
+          list1(0)._2.get.fee === BigDecimal("100")
+          list1(0)._2.get.validUntil === date("2013-12-31").getTime
+
+          list1(1)._1.shippingBoxId === box1.id.get
+          list1(1)._1.countryCode === CountryCode.JPN
+          list1(1)._1.locationCode === JapanPrefecture.千葉県.code()
+          list1(1)._2 === None
+
+          val list2 = ShippingFee.listWithHistory(box1.id.get, date("2013-12-31").getTime)
+          list2.size === 2
+          list2(0)._1.shippingBoxId === box1.id.get
+          list2(0)._1.countryCode === CountryCode.JPN
+          list2(0)._1.locationCode === JapanPrefecture.東京都.code()
+          list2(0)._2.get.shippingFeeId === fee1.id.get
+          list2(0)._2.get.taxId === tax1.id.get
+          list2(0)._2.get.fee === BigDecimal("200")
+          list2(0)._2.get.validUntil === date("9999-12-31").getTime
+
+          list2(1)._1.shippingBoxId === box1.id.get
+          list2(1)._1.countryCode === CountryCode.JPN
+          list2(1)._1.locationCode === JapanPrefecture.千葉県.code()
+          list2(1)._2 === None
+        }
+      }
+    }
   }
 }

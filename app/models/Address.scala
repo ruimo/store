@@ -165,7 +165,8 @@ object Address {
       """
     ).on('id -> id).as(simple.single)
 
-  lazy val JapanPrefectures = Enums.toDropdownTable(JapanPrefecture.all)
+  lazy val JapanPrefectures: Seq[(String, String)] = Enums.toDropdownTable(JapanPrefecture.all)
+  lazy val JapanPrefecturesIntSeq: Seq[(Int, String)] = Enums.toTable(JapanPrefecture.all)
 }
 
 object ShippingAddressHistory {

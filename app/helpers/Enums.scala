@@ -10,4 +10,9 @@ object Enums {
     ary.map {
       e => e.ordinal.toString -> e.toString
     }
+
+  def toTable[E <: Enum[E]](ary: Array[E]): Seq[(Int, String)] =
+    ary.map {
+      e => e.ordinal -> e.toString
+    }
 }

@@ -1,0 +1,153 @@
+@(
+  box: ShippingBox,
+  fee: ShippingFee,
+  updateForm: Form[ChangeFeeHistoryTable],
+  addForm: Form[ChangeFeeHistory],
+  taxTable: Seq[(String, String)]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("shippingFeeHistoryMaintenanceTitle"), Some(loginSession)) {
+<script>
+var removeHistory = function(id) {
+  $('#removeHistoryId').val(id);
+  $('#removeHistoryForm').submit();
+};
+</script>
+} {
+  <form id="removeHistoryForm" method="POST" action="@helper.CSRF(routes.ShippingFeeMaintenance.removeHistory)">
+    <input id="removeHistoryId" type="hidden" name="historyId">
+  </form>
+
+  <h1 class="title">@Messages("shippingFeeHistoryMaintenanceTitle")</h1>
+
+  <table class="shippingFeeHistory shippingInfo">
+    <tr class="header">
+      <th class="boxName">@Messages("boxName")</th>
+      <th class="country">@Messages("country")</th>
+      <th class="prefecture">@Messages("prefecture")</th>
+    </tr>
+    <tr class="body">
+      <td class="boxName">@box.boxName</td>
+      <td class="country">@Messages("country." + fee.countryCode)</td>
+      <td class="prefecture">@JapanPrefecture.byIndex(fee.locationCode)</td>
+    </tr>
+
+    <table class="shippingFeeHistory history">
+      <tr class="header">
+        <th></th>
+        <th>@Messages("tax")</th>
+        <th>@Messages("price")</th>
+        <th>@Messages("validUntil")</th>
+      </tr>
+      @form(action = helper.CSRF(routes.ShippingFeeMaintenance.changeHistory(fee.id.get))) {
+        @repeat(updateForm("histories"), min = 0) { his =>
+          <tr>
+            <td>
+              @inputText(his("historyId"), 'type -> "hidden")(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+
+              <button type="button" class="removeHistoryButton"
+                      onclick="removeHistory(@his("historyId").value.map(_.toLong).getOrElse(0));">
+                @Messages("remove")
+              </button>
+            </td>
+            <td>
+              @select(
+                his("taxId"),
+                taxTable,
+                '_showConstraints -> false
+              )(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+            </td>
+    
+            <td>
+              @inputText(
+                his("fee")
+              )(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+            </td>
+    
+            <td>
+              @inputText(
+                his("validUntil")
+              )(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+            </td>
+          </tr>
+        }
+
+        <tr>
+          <td colspan="4">
+            <input id="updateShippingFeeHistoryButton" style="float: right;" type="submit" value=@Messages("update")>
+          </td>
+        </tr>
+      }
+
+      @form(action = helper.CSRF(routes.ShippingFeeMaintenance.addHistory(fee.id.get))) {
+        <tr>
+          <td></td>
+          <td>
+            @select(
+              addForm("taxId"),
+              taxTable,
+              '_showConstraints -> false
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+
+          <td>
+            @inputText(
+              addForm("fee")
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+    
+          <td>
+            @inputText(
+              addForm("validUntil")
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="4">
+            <input id="addShippingFeeHistoryButton" style="float: right;" type="submit" value=@Messages("add")>
+          </td>
+        </tr>
+      }
+    </table>
+  </table>
+
+  <div class="menuPanel">
+    <a class="backLink" href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box.id.get)">
+      @Messages("backTo", Messages("shippingFeeMaintenanceTitle"))
+    </a>
+
+    <br>
+    <a class="backLink" href="@routes.ShippingBoxMaintenance.editShippingBox()">
+      @Messages("backTo", Messages("editShippingBoxTitle"))
+    </a>
+
+    <br>
+    <a class="backLink" href="@routes.ShippingBoxMaintenance.index()">
+      @Messages("backTo", Messages("shippingBoxMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

@@ -76,6 +76,11 @@
       '_label -> Messages("price"), 'size -> 15, 'maxlength -> 15, '_showConstraints -> false
     )
 
+    @helper.inputText(
+      myForm("costPrice"),
+      '_label -> Messages("costPrice"), 'size -> 15, 'maxlength -> 15, '_showConstraints -> false
+    )
+
     @helper.textarea(
       myForm("description"),
       '_label -> Messages("itemDescription"),

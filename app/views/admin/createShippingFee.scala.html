@@ -1,0 +1,35 @@
+@(
+  boxId: Long,
+  myForm: Form[CreateShippingFee],
+  existingLocations: Set[Int],
+  locationTable: Seq[(Int, String)]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("createShippingFeeTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("createShippingFeeTitle")</h1>
+
+  @form(action = helper.CSRF(routes.ShippingFeeMaintenance.createShippingFee(boxId)), 'id->"createShippingFeeForm") {
+    @inputText(myForm("feeId"), 'type -> "hidden", '_showConstraints -> false)(
+      helper.FieldConstructor(simpleField.f), implicitly
+    )
+    @inputText(myForm("countryCode"), 'type -> "hidden", '_showConstraints -> false)(
+      helper.FieldConstructor(simpleField.f), implicitly
+    )
+
+    @locationTable.map { loc =>
+      <input type="checkbox" name="locationCodeTable[@loc._1]" id="option@loc._1"
+             value="@loc._1" @{if(existingLocations.contains(loc._1)) "checked" else ""}>
+      <label for="option@loc._1">@loc._2</label>
+      <br>
+    }
+
+    <input type="submit" value=@Messages("register")>
+  }
+}

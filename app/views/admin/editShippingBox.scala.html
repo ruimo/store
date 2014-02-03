@@ -1,0 +1,91 @@
+@(
+  list: Seq[(Site, ShippingBox)]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("editShippingBoxTitle"), Some(loginSession)) {
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
+<script>
+$(function() {
+  $("#removeBoxDialog").dialog({
+    autoOpen: false,
+    title: '@Messages("removeShippingBoxTitle")',
+    modal: true,
+    buttons: {
+      '@Messages("remove")': function(e) {
+        $('#removeBoxForm').submit();
+        $(this).dialog("close");
+      },
+      '@Messages("cancel")': function(e) {
+        $(this).dialog("close");
+      }
+    }
+  });
+});
+
+var removeBox = function(id, msg) {
+  var dlg = $("#removeBoxDialog");
+  dlg.html(msg);
+  $('#removeBoxId').val(id);
+  dlg.dialog("open")
+};
+</script>
+} {
+<div id="removeBoxDialog">
+</div>
+
+<form id="removeBoxForm" method="POST" action="@helper.CSRF(routes.ShippingBoxMaintenance.removeShippingBox)">
+  <input id="removeBoxId" type="hidden" name="boxId">
+</form>
+
+<h1 class="title">@Messages("editShippingBoxTitle")</h1>
+  @if(! list.isEmpty) {
+  <table class="shippingBoxTable">
+    <tr>
+      <th class="shippingBoxTableHeaderId shippingBoxHeader">id</th>
+      <th class="shippingBoxTableHeaderSite shippingBoxHeader">@Messages("site")</th>
+      <th class="shippingBoxTableHeaderItemClass shippingBoxHeader">@Messages("itemShippingClass")</th>
+      <th class="shippingBoxTableHeaderBoxSize shippingBoxHeader">@Messages("size")</th>
+      <th class="shippingBoxTableHeaderBoxName shippingBoxHeader">@Messages("boxName")</th>
+      <th class="shippingBoxTableHeaderFee shippingBoxHeader"></th>
+    </tr>
+
+    @list.map { e =>
+      <tr class="shippingBoxBody">
+        <td class="shippingBoxTableBodyId">
+          <a href="@routes.ShippingBoxMaintenance.startChangeShippingBox(e._2.id.get)">@e._2.id</a>
+        </td>
+        <td class="shippingBoxTableBodySite">@e._1.name</td>
+        <td class="shippingBoxTableBodyItemClass">@e._2.itemClass</td>
+        <td class="shippingBoxTableBodyBoxSize">@e._2.boxSize</td>
+        <td class="shippingBoxTableBodyBoxName">@e._2.boxName</td>
+        <td>
+          <button type="button" onclick='removeBox(@e._2.id.get, "@Messages("removeShippingBox", e._1.name, e._2.boxName)");'>
+            @Messages("remove")
+          </button>
+          <a href="@routes.ShippingFeeMaintenance.startFeeMaintenanceNow(e._2.id.get)">
+            @Messages("shippingFeeMaintenanceTitle")
+          </a>
+        </td>
+      </tr>
+    }
+  </table>
+  } else {
+    <span class="norecord">@Messages("no.records.found")</span>
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.ShippingBoxMaintenance.index()">
+      @Messages("backTo", Messages("shippingBoxMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}
+

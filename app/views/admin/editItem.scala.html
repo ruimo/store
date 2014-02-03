@@ -35,7 +35,7 @@
 
     @list.map { e =>
     <tr class="itemTableBody">
-      <td class="itemTableItemName"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get)">@e._1.id</a></td>
+      <td class="itemTableItemId"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get)">@e._1.id</a></td>
       <td class="itemTableItemName">@e._2.name</td>
       <td class="itemTableSiteName">@e._4.name</td>
       <td class="itemTablePrice">@amount(e._5.unitPrice)</td>

@@ -116,7 +116,7 @@ class TransactionMaintenanceSpec extends Specification {
         browser.find(".cancelShippingButton").click()
 
         // Dialog should be shown.
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.await().atMost(65, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
         browser.find(".ui-dialog-buttonset").find("button", 0).click()
 
         browser.find(".shippingStatusTable").find(".transporter").getText === "-"
@@ -185,13 +185,13 @@ class TransactionMaintenanceSpec extends Specification {
     val itemPrice3 = ItemPrice.createNew(item3, site1)
     
     val itemPriceHis1 = ItemPriceHistory.createNew(
-      itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal("100"), date("9999-12-31")
+      itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal("100"), BigDecimal("90"), date("9999-12-31")
     )
     val itemPriceHis2 = ItemPriceHistory.createNew(
-      itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal("200"), date("9999-12-31")
+      itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal("200"), BigDecimal("190"), date("9999-12-31")
     )
     val itemPriceHis3 = ItemPriceHistory.createNew(
-      itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal("300"), date("9999-12-31")
+      itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal("300"), BigDecimal("290"), date("9999-12-31")
     )
     
     val shoppingCartItem1 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item1.id.get, 3)

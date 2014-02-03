@@ -370,3 +370,27 @@ tr.userTableBody {
 #loginPanel {
   display:inline-block;
 }
+
+.shippingFeeHistoryDate {
+  margin: 10px;
+}
+
+.shippingFeeHeader {
+  margin: 10px;
+}
+
+.shippingFeeList {
+  margin: 10px;
+}
+
+.newShippingFeeEntry {
+  margin: 10px;
+}
+
+.csvDownload {
+  border-style: solid;
+  border-width: 1px;
+  float: right;
+  padding: 10px;
+  margin: 10px;
+}

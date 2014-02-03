@@ -11,7 +11,9 @@ case class CreateSiteOwner(
   def save(implicit tokenGenerator: TokenGenerator, conn: Connection): (StoreUser, SiteUser) = {
     val salt = tokenGenerator.next
     val hash = PasswordHash.generate(password, salt)
-    val storeUser = StoreUser.create(userName, firstName, middleName, lastName, email, hash, salt, UserRole.NORMAL, Some(companyName))
+    val storeUser = StoreUser.create(
+      userName, firstName, middleName, lastName, email, hash, salt, UserRole.NORMAL, Some(companyName)
+    )
     val siteUser = SiteUser.createNew(storeUser.id.get, siteId)
     (storeUser, siteUser)
   }

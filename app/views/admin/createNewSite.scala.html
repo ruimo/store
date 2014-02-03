@@ -1,5 +1,5 @@
 @(
-myForm: Form[models.CreateSite], langTable: Seq[(String, String)]
+  myForm: Form[models.CreateSite], langTable: Seq[(String, String)]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -52,4 +52,3 @@ myForm: Form[models.CreateSite], langTable: Seq[(String, String)]
     @admin.backToAdminTop()
   </div>
 }
-

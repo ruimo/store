@@ -13,7 +13,8 @@ case class CreateNormalUser(
 
 object CreateNormalUser extends CreateUserObject {
   def fromForm(
-    userName: String, firstName: String, middleName: Option[String], lastName: String, email: String, passwords: (String, String), companyName: String
+    userName: String, firstName: String, middleName: Option[String], lastName: String,
+    email: String, passwords: (String, String), companyName: String
   ): CreateNormalUser =
     CreateNormalUser(userName, firstName, middleName, lastName, email, passwords._1, companyName)
 }

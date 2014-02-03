@@ -2,11 +2,12 @@ package models
 
 import play.api.db.DB
 import play.api.Play.current
+import java.sql.Connection
 
 case class ChangeItemTextMetadataTable(
   itemTextMetadatas: Seq[ChangeItemTextMetadata]
 ) {
-  def update(itemId: Long) {
+  def update(itemId: Long)(implicit conn: Connection) {
     itemTextMetadatas.foreach {
       _.update(itemId)
     }
@@ -16,10 +17,8 @@ case class ChangeItemTextMetadataTable(
 case class ChangeItemTextMetadata(
   metadataType: Int, metadata: String
 ) {
-  def update(itemId: Long) {
-    DB.withTransaction { implicit conn =>
-      ItemTextMetadata.update(itemId, ItemTextMetadataType.byIndex(metadataType), metadata)
-    }
+  def update(itemId: Long)(implicit conn: Connection) {
+    ItemTextMetadata.update(itemId, ItemTextMetadataType.byIndex(metadataType), metadata)
   }
 
   def add(itemId: Long) {

@@ -7,6 +7,8 @@ import controllers.I18n.I18nAware
 import play.api.data.Form
 import models.{LocaleInfo, CreateTax, Tax}
 import play.api.i18n.Messages
+import play.api.db.DB
+import play.api.Play.current
 
 object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createTaxForm = Form(
@@ -33,7 +35,9 @@ object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasL
         BadRequest(views.html.admin.createNewTax(formWithErrors, Tax.taxTypeTable, LocaleInfo.localeTable))
       },
       newTax => {
-        newTax.save()
+        DB.withConnection { implicit conn =>
+          newTax.save()
+        }
         Redirect(
           routes.TaxMaintenance.startCreateNewTax
         ).flashing("message" -> Messages("taxIsCreated"))
