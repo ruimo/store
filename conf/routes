@@ -112,7 +112,6 @@ GET     /admin/editShippingFeeHistory    controllers.ShippingFeeMaintenance.edit
 POST    /admin/removeShippingFeeHistory  controllers.ShippingFeeMaintenance.removeHistory
 POST    /admin/changeHistory             controllers.ShippingFeeMaintenance.changeHistory(feeId: Long)
 POST    /admin/addHistory                controllers.ShippingFeeMaintenance.addHistory(feeId: Long)
-POST    /admin/removeHistory             controllers.ShippingFeeMaintenance.removeHistory
 GET     /admin/startCreateShippingFee    controllers.ShippingFeeMaintenance.startCreateShippingFee
 POST    /admin/createShippingFee         controllers.ShippingFeeMaintenance.createShippingFee(boxId: Long)
 POST    /admin/removeFee                 controllers.ShippingFeeMaintenance.removeFee(boxId: Long)
