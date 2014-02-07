@@ -1,5 +1,6 @@
 @(page: Page[(Category, CategoryName)])(
-  implicit lang: Lang,
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
 )
@@ -12,14 +13,42 @@
   <script src="@routes.Assets.at("javascripts/jquery.dynatree.min.js")" type="text/javascript"></script>
  
   <script type="text/javascript">
-    $(function(){
-        $("#catTree").dynatree({
-            persist: true,
-            initAjax: { 
-              url: "categoryPathTree" 
-            }
-        });
-    });
+      $(function() {
+        $("#catTree").dynatree(
+            {
+              persist: true,
+              initAjax : {
+                url : "categoryPathTree"
+              },
+              onCreate : function(dtnode, nodeSpan) {
+                console.log("created");
+              },
+              dnd : {
+                preventVoidMoves: true,
+                onDragStart : function(node) {
+                  console.log("tree.onDragStart(%o)", node);
+                  return true;
+                },
+                onDragEnter : function(node) {
+                  return true;
+                },
+                onDrop : function(node, sourceNode, hitMode, ui, draggable) {
+                  console.log("tree.onDrop(%o, %o, %s)", node, sourceNode,
+                      hitMode);
+                  sourceNode.move(node, hitMode);
+                  $.post("@{helper.CSRF(routes.CategoryMaintenance.moveCategory)}", {
+                    "categoryId" : sourceNode.data.key,
+                    "parentCategoryId" : node.data.key
+                  }).done(function(data) {
+                    console.log("ajax returned %o", data);
+                    $("#catTree").dynatree("getTree").reload();
+                  }).fail(function(data) {
+                    console.log("fail %o", data);
+                  });
+                }
+              }
+            });
+      });
     </script>
 } {
   <h1 class="title">@Messages("editCategoryTitle")</h1>
