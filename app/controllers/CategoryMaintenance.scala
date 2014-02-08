@@ -116,10 +116,8 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
             }
 
           val roots: Seq[Long] = Category.root(locale) map { _.id.get }
-
           val pathTree = categoryChildren(roots)
 
-          //val pathTree = categoryChildren(Category.root,locale)
           Ok(Json.toJson(pathTree))
         }
       }

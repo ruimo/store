@@ -15,64 +15,64 @@
   <link href="@routes.Assets.at("stylesheets/skin-vista/ui.dynatree.css")" rel="stylesheet" type="text/css"/>
   <script src="@routes.Assets.at("javascripts/jquery.dynatree.min.js")" type="text/javascript"></script>
   <script type="text/javascript">
-  $(function(){
-    $("#catTree").dynatree({
-      checkbox : true,
-      selectMode : 1,
-      persist : true,
-      initAjax: { 
-        url: "categoryPathTree" 
-      },
-      onSelect: function(select,node) {
-        var s = node.tree.getSelectedNodes()[0].data.key;
-        $("#parentHiddenValue").val(s);
-      },
-      dnd : {
-        preventVoidMoves: true, 
-        onDragStart: function(node) {
-          console.log("tree.onDragStart(%o)", node);
-          return true;
-        },
-        onDragEnter : function(targetNode, sourceNode, ui, draggable) {
-          if(targetNode.isDescendantOf(sourceNode)) { 
-          	return false 
-          }
-          return true;
-        },
-        onDrop : function(node, sourceNode, hitMode, ui, draggable) {
-          console.log("tree.onDrop(%o, %o, %s)", node, sourceNode,
-              hitMode);
-          sourceNode.move(node, hitMode);
-          
-          var postdata = {
-            categoryId : sourceNode.data.key,
-          }
-          
-          if(hitMode == 'over') {
-          	postdata["parentCategoryId"]  = node.data.key;
-          } else {
-          	var pn = node.getParent();
-          	console.log("pn %o",pn)
-          	if(pn.getLevel() != 0) {
-	          postdata["parentCategoryId"]  = pn.data.key;
-          	}
-          }
-            
-          $.post(
-            "@helper.CSRF(routes.CategoryMaintenance.moveCategory)",
-            postdata
-          ).done(function(data) {
-            console.log("ajax returned %o", data);
-            $("#catTree").dynatree("getTree").reload();
-          }).fail(function(data) {
-            console.log("fail %o", data);
-          });
-        
-        }
-      }
-    });
-  });
-  </script>
+      $(function() {
+        $("#catTree").dynatree(
+            {
+              checkbox : true,
+              selectMode : 1,
+              persist : true,
+              initAjax : {
+                url : "categoryPathTree"
+              },
+              onSelect : function(select, node) {
+                var s = node.tree.getSelectedNodes()[0].data.key;
+                $("#parentHiddenValue").val(s);
+              },
+              dnd : {
+                preventVoidMoves : true,
+                onDragStart : function(node) {
+                  console.log("tree.onDragStart(%o)", node);
+                  return true;
+                },
+                onDragEnter : function(targetNode, sourceNode, ui, draggable) {
+                  if (targetNode.isDescendantOf(sourceNode)) {
+                    return false
+                  }
+                  return true;
+                },
+                onDrop : function(node, sourceNode, hitMode, ui, draggable) {
+                  console.log("tree.onDrop(%o, %o, %s)", node, sourceNode,
+                      hitMode);
+                  sourceNode.move(node, hitMode);
+
+                  var postdata = {
+                    categoryId : sourceNode.data.key,
+                  }
+
+                  if (hitMode == 'over') {
+                    postdata["parentCategoryId"] = node.data.key;
+                  } else {
+                    var pn = node.getParent();
+                    console.log("pn %o", pn)
+                    if (pn.getLevel() != 0) {
+                      postdata["parentCategoryId"] = pn.data.key;
+                    }
+                  }
+
+                  $.post(
+                      "@helper.CSRF(routes.CategoryMaintenance.moveCategory)",
+                      postdata).done(function(data) {
+                    console.log("ajax returned %o", data);
+                    $("#catTree").dynatree("getTree").reload();
+                  }).fail(function(data) {
+                    console.log("fail %o", data);
+                  });
+
+                }
+              }
+            });
+      });
+    </script>
 } {
   <h1 class="title">@Messages("createNewCategoryTitle")</h1>
 
