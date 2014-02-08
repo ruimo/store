@@ -17,3 +17,5 @@ dist
 /.settings
 /db
 /schema
+/.target
+/bin
