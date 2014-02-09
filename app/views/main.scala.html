@@ -20,10 +20,18 @@
   <div id="mynavileft">
     <ul>
       <li><a href="/">TOP</a></li>
-      <li><a href="/showShoppingCart">@Messages("shopping.cart")</a></li>
       <li>
         @loginPanel(loginSession)
       </li>
+      @loginSession match {
+        case None => {}
+        case Some(login) => {
+          <li><a href="/showShoppingCart">@Messages("shopping.cart")</a></li>
+@*
+          <li><a href="@routes.OrderHistory.index">@Messages("query.order.history")</a></li>
+*@
+        }
+      }
     </ul>
   </div>
 </div>

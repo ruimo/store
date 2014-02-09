@@ -1,0 +1,16 @@
+@(
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("order.history.title"), Some(loginSession)) {
+} {
+  <h1 class="startOrderHistory">@Messages("order.history.title")</h1>
+
+}

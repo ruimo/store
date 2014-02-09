@@ -1,0 +1,10 @@
+@(
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+<h1 id="invoiceTitle">@Messages("invoice.title")</h1>

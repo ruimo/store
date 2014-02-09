@@ -81,6 +81,7 @@
         </td>
         <td>
           @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters)
+          <a target="_blank" id="invoiceLink" href="@routes.Invoice.show(e.transactionSiteId)">@Messages("invoice")</a>
         </td>
       </tr>
     }
