@@ -1,5 +1,6 @@
 @(
   tranSummary: TransactionSummaryEntry,
+  persistedTran: PersistedTransaction,
   tran: Seq[TransactionDetail]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
