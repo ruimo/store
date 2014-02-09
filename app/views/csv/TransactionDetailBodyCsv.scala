@@ -1,14 +1,15 @@
 package views.csv
 
 import helpers.CsvWriter
-import models.{TransactionSummaryEntry, TransactionDetail}
+import models.{LoginSession, TransactionSummaryEntry, TransactionDetail}
 import play.api.i18n.{Lang, Messages}
 
 class TransactionDetailBodyCsv(csvWriter: CsvWriter) {
   def print(
     tranId: Long, tranSummary: TransactionSummaryEntry, detail: TransactionDetail
   ) (
-    implicit lang: Lang
+    implicit lang: Lang,
+    loginSession: LoginSession
   ) {
     csvWriter.print(
       tranId.toString,
