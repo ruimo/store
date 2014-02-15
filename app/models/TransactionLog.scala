@@ -758,7 +758,9 @@ case class TransactionDetail(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
-) extends NotNull
+) extends NotNull {
+  lazy val price = unitPrice * quantity
+}
 
 object TransactionDetail {
   val parser = {
