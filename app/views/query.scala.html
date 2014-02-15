@@ -59,16 +59,9 @@
     }
   </table>
   <br>
-  <div class="pagingPanel">
-    <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
-            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage - 1, list.pageSize, list.orderBy.toString)'">
-      &lt;
-    </button>
-    Page @{list.currentPage + 1}/@list.pageCount
-    (@changePageSizeLink(queryString, list, 10), @changePageSizeLink(queryString, list, 25), @changePageSizeLink(queryString, list, 50))
-    <button type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
-            onclick="location.href='@routes.ItemQuery.query(queryString.toList, list.currentPage + 1, list.pageSize, list.orderBy.toString)'">
-      &gt;
-    </button>
-  </div>
+  @pagingPanel(
+    list,
+    routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String),
+    10, 25, 50
+  )
 }
