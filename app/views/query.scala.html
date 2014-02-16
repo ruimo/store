@@ -31,9 +31,27 @@
   <table class="queryItemTable">
     <tr class="queryItemTableHeader">
       <th></th>
-      <th>@orderMark(Messages("itemName"), queryString, "item_name.item_name", list)</th>
-      <th>@orderMark(Messages("site"), queryString, "site.site_name", list)</th>
-      <th>@orderMark(Messages("unitPrice"), queryString, "item_price_history.unit_price", list)</th>
+      <th>
+        @orderMark(
+          Messages("itemName"),
+          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String),
+          "item_name.item_name", list
+        )
+      </th>
+      <th>
+        @orderMark(
+          Messages("site"),
+          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String),
+          "site.site_name", list
+        )
+      </th>
+      <th>
+        @orderMark(
+          Messages("unitPrice"),
+          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String),
+          "item_price_history.unit_price", list
+        )
+      </th>
       <th></th>
     </tr>
 

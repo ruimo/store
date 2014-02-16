@@ -1,25 +1,27 @@
-@(queryString: String,
-  list: Seq[(models.Item,
-             models.ItemName,
-             models.ItemDescription,
-             models.Site,
-             models.ItemPriceHistory,
-             Map[ItemNumericMetadataType, ItemNumericMetadata],
-             Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
-             Map[ItemTextMetadataType, ItemTextMetadata]
+@(
+  queryString: helpers.QueryString,
+  list: PagedRecords[(
+    models.Item,
+    models.ItemName,
+    models.ItemDescription,
+    models.Site,
+    models.ItemPriceHistory,
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Map[ItemTextMetadataType, ItemTextMetadata]
   )]
 )(
   implicit lang: Lang,
   request: RequestHeader,
-  loginSession: LoginSession
+  login: LoginSession
 )
 
-@main(Messages("editItemTitle"), Some(loginSession)) {
+@main(Messages("editItemTitle"), Some(login)) {
 } {
   <h1 class="title">@Messages("editItemTitle")</h1>
 
-  @helper.form(action=routes.ItemMaintenance.editItem()) {
-    <input id="searchBox" type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString">
+  @helper.form(action=routes.ItemMaintenance.editItem(queryString.table.toList)) {
+    <input id="searchBox" type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString.toString">
     <input id="searchSubmit" type="submit" value="@Messages("search.button.title")">
   }
 
@@ -33,7 +35,7 @@
       <th class="itemTableHeaderPrice itemHeader">@Messages("price")</th>
     </tr>
 
-    @list.map { e =>
+    @list.records.map { e =>
     <tr class="itemTableBody">
       <td class="itemTableItemId"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get)">@e._1.id</a></td>
       <td class="itemTableItemName">@e._2.name</td>
@@ -42,6 +44,14 @@
     </tr>
     }
   </table>
+  <br>
+  @defining(Some(login)) { implicit loginSession =>
+    @pagingPanel(
+      list,
+      routes.ItemMaintenance.editItem(queryString.toList, _: Int, _: Int, _: String),
+      10, 25, 50
+    )
+  }
 
   <div class="menuPanel">
     <br>

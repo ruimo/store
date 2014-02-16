@@ -16,7 +16,7 @@ GET     /admin/logoff                    controllers.Admin.logoff(uriOnLogoffSuc
 GET     /admin/itemMaintenance           controllers.ItemMaintenance.index
 GET     /admin/startCreateNewItem        controllers.ItemMaintenance.startCreateNewItem
 POST    /admin/createNewItem             controllers.ItemMaintenance.createNewItem
-GET     /admin/editItem                  controllers.ItemMaintenance.editItem(page: Int ?= 0, pageSize: Int ?= 20, q: String ?= "")
+GET     /admin/editItem                  controllers.ItemMaintenance.editItem(q: List[String], page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "item_name.item_name")
 GET     /admin/startChangeItem           controllers.ItemMaintenance.startChangeItem(id: Long)
 
 POST    /admin/changeItemName            controllers.ItemMaintenance.changeItemName(id: Long)

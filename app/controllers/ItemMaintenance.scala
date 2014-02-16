@@ -100,24 +100,27 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }}
 
-  def editItem(start: Int, size: Int, q: String) = isAuthenticated { implicit login => forAdmin { implicit request =>
+  def editItem(
+    qs: List[String], pgStart: Int, pgSize: Int, orderBySpec: String
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    val queryStr = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
     DB.withConnection { implicit conn => {
       login.role match {
         case Buyer => throw new Error("Logic error.")
 
         case SuperUser =>
           val list = Item.list(
-            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = QueryString(q), page = start,
-            pageSize = size, showHidden = true, orderBy = Item.ItemListDefaultOrderBy
+            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
+            pageSize = pgSize, showHidden = true, orderBy = OrderBy(orderBySpec)
           )
-          Ok(views.html.admin.editItem(q, list.records))
+          Ok(views.html.admin.editItem(queryStr, list))
 
         case SiteOwner(siteOwner) =>
           val list = Item.list(
-            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = QueryString(q), page = start,
-            pageSize = size, showHidden = true, orderBy = Item.ItemListDefaultOrderBy
+            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
+            pageSize = pgSize, showHidden = true, orderBy = OrderBy(orderBySpec)
           )
-          Ok(views.html.admin.editItem(q, list.records))
+          Ok(views.html.admin.editItem(queryStr, list))
       }
     }}
   }}
