@@ -29,10 +29,36 @@
 
   <table class="itemTable">
     <tr>
-      <th class="itemTableHeaderId itemHeader">id</th>
-      <th class="itemTableHeaderItemName itemHeader">@Messages("itemName")</th>
-      <th class="itemTableHeaderSiteName itemHeader">@Messages("site")</th>
-      <th class="itemTableHeaderPrice itemHeader">@Messages("price")</th>
+      @defining(Some(login)) { implicit loginSession =>
+        <th class="itemTableHeaderId itemHeader">
+          @orderMark(
+            "id",
+            routes.ItemMaintenance.editItem(queryString.toList, _: Int, _: Int, _: String),
+            "item_name.item_id", list
+          )
+        </th>
+        <th class="itemTableHeaderItemName itemHeader">
+          @orderMark(
+            Messages("itemName"),
+            routes.ItemMaintenance.editItem(queryString.toList, _: Int, _: Int, _: String),
+            "item_name.item_name", list
+          )
+        </th>
+        <th class="itemTableHeaderSiteName itemHeader">
+          @orderMark(
+            Messages("site"),
+            routes.ItemMaintenance.editItem(queryString.toList, _: Int, _: Int, _: String),
+            "site.site_name", list
+          )
+        </th>
+        <th class="itemTableHeaderPrice itemHeader">
+          @orderMark(
+            Messages("unitPrice"),
+            routes.ItemMaintenance.editItem(queryString.toList, _: Int, _: Int, _: String),
+            "item_price_history.unit_price", list
+          )
+        </th>
+      }
     </tr>
 
     @list.records.map { e =>

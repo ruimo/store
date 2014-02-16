@@ -75,6 +75,10 @@ form dl.error dt {
     color: white;
 }
 
+.itemHeader a {
+  color: white;
+}
+
 .itemTableHeaderId {
     width: 10%;
 }
