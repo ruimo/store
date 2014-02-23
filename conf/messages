@@ -208,6 +208,7 @@ siteItemMetadataSTOCK=Stock
 siteItemMetadataPROMOTION=Promotion
 siteItemMetadataSHIPPING_SIZE=Shipping size
 siteItemMetadataHIDE=Hide
+siteItemMetadataITEM_DETAIL_TEMPLATE=Item Detail Template No
 createNewTransporterTitle=Create new transporter
 transporterName=Transporter name
 editTransporterTitle=Edit transporter

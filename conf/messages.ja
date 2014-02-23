@@ -238,6 +238,7 @@ siteItemMetadataSTOCK=在庫
 siteItemMetadataPROMOTION=販促
 siteItemMetadataSHIPPING_SIZE=送料サイズ
 siteItemMetadataHIDE=非表示
+siteItemMetadataITEM_DETAIL_TEMPLATE=商品詳細テンプレート番号
 createNewTransporterTitle=配送業者の新規追加
 transporterName=配送業者名
 editTransporterTitle=配送業者の編集

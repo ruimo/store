@@ -1,0 +1,8 @@
+@(metadataTable: Map[ItemNumericMetadataType, ItemNumericMetadata])(implicit lang: Lang)
+
+@metadataTable.map { e =>
+  <tr class="itemNumericMetadata">
+    <td class="itemNumericMetadata@(e._1)Header">@Messages("itemNumericMetadata" + e._1)</td>
+    <td class="itemNumericMetadata@(e._1)">@itemNumericMetadata(e._1, e._2.metadata)</td>
+  </tr>
+}

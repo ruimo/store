@@ -1,0 +1,59 @@
+@(
+  templateNo: Long,
+  detail: models.ItemDetail
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@itemSubPhoto(i: Int) = {
+  <img class="itemDetailPhotoSub" src="@routes.ItemPictures.getPicture(detail.itemId, i)"
+       onclick='$(".itemDetailPhoto").attr("src", "@routes.ItemPictures.getPicture(detail.itemId, i)");'>
+}
+
+@main(Messages("item.detail"), loginSession) {
+<script>
+  $(function() {
+    $(".itemDetailAll").load("/static/templates/itemdetails/" + @templateNo + ".html");
+  });
+</script>
+} {
+  <div class="itemDetailAll">
+  </div>
+
+  <div style="display: none;" id="itemName" class="itemDetailItemName">@detail.name</div>
+
+  <table style="display: none;">
+    <tbody id="itemMetadata">
+      @itemNumericMetadataRows(detail.itemNumericMetadata)
+      @itemTextMetadataRows(detail.itemTextMetadata)
+    </tbody>
+
+    <tr id="itemPrice" class="itemDetailItemPrice">
+      <td class="label">@Messages("price")</td>
+      <td class="value"><span id="itemAmount">@amount(detail.price)</span></td>
+    </tr>
+
+    <tr id="siteName" class="itemDetailSiteName">
+      <td class="siteNameHeader">@Messages("site")</td>
+      <td class="siteName">@detail.siteName</td>
+    </tr>
+  </table>
+
+  <div style="display: none;" id="cartPanel" class="itemDetailCartPanel">
+    <button class="purchaseButton" type="button"
+            onclick="location.href='@routes.Purchase.addToCart(detail.siteId, detail.itemId)';">
+      @Messages("purchase")
+    </button>
+  </div>
+
+  <div style="display: none;" id="itemPicturePanel" class="itemDetailPicture">
+    <div class="itemDetailPictureMain">
+      <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(detail.itemId, 0)">
+    </div>
+    <div class="itemDetailPictureSub">
+      @{(0 until 5) map { i => itemSubPhoto(i)}}
+    </div>
+  </div>
+}

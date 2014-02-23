@@ -121,6 +121,7 @@ GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(p
 GET     /queryBySelect                   controllers.ItemQuery.queryBySelect(page:Int ?= 0, pageSize:Int ?= 10)
 GET     /queryByRadio                    controllers.ItemQuery.queryByRadio(page:Int ?= 0, pageSize:Int ?= 10)
 GET     /itemDetail                      controllers.ItemDetail.show(itemId: Long, siteId: Long)
+GET     /itemDetailAsJson                controllers.ItemDetail.showAsJson(itemId: Long, siteId: Long)
 GET     /addToCart                       controllers.Purchase.addToCart(siteId: Long, itemId: Long)
 GET     /showShoppingCart                controllers.Purchase.showShoppingCart
 GET     /changeItemQuantity              controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
