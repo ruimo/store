@@ -144,13 +144,22 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       case None => true
     }
 
-  def readFile(path: Path, contentType: String = "image/jpeg"): Result = {
+  def readFile(path: Path, contentType: String = "image/jpeg", fileName: Option[String] = None): Result = {
     val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
     val byteArray = source.map(_.toByte).toArray
     source.close()
-    Ok(byteArray).as(contentType).withHeaders(
-      LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
-    )
+    fileName match {
+      case None =>
+        Ok(byteArray).as(contentType).withHeaders(
+          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
+        )
+
+      case Some(fname) =>
+        Ok(byteArray).as(contentType).withHeaders(
+          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis)),
+          CONTENT_DISPOSITION -> ("attachment; filename=" + fname)
+        )
+    }
   }
 
   def getDetailPicture(itemId: Long) = Action { request =>
@@ -212,7 +221,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def getItemAttachment(itemId: Long, no: Int, fileName: String) = Action { request =>
     val path = toAttachmentPath(itemId, no, fileName)
     if (Files.isReadable(path)) {
-      if (isModified(path, request)) readFile(path, "application/octet-stream") else NotModified
+      if (isModified(path, request)) readFile(path, "application/octet-stream", Some(fileName)) else NotModified
     }
     else {
       NotFound
