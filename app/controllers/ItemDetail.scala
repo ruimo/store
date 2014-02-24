@@ -17,7 +17,7 @@ object ItemDetail extends Controller with I18nAware with NeedLogin {
       case None => Ok(views.html.itemDetail(itemDetail))
       case Some(metadata) => 
         if (metadata.metadata == 0) Ok(views.html.itemDetail(itemDetail))
-        else Ok(views.html.itemDetailTemplate(metadata.metadata, itemDetail))
+        else Ok(views.html.itemDetailTemplate(metadata.metadata, itemDetail, ItemPictures.retrieveAttachmentNames(itemId)))
     }
   }}}
 

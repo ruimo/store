@@ -277,3 +277,4 @@ invoice.detail.item.itemTotal=Item total
 invoice.detail.shippingFee=Shipping
 invoice.detail.shippingBoxName=Box
 total=Total
+itemAttachment=Item attachment files

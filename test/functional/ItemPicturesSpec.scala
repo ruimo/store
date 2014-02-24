@@ -174,7 +174,6 @@ class ItemPicturesSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get).url +
           "&lang=" + lang.code
         )
-
         browser.webDriver
           .findElement(By.id("itemPictureUpload0"))
           .sendKeys(Paths.get("testdata/kinseimaruIdx.jpg").toFile.getAbsolutePath)
@@ -206,6 +205,95 @@ class ItemPicturesSpec extends Specification {
         )
         str._1 === Status.OK
         str._2 === "Hello"
+      }}
+    }
+
+    "If specified attachment is not found, 404 will be returned." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        downloadString(
+          "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "foo").url
+        ) must throwA[FileNotFoundException]
+      }}
+    }
+
+    "If specified attachment is found and modified, it will be returned." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        Files.createDirectories(dir.resolve("attachments"))
+        val file = dir.resolve("attachments").resolve("1_2_file.jpg")
+        Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        downloadString(
+          Some(file.toFile.lastModified - 1000),
+          "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
+        )._2 === "Hello"
+
+        Files.delete(file)
+      }}
+    }
+
+    "If specified attachment is found but not modified, 304 will be returned." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        Files.createDirectories(dir.resolve("attachments"))
+        val file = dir.resolve("attachments").resolve("1_2_file.jpg")
+        Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+
+        downloadString(
+          Some(file.toFile.lastModified),
+          "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
+        )._1 === Status.NOT_MODIFIED
+
+        downloadString(
+          Some(file.toFile.lastModified + 1000),
+          "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
+        )._1 === Status.NOT_MODIFIED
+
+        Files.delete(file)
+      }}
+    }
+
+    "Attachment count reflects item.attached.file.count settings." in {
+      val app = FakeApplication(
+        additionalConfiguration = inMemoryDatabase()
+      )
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        ItemPictures.attachmentCount === 5
+      }}
+    }
+
+    "retrieveAttachmentNames returns empty if no files are found." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        Files.createDirectories(dir.resolve("attachments"))
+        ItemPictures.retrieveAttachmentNames(1).isEmpty === true
+      }}
+    }
+
+    "retrieveAttachmentNames returns file names." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        val attachmentDir = dir.resolve("attachments")
+        Files.createDirectories(attachmentDir)
+
+        Files.write(
+          attachmentDir.resolve("1_2_file1.jpg"), util.Arrays.asList("000"), Charset.forName("US-ASCII")
+        )
+        Files.write(
+          attachmentDir.resolve("2_2_file2.mp3"), util.Arrays.asList("111"), Charset.forName("US-ASCII")
+        )
+        Files.write(
+          attachmentDir.resolve("1_3_file3.ogg"), util.Arrays.asList("222"), Charset.forName("US-ASCII")
+        )
+        
+        val map = ItemPictures.retrieveAttachmentNames(1)
+        map.size === 2
+        map(2) === "file1.jpg"
+        map(3) === "file3.ogg"
+
+        Files.delete(attachmentDir.resolve("1_2_file1.jpg"))
+        Files.delete(attachmentDir.resolve("2_2_file2.mp3"))
+        Files.delete(attachmentDir.resolve("1_3_file3.ogg"))
       }}
     }
   }

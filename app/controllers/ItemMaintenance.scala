@@ -38,7 +38,8 @@ class ChangeItem(
   val siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
   val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata],
   val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
-  val newItemTextMetadataForm: Form[ChangeItemTextMetadata]
+  val newItemTextMetadataForm: Form[ChangeItemTextMetadata],
+  val attachmentNames: Map[Int, String]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -176,7 +177,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         createSiteItemMetadataTable(id),
         addSiteItemMetadataForm,
         createItemTextMetadataTable(id),
-        addItemTextMetadataForm
+        addItemTextMetadataForm,
+        ItemPictures.retrieveAttachmentNames(id)
       )
     ))
   }}
@@ -324,7 +326,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -369,7 +372,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -409,7 +413,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )
@@ -512,7 +517,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -554,7 +560,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )
@@ -622,7 +629,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -697,7 +705,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -742,7 +751,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -785,7 +795,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )
@@ -879,7 +890,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -924,7 +936,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -968,7 +981,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )
@@ -1019,7 +1033,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(itemId),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(itemId),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(itemId)
             )
           )
         )
@@ -1064,7 +1079,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(itemId),
               addSiteItemMetadataForm,
               formWithErrors,
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(itemId)
             )
           )
         )
@@ -1109,7 +1125,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               formWithErrors,
               addSiteItemMetadataForm,
               createItemTextMetadataTable(itemId),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(itemId)
             )
           )
         )
@@ -1154,7 +1171,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -1196,7 +1214,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )
@@ -1235,7 +1254,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
-              formWithErrors
+              formWithErrors,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -1277,7 +1297,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm
                     .fill(newMetadata)
-                    .withError("metadataType", "unique.constraint.violation")
+                    .withError("metadataType", "unique.constraint.violation"),
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )
@@ -1316,7 +1337,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               createSiteItemMetadataTable(id),
               formWithErrors,
               createItemTextMetadataTable(id),
-              addItemTextMetadataForm
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id)
             )
           )
         )
@@ -1360,7 +1382,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                     .fill(newMetadata)
                     .withError("metadataType", "unique.constraint.violation"),
                   createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id)
                 )
               )
             )

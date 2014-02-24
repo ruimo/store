@@ -1,6 +1,7 @@
 @(
   templateNo: Long,
-  detail: models.ItemDetail
+  detail: models.ItemDetail,
+  attachmentNames: Map[Int, String]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -8,7 +9,7 @@
 )
 
 @itemSubPhoto(i: Int) = {
-  <img class="itemDetailPhotoSub" src="@routes.ItemPictures.getPicture(detail.itemId, i)"
+  <img id="itemDetailSubPhoto@i" class="itemDetailPhotoSub" src="@routes.ItemPictures.getPicture(detail.itemId, i)"
        onclick='$(".itemDetailPhoto").attr("src", "@routes.ItemPictures.getPicture(detail.itemId, i)");'>
 }
 
@@ -49,11 +50,19 @@
   </div>
 
   <div style="display: none;" id="itemPicturePanel" class="itemDetailPicture">
-    <div class="itemDetailPictureMain">
+    <div id="itemDetailPictureMain" class="itemDetailPictureMain">
       <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(detail.itemId, 0)">
     </div>
     <div class="itemDetailPictureSub">
       @{(0 until 5) map { i => itemSubPhoto(i)}}
     </div>
+  </div>
+
+  <div style="display: none;" id="itemAttachmentPanel">
+    @attachmentNames.map { e =>
+      <a href="@routes.ItemPictures.getItemAttachment(detail.itemId, e._1, e._2)"
+         id="itemAttachment@e._1" data-no="@e._1" data-name="@e._2">
+      </a>
+    }
   </div>
 }

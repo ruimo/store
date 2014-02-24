@@ -307,3 +307,4 @@ invoice.detail.item.itemTotal=商品計
 invoice.detail.shippingFee=【送料】
 invoice.detail.shippingBoxName=箱
 total=合計
+itemAttachment=商品添付ファイル
