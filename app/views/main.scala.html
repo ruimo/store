@@ -1,4 +1,8 @@
-@(title: String, loginSession: Option[LoginSession])(header: Html)(content: Html)(
+@(
+  title: String,
+  loginSession: Option[LoginSession],
+  contentCssClass: String = "contents"
+)(header: Html)(content: Html)(
   implicit lang: Lang,
   request: RequestHeader
 )
@@ -52,7 +56,7 @@
 </div>
 <div id="my_contents">
   <div id="mymain">
-    <div class="contents">
+    <div class="@contentCssClass">
       @content
     </div>
   </div>

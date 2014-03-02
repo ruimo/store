@@ -16,7 +16,7 @@
   login: LoginSession
 )
 
-@main(Messages("editItemTitle"), Some(login)) {
+@main(Messages("editItemTitle"), Some(login), contentCssClass = "adminContents") {
 } {
   <h1 class="title">@Messages("editItemTitle")</h1>
 

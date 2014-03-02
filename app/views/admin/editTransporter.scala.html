@@ -7,7 +7,7 @@
   loginSession: LoginSession
 )
 
-@main(Messages("editTransporterTitle"), Some(loginSession)) {
+@main(Messages("editTransporterTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   @flash.get("errorMessage").map { message =>
     <div class="globalErrorMessage">

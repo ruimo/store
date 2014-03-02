@@ -276,7 +276,7 @@
   </tr>
 }
 
-@main(Messages("changeItemTitle"), Some(loginSession)) {
+@main(Messages("changeItemTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   @flash.get("errorMessage").map { message =>
     <div class="globalErrorMessage">
