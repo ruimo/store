@@ -295,3 +295,7 @@ order.history.title=ご注文履歴
 query.order.history=ご注文履歴
 invoice=納品書
 invoice.title=納品書
+
+id=Identifier
+siteName=店舗名
+action=アクション
