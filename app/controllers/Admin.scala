@@ -55,3 +55,5 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
     Ok(views.html.admin.index())
   }}
 }
+
+// Comment to check git
