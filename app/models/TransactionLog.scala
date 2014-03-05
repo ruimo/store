@@ -489,6 +489,7 @@ case class TransactionSummaryEntry(
   transactionTime: Long,
   totalAmount: BigDecimal,
   address: Address,
+  siteId: Long,
   siteName: String,
   shippingFee: BigDecimal,
   status: TransactionStatus,
@@ -645,6 +646,7 @@ object TransactionSummary {
     SqlParser.get[java.util.Date]("transaction_time") ~
     SqlParser.get[java.math.BigDecimal]("total_amount") ~
     Address.simple ~
+    SqlParser.get[Long]("site_id") ~
     SqlParser.get[String]("site_name") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
     SqlParser.get[Int]("status") ~
@@ -654,9 +656,9 @@ object TransactionSummary {
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
     SqlParser.get[Boolean]("transaction_status.mail_sent") map {
-      case id~siteId~time~amount~address~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent =>
+      case id~tranSiteId~time~amount~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent =>
         TransactionSummaryEntry(
-          id, siteId, time.getTime, amount, address, siteName,
+          id, tranSiteId, time.getTime, amount, address, siteId, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
           user, shippingDate.getTime, mailSent
@@ -672,6 +674,7 @@ object TransactionSummary {
       transaction_time,
       total_amount,
       address.*,
+      site.site_id,
       site.site_name,
       shipping,
       coalesce(transaction_status.status, 0) status,
@@ -755,7 +758,9 @@ case class TransactionDetail(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
-) extends NotNull
+) extends NotNull {
+  lazy val price = unitPrice * quantity
+}
 
 object TransactionDetail {
   val parser = {

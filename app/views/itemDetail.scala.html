@@ -26,19 +26,8 @@
     <div class="itemDetailBody">
       <div class="itemDetailItemName">@detail.name</div>
       <table class="itemDetailMain">
-        @detail.itemNumericMetadata.map { e =>
-          <tr class="itemNumericMetadata">
-            <td class="itemNumericMetadata@(e._1)Header">@Messages("itemNumericMetadata" + e._1)</td>
-            <td class="itemNumericMetadata@(e._1)">@itemNumericMetadata(e._1, e._2.metadata)</td>
-          </tr>
-        }
-
-        @detail.itemTextMetadata.map { e =>
-          <tr class="itemTextMetadata">
-            <td class="itemTextMetadata@(e._1)Header">@Messages("itemTextMetadata" + e._1)</td>
-            <td class="itemTextMetadata@(e._1)">@itemTextMetadata(e._1, e._2.metadata)</td>
-          </tr>
-        }
+        @itemNumericMetadataRows(detail.itemNumericMetadata)
+        @itemTextMetadataRows(detail.itemTextMetadata)
 
         <tr class="itemDetailItemPrice">
           <td class="label">@Messages("price")</td>

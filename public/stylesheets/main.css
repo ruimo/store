@@ -75,6 +75,10 @@ form dl.error dt {
     color: white;
 }
 
+.itemHeader a {
+  color: white;
+}
+
 .itemTableHeaderId {
     width: 10%;
 }
@@ -220,7 +224,6 @@ tr.userTableBody {
     background-color: White;
 }
 
-
 .subtotal {
   text-align: right;
 }
@@ -240,6 +243,26 @@ tr.userTableBody {
 
 .itemDetailPictureMain {
   height: 320px;
+}
+
+.itemDetailPanel2 .itemDetailPictureMain {
+  height: 500px;
+}
+
+.itemDetailPanel2 .itemDetailPhotoSub {
+  max-width: 80px;
+  max-height: 80px;
+  cursor: pointer;
+}
+
+.itemDetailPanel2 .itemDetailPicture {
+  width: 500px;
+}
+
+.itemDetailPanel2 .itemDetailPhoto {
+  max-width: 500px;
+  max-height: 500px;
+  padding-bottom: 10px;
 }
 
 .itemDetailPhoto {
@@ -289,6 +312,10 @@ tr.userTableBody {
 .itemDetailPicture {
   float: left;
   width: 330px;
+}
+
+#itemPicturePanel {
+  width: 510px;
 }
 
 .itemDetailBody {
@@ -393,4 +420,30 @@ tr.userTableBody {
   float: right;
   padding: 10px;
   margin: 10px;
+}
+
+.itemDetailPanel1 {
+  float: left;
+  width: 330px;
+}
+
+.itemDetailPanel2 {
+  margin-left: 330px;
+}
+
+#setItemPanel {
+  clear:both;
+}
+
+#detailFooter1 {
+  float: left;
+  width: 300px;
+}
+
+#detailFooter2 {
+  margin-left: 300px;
+}
+
+#itemDetailFooter3 {
+  float: right;
 }

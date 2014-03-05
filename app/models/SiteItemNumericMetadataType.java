@@ -1,7 +1,7 @@
 package models;
 
 public enum SiteItemNumericMetadataType {
-    STOCK, PROMOTION, SHIPPING_SIZE, HIDE;
+    STOCK, PROMOTION, SHIPPING_SIZE, HIDE, ITEM_DETAIL_TEMPLATE;
 
     private static final SiteItemNumericMetadataType byIndex[] = 
       SiteItemNumericMetadataType.class.getEnumConstants();

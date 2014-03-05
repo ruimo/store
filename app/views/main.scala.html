@@ -1,4 +1,8 @@
-@(title: String, loginSession: Option[LoginSession])(header: Html)(content: Html)(
+@(
+  title: String,
+  loginSession: Option[LoginSession],
+  contentCssClass: String = "contents"
+)(header: Html)(content: Html)(
   implicit lang: Lang,
   request: RequestHeader
 )
@@ -8,7 +12,7 @@
 <html>
   <head>
     <title>@title</title>
-    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+    <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     @header
@@ -52,7 +56,7 @@
 </div>
 <div id="my_contents">
   <div id="mymain">
-    <div class="contents">
+    <div class="@contentCssClass">
       @content
     </div>
   </div>

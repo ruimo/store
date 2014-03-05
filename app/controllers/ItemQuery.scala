@@ -15,6 +15,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
   ) = Action { implicit request => DB.withConnection { implicit conn => {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
     implicit val login = loginSession(request, conn)
+
     val list = Item.list(
       None, LocaleInfo.byLang(lang), queryString, page, pageSize, orderBy = OrderBy(orderBySpec)
     )

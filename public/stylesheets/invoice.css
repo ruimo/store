@@ -1,0 +1,143 @@
+#invoiceAll {
+    width: 100%;
+    margin-right: 1em;
+}
+
+#invoiceTitle {
+    width: 100%;
+    text-align: center;
+    font-size: 180%;
+}
+
+#invoiceHeader {
+    width: 100%;
+}
+
+.invoiceTable {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid;
+}
+
+#invoiceCustomer {
+    width: 50%;
+    float: left;
+}
+
+#invoiceStore {
+    width: 50%;
+    float: right;
+}
+
+#invoiceTableTitle {
+    clear: both;
+}
+
+#invoiceCustomerCompanyName {
+    font-size: 130%;
+}
+
+#invoiceCustomerCompanyName span {
+    text-decoration: underline;
+}
+
+#invoiceCustomerAddressHeader {
+    height: 3em;
+    vertical-align: bottom;
+}
+
+#invoiceCustomerAddressZip td {
+    border-bottom:1px dotted;
+}
+
+#invoiceCustomerAddressAddress td {
+    border-bottom:1px dotted;
+}
+
+#invoiceCustomerAddressTel td {
+    border-bottom:1px dotted;
+}
+
+#invoiceCustomerAddressName td {
+    border-bottom:1px dotted;
+}
+
+#invoiceCustomerTable {
+    width: 100%;
+}
+
+#invoiceCustomerAddressFooter {
+    height: 3em;
+}
+
+#invoiceStoreTable {
+    float: right;
+}
+
+#invoiceStoreFax {
+    text-decoration: underline;
+}
+
+.invoiceTableHeader {
+    background: LightGray;
+    border: 1px solid;
+}
+
+.invoiceTableCol01 {
+    width: 50%;
+}
+
+.invoiceTableCol02 {
+    width: 10%;
+}
+
+.invoiceTableCol03 {
+    width: 20%;
+}
+
+.invoiceTableCol04 {
+    width: 20%;
+}
+
+.invoiceTableBody {
+    border: 1px solid;
+}
+
+.invoiceTableBody.quantity, .invoiceTableBody.unitPrice, .invoiceTableBody.price, .invoiceTableBody.subtotal, .invoiceTableBody.taxAmount {
+    text-align: right;
+}
+
+.invoiceTableBody.boxUnitPrice, .invoiceTableBody.boxQuantity, .invoiceTableBody.boxQuantity, .invoiceTableBody.boxPrice, .feeTotal {
+    text-align: right;
+}
+
+.subtotalTitle, .taxTitle, .feeTotalTitle {
+    text-align: center;
+    background: LightGray;
+    font-weight: bold;
+}
+
+.totalTable {
+    border-collapse: collapse;
+    border: 1px solid;
+    float: right;
+}
+
+.totalTitle {
+    text-align: center;
+    background: LightGray;
+    font-weight: bold;
+    padding-left: 4em;
+    padding-right: 4em;
+}
+
+.total {
+    text-align: right;
+    padding-left: 4em;
+}
+
+@media print {
+    .printButton {
+        display: none;
+    }
+}

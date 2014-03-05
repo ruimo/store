@@ -4,7 +4,7 @@
   loginSession: models.LoginSession
 )
 
-@main(Messages("transporterMaintenanceTitle"), Some(loginSession)) {
+@main(Messages("transporterMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   <h1 class="title">@Messages("transporterMaintenanceTitle")</h1>
 
