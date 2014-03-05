@@ -1,0 +1,26 @@
+@(
+  list: PagedRecords[_],
+  pageLink: (Int, Int, String) => play.api.mvc.Call,
+  pageSizeTable: Int*
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+<div class="pagingPanel">
+  <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
+          onclick="location.href='@pageLink(list.currentPage - 1, list.pageSize, list.orderBy.toString)'">
+    &lt;
+  </button>
+  Page @{list.currentPage + 1}/@list.pageCount
+  (@Html(
+    pageSizeTable.map {e =>
+      changePageSizeLink(list, e, pageLink)
+    }.mkString(", ")
+  ))
+  <button type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
+          onclick="location.href='@pageLink(list.currentPage + 1, list.pageSize, list.orderBy.toString)'">
+    &gt;
+  </button>
+</div>

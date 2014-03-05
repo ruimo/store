@@ -4,7 +4,7 @@
   loginSession: LoginSession
 )
 
-@main(Messages("userMaintenanceTitle"), Some(loginSession)) {
+@main(Messages("userMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   <h1 class="title">@Messages("userMaintenanceTitle")</h1>
 

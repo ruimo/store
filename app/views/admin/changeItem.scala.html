@@ -48,6 +48,32 @@
   </tr>
 }
 
+@attachmentUpload(id: Long, idx: Int) = {
+  <tr>
+    <td>@c.attachmentNames.get(idx).getOrElse("-")</td>
+    @form(action = helper.CSRF(routes.ItemPictures.uploadItemAttachment(id, idx)), 'enctype -> "multipart/form-data") {
+    <td>
+      <input id="itemAttachmentUpload@idx" type="file" name="attachment">
+    </td>
+    <td>
+      <input id="itemAttachmentUploadSubmit@idx" type="submit">
+    </td>
+    }
+    @c.attachmentNames.get(idx) match {
+      case Some(name) => {
+        @form(action = helper.CSRF(routes.ItemPictures.removeAttachment(id, idx, name))) {
+        <td>
+          <input id="itemAttachmentRemove@idx" type="submit" value="@Messages("remove")">
+        </td>
+        }
+      }
+      case None => {
+        <td></td>
+      }
+    }
+  </tr>
+}
+
 @nameForm(field: Field) = {
   <tr>
     <td>
@@ -250,7 +276,7 @@
   </tr>
 }
 
-@main(Messages("changeItemTitle"), Some(loginSession)) {
+@main(Messages("changeItemTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   @flash.get("errorMessage").map { message =>
     <div class="globalErrorMessage">
@@ -677,6 +703,12 @@
 
   <table>
     @fileDetailUpload(c.id)
+  </table>
+
+  <h2 class="itemAttachment">@Messages("itemAttachment")</h2>
+
+  <table>
+    @{(0 until 5) map { idx => attachmentUpload(c.id, idx)}}
   </table>
 
   <div class="menuPanel">

@@ -16,7 +16,7 @@ GET     /admin/logoff                    controllers.Admin.logoff(uriOnLogoffSuc
 GET     /admin/itemMaintenance           controllers.ItemMaintenance.index
 GET     /admin/startCreateNewItem        controllers.ItemMaintenance.startCreateNewItem
 POST    /admin/createNewItem             controllers.ItemMaintenance.createNewItem
-GET     /admin/editItem                  controllers.ItemMaintenance.editItem(page: Int ?= 0, pageSize: Int ?= 20, q: String ?= "")
+GET     /admin/editItem                  controllers.ItemMaintenance.editItem(q: List[String], page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "item_name.item_name")
 GET     /admin/startChangeItem           controllers.ItemMaintenance.startChangeItem(id: Long)
 
 POST    /admin/changeItemName            controllers.ItemMaintenance.changeItemName(id: Long)
@@ -88,9 +88,13 @@ POST    /admin/uploadItemPicture         controllers.ItemPictures.upload(id: Lon
 POST    /admin/removeItemPicture         controllers.ItemPictures.remove(id: Long, no: Int)
 GET     /admin/getItemPicture            controllers.ItemPictures.getPicture(id: Long, no: Int)
 
+POST    /admin/uploadItemAttachment      controllers.ItemPictures.uploadItemAttachment(itemId: Long, no: Int)
+POST    /admin/removeItemAttachment      controllers.ItemPictures.removeAttachment(id: Long, no: Int, fileName: String)
+
 POST    /admin/uploadItemDetailPicture   controllers.ItemPictures.uploadDetail(id: Long)
 POST    /admin/removeItemDetailPicture   controllers.ItemPictures.removeDetail(id: Long)
 GET     /admin/getItemDetailPicture      controllers.ItemPictures.getDetailPicture(id: Long)
+GET     /admin/getItemAttachment         controllers.ItemPictures.getItemAttachment(itemId: Long, no: Int, fileName: String)
 
 GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index
 POST    /admin/setStatus                 controllers.TransactionMaintenance.setStatus
@@ -122,6 +126,7 @@ GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(p
 GET     /queryBySelect                   controllers.ItemQuery.queryBySelect(page:Int ?= 0, pageSize:Int ?= 10)
 GET     /queryByRadio                    controllers.ItemQuery.queryByRadio(page:Int ?= 0, pageSize:Int ?= 10)
 GET     /itemDetail                      controllers.ItemDetail.show(itemId: Long, siteId: Long)
+GET     /itemDetailAsJson                controllers.ItemDetail.showAsJson(itemId: Long, siteId: Long)
 GET     /addToCart                       controllers.Purchase.addToCart(siteId: Long, itemId: Long)
 GET     /showShoppingCart                controllers.Purchase.showShoppingCart
 GET     /changeItemQuantity              controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)

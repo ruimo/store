@@ -12,7 +12,7 @@
 
 @import helper._
 
-@main(Messages("shippingFeeHistoryMaintenanceTitle"), Some(loginSession)) {
+@main(Messages("shippingFeeHistoryMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
 <script>
 var removeHistory = function(id) {
   $('#removeHistoryId').val(id);

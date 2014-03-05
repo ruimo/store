@@ -10,4 +10,140 @@
   loginSession: LoginSession
 )
 
-<h1 id="invoiceTitle">@Messages("invoice.title")</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>@Messages("invoice.title")</title>
+    <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/invoice.css")">
+  </head>
+  <body>
+    <button type="button" class="printButton" onclick="window.print();">@Messages("print")</button>
+    <div id="invoiceAll">
+      <div id="invoiceTitle">@Messages("invoice.title")</div>
+      <div id="invoiceHeader">
+        <div id="invoiceCustomer">
+          <table id="invoiceCustomerTable">
+            <tr id="invoiceCustomerCompanyNameRow">
+              <td id="invoiceCustomerCompanyName">
+                <span>
+                  @Messages("company.salutation", tranSummary.buyer.companyName.getOrElse("-"))
+                </span>
+              </td>
+            </tr>
+            <tr id="invoiceCustomerAddressHeader">
+              <td>@Messages("shipping.address")</td>
+            </tr>
+            <tr id="invoiceCustomerAddressZip">
+              <td>〒@tranSummary.address.zip1 - @tranSummary.address.zip2</td>
+            </tr>
+            <tr id="invoiceCustomerAddressAddress">
+              <td>
+                @tranSummary.address.prefecture
+                @tranSummary.address.address1
+                @tranSummary.address.address2
+                @tranSummary.address.address3
+              </td>
+            </tr>
+            <tr id="invoiceCustomerAddressTel">
+              <td>
+                @tranSummary.address.tel1
+              </td>
+            </tr>
+            <tr id="invoiceCustomerAddressName">
+              <td>
+                @Messages("name.salutation", 
+                  tranSummary.address.firstName,
+                  tranSummary.address.middleName,
+                  tranSummary.address.lastName
+                )
+              </td>
+            </tr>
+            <tr id="invoiceCustomerAddressFooter">
+              <td></td>
+            </tr>
+          </table>
+        </div>
+        <div id="invoiceStore">
+          <table id="invoiceStoreTable">
+            <tr>
+              <td class="invoiceStoreTableLeft"></td>
+              <td id="invoiceDate">@yyyymmddhhmmss(tranSummary.transactionTime)</td>
+            </tr>
+            <tr>
+              <td class="invoiceStoreTableLeft"></td>
+              <td id="invoiceTransactionId">@Messages("invoice.tranid")@tranSummary.transactionId</td>
+            </tr>
+            <tr>
+              <td class="invoiceStoreTableLeft"></td>
+              <td id="invoiceSiteName">@tranSummary.siteName</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div id="invoiceTableTitle">@Messages("invoice.detail.item.title")</div>
+      <table class="invoiceTable invoiceItemTable">
+        <tr>
+          <th class="invoiceTableHeader itemName">@Messages("invoice.detail.item.itemName")</th>
+          <th class="invoiceTableHeader unitPrice">@Messages("unitPrice")</th>
+          <th class="invoiceTableHeader quantity">@Messages("quantity")</th>
+          <th class="invoiceTableHeader price">@Messages("price")</th>
+        </tr>
+
+        @tran.map { t =>
+          <tr>
+            <td class="invoiceTableBody itemName">@t.itemName</td>
+            <td class="invoiceTableBody quantity">@amount(t.unitPrice)</td>
+            <td class="invoiceTableBody quantity">@t.quantity</td>
+            <td class="invoiceTableBody price">@amount(t.price)</td>
+          </tr>
+        }
+
+        <tr>
+          <td colspan="2"></td>
+          <td class="invoiceTableBody subtotalTitle">@Messages("subtotal")</td>
+          <td class="invoiceTableBody subtotal">@amount(persistedTran.itemTotal(tranSummary.siteId))</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td class="invoiceTableBody taxTitle">@Messages("outer.tax.amount")</td>
+          <td class="invoiceTableBody taxAmount">@amount(persistedTran.outerTaxTotal(tranSummary.siteId))</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td class="invoiceTableBody taxTitle">@Messages("invoice.detail.item.itemTotal")</td>
+          <td class="invoiceTableBody taxAmount">@amount(persistedTran.itemTotal(tranSummary.siteId) + persistedTran.outerTaxTotal(tranSummary.siteId))</td>
+        </tr>
+      </table>
+      <div id="invoiceShippingTableTitle">@Messages("invoice.detail.shippingFee")</div>
+      <table class="invoiceTable invoiceItemTable">
+        <tr>
+          <th class="invoiceTableHeader boxName">@Messages("invoice.detail.shippingBoxName")</th>
+          <th class="invoiceTableHeader boxUnitPrice">@Messages("unitPrice")</th>
+          <th class="invoiceTableHeader boxQuantity">@Messages("quantity")</th>
+          <th class="invoiceTableHeader boxPrice">@Messages("price")</th>
+        </tr>
+        @persistedTran.shippingTable(tranSummary.siteId).map { e =>
+          <tr>
+            <td class="invoiceTableBody boxName">@e.boxName</td>
+            <td class="invoiceTableBody boxUnitPrice">@amount(e.amount/e.boxCount)</td>
+            <td class="invoiceTableBody boxQuantity">@e.boxCount</td>
+            <td class="invoiceTableBody boxPrice">@amount(e.amount)</td>
+          </tr>
+        }
+        <tr>
+          <td colspan="2"></td>
+          <td class="invoiceTableBody feeTotalTitle">@Messages("subtotal")</td>
+          <td class="invoiceTableBody feeTotal">@amount(tranSummary.shippingFee)</td>
+        </tr>
+      </table>
+      <br>
+      <table class="totalTable">
+        <tr>
+          <td class="invoiceTableBody totalTitle">@Messages("total")</td>
+          <td class="invoiceTableBody total">@amount(tranSummary.totalAmount + persistedTran.outerTaxTotal(tranSummary.siteId))</td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
