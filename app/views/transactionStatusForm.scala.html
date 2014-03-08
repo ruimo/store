@@ -21,11 +21,11 @@
           )
 
           @select(
-            f("status"), statusTable, '_showConstraints -> false
+            f("status"), statusTable, '_showConstraints -> false, 'id -> ("status" + transactionSiteId)
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )
-          <input id="changeShippingStatusButton" type="submit" value=@Messages("update")> 
+          <input id="changeShippingStatusButton@transactionSiteId" type="submit" value=@Messages("update")> 
         }
       }
     </td>
@@ -37,7 +37,7 @@
   </tr>
 </table>
 @if(entry.mailSent) {
-  <table class="shippingStatusTable">
+  <table class="shippingStatusTable" id="shippingStatusTable@transactionSiteId">
     <tr>
       <td class="transporterHeader">@Messages("transporter")</td>
       <td class="transporter">@{entry.shipStatus.map{info => transporters(info.transporterId)}.getOrElse("-")}</td>
@@ -52,15 +52,17 @@
     @select(
       entryShippingInfoForms(entry.transactionSiteId)("transporterId"),
       transporterTable,
+      'id -> ("transporter" + transactionSiteId),
       '_label -> Messages("transporter"),
       '_showConstraints -> false
     )
     @inputText(
       entryShippingInfoForms(entry.transactionSiteId)("slipCode"),
+      'id -> ("slipCode" + transactionSiteId),
       '_label -> Messages("slipCode"), 'size -> 16, 'maxlength -> 128
     )
 
-    <input class="changeShippingInfoButton" type="submit" value="@Messages("entryShippingInfo")">
+    <input id="changeShippingInfoButton@transactionSiteId" type="submit" value="@Messages("entryShippingInfo")">
   }
 
   @form(action = helper.CSRF(routes.TransactionMaintenance.cancelShipping(entry.transactionId, entry.transactionSiteId))) {

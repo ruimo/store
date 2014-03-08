@@ -324,6 +324,19 @@ object TransactionLogShipping {
     ).as(
       simple *
     )
+
+  def listBySite(tranSiteId: Long)(implicit conn: Connection): Seq[TransactionLogShipping] =
+    SQL(
+      """
+      select * from transaction_shipping
+      where transaction_site_id = {tranSiteId}
+      order by transaction_shipping_id
+      """
+    ).on(
+      'tranSiteId -> tranSiteId
+    ).as(
+      simple *
+    )
 }
 
 object TransactionLogTax {
@@ -666,9 +679,7 @@ object TransactionSummary {
     }
   }
 
-  def baseSql(user: Option[SiteUser], additionalWhere: String = "", limit: Option[(Int, Int)]) =
-    """
-    select 
+  val baseColumns = """
       transaction_id,
       base.transaction_site_id,
       transaction_time,
@@ -684,6 +695,16 @@ object TransactionSummary {
       transaction_status.mail_sent,
       store_user.*,
       base.shipping_date
+  """
+
+  def baseSql(
+    user: Option[SiteUser], additionalWhere: String = "", withLimit: Boolean, columns: String = baseColumns
+  ) =
+    """
+    select 
+    """ +
+    columns +
+    """
     from (
       select            
         transaction_header.transaction_id,
@@ -709,10 +730,8 @@ object TransactionSummary {
         transaction_header.transaction_id,
         transaction_site.transaction_site_id
       order by transaction_header.transaction_time desc, transaction_site.site_id
-    """ + (limit match {
-      case None => ""
-      case Some(l) => "limit {limit} offset {offset}"
-    }) +
+    """ + 
+    (if (withLimit) "limit {limit} offset {offset}" else "") +
     """
     ) base
     inner join address on address.address_id = base.address_id
@@ -727,21 +746,35 @@ object TransactionSummary {
     """
 
   def list(
-    user: Option[SiteUser], limit: Int = 20, offset: Int = 0
-  )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
-    SQL(
-      baseSql(user, "", Some(limit, offset))
-    ).on(
-      'limit -> limit,
-      'offset -> offset
+    user: Option[SiteUser], page: Int = 0, pageSize: Int = 25
+  )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
+    val count = SQL(
+      """
+      select count(*) from transaction_site
+      """
     ).as(
-      parser *
+      SqlParser.scalar[Long].single
+    )
+
+    PagedRecords[TransactionSummaryEntry] (
+      page,
+      pageSize,
+      (count + pageSize - 1) / pageSize,
+      OrderBy("base.transaction_id", Desc),
+      SQL(
+        baseSql(user, "", true)
+      ).on(
+        'limit -> pageSize,
+        'offset -> page * pageSize
+      ).as(
+        parser *
+      )
     )
   }
 
   def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] = {
     SQL(
-      baseSql(user, "where base.transaction_site_id = {tranSiteId}", None)
+      baseSql(user, "where base.transaction_site_id = {tranSiteId}", false)
     ).on(
       'tranSiteId -> tranSiteId
     ).as(

@@ -16,6 +16,9 @@ object ApplicationBuild extends Build {
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    scalacOptions ++= Seq("-feature")
+    scalacOptions ++= Seq("-feature"),
+    javaOptions ++= sys.process.javaVmArguments.filter(
+      a => Seq("-Xmx","-Xms","-XX").exists(a.startsWith)
+    )
   )
 }

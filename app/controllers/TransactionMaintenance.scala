@@ -38,14 +38,16 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       (list, e) => (e.ordinal.toString, Messages("transaction.status." + e.toString)) :: list
     }.reverse
 
-  def index = isAuthenticated { implicit login => forAdmin { implicit request =>
+  def index(
+    page: Int, pageSize: Int, orderBySpec: String
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      val list = TransactionSummary.list(login.siteUser)
+      val pagedRecords = TransactionSummary.list(login.siteUser)
       Ok(
         views.html.admin.transactionMaintenance(
-          list,
+          pagedRecords,
           changeStatusForm, statusDropDown,
-          list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+          pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
             (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
           },
           Transporter.tableForDropDown,
@@ -62,15 +64,15 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       formWithErrors => {
         logger.error("Validation error in TransactionMaintenance.setStatus. " + formWithErrors)
         DB.withConnection { implicit conn =>
-          val list = TransactionSummary.list(
+          val pagedRecords = TransactionSummary.list(
             if (login.isAdmin) None else login.siteUser
           )
 
           BadRequest(
             views.html.admin.transactionMaintenance(
-              list,
+              pagedRecords,
               changeStatusForm, statusDropDown,
-              list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+              pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
                 (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
               },
               Transporter.tableForDropDown,
@@ -84,7 +86,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       newStatus => {
         DB.withConnection { implicit conn =>
           newStatus.save(login.siteUser)
-          Redirect(routes.TransactionMaintenance.index)
+          Redirect(routes.TransactionMaintenance.index())
         }
       }
     )
@@ -113,15 +115,15 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       formWithErrors => {
         logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
         DB.withTransaction { implicit conn =>
-          val list = TransactionSummary.list(
+          val pagedRecords = TransactionSummary.list(
             if (login.isAdmin) None else login.siteUser
           )
 
           BadRequest(
             views.html.admin.transactionMaintenance(
-              list,
+              pagedRecords,
               changeStatusForm, statusDropDown,
-              list.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+              pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
                 (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
               }.updated(tranSiteId, formWithErrors),
               Transporter.tableForDropDown,
@@ -138,7 +140,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
             sendNotificationMail(tranId, tranSiteId, newShippingInfo, LocaleInfo.getDefault, status)
           }
-          Redirect(routes.TransactionMaintenance.index)
+          Redirect(routes.TransactionMaintenance.index())
         }
       }
     )
@@ -152,7 +154,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
         TransactionShipStatus.mailSent(tranSiteId)
         sendCancelMail(tranId, tranSiteId, LocaleInfo.getDefault, status)
       }
-      Redirect(routes.TransactionMaintenance.index)
+      Redirect(routes.TransactionMaintenance.index())
     }
   }}
 
@@ -183,18 +185,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   }
 
   def downloadCsv(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    val (entry, details) = DB.withConnection { implicit conn =>
-      (
-        TransactionSummary.get(login.siteUser, tranSiteId).get,
-        TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), login.siteUser)
-      )
-    }
-    val writer = new StringWriter
-    val csvWriter = TransactionDetailCsv.instance.createWriter(writer)
-    val csvDetail = new TransactionDetailBodyCsv(csvWriter)
-    details.foreach { detail =>  csvDetail.print(tranId, entry, detail) }
-
-    val stream = new ByteArrayInputStream(writer.toString.getBytes("Windows-31j"))
+    val stream = new ByteArrayInputStream(createCsv(tranId, tranSiteId).getBytes("Windows-31j"))
     val fileName = "tranDetail" + tranId + "-" + tranSiteId + ".csv"
 
     SimpleResult(
@@ -209,4 +200,27 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       body = Enumerator.fromStream(stream)
     )
   }}
+
+  def createCsv(tranId: Long, tranSiteId: Long)(
+    implicit lang: Lang,
+    loginSession: LoginSession
+  ): String = {
+    val (entry, details, shipping) = DB.withConnection { implicit conn =>
+      (
+        TransactionSummary.get(loginSession.siteUser, tranSiteId).get,
+        TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), loginSession.siteUser),
+        TransactionLogShipping.listBySite(tranSiteId)
+      )
+    }
+    val writer = new StringWriter
+    val csvWriter = TransactionDetailCsv.instance.createWriter(writer)
+    val csvDetail = new TransactionDetailBodyCsv(csvWriter)
+    details.foreach {
+      detail => csvDetail.print(tranId, entry, detail)
+    }
+    shipping.foreach {
+      s => csvDetail.printShipping(tranId, entry, s)
+    }
+    writer.toString
+  }
 }

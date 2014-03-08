@@ -323,7 +323,7 @@ class TransactionSpec extends Specification {
           itemTable2(item2.id.get)._2.amount === BigDecimal(59)
 
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
-          val summary1 = TransactionSummary.list(Some(siteUser1))
+          val summary1 = TransactionSummary.list(Some(siteUser1)).records
           summary1.size === 1
           val entry1 = summary1.head
           entry1.transactionId === tranNo
@@ -338,7 +338,7 @@ class TransactionSpec extends Specification {
           sum1.isDefined === true
 
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          val summary2 = TransactionSummary.list(Some(siteUser2))
+          val summary2 = TransactionSummary.list(Some(siteUser2)).records
           summary2.size === 1
           val entry2 = summary2.head
           entry2.transactionId === tranNo
@@ -515,6 +515,76 @@ class TransactionSpec extends Specification {
           detail2(1).itemName === "梅"
           detail2(1).unitPrice === BigDecimal(700)
           detail2(1).quantity === 5
+        }
+      }
+    }
+
+    "Can list shipping log by site." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+          val currency1 = CurrencyInfo.Jpy
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
+
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+
+          val tranSite1 = TransactionLogSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
+          val addr1 = Address.createNew(
+            countryCode = CountryCode.JPN,
+            firstName = "firstName1",
+            lastName = "lastName1",
+            zip1 = "zip1",
+            zip2 = "zip2",
+            prefecture = JapanPrefecture.東京都,
+            address1 = "address1-1",
+            address2 = "address1-2",
+            tel1 = "tel1-1",
+            comment = "comment1"
+          )
+
+          val tax = Tax.createNew
+
+          val shipping1 = TransactionLogShipping.createNew(
+            transactionSiteId = tranSite1.id.get,
+            amount = BigDecimal(1000),
+            addressId = addr1.id.get,
+            itemClass = 1L,
+            boxSize = 3,
+            taxId = tax.id.get,
+            boxCount = 1,
+            boxName = "boxName",
+            shippingDate = date("2012-12-31")
+          )
+
+          val shipping2 = TransactionLogShipping.createNew(
+            transactionSiteId = tranSite1.id.get,
+            amount = BigDecimal(2000),
+            addressId = addr1.id.get,
+            itemClass = 2L,
+            boxSize = 5,
+            taxId = tax.id.get,
+            boxCount = 2,
+            boxName = "boxName2",
+            shippingDate = date("2011-12-31")
+          )
+
+          val list = TransactionLogShipping.listBySite(tranSite1.id.get)
+          list.size === 2
+          list(0) === shipping1
+          list(1) === shipping2
         }
       }
     }

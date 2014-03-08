@@ -1,5 +1,5 @@
 @(
-  tran: Seq[TransactionSummaryEntry],
+  tran: PagedRecords[TransactionSummaryEntry],
   myForm: Form[ChangeTransactionStatus],
   statusTable: Seq[(String, String)],
   entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
@@ -59,7 +59,7 @@
       <th>@Messages("shipping.address")</th>
       <th>@Messages("transaction.status")</th>
     </tr>
-    @tran.map { e =>
+    @tran.records.map { e =>
       <tr class="transactionSummaryBody">
         <td class="transactionId">
           <a href="@routes.TransactionMaintenance.detail(e.transactionSiteId)">

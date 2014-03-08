@@ -24,12 +24,16 @@ import org.openqa.selenium.By
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.LocalTime
 import java.util.concurrent.TimeUnit
+import controllers.TransactionMaintenance
+import java.io.{StringReader, BufferedReader}
 
 class TransactionMaintenanceSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
   val conf = inMemoryDatabase() ++ Helper.disableMailer
 
   case class Tran(
+    tranHeader: TransactionLogHeader,
+    tranSiteHeader: Seq[TransactionLogSite],
     transporter1: Transporter,
     transporter2: Transporter,
     transporterName1: TransporterName,
@@ -44,7 +48,7 @@ class TransactionMaintenanceSpec extends Specification {
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index + "?lang=" + lang.code
+          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index() + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
         browser.title === Messages("transactionMaintenanceTitle")
@@ -61,43 +65,55 @@ class TransactionMaintenanceSpec extends Specification {
         browser.find(".shippingTableBody").find(".address2").getText === "address1-2"
         browser.find(".shippingTableBody").find(".tel1").getText === "tel1-1"
         browser.find(".shippingTableBody").find(".comment").getText === "comment1"
+        val tranSiteId = tran.tranSiteHeader(0).id.get
         browser.webDriver
-          .findElement(By.id("status")).findElement(By.cssSelector("option[value=\"0\"]")).isSelected === true
+          .findElement(By.id("status" + tranSiteId))
+          .findElement(By.cssSelector("option[value=\"0\"]")).isSelected === true
 
         browser
-          .find("#transporterId")
+          .find("#transporter" + tranSiteId)
           .find("option[value=\"" + tran.transporter1.id.get + "\"]").getText === tran.transporterName1.transporterName
         browser
-          .find("#transporterId")
+          .find("#transporter" + tranSiteId)
           .find("option[value=\"" + tran.transporter2.id.get + "\"]").getText === tran.transporterName2.transporterName
 
         browser
-          .find("#transporterId")
+          .find("#transporter" + tranSiteId)
           .find("option[value=\"" + tran.transporter2.id.get + "\"]").click()
 
         // Input error(slip code is not filled).
-        browser.find(".changeShippingInfoButton").click()
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".changeShippingInfoButton").areDisplayed()
-        browser.find("#slipCode_field").find(".error").getText === Messages("error.required")
+        browser.await().atMost(5, TimeUnit.SECONDS).until(
+          "#changeShippingInfoButton" + tranSiteId
+        ).areDisplayed()
+        browser.find("#changeShippingInfoButton" + tranSiteId).click()
 
-        browser.fill("#slipCode").`with`("12345678")
-        browser.find(".changeShippingInfoButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(
+          "#changeShippingInfoButton" + tranSiteId
+        ).areDisplayed()
+        browser.find("#slipCode" + tranSiteId + "_field").find(".error").getText === Messages("error.required")
+
+        browser.fill("#slipCode" + tranSiteId).`with`("12345678")
+        browser.find(
+          "#changeShippingInfoButton" + tranSiteId
+        ).click()
 
         browser.title === Messages("transactionMaintenanceTitle")
         browser.webDriver
-          .findElement(By.id("status")).findElement(By.cssSelector("option[value=\"1\"]")).isSelected === true
+          .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"1\"]")).isSelected === true
 
-        browser.find(".shippingStatusTable").find(".transporter").getText === tran.transporterName2.transporterName
-        browser.find(".shippingStatusTable").find(".slipCode").getText === "12345678"
+        doWith(browser.find("#shippingStatusTable" + tranSiteId)) { tbl =>
+          tbl.find(".transporter").getText === tran.transporterName2.transporterName
+          tbl.find(".slipCode").getText === "12345678"
+        }
 
         // Cancel
         browser.webDriver
-          .findElement(By.id("status")).findElement(By.cssSelector("option[value=\"2\"]")).click()
-        browser.find("#changeShippingStatusButton").click();
-        browser.await().atMost(5, TimeUnit.SECONDS).until("#status").areDisplayed()
+          .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"2\"]")).click()
+        browser.find("#changeShippingStatusButton" + tranSiteId).click();
+        browser.await().atMost(5, TimeUnit.SECONDS).until("#status" + tranSiteId).areDisplayed()
 
         browser.webDriver
-          .findElement(By.id("status")).findElement(By.cssSelector("option[value=\"2\"]")).isSelected === true
+          .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"2\"]")).isSelected === true
       }}
     }
 
@@ -108,7 +124,7 @@ class TransactionMaintenanceSpec extends Specification {
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index + "?lang=" + lang.code
+          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index() + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
@@ -131,7 +147,7 @@ class TransactionMaintenanceSpec extends Specification {
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index + "?lang=" + lang.code
+          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index() + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
@@ -147,6 +163,98 @@ class TransactionMaintenanceSpec extends Specification {
         find("#slipCode_field") must be_!=(null)
       }}
     }
+
+    "Download csv" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        implicit val loginSession = LoginSession(user, None, System.currentTimeMillis() + 10000)
+        val tran = createTransaction(lang, user)
+        val csv1 = TransactionMaintenance.createCsv(tran.tranHeader.id.get, tran.tranSiteHeader(0).id.get)
+        val csv2 = TransactionMaintenance.createCsv(tran.tranHeader.id.get, tran.tranSiteHeader(1).id.get)
+        val csvLines1 = new BufferedReader(new StringReader(csv1))
+        val csvLines2 = new BufferedReader(new StringReader(csv2))
+        csvLines1.readLine === "%s,%s,%s,%s,%s,%s,%s,%s".format(
+          Messages("csv.tran.detail.id"),
+          Messages("csv.tran.detail.date"),
+          Messages("csv.tran.detail.shippingDate"),
+          Messages("csv.tran.detail.type"),
+          Messages("csv.tran.detail.itemName"),
+          Messages("csv.tran.detail.quantity"),
+          Messages("csv.tran.detail.amount"),
+          Messages("csv.tran.detail.costPrice")
+        )
+        csvLines2.readLine === "%s,%s,%s,%s,%s,%s,%s,%s".format(
+          Messages("csv.tran.detail.id"),
+          Messages("csv.tran.detail.date"),
+          Messages("csv.tran.detail.shippingDate"),
+          Messages("csv.tran.detail.type"),
+          Messages("csv.tran.detail.itemName"),
+          Messages("csv.tran.detail.quantity"),
+          Messages("csv.tran.detail.amount"),
+          Messages("csv.tran.detail.costPrice")
+        )
+
+        val lines1 = readFully(csvLines1).sorted
+        lines1.size === 3
+
+        lines1(0) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.item") + "," +
+          "植木1," +
+          "3," +
+          "100.00," +
+          "90.00"
+        )
+        lines1(1) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.item") + "," +
+          "植木3," +
+          "7," +
+          "300.00," +
+          "290.00"
+        )
+        lines1(2) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.shipping") + "," +
+          "site-box1," +
+          "1," +
+          "123.00," +
+          "0"
+        )
+
+        val lines2 = readFully(csvLines2).sorted
+        lines2.size === 2
+
+        lines2(0) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.item") + "," +
+          "植木2," +
+          "5," +
+          "200.00," +
+          "190.00"
+        )
+        lines2(1) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.shipping") + "," +
+          "site-box2," +
+          "2," +
+          "234.00," +
+          "0"
+        )
+      }
+    }}
   }
 
   def createTransaction(lang: Lang, user: StoreUser)(implicit conn: Connection): Tran = {
@@ -154,7 +262,7 @@ class TransactionMaintenanceSpec extends Specification {
     val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
     val site1 = Site.createNew(Ja, "商店1")
-    val site2 = Site.createNew(En, "Shop2")
+    val site2 = Site.createNew(Ja, "商店2")
     
     val cat1 = Category.createNew(
       Map(Ja -> "植木", En -> "Plant")
@@ -247,17 +355,26 @@ class TransactionMaintenanceSpec extends Specification {
 
     val shippingTotal1 = ShippingFeeHistory.feeBySiteAndItemClass(
       CountryCode.JPN, JapanPrefecture.東京都.code,
-      ShippingFeeEntries().add(site1, 1L, 3),
+      ShippingFeeEntries().add(site1, 1L, 3).add(site2, 1L, 4),
       now
     )
-    val shippingDate1 = ShippingDate(Map(site1.id.get -> ShippingDateEntry(site1.id.get, date("2013-02-03"))))
-    
-    val cartTotal1 = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
-      (new TransactionPersister).persist(
-        Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, addr1, shippingTotal1, shippingDate1, now)
+    val shippingDate1 = ShippingDate(
+      Map(
+        site1.id.get -> ShippingDateEntry(site1.id.get, date("2013-02-03")),
+        site2.id.get -> ShippingDateEntry(site2.id.get, date("2013-02-03"))
       )
+    )
+
+    val cartTotal1 = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
+    val tranId = (new TransactionPersister).persist(
+      Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, addr1, shippingTotal1, shippingDate1, now)
+    )
+    val tranList = TransactionLogHeader.list()
+    val tranSiteList = TransactionLogSite.list()
 
     Tran(
+      tranList(0),
+      tranSiteList,
       transporter1 = trans1,
       transporter2 = trans2,
       transporterName1 = transName1,
