@@ -4,6 +4,8 @@ import play.api.db.DB
 import models.{UserRole, StoreUser}
 import play.api.Play.current
 import play.api.test.TestBrowser
+import java.io.{ByteArrayOutputStream, InputStreamReader, BufferedReader, InputStream}
+import java.net.{HttpURLConnection, URL}
 
 object Helper {
   val disableMailer = Map("disable.mailer" -> true)
@@ -34,5 +36,48 @@ object Helper {
 
   def doWith[T](arg: T)(func: T => Unit) {
     func(arg)
+  }
+
+  def downloadString(urlString: String): (Int, String) = downloadString(None, urlString)
+
+  def download[T](ifModifiedSince: Option[Long], urlString: String)(f: InputStream => T): (Int, T) = {
+    val url = new URL(urlString)
+    val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+    try {
+      if (ifModifiedSince.isDefined) conn.setIfModifiedSince(ifModifiedSince.get)
+      (conn.getResponseCode, f(conn.getInputStream))
+    }
+    finally {
+      conn.disconnect()
+    }
+  }
+
+  def downloadString(ifModifiedSince: Option[Long], urlString: String): (Int, String) =
+    download(ifModifiedSince, urlString) { is =>
+      val br = new BufferedReader(new InputStreamReader(is, "UTF-8"))
+      val buf = new StringBuilder()
+      readFully(buf, br)
+      buf.toString
+    }
+
+  def downloadBytes(ifModifiedSince: Option[Long], urlString: String): (Int, Array[Byte]) =
+    download(ifModifiedSince, urlString) { is =>
+      def reader(buf: ByteArrayOutputStream): ByteArrayOutputStream = {
+        val c = is.read
+        if (c == -1) buf
+        else {
+          buf.write(c)
+          reader(buf)
+        }
+      }
+
+      reader(new ByteArrayOutputStream).toByteArray
+    }
+
+  def readFully(buf: StringBuilder, br: BufferedReader) {
+    val s = br.readLine()
+    if (s == null) return
+    buf.append(s)
+    readFully(buf, br)
   }
 }
