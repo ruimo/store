@@ -6,6 +6,8 @@ import play.api.Play.current
 import play.api.test.TestBrowser
 import java.io.{ByteArrayOutputStream, InputStreamReader, BufferedReader, InputStream}
 import java.net.{HttpURLConnection, URL}
+import collection.mutable.ListBuffer
+import annotation.tailrec
 
 object Helper {
   val disableMailer = Map("disable.mailer" -> true)
@@ -79,5 +81,18 @@ object Helper {
     if (s == null) return
     buf.append(s)
     readFully(buf, br)
+  }
+
+  def readFully(br: BufferedReader): Seq[String] = {
+    @tailrec def readFully(buf: ListBuffer[String]): List[String] = {
+      val line = br.readLine
+      if (line == null) buf.toList
+      else {
+        buf += line
+        readFully(buf)
+      }
+    }
+
+    readFully(new ListBuffer[String])
   }
 }
