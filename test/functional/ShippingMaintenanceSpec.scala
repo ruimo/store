@@ -305,6 +305,7 @@ class ShippingMaintenanceSpec extends Specification {
         )
 
         browser.title === Messages("shippingFeeMaintenanceTitle")
+        browser.await().atMost(5, TimeUnit.SECONDS).until("#createShippingFeeEntryButton").areDisplayed()
         browser.find("#createShippingFeeEntryButton").click()
         
         // No prefectures are checked.
@@ -372,6 +373,7 @@ class ShippingMaintenanceSpec extends Specification {
     }
 
     "Can add, edit, delete fee" in {
+println("*** Can add, edit, delete fee start")
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -453,6 +455,8 @@ class ShippingMaintenanceSpec extends Specification {
         browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
         browser.find("button.removeHistoryButton").getTexts.size === 0
       }}
+
+println("*** Can add, edit, delete fee start")
     }
   }
 }

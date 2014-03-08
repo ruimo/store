@@ -4,6 +4,9 @@ import play.api.db.DB
 import models.{UserRole, StoreUser}
 import play.api.Play.current
 import play.api.test.TestBrowser
+import collection.mutable.ListBuffer
+import annotation.tailrec
+import java.io.BufferedReader
 
 object Helper {
   val disableMailer = Map("disable.mailer" -> true)
@@ -34,5 +37,18 @@ object Helper {
 
   def doWith[T](arg: T)(func: T => Unit) {
     func(arg)
+  }
+
+  def readFully(br: BufferedReader): Seq[String] = {
+    @tailrec def readFully(buf: ListBuffer[String]): List[String] = {
+      val line = br.readLine
+      if (line == null) buf.toList
+      else {
+        buf += line
+        readFully(buf)
+      }
+    }
+
+    readFully(new ListBuffer[String])
   }
 }
