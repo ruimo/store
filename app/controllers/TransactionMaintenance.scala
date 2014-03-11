@@ -95,6 +95,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   def detail(tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       val entry = TransactionSummary.get(login.siteUser, tranSiteId).get
+      val boxNameByItemSize = TransactionLogShipping.listBySite(tranSiteId).foldLeft(LongMap.empty[String]) {
+        (sum, e) => (sum + (e.itemClass -> e.boxName))
+      }
       Ok(
         views.html.admin.transactionDetail(
           entry,
@@ -104,7 +107,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
           Transporter.tableForDropDown,
           Transporter.listWithName.foldLeft(LongMap[String]()) {
             (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-          }
+          },
+          boxNameByItemSize
         )
       )
     }
