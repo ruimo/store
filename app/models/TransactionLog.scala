@@ -728,7 +728,7 @@ object TransactionSummary {
     """
       group by
         transaction_header.transaction_id,
-    	transaction_header.transaction_time,
+        transaction_header.transaction_time,
         transaction_site.total_amount,
         transaction_site.site_id,
         transaction_site.transaction_site_id,
