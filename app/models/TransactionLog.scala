@@ -728,7 +728,11 @@ object TransactionSummary {
     """
       group by
         transaction_header.transaction_id,
-        transaction_site.transaction_site_id
+    	transaction_header.transaction_time,
+        transaction_site.total_amount,
+        transaction_site.site_id,
+        transaction_site.transaction_site_id,
+        transaction_header.store_user_id
       order by transaction_header.transaction_time desc, transaction_site.site_id
     """ + 
     (if (withLimit) "limit {limit} offset {offset}" else "") +
