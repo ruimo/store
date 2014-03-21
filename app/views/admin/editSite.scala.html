@@ -16,8 +16,8 @@
     </tr>
     @sites.map { site =>
       <tr class="siteTableBody">
-        <th class="id">@site.id.get</th>
-        <th class="siteName">@site.name</th>
+        <td class="id">@site.id.get</td>
+        <td class="siteName">@site.name</td>
         <td class="action">
           @helper.form(action = helper.CSRF(routes.SiteMaintenance.deleteSite(site.id.get))) {
             <input type="submit" style="float: left;" value=@Messages("remove")>

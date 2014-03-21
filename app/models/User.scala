@@ -153,7 +153,7 @@ object StoreUser {
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
-      where deleted = FALSE
+      where store_user.deleted = FALSE
       order by store_user.user_name
       limit {pageSize} offset {offset}
       """
