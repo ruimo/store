@@ -9,6 +9,7 @@
 )
 
 @import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
 
 @zipError(f: Form[CreateAddress]) = @{
   f("zip1").error.isDefined || f("zip2").error.isDefined
