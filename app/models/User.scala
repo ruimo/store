@@ -125,7 +125,7 @@ object StoreUser {
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
     StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
-              salt, false, userRole, companyName)
+              salt, deleted = false, userRole, companyName)
   }
 
   def withSite(userId: Long)(implicit conn: Connection): ListUserEntry =
@@ -136,7 +136,7 @@ object StoreUser {
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
       where store_user.store_user_id = {storeUserId}
-      and deleted = FALSE
+      and store_user.deleted = FALSE
       """
     ).on(
       'storeUserId -> userId
@@ -153,7 +153,7 @@ object StoreUser {
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
-      where deleted = FALSE
+      where store_user.deleted = FALSE
       order by store_user.user_name
       limit {pageSize} offset {offset}
       """

@@ -2,7 +2,7 @@ package controllers
 
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import models.{LocaleInfo, CreateSite}
+import models.{StoreUser, LocaleInfo, CreateSite, Site}
 import play.api.data.Form
 import controllers.I18n.I18nAware
 import play.api.mvc.Controller
@@ -35,13 +35,23 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
       newSite => DB.withConnection { implicit conn =>
         newSite.save
         Redirect(
-          routes.SiteMaintenance.startCreateNewSite
+          routes.SiteMaintenance.startCreateNewSite()
         ).flashing("message" -> Messages("siteIsCreated"))
       }
     )
   }}
 
   def editSite = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.editSite())
+    DB.withConnection { implicit conn =>
+      Ok(views.html.admin.editSite(Site.listByName()))
+    }
   }}
+
+  def deleteSite(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    DB.withConnection { implicit conn =>
+      Site.delete(id)
+    }
+    Redirect(routes.SiteMaintenance.editSite())
+  }}
+
 }

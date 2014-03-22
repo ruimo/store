@@ -422,6 +422,20 @@ tr.userTableBody {
   margin: 10px;
 }
 
+table.siteTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
+tr.siteTableHeader {
+    background-color: DarkGreen;
+    color: White;
+}
+
+tr.siteTableBody {
+    background-color: white;
+}
+
 .itemDetailPanel1 {
   float: left;
   width: 330px;

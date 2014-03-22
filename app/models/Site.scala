@@ -59,7 +59,7 @@ object Site {
 
   def listByName(page: Int = 0, pageSize: Int = 20)(implicit conn: Connection): Seq[Site] = SQL(
     """
-    select * from site order by site_name
+    select * from site where site.deleted = FALSE order by site_name
     limit {pageSize} offset {offset}
     """
   ).on(
@@ -103,4 +103,15 @@ object Site {
     ).as(simple *).map {
       e => e.id.get -> e
     }.toMap
+
+  def delete(siteId: Long)(implicit conn: Connection) {
+    SQL(
+      """
+      update site set deleted = TRUE where site_id = {id}
+      """
+    ).on(
+        'id -> siteId
+    ).executeUpdate()
+  }
+
 }

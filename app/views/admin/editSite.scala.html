@@ -1,4 +1,4 @@
-@()(
+@(sites: Seq[Site])(
   implicit lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
@@ -6,7 +6,34 @@
 
 @main(Messages("editSiteTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
-<h1 class="title">@Messages("editSiteTitle")</h1>
+　<h1 class="title">@Messages("editSiteTitle")</h1>
 
+  <table class="siteTable">
+    <tr class="siteTableHeader">
+      <th class="id">Identifier</th>
+      <th class="siteName">@Messages("siteName")</th>
+      <th class="action">@Messages("action")</th>
+    </tr>
+    @sites.map { site =>
+      <tr class="siteTableBody">
+        <td class="id">@site.id.get</td>
+        <td class="siteName">@site.name</td>
+        <td class="action">
+          @helper.form(action = helper.CSRF(routes.SiteMaintenance.deleteSite(site.id.get))) {
+            <input type="submit" style="float: left;" value=@Messages("remove")>
+          }
+        </td>
+      </tr>
+    }
+  </table>
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.SiteMaintenance.index()">
+        @Messages("backTo", Messages("siteMaintenanceTitle"))
+    </a>
+    <br>
+    @admin.backToAdminTop()
+  </div>
 }
 

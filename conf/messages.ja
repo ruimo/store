@@ -299,6 +299,11 @@ order.history.title=ご注文履歴
 query.order.history=ご注文履歴
 invoice=納品書
 invoice.title=納品書
+
+id=Identifier
+siteName=店舗名
+action=アクション
+
 print=印刷
 company.salutation={0} 御中
 invoice.detail.title=下記の通り納品致します。
