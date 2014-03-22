@@ -64,16 +64,18 @@
       '_label -> Messages("lastNameKana"), 'size -> 24, 'maxlength -> 64
     )
 
-    <dl class="@{if (zipError(myForm)) {"error"} else {""}}">
-      <dt>郵便番号</dt>
-      <dd>
-        <input type="text" size="3" name="zip1" value="@myForm("zip1").value.getOrElse("")" maxlength="3">
-        -
-        <input type="text" size="4" name="zip2" value="@myForm("zip2").value.getOrElse("")" maxlength="4"
-               onKeyUp="AjaxZip3.zip2addr('zip1', 'zip2', 'prefecture', 'address1', 'address2');">
-      </dd>
-      @{ if (zipError(myForm)) { <dd>3桁-4桁の数値で指定してください。</dd> } }
-    </dl>
+    <div class="@{if (zipError(myForm)) {"error"} else {""}}">
+      <label for="zip1">郵便番号</label>
+      <div class="input">
+        <span>
+          <input type="text" size="3" name="zip1" value="@myForm("zip1").value.getOrElse("")" maxlength="3">
+          -
+          <input type="text" size="4" name="zip2" value="@myForm("zip2").value.getOrElse("")" maxlength="4"
+                 onKeyUp="AjaxZip3.zip2addr('zip1', 'zip2', 'prefecture', 'address1', 'address2');">
+        </span>
+        @{ if (zipError(myForm)) { <span>3桁-4桁の数値で指定してください。</span> } }
+      </div>
+    </div>
 
     @select(
       myForm("prefecture"), 
