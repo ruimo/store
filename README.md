@@ -1,4 +1,4 @@
-store
+Functional Store
 =====
 
 Open source electric comerce application package
