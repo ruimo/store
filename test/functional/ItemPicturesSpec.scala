@@ -132,7 +132,7 @@ class ItemPicturesSpec extends Specification {
 
     "Upload item picture." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)

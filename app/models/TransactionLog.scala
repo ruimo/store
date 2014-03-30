@@ -984,6 +984,8 @@ class TransactionPersister {
       map.updated(siteId, e._2 :: map(siteId))
     }.mapValues(_.reverse)
 
+println("taxLog = " + taxLog)
+
     val itemLog = SQL(
       """
       select * from transaction_site
