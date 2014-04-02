@@ -180,7 +180,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
     catch {
       case e: NoSuchFileException =>
-      case e => throw e
+      case e: Throwable => throw e
     }
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
@@ -194,7 +194,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
     catch {
       case e: NoSuchFileException =>
-      case e => throw e
+      case e: Throwable => throw e
     }
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
@@ -207,7 +207,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
     catch {
       case e: NoSuchFileException =>
-      case e => throw e
+      case e: Throwable => throw e
     }
     Redirect(
       routes.ItemMaintenance.startChangeItem(itemId)
