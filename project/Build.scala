@@ -19,6 +19,7 @@ object ApplicationBuild extends Build {
     scalacOptions ++= Seq("-feature"),
     javaOptions ++= sys.process.javaVmArguments.filter(
       a => Seq("-Xmx","-Xms","-XX").exists(a.startsWith)
-    )
+    ),
+    scalaVersion := "2.10.4"
   )
 }
