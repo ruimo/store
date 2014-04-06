@@ -9,6 +9,7 @@ case class TransactionSummaryEntry(
   transactionSiteId: Long,
   transactionTime: Long,
   totalAmount: BigDecimal,
+  totalTax: BigDecimal,
   address: Address,
   siteId: Long,
   siteName: String,
@@ -19,7 +20,9 @@ case class TransactionSummaryEntry(
   buyer: StoreUser,
   shippingDate: Long,
   mailSent: Boolean
-) extends NotNull
+) extends NotNull {
+  lazy val totalWithTax = totalAmount + totalTax
+}
 
 object TransactionSummary {
   val parser = {
@@ -27,6 +30,7 @@ object TransactionSummary {
     SqlParser.get[Long]("transaction_site_id") ~
     SqlParser.get[java.util.Date]("transaction_time") ~
     SqlParser.get[java.math.BigDecimal]("total_amount") ~
+    SqlParser.get[java.math.BigDecimal]("tax_amount") ~
     Address.simple ~
     SqlParser.get[Long]("site_id") ~
     SqlParser.get[String]("site_name") ~
@@ -38,9 +42,9 @@ object TransactionSummary {
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
     SqlParser.get[Boolean]("transaction_status.mail_sent") map {
-      case id~tranSiteId~time~amount~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent =>
+      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent =>
         TransactionSummaryEntry(
-          id, tranSiteId, time.getTime, amount, address, siteId, siteName,
+          id, tranSiteId, time.getTime, amount, tax, address, siteId, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
           user, shippingDate.getTime, mailSent
@@ -53,6 +57,7 @@ object TransactionSummary {
       base.transaction_site_id,
       transaction_time,
       total_amount,
+      tax_amount,
       address.*,
       site.site_id,
       site.site_name,
@@ -67,7 +72,11 @@ object TransactionSummary {
   """
 
   def baseSql(
-    user: Option[SiteUser], additionalWhere: String = "", withLimit: Boolean, columns: String = baseColumns
+    siteUser: Option[SiteUser],
+    withLimit: Boolean,
+    storeUser: Option[StoreUser] = None,
+    additionalWhere: String = "",
+    columns: String = baseColumns
   ) =
     """
     select 
@@ -84,21 +93,25 @@ object TransactionSummary {
         transaction_header.store_user_id,
         max(transaction_shipping.shipping_date) shipping_date,
         min(transaction_shipping.address_id) address_id,
-        sum(transaction_shipping.amount) shipping
+        sum(transaction_shipping.amount) shipping,
+        sum(coalesce(transaction_tax.amount, 0)) tax_amount
       from transaction_header
       inner join transaction_site on
         transaction_header.transaction_id = transaction_site.transaction_id
       inner join transaction_shipping on
         transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
-    """ + (user match {
-      case None => ""
-      case Some(siteUser) => "where transaction_site.site_id = " + siteUser.siteId
-    }) +
+      left join transaction_tax on
+        transaction_tax.transaction_site_id = transaction_site.transaction_site_id and
+        transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal +
+    "where 1 = 1" +
+    siteUser.map {u => " and transaction_site.site_id = " + u.siteId}.getOrElse("") +
+    storeUser.map {u => " and transaction_header.store_user_id = " + u.id}.getOrElse("") +
     """
       group by
         transaction_header.transaction_id,
         transaction_header.transaction_time,
         transaction_site.total_amount,
+        transaction_site.tax_amount,
         transaction_site.site_id,
         transaction_site.transaction_site_id,
         transaction_header.store_user_id
@@ -119,7 +132,7 @@ object TransactionSummary {
     """
 
   def list(
-    user: Option[SiteUser], page: Int = 0, pageSize: Int = 25
+    siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None, page: Int = 0, pageSize: Int = 25
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
       """
@@ -135,7 +148,7 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       OrderBy("base.transaction_id", Desc),
       SQL(
-        baseSql(user, "", true)
+        baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true)
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize
@@ -147,7 +160,7 @@ object TransactionSummary {
 
   def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] = {
     SQL(
-      baseSql(user, "where base.transaction_site_id = {tranSiteId}", false)
+      baseSql(siteUser = user, additionalWhere = "where base.transaction_site_id = {tranSiteId}", withLimit = false)
     ).on(
       'tranSiteId -> tranSiteId
     ).as(

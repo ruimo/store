@@ -8,7 +8,7 @@ import models._
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
-import functional.Helper._
+import helpers.Helper._
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 import scala.Some

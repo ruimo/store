@@ -4,7 +4,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
 
-import functional.Helper._
+import helpers.Helper._
 
 import org.specs2.mutable.Specification
 import play.api.test.{Helpers, TestServer, FakeApplication}

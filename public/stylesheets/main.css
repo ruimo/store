@@ -461,3 +461,11 @@ tr.siteTableBody {
 #itemDetailFooter3 {
   float: right;
 }
+
+.orderHistoryTable tr {
+  vertical-align: top;
+}
+
+.orderHistoryInnerTable2 tr {
+  vertical-align: top;
+}

@@ -3,5 +3,5 @@
 @import java.util.Locale
 
 <span class="companyName">@{buyer.companyName.getOrElse("-")}</span><br>
-<span class="name">@{buyer.firstName + " " + buyer.middleName.getOrElse("") + " " + buyer.lastName}</span><br>
+<span class="name">@name(buyer)</span><br>
 <span class="email">@{buyer.email}</span>

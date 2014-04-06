@@ -6,7 +6,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
 
-import functional.Helper._
+import helpers.Helper._
 
 import org.specs2.mutable.Specification
 import play.api.test.{Helpers, TestServer, FakeApplication}
@@ -26,10 +26,11 @@ import org.joda.time.LocalTime
 import java.util.concurrent.TimeUnit
 import controllers.TransactionMaintenance
 import java.io.{StringReader, BufferedReader}
+import helpers.Helper.disableMailer
 
 class TransactionMaintenanceSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
-  val conf = inMemoryDatabase() ++ Helper.disableMailer
+  val conf = inMemoryDatabase() ++ disableMailer
 
   case class Tran(
     tranHeader: TransactionLogHeader,

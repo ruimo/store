@@ -8,7 +8,7 @@ import models.{UserRole, StoreUser}
 import play.api.db.DB
 import play.api.Play.current
 import java.util.concurrent.TimeUnit
-import functional.Helper._
+import helpers.Helper._
 
 class LoginSpec extends Specification {
   "Login" should {

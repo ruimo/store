@@ -8,7 +8,7 @@ import models.{UserRole, StoreUser}
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
-import functional.Helper._
+import helpers.Helper._
 
 class CreateNewSuperUserSpec extends Specification {
   "CreateNewSuperUser" should {

@@ -662,7 +662,7 @@ object TransactionDetail {
   }
 
   def show(
-    tranSiteId: Long, locale: LocaleInfo, user: Option[SiteUser]
+    tranSiteId: Long, locale: LocaleInfo, user: Option[SiteUser] = None
   )(implicit conn: Connection): Seq[TransactionDetail] = {
     SQL(
       """

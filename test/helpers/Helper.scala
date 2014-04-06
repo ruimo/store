@@ -1,4 +1,4 @@
-package functional
+package helpers
 
 import play.api.db.DB
 import models.{UserRole, StoreUser}

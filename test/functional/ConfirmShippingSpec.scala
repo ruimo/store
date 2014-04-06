@@ -5,7 +5,7 @@ import play.api.test.Helpers._
 import play.api.Play.current
 import java.sql.Connection
 
-import functional.Helper._
+import helpers.Helper._
 import org.specs2.mutable.Specification
 import play.api.test.{Helpers, TestServer, FakeApplication}
 import play.api.i18n.{Lang, Messages}

@@ -321,33 +321,6 @@ class TransactionSpec extends Specification {
           itemTable2(item2.id.get)._2.itemPriceHistoryId === ph2.id.get
           itemTable2(item2.id.get)._2.quantity === 1
           itemTable2(item2.id.get)._2.amount === BigDecimal(59)
-
-          val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
-          val summary1 = TransactionSummary.list(Some(siteUser1)).records
-          summary1.size === 1
-          val entry1 = summary1.head
-          entry1.transactionId === tranNo
-          entry1.transactionTime === ptran.header.transactionTime
-          entry1.totalAmount === BigDecimal(119 + 1234)
-          entry1.address === addr
-          entry1.siteName === "商店1"
-          entry1.shippingFee === BigDecimal(1234)
-          entry1.status === TransactionStatus.ORDERED
-
-          val sum1 = TransactionSummary.get(Some(siteUser1), entry1.transactionSiteId)
-          sum1.isDefined === true
-
-          val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          val summary2 = TransactionSummary.list(Some(siteUser2)).records
-          summary2.size === 1
-          val entry2 = summary2.head
-          entry2.transactionId === tranNo
-          entry2.transactionTime === ptran.header.transactionTime
-          entry2.totalAmount === BigDecimal(59 + 2345)
-          entry2.address === addr
-          entry2.siteName === "商店2"
-          entry2.shippingFee === BigDecimal(2345)
-          entry2.status === TransactionStatus.ORDERED
         }
       }
     }

@@ -1,4 +1,7 @@
 @(
+  tran: PagedRecords[TransactionSummaryEntry],
+  detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
+  boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -8,9 +11,75 @@
 )
 
 @import helper._
+@import scala.collection.immutable.LongMap
 
 @main(Messages("order.history.title"), Some(loginSession)) {
 } {
-  <h1 class="startOrderHistory">@Messages("order.history.title")</h1>
+  <h1 class="title">@Messages("order.history.title")</h1>
 
+  @tran.records.map { e =>
+    <table class="orderHistoryTable">
+      <tr>
+        <td>
+          <table class="orderHistoryInnerTable1">
+            <tr class="transactionTime">
+              <td>@yyyymmddhhmm(e.transactionTime)</td>
+            </tr>
+            <tr class="transactionId">
+              <td>@Messages("transaction.id"): @e.transactionId</td>
+            </tr>
+            <tr class="buyer">
+              <td>@Messages("buyer"): @name(e.buyer)
+            </tr>
+            <tr class="totalAmount">
+              <td>@Messages("transaction.amount"): @amount(e.totalWithTax)</td>
+            </tr>
+          </table>
+        </td>
+
+        <td>
+          <table class="orderHistoryInnerTable2">
+            <tr>
+              <td colspan="2">
+                <span class="status">
+                  @Messages("transaction.status." + e.status)
+                </span>
+                <span class="shippingDate">
+                  @shippingDate(e.shippingDate)
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <table class="orderHistoryInnerTable3">
+                  @detailByTranSiteId(e.transactionSiteId).map { d =>
+                    <tr>
+                      <td>
+                        <span class="itemName">@d.itemName</span> /
+                        <span class="price">@amount(d.unitPrice * d.quantity)</span>
+                      </td>
+                    </tr>
+                  }
+                </table>
+              </td>
+              <td>
+                <table class="orderHistoryInnerTable4">
+                  @boxBySiteAndItemSize.get(
+                    e.transactionSiteId
+                  ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+                    <tr>
+                      <td>
+                        <span class="boxName">@box.boxName</span> /
+                        <span class="boxPrice">@amount(box.amount)</span>
+                      </td>
+                    </tr>
+                  }
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  }
 }

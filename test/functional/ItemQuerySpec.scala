@@ -5,7 +5,7 @@ import play.api.test.{Helpers, TestServer, FakeApplication}
 import play.api.db.DB
 import play.api.i18n.{Messages, Lang}
 import play.api.test.Helpers._
-import functional.Helper._
+import helpers.Helper._
 import play.api.Play.current
 import models._
 import play.api.test.TestServer
