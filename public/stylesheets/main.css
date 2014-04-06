@@ -469,3 +469,11 @@ tr.siteTableBody {
 .orderHistoryInnerTable2 tr {
   vertical-align: top;
 }
+
+.orderHistoryInnerTable3 td {
+  text-align: left;
+}
+
+.orderHistoryInnerTable4 td {
+  text-align: left;
+}
