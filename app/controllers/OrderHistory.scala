@@ -9,7 +9,7 @@ import models.{TransactionLogShipping, TransactionDetail, LocaleInfo, Transactio
 import collection.immutable.{HashMap, LongMap}
 
 object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAware {
-  def index = isAuthenticated { implicit login => implicit request =>
+  def index(page: Int, pageSize: Int, orderBySpec: String) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val pagedRecords = TransactionSummary.list(storeUser = Some(login.storeUser))
       val detailByTranSiteId = pagedRecords.records.foldLeft(LongMap[Seq[TransactionDetail]]()) {

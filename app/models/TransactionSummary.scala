@@ -25,6 +25,7 @@ case class TransactionSummaryEntry(
 }
 
 object TransactionSummary {
+  val ListDefaultOrderBy = OrderBy("transaction_header.transaction_time", Desc)
   val parser = {
     SqlParser.get[Long]("transaction_id") ~
     SqlParser.get[Long]("transaction_site_id") ~
@@ -76,6 +77,7 @@ object TransactionSummary {
     withLimit: Boolean,
     storeUser: Option[StoreUser] = None,
     additionalWhere: String = "",
+    orderBy: OrderBy = ListDefaultOrderBy,
     columns: String = baseColumns
   ) =
     """
@@ -115,8 +117,8 @@ object TransactionSummary {
         transaction_site.site_id,
         transaction_site.transaction_site_id,
         transaction_header.store_user_id
-      order by transaction_header.transaction_time desc, transaction_site.site_id
-    """ + 
+    """ +
+      s"order by $orderBy, transaction_site.site_id " +
     (if (withLimit) "limit {limit} offset {offset}" else "") +
     """
     ) base
@@ -132,7 +134,8 @@ object TransactionSummary {
     """
 
   def list(
-    siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None, page: Int = 0, pageSize: Int = 25
+    siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None,
+    page: Int = 0, pageSize: Int = 25, orderBy: OrderBy = ListDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
       """
@@ -148,7 +151,7 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       OrderBy("base.transaction_id", Desc),
       SQL(
-        baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true)
+        baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true, orderBy = orderBy)
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize
