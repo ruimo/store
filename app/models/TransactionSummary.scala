@@ -105,7 +105,7 @@ object TransactionSummary {
       left join transaction_tax on
         transaction_tax.transaction_site_id = transaction_site.transaction_site_id and
         transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal +
-    "where 1 = 1" +
+    " where 1 = 1" +
     siteUser.map {u => " and transaction_site.site_id = " + u.siteId}.getOrElse("") +
     storeUser.map {u => " and transaction_header.store_user_id = " + u.id}.getOrElse("") +
     """
@@ -119,7 +119,6 @@ object TransactionSummary {
         transaction_header.store_user_id
     """ +
       s"order by $orderBy, transaction_site.site_id " +
-    (if (withLimit) "limit {limit} offset {offset}" else "") +
     """
     ) base
     inner join address on address.address_id = base.address_id
@@ -131,7 +130,8 @@ object TransactionSummary {
     additionalWhere +
     """
     order by base.transaction_id desc, base.site_id
-    """
+    """ +
+    (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
     siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None,
@@ -149,7 +149,7 @@ object TransactionSummary {
       page,
       pageSize,
       (count + pageSize - 1) / pageSize,
-      OrderBy("base.transaction_id", Desc),
+      orderBy,
       SQL(
         baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true, orderBy = orderBy)
       ).on(

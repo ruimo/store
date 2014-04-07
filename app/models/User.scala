@@ -1,8 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
-import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps

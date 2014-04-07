@@ -5,13 +5,16 @@ import db.DB
 import mvc.Controller
 import play.api.Play.current
 import controllers.I18n.I18nAware
-import models.{TransactionLogShipping, TransactionDetail, LocaleInfo, TransactionSummary}
+import models.{TransactionLogShipping, TransactionDetail, LocaleInfo, TransactionSummary, OrderBy}
 import collection.immutable.{HashMap, LongMap}
 
 object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAware {
   def index(page: Int, pageSize: Int, orderBySpec: String) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
-      val pagedRecords = TransactionSummary.list(storeUser = Some(login.storeUser))
+      val pagedRecords = TransactionSummary.list(
+        storeUser = Some(login.storeUser),
+        page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
+      )
       val detailByTranSiteId = pagedRecords.records.foldLeft(LongMap[Seq[TransactionDetail]]()) {
         (sum, e) =>
           val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))

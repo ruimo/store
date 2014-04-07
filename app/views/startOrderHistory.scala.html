@@ -13,6 +13,8 @@
 @import helper._
 @import scala.collection.immutable.LongMap
 
+@implicitLoginSessionOpt = @{Some(loginSession)}
+
 @main(Messages("order.history.title"), Some(loginSession)) {
 } {
   <h1 class="title">@Messages("order.history.title")</h1>
@@ -82,4 +84,10 @@
       </tr>
     </table>
   }
+  <br>
+  @pagingPanel(
+    tran,
+    routes.OrderHistory.index(_: Int, _: Int, _: String),
+    10, 25, 50
+  )
 }
