@@ -77,7 +77,7 @@ object TransactionSummary {
     withLimit: Boolean,
     storeUser: Option[StoreUser] = None,
     additionalWhere: String = "",
-    orderBy: OrderBy = ListDefaultOrderBy,
+    orderByOpt: Option[OrderBy] = Some(ListDefaultOrderBy),
     columns: String = baseColumns
   ) =
     """
@@ -117,9 +117,6 @@ object TransactionSummary {
         transaction_site.site_id,
         transaction_site.transaction_site_id,
         transaction_header.store_user_id
-    """ +
-      s"order by $orderBy, transaction_site.site_id " +
-    """
     ) base
     inner join address on address.address_id = base.address_id
     inner join site on site.site_id = base.site_id
@@ -128,9 +125,7 @@ object TransactionSummary {
       on transaction_status.transaction_site_id = base.transaction_site_id
     """ +
     additionalWhere +
-    """
-    order by base.transaction_id desc, base.site_id
-    """ +
+    orderByOpt.map {o => s"order by $o, base.site_id "}.getOrElse("") +
     (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
@@ -138,9 +133,8 @@ object TransactionSummary {
     page: Int = 0, pageSize: Int = 25, orderBy: OrderBy = ListDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
-      """
-      select count(*) from transaction_site
-      """
+      baseSql(columns = "count(*)", siteUser = siteUser, storeUser = storeUser, 
+              additionalWhere = "", withLimit = false, orderByOpt = None)
     ).as(
       SqlParser.scalar[Long].single
     )
@@ -151,7 +145,7 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       orderBy,
       SQL(
-        baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true, orderBy = orderBy)
+        baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true, orderByOpt = Some(orderBy))
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize
