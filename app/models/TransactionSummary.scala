@@ -25,7 +25,7 @@ case class TransactionSummaryEntry(
 }
 
 object TransactionSummary {
-  val ListDefaultOrderBy = OrderBy("transaction_header.transaction_time", Desc)
+  val ListDefaultOrderBy = OrderBy("base.transaction_time", Desc)
   val parser = {
     SqlParser.get[Long]("transaction_id") ~
     SqlParser.get[Long]("transaction_site_id") ~
