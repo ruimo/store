@@ -38,13 +38,14 @@ class ItemPicturesSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = dir.resolve("notfound.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(1, 0).url
         )._2 === "Hello"
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -52,13 +53,14 @@ class ItemPicturesSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = dir.resolve("detailnotfound.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(1).url
         )._2 === "Hello"
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -66,13 +68,14 @@ class ItemPicturesSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = dir.resolve("2_1.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
         downloadString(
           Some(file.toFile.lastModified - 1000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(2, 1).url
         )._2 === "Hello"
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -80,13 +83,14 @@ class ItemPicturesSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = dir.resolve("detail2.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
         downloadString(
           Some(file.toFile.lastModified - 1000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(2).url
         )._2 === "Hello"
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -94,6 +98,7 @@ class ItemPicturesSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = dir.resolve("2_1.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
         downloadString(
@@ -106,7 +111,7 @@ class ItemPicturesSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(2, 1).url
         )._1 === Status.NOT_MODIFIED
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -114,6 +119,7 @@ class ItemPicturesSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = dir.resolve("detail2.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
         downloadString(
@@ -126,7 +132,7 @@ class ItemPicturesSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(2).url
         )._1 === Status.NOT_MODIFIED
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -152,6 +158,7 @@ class ItemPicturesSpec extends Specification {
         )
 
         val file = dir.resolve("notfound.jpg")
+        Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
         // Since no item pictures found, notfound.jpg will be obtained.
@@ -228,7 +235,7 @@ class ItemPicturesSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
         )._2 === "Hello"
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -249,7 +256,7 @@ class ItemPicturesSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
         )._1 === Status.NOT_MODIFIED
 
-        Files.delete(file)
+        Files.deleteIfExists(file)
       }}
     }
 
@@ -291,9 +298,9 @@ class ItemPicturesSpec extends Specification {
         map(2) === "file1.jpg"
         map(3) === "file3.ogg"
 
-        Files.delete(attachmentDir.resolve("1_2_file1.jpg"))
-        Files.delete(attachmentDir.resolve("2_2_file2.mp3"))
-        Files.delete(attachmentDir.resolve("1_3_file3.ogg"))
+        Files.deleteIfExists(attachmentDir.resolve("1_2_file1.jpg"))
+        Files.deleteIfExists(attachmentDir.resolve("2_2_file2.mp3"))
+        Files.deleteIfExists(attachmentDir.resolve("1_3_file3.ogg"))
       }}
     }
   }
