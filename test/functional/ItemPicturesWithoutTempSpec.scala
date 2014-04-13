@@ -11,11 +11,15 @@ import play.api.test.Helpers
 import play.api.test.Helpers.inMemoryDatabase
 import play.api.test.Helpers.running
 import play.api.test.TestServer
+import java.nio.file.Files
 
 class ItemPicturesWithoutTempSpec extends Specification {
+  val dir = Files.createTempDirectory(null)
+  lazy val withTempDir = Map("item.picture.path" -> dir.toFile.getAbsolutePath)
+
   "ItemPicture" should {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         DB.withConnection { implicit conn =>
           downloadBytes(Some(-1),
