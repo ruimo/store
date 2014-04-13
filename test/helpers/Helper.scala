@@ -41,6 +41,7 @@ object Helper {
   }
 
   def downloadString(urlString: String): (Int, String) = downloadString(None, urlString)
+  def downloadBytes(urlString: String): (Int, Array[Byte]) = downloadBytes(None, urlString)
 
   def download[T](ifModifiedSince: Option[Long], urlString: String)(f: InputStream => T): (Int, T) = {
     val url = new URL(urlString)
