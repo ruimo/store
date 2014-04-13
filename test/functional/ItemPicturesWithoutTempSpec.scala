@@ -1,33 +1,16 @@
 package functional
 
-import play.api.test._
-import play.api.test.Helpers._
-import play.api.Play.current
-import java.sql.Connection
-
-import helpers.Helper._
-
 import org.specs2.mutable.Specification
-import play.api.test.{ Helpers, TestServer, FakeApplication }
-import play.api.i18n.{ Lang, Messages }
-import models._
+
+import helpers.Helper.downloadBytes
+import play.api.Play.current
 import play.api.db.DB
-import play.api.test.TestServer
-import play.api.test.FakeApplication
-import java.sql.Date.{ valueOf => date }
-import controllers.ItemPictures
-import java.nio.file.{ Paths, Files }
-import java.util
-import java.nio.charset.Charset
-import java.net.{ HttpURLConnection, URL }
-import java.io._
-import java.text.SimpleDateFormat
-import java.sql.Date.{ valueOf => date }
 import play.api.http.Status
-import org.openqa.selenium.By
-import scala.Some
-import play.api.test.TestServer
 import play.api.test.FakeApplication
+import play.api.test.Helpers
+import play.api.test.Helpers.inMemoryDatabase
+import play.api.test.Helpers.running
+import play.api.test.TestServer
 
 class ItemPicturesWithoutTempSpec extends Specification {
   "ItemPicture" should {
