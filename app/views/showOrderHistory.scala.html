@@ -87,7 +87,13 @@
   <br>
   @pagingPanel(
     tran,
-    routes.OrderHistory.index(_: Int, _: Int, _: String),
+    routes.OrderHistory.showOrderHistory(_: Int, _: Int, _: String),
     10, 25, 50
   )
+
+  <div class="menuPanel">
+    <a class="backLink" href="@routes.OrderHistory.index()">
+      @Messages("backTo", Messages("order.history.title"))
+    </a>
+  </div>
 }

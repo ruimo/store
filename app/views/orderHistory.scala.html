@@ -1,0 +1,53 @@
+@(
+  billForm: Form[YearMonth]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@main(Messages("order.history.title"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("order.history.title")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.OrderHistory.showOrderHistory()">
+      @Messages("showOrderHistoryMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    @form(action = CSRF(routes.OrderHistory.showBill()), 'id -> "showBillForm") {
+      <table>
+        <tr valign="top">
+          <td>
+            @inputText(
+              billForm("year"),
+              'size -> 4, 'maxLength -> 4, '_showConstraints -> false
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td>@Messages("year")</td>
+          <td>
+            @inputText(
+              billForm("month"),
+              'size -> 2, 'maxLength -> 2, '_showConstraints -> false
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td>@Messages("month")</td>
+          <td>
+            <input type="submit" value="@Messages("showBill")">
+          </td>
+        </tr>
+      </table>
+      
+    }
+  </div>
+}
+

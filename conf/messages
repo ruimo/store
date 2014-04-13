@@ -286,3 +286,7 @@ invoice.detail.shippingFee=Shipping
 invoice.detail.shippingBoxName=Box
 total=Total
 itemAttachment=Item attachment files
+showOrderHistoryMenu=Show order history
+showBill=Show the bill for specified month
+year=Year
+month=Month

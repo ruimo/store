@@ -1,0 +1,27 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("siteMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("siteMaintenanceTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.SiteMaintenance.startCreateNewSite()">
+      @Messages("createNewSiteMenu")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.SiteMaintenance.editSite()">
+      @Messages("editSiteMenu")
+    </a>
+  </div>
+
+  <div class="menuPanel">
+    @admin.backToAdminTop()
+  </div>
+}
+

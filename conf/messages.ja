@@ -316,3 +316,7 @@ invoice.detail.shippingFee=【送料】
 invoice.detail.shippingBoxName=箱
 total=合計
 itemAttachment=商品添付ファイル
+showOrderHistoryMenu=ご注文履歴を見る
+showBill=ご請求料金の内訳を見る
+year=年
+month=月
