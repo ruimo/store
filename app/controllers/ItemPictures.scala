@@ -37,8 +37,15 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }
   lazy val notfoundPath = {
     val path = picturePath.resolve("notfound.jpg")
-    if (Files.isReadable(path)) path
-    else Paths.get("public/images/notfound.jpg")
+    if (Files.isReadable(path)) {
+      logger.info("Not found picture '" + path.toAbsolutePath + "' will be used.")
+      path
+    }
+    else  {
+      val p = Paths.get("public/images/notfound.jpg")
+      logger.warn("File '" + path.toAbsolutePath + "' not found. '" + p.toAbsolutePath + "' will be used for not found picture instead.")
+      p
+    }
   }
   lazy val detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
   lazy val attachmentCount = config.getInt("item.attached.file.count").getOrElse(5)
