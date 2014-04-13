@@ -37,11 +37,14 @@ class ItemPicturesSpec extends Specification {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        // Since notefound.jpg is not found, public/images/notfound.jpg is used instead.
+        val file = dir.resolve("notfound.jpg")
+        Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
-        downloadBytes(
+        downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(1, 0).url
-        )._2 === Files.readAllBytes(Paths.get("public/images/notfound.jpg"))
+        )._2 === "Hello"
+
+        Files.delete(file)
       }}
     }
 
