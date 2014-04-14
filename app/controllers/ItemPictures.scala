@@ -44,9 +44,8 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
     path
   }
-  def notfoundPath = {
+  def notfoundPath =
     if (isTesting) notfoundPathForTesting else notfoundPathForProduction
-  }
   // Cache path
   lazy val notfoundPathForProduction = notfoundPathForTesting
   def notfoundPathForTesting = {

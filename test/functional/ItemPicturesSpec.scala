@@ -43,6 +43,7 @@ class ItemPicturesSpec extends Specification {
         val file = dir.resolve("notfound.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+println("isTesting = " + controllers.ItemPictures.isTesting)
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(1, 0).url
