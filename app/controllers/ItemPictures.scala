@@ -22,8 +22,11 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
-  lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
-  def isTesting = config.getBoolean("item.picture.fortest").getOrElse(false)
+  def isTesting = configForTesting.getBoolean("item.picture.fortest").getOrElse(false)
+  def config = if (isTesting) configForTesting else configForProduction
+  def configForTesting = play.api.Play.maybeApplication.map(_.configuration).get
+  // Cache config
+  lazy val configForProduction = configForTesting
   def picturePath = if (isTesting) picturePathForTesting else picturePathForProduction
   // Cache path
   lazy val picturePathForProduction = picturePathForTesting
