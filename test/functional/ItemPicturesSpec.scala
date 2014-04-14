@@ -44,6 +44,8 @@ class ItemPicturesSpec extends Specification {
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 println("isTesting = " + controllers.ItemPictures.isTesting)
+println("File written to '" + file.toAbsolutePath + "'")
+println("Readable = " + Files.isReadable(file))
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(1, 0).url
