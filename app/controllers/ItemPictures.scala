@@ -27,10 +27,15 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def picturePath = if (isTesting) picturePathForTesting else picturePathForProduction
   // Cache path
   lazy val picturePathForProduction = picturePathForTesting
-  def picturePathForTesting = config.getString("item.picture.path").map {
-    s => Paths.get(s)
-  }.getOrElse {
-    Paths.get(System.getProperty("user.home"), "itemPictures")
+  def picturePathForTesting = {
+    val ret = config.getString("item.picture.path").map {
+      s => Paths.get(s)
+    }.getOrElse {
+      Paths.get(System.getProperty("user.home"), "itemPictures")
+    }
+
+    logger.info("Using item.picture.path = '" + ret + "'")
+    ret
   }
   lazy val attachmentPath = {
     val path = picturePath.resolve("attachments")
