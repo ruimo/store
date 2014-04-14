@@ -35,7 +35,13 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
     path
   }
-  lazy val notfoundPath = {
+  lazy val isTesting = config.getBoolean("item.picture.fortest").getOrElse(false)
+  def notfoundPath = {
+    if (isTesting) notfoundPathForTesting else notfoundPathForProduction
+  }
+  // Cache path
+  lazy val notfoundPathForProduction = notfoundPathForTesting
+  def notfoundPathForTesting = {
     val path = picturePath.resolve("notfound.jpg")
     if (Files.isReadable(path)) {
       logger.info("Not found picture '" + path.toAbsolutePath + "' will be used.")

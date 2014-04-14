@@ -31,7 +31,10 @@ import play.api.test.FakeApplication
 
 class ItemPicturesSpec extends Specification {
   val dir = Files.createTempDirectory(null)
-  lazy val withTempDir = Map("item.picture.path" -> dir.toFile.getAbsolutePath)
+  lazy val withTempDir = Map(
+    "item.picture.path" -> dir.toFile.getAbsolutePath,
+    "item.picture.fortest" -> true
+  )
 
   "ItemPicture" should {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
