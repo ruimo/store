@@ -42,6 +42,8 @@ class ItemPicturesSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("notfound.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+println("testDir = '" + testDir.toAbsolutePath + "'")
+println("withTempDir = " + withTempDir)
 println("isTesting = " + controllers.ItemPictures.isTesting)
 println("File written to '" + file.toAbsolutePath + "'")
 println("Readable = " + Files.isReadable(file))
