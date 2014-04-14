@@ -30,9 +30,9 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 
 class ItemPicturesSpec extends Specification {
-  val dir = Files.createTempDirectory(null)
+  val testDir = Files.createTempDirectory(null)
   lazy val withTempDir = Map(
-    "item.picture.path" -> dir.toFile.getAbsolutePath,
+    "item.picture.path" -> testDir.toFile.getAbsolutePath,
     "item.picture.fortest" -> true
   )
 
@@ -40,8 +40,7 @@ class ItemPicturesSpec extends Specification {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val file = dir.resolve("notfound.jpg")
-        Files.deleteIfExists(file)
+        val file = testDir.resolve("notfound.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 println("isTesting = " + controllers.ItemPictures.isTesting)
 println("File written to '" + file.toAbsolutePath + "'")
@@ -58,7 +57,7 @@ println("Readable = " + Files.isReadable(file))
     "If specified detail picture is not found, 'detailnotfound.jpg' will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val file = dir.resolve("detailnotfound.jpg")
+        val file = testDir.resolve("detailnotfound.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
@@ -73,7 +72,7 @@ println("Readable = " + Files.isReadable(file))
     "If specified picture is found and modified, it will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val file = dir.resolve("2_1.jpg")
+        val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
         downloadString(
@@ -88,7 +87,7 @@ println("Readable = " + Files.isReadable(file))
     "If specified detail picture is found and modified, it will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val file = dir.resolve("detail2.jpg")
+        val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
         downloadString(
@@ -103,7 +102,7 @@ println("Readable = " + Files.isReadable(file))
     "If specified picture is found but not modified, 304 will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val file = dir.resolve("2_1.jpg")
+        val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
@@ -124,7 +123,7 @@ println("Readable = " + Files.isReadable(file))
     "If specified detail picture is found but not modified, 304 will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val file = dir.resolve("detail2.jpg")
+        val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
@@ -163,7 +162,7 @@ println("Readable = " + Files.isReadable(file))
           itemPrice, tax, CurrencyInfo.Jpy, BigDecimal("123"), BigDecimal("234"), date("9999-12-31")
         )
 
-        val file = dir.resolve("notfound.jpg")
+        val file = testDir.resolve("notfound.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
@@ -192,7 +191,7 @@ println("Readable = " + Files.isReadable(file))
           .sendKeys(Paths.get("testdata/kinseimaruIdx.jpg").toFile.getAbsolutePath)
         browser.click("#itemPictureUploadSubmit0")
 
-        dir.resolve(item.id.get + "_0.jpg").toFile.exists === true
+        testDir.resolve(item.id.get + "_0.jpg").toFile.exists === true
 
         // Download file.
         downloadBytes(
@@ -208,7 +207,7 @@ println("Readable = " + Files.isReadable(file))
         // Delete file.
         browser.click("#itemPictureRemove0")
 
-        dir.resolve(item.id.get + "_0.jpg").toFile.exists === false
+        testDir.resolve(item.id.get + "_0.jpg").toFile.exists === false
         
         // Download file. 'notfound.jpg' should be obtained.
         // 200 should be returned. Otherwise, browser cache will not be refreshed!
@@ -233,8 +232,8 @@ println("Readable = " + Files.isReadable(file))
     "If specified attachment is found and modified, it will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        Files.createDirectories(dir.resolve("attachments"))
-        val file = dir.resolve("attachments").resolve("1_2_file.jpg")
+        Files.createDirectories(testDir.resolve("attachments"))
+        val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
         downloadString(
           Some(file.toFile.lastModified - 1000),
@@ -248,8 +247,8 @@ println("Readable = " + Files.isReadable(file))
     "If specified attachment is found but not modified, 304 will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        Files.createDirectories(dir.resolve("attachments"))
-        val file = dir.resolve("attachments").resolve("1_2_file.jpg")
+        Files.createDirectories(testDir.resolve("attachments"))
+        val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
         downloadString(
@@ -278,7 +277,7 @@ println("Readable = " + Files.isReadable(file))
     "retrieveAttachmentNames returns empty if no files are found." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        Files.createDirectories(dir.resolve("attachments"))
+        Files.createDirectories(testDir.resolve("attachments"))
         ItemPictures.retrieveAttachmentNames(1).isEmpty === true
       }}
     }
@@ -286,7 +285,7 @@ println("Readable = " + Files.isReadable(file))
     "retrieveAttachmentNames returns file names." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        val attachmentDir = dir.resolve("attachments")
+        val attachmentDir = testDir.resolve("attachments")
         Files.createDirectories(attachmentDir)
 
         Files.write(
