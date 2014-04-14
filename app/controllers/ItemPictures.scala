@@ -23,7 +23,11 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }
 
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
-  lazy val picturePath = config.getString("item.picture.path").map {
+  def isTesting = config.getBoolean("item.picture.fortest").getOrElse(false)
+  def picturePath = if (isTesting) picturePathForTesting else picturePathForProduction
+  // Cache path
+  lazy val picturePathForProduction = picturePathForTesting
+  def picturePathForTesting = config.getString("item.picture.path").map {
     s => Paths.get(s)
   }.getOrElse {
     Paths.get(System.getProperty("user.home"), "itemPictures")
@@ -35,7 +39,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
     path
   }
-  lazy val isTesting = config.getBoolean("item.picture.fortest").getOrElse(false)
   def notfoundPath = {
     if (isTesting) notfoundPathForTesting else notfoundPathForProduction
   }
