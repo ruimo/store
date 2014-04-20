@@ -470,10 +470,90 @@ tr.siteTableBody {
   vertical-align: top;
 }
 
-.orderHistoryInnerTable3 td {
+.orderHistoryInnerTable4 td {
   text-align: left;
 }
 
-.orderHistoryInnerTable4 td {
-  text-align: left;
+.orderHistoryTable {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid;
+    margin: 2px;
+}
+
+.orderHistoryInnerTable3 {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid;
+}
+
+.orderHistoryInnerTable3Header {
+    background: LightGray;
+    border: 1px solid;
+}
+
+.orderHistoryInnerTable3Body {
+    border: 1px solid;
+}
+
+.orderHistoryInnerTable3Body.price {
+    text-align: right;
+}
+
+.orderHistoryInnerTable3Body.quantity {
+    text-align: right;
+}
+
+.accountingBillTable {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid;
+    margin: 2px;
+}
+
+.accountingBillTable .body {
+    border: 1px solid;
+}
+
+.accountingBillTable .header {
+    border: 1px solid;
+}
+
+.accountingBillTable td.quantity {
+    text-align: right;
+}
+
+.accountingBillTable td.price {
+    text-align: right;
+}
+
+.accountingBillTable td.boxCount {
+    text-align: right;
+}
+
+.accountingBillTable td.boxPrice {
+    text-align: right;
+}
+
+.accountingBillTable td.tax {
+    text-align: right;
+}
+
+.accountingBillTable .subtotal.header {
+    text-align: left;
+}
+
+.accountingBillTable .tax.header {
+    text-align: left;
+}
+
+.accountingBillHeaderTable {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid;
+    margin-bottom: 20px;
+}
+
+.accountingBillHeaderTable td {
+    border: 1px solid;
 }

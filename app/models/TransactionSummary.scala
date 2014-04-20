@@ -78,6 +78,7 @@ object TransactionSummary {
     storeUser: Option[StoreUser] = None,
     additionalWhere: String = "",
     orderByOpt: Option[OrderBy] = Some(ListDefaultOrderBy),
+    forCount: Boolean = false,
     columns: String = baseColumns
   ) =
     """
@@ -125,7 +126,8 @@ object TransactionSummary {
       on transaction_status.transaction_site_id = base.transaction_site_id
     """ +
     additionalWhere +
-    orderByOpt.map {o => s"order by $o, base.site_id "}.getOrElse("") +
+    (if (forCount) ""
+     else " order by " + orderByOpt.map {o => s"$o, "}.getOrElse("") + "base.transaction_site_id ") +
     (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
@@ -134,7 +136,7 @@ object TransactionSummary {
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
       baseSql(columns = "count(*)", siteUser = siteUser, storeUser = storeUser, 
-              additionalWhere = "", withLimit = false, orderByOpt = None)
+              additionalWhere = "", withLimit = false, orderByOpt = None, forCount = true)
     ).as(
       SqlParser.scalar[Long].single
     )
@@ -155,7 +157,23 @@ object TransactionSummary {
     )
   }
 
-  def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] = {
+  def listByPeriod(
+    siteUser: Option[SiteUser] = None, yearMonth: YearMonth
+  )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
+    val nextYearMonth = yearMonth.next
+
+    SQL(
+      baseSql(
+        siteUser = siteUser,
+        additionalWhere = "where date '%d-%02d-01' <= transaction_time and transaction_time < date '%d-%02d-01'".format(yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month),
+        withLimit = false
+      )
+    ).as(
+      parser *
+    )
+  }
+
+  def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] =
     SQL(
       baseSql(siteUser = user, additionalWhere = "where base.transaction_site_id = {tranSiteId}", withLimit = false)
     ).on(
@@ -163,5 +181,4 @@ object TransactionSummary {
     ).as(
       parser.singleOpt
     )
-  }
 }

@@ -47,6 +47,12 @@
     </a>
   </div>
 
+  <div class="menuItem">
+    <a href="@routes.AccountingBill.index()">
+      @Messages("accountingBillTitle")
+    </a>
+  </div>
+
   @if(loginSession.isSuperUser) {
     <div class="menuItem">
       <a href="@routes.TaxMaintenance.index()">

@@ -1,0 +1,110 @@
+@(
+  accountingBillForm: Form[YearMonth],
+  summaries: Seq[TransactionSummaryEntry],
+  detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
+  boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
+  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+@import scala.collection.immutable.LongMap
+
+@main(Messages("accountingBillTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("accountingBillTitle")</h1>
+
+  @form(action = CSRF(routes.AccountingBill.show()), 'id -> "showAccountingBillForm") {
+    <table>
+      <tr valign="top">
+        <td>
+          @inputText(
+            accountingBillForm("year"),
+            'size -> 4, 'maxLength -> 4, '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>@Messages("year")</td>
+        <td>
+          @inputText(
+            accountingBillForm("month"),
+            'size -> 2, 'maxLength -> 2, '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>@Messages("month")</td>
+        <td>
+          <input type="submit" value="@Messages("showAccountingBill")">
+        </td>
+      </tr>
+    </table>
+  }
+
+  @summaries.map { e =>
+    <table class="accountingBillTable">
+      <tr>
+        <td colspan="3">
+          <table class="accountingBillHeaderTable">
+            <tr>
+              <td>@e.transactionId</td>
+              <td>@yyyymmddhhmm(e.transactionTime)</td>
+              <td>@name(e.buyer)</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <th class="itemName header">@Messages("itemName")</th>
+        <th class="quantity header">@Messages("quantity")</th>
+        <th class="price header">@Messages("price")</th>
+      </tr>
+      @detailByTranSiteId(e.transactionSiteId).map { t =>
+        <tr>
+          <td class="itemName body">@t.itemName</td>
+          <td class="quantity body">@t.quantity</td>
+          <td class="price body">@amount(t.price)</td>
+        </tr>
+      }
+
+      <tr>
+        <td></td>
+        <td class="subtotal header">@Messages("subtotal")</td>
+        <td class="subtotal body">@amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))</td>
+      </tr>
+
+      @boxBySiteAndItemSize.get(
+        e.transactionSiteId
+      ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+        <tr>
+          <td class="boxName body">@box.boxName</td>
+          <td class="boxCount body">@box.boxCount</td>
+          <td class="boxPrice body">@amount(box.amount)</td>
+        </tr>
+      }
+
+      <tr>
+        <td></td>
+        <td class="subtotal header">@Messages("fee.total")</td>
+        <td class="subtotal body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
+      </tr>
+
+      <tr>
+        <td></td>
+        <td class="tax header">@Messages("outer.tax.amount")</td>
+        <td class="tax body">@amount(siteTranByTranId(e.transactionId).outerTaxTotal(e.siteId))</td>
+      </tr>
+
+      <tr>
+        <td></td>
+        <td class="tax header">@Messages("total")</td>
+        <td class="tax body">@amount(e.totalWithTax)</td>
+      </tr>
+    </table>    
+  }
+}

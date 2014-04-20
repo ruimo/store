@@ -290,3 +290,7 @@ showOrderHistoryMenu=Show order history
 showBill=Show the bill for specified month
 year=Year
 month=Month
+accountingBillTitle=Accounting Bill
+showAccountingBill=Show accounting bill
+tranid=Transaction Id
+fee.total=Fee total

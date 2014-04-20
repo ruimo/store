@@ -170,7 +170,7 @@ object TransactionLogHeader {
     TransactionLogHeader(Id(id), userId, now, currencyId, totalAmount, taxAmount, transactionType)
   }
 
-  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogHeader] = {
+  def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogHeader] =
     SQL(
       """
       select * from transaction_header
@@ -183,7 +183,6 @@ object TransactionLogHeader {
     ).as(
       simple *
     )
-  }
 
   def apply(id: Long)(implicit conn: Connection): TransactionLogHeader =
     SQL(
@@ -831,8 +830,6 @@ class TransactionPersister {
       val siteId = e._1.siteId
       map.updated(siteId, e._2 :: map(siteId))
     }.mapValues(_.reverse)
-
-println("taxLog = " + taxLog)
 
     val itemLog = SQL(
       """

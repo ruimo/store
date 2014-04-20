@@ -54,12 +54,27 @@
             <tr>
               <td>
                 <table class="orderHistoryInnerTable3">
-                  @detailByTranSiteId(e.transactionSiteId).map { d =>
+                  <tr>
+                    <th class="orderHistoryInnerTable3Header itemName">
+                      @Messages("invoice.detail.item.itemName")
+                    </th>
+                    <th class="orderHistoryInnerTable3Header unitPrice">
+                      @Messages("unitPrice")
+                    </th>
+                    <th class="orderHistoryInnerTable3Header quantity">
+                      @Messages("quantity")
+                    </th>
+                    <th class="orderHistoryInnerTable3Header price">
+                      @Messages("price")
+                    </th>
+                  </tr>
+
+                  @detailByTranSiteId(e.transactionSiteId).map { t =>
                     <tr>
-                      <td>
-                        <span class="itemName">@d.itemName</span> /
-                        <span class="price">@amount(d.unitPrice * d.quantity)</span>
-                      </td>
+                      <td class="orderHistoryInnerTable3Body itemName">@t.itemName</td>
+                      <td class="orderHistoryInnerTable3Body price">@amount(t.unitPrice)</td>
+                      <td class="orderHistoryInnerTable3Body quantity">@t.quantity</td>
+                      <td class="orderHistoryInnerTable3Body price">@amount(t.price)</td>
                     </tr>
                   }
                 </table>
