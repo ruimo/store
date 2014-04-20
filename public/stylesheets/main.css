@@ -297,10 +297,6 @@ tr.userTableBody {
   text-align: right;
 }
 
-.boxPrice {
-  text-align: right;
-}
-
 .transactionAmount {
   text-align: right;
 }
@@ -487,13 +483,36 @@ tr.siteTableBody {
     border: 1px solid;
 }
 
+.orderHistoryInnerTable4 {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid;
+}
+
 .orderHistoryInnerTable3Header {
+    background: LightGray;
+    border: 1px solid;
+}
+
+.orderHistoryInnerTable4Header {
     background: LightGray;
     border: 1px solid;
 }
 
 .orderHistoryInnerTable3Body {
     border: 1px solid;
+}
+
+.orderHistoryInnerTable4Body {
+    border: 1px solid;
+}
+
+.orderHistoryInnerTable4 th.boxPrice {
+    text-align: center;
+}
+
+.orderHistoryInnerTable4 td.boxPrice {
+    text-align: right;
 }
 
 .orderHistoryInnerTable3Body.price {

@@ -81,14 +81,16 @@
               </td>
               <td>
                 <table class="orderHistoryInnerTable4">
+                  <tr>
+                    <th class="orderHistoryInnerTable3Header boxName">@Messages("shippingBoxName")</th>
+                    <th class="orderHistoryInnerTable3Header boxPrice">@Messages("price")</th>
+                  </tr>
                   @boxBySiteAndItemSize.get(
                     e.transactionSiteId
                   ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
                     <tr>
-                      <td>
-                        <span class="boxName">@box.boxName</span> /
-                        <span class="boxPrice">@amount(box.amount)</span>
-                      </td>
+                      <td class="orderHistoryInnerTable4Body boxName">@box.boxName</td>
+                      <td class="orderHistoryInnerTable4Body boxPrice">@amount(box.amount)</td>
                     </tr>
                   }
                 </table>
