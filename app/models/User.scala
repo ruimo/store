@@ -231,7 +231,7 @@ object SiteUser {
     SiteUser(Id(id), siteId, storeUserId)
   }
 
-  def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[SiteUser] = {
+  def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[SiteUser] =
     SQL(
       """
       select * from site_user where store_user_id = {storeUserId}
@@ -241,5 +241,5 @@ object SiteUser {
     ).as(
       SiteUser.simple.singleOpt
     )
-  }
+
 }

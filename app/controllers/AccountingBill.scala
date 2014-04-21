@@ -33,7 +33,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       yearMonth => {
         DB.withConnection { implicit conn =>
           val summaries = TransactionSummary.listByPeriod(
-            login.siteUser, yearMonth
+            siteUser = login.siteUser, yearMonth = yearMonth
           )
           val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
             (sum, e) =>

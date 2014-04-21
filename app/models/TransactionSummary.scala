@@ -158,13 +158,15 @@ object TransactionSummary {
   }
 
   def listByPeriod(
-    siteUser: Option[SiteUser] = None, yearMonth: YearMonth
+    siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None,
+    yearMonth: YearMonth
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     val nextYearMonth = yearMonth.next
 
     SQL(
       baseSql(
         siteUser = siteUser,
+        storeUser = storeUser,
         additionalWhere = "where date '%d-%02d-01' <= transaction_time and transaction_time < date '%d-%02d-01'".format(yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month),
         withLimit = false
       )

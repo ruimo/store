@@ -14,18 +14,13 @@
 @import views.fieldctors.FieldConstructors.showOnlyRequired
 @import scala.collection.immutable.LongMap
 
-@main(Messages("accountingBillTitle"), Some(loginSession)) {
+@main(Messages("orderHistoryTitle"), Some(loginSession)) {
 } {
-  <h1 class="title">@Messages("accountingBillTitle")</h1>
+  <h1 class="title">@Messages("orderHistoryTitle")</h1>
 
-  @form(action = CSRF(routes.AccountingBill.show()), 'id -> "showAccountingBillForm") {
+  @form(action = CSRF(routes.AccountingBill.show()), 'id -> "orderHistoryForm") {
     <table>
       <tr valign="top">
-        @if(loginSession.isSuperUser) {
-          <td>
-            @Messages("user")
-          </td>
-        }
         <td>
           @inputText(
             accountingBillForm("year"),

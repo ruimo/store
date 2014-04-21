@@ -5,14 +5,14 @@ import db.DB
 import mvc.Controller
 import play.api.Play.current
 import controllers.I18n.I18nAware
-import models.{TransactionLogShipping, TransactionDetail, LocaleInfo, TransactionSummary, OrderBy}
+import models._
 import collection.immutable.{HashMap, LongMap}
 import play.api.data.Form
 import play.api.data.Forms._
-import models.YearMonth
+import scala.Some
 
 object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAware {
-  val billRequestForm = Form(
+  val orderHistoryForm = Form(
     mapping(
       "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
       "month" -> number(min = 1, max = 12)
@@ -21,7 +21,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
 
   def index() = isAuthenticated { implicit login => implicit request =>
     Ok(
-      views.html.orderHistory(billRequestForm)
+      views.html.orderHistory(orderHistoryForm)
     )
   }
 
@@ -58,15 +58,48 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     }
   }
 
-  def showBill() = isAuthenticated { implicit login => implicit request =>
-    billRequestForm.bindFromRequest.fold(
+  def showMonthly() = isAuthenticated { implicit login => implicit request =>
+    orderHistoryForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(
           views.html.orderHistory(formWithErrors)
         )
       },
       yearMonth => {
-        Ok("Ok " + yearMonth)
+        DB.withConnection { implicit conn =>
+          val summaries = TransactionSummary.listByPeriod(
+            storeUser = Some(login.storeUser), yearMonth = yearMonth
+          )
+          val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
+            (sum, e) =>
+            val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
+            sum.updated(e.transactionId, siteTran)
+          }
+          val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
+            (sum, e) =>
+            val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
+            sum.updated(e.transactionSiteId, details)
+          }
+          val boxBySiteAndItemSize = summaries.foldLeft(
+            LongMap[LongMap[TransactionLogShipping]]()
+          ) {
+            (sum, e) =>
+              sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
+                LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
+              ) {
+                (names, e2) =>
+                  names.updated(
+                    e.transactionSiteId,
+                    names(e.transactionSiteId).updated(e2.itemClass, e2)
+                  )
+              }
+          }
+
+          Ok(views.html.showMonthlyOrderHistory(
+            orderHistoryForm.fill(yearMonth),
+            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId
+          ))
+        }
       }
     )
   }

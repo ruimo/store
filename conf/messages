@@ -295,3 +295,5 @@ showAccountingBill=Show accounting bill
 tranid=Transaction Id
 fee.total=Fee total
 shippingBoxName=Box
+orderHistoryTitle=Order History
+user=User
