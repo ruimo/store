@@ -60,7 +60,8 @@ case class TransactionLogItem(
   itemPriceHistoryId: Long,
   quantity: Long,
   amount: BigDecimal,
-  costPrice: BigDecimal
+  costPrice: BigDecimal,
+  taxId: Long
 ) extends NotNull
 
 case class ShippingInfo(
@@ -403,23 +404,25 @@ object TransactionLogItem {
     SqlParser.get[Long]("transaction_item.item_price_history_id") ~
     SqlParser.get[Int]("transaction_item.quantity") ~
     SqlParser.get[java.math.BigDecimal]("transaction_item.amount") ~
-    SqlParser.get[java.math.BigDecimal]("transaction_item.cost_price") map {
-      case id~tranSiteId~itemId~priceHistoryId~quantity~amount~costPrice =>
-        TransactionLogItem(id, tranSiteId, itemId, priceHistoryId, quantity, amount, costPrice)
+    SqlParser.get[java.math.BigDecimal]("transaction_item.cost_price") ~
+    SqlParser.get[Long]("transaction_item.tax_id") map {
+      case id~tranSiteId~itemId~priceHistoryId~quantity~amount~costPrice~taxId =>
+        TransactionLogItem(id, tranSiteId, itemId, priceHistoryId, quantity, amount, costPrice, taxId)
     }
   }
 
   def createNew(
     transactionSiteId: Long, itemId: Long, itemPriceHistoryId: Long, quantity: Long, amount: BigDecimal,
-    costPrice: BigDecimal
+    costPrice: BigDecimal, taxId: Long
   )(implicit conn: Connection): TransactionLogItem = {
     SQL(
       """
       insert into transaction_item (
-        transaction_item_id, transaction_site_id, item_id, item_price_history_id, quantity, amount, cost_price
+        transaction_item_id, transaction_site_id, item_id, item_price_history_id, quantity,
+        amount, cost_price, tax_id
       ) values (
         (select nextval('transaction_item_seq')),
-        {transactionSiteId}, {itemId}, {itemPriceHistoryId}, {quantity}, {amount}, {costPrice}
+        {transactionSiteId}, {itemId}, {itemPriceHistoryId}, {quantity}, {amount}, {costPrice}, {taxId}
       )
       """
     ).on(
@@ -428,12 +431,15 @@ object TransactionLogItem {
       'itemPriceHistoryId -> itemPriceHistoryId,
       'quantity -> quantity,
       'amount -> amount.bigDecimal,
-      'costPrice -> costPrice.bigDecimal
+      'costPrice -> costPrice.bigDecimal,
+      'taxId -> taxId
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogItem(Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice)
+    TransactionLogItem(
+      Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice, taxId
+    )
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogItem] =
@@ -760,7 +766,7 @@ class TransactionPersister {
     tran.itemTotal.table.foreach { e =>
       TransactionLogItem.createNew(
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
-        e.quantity, e.itemPrice, e.costPrice
+        e.quantity, e.itemPrice, e.costPrice, e.itemPriceHistory.taxId
       )
     }
   }

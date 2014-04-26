@@ -149,13 +149,14 @@ class TransactionSpec extends Specification {
           val item = Item.createNew(cat)
 
           val itemLog = TransactionLogItem.createNew(
-            tranSite.id.get, item.id.get, 1234L, 234L, BigDecimal(456), BigDecimal(400)
+            tranSite.id.get, item.id.get, 1234L, 234L, BigDecimal(456), BigDecimal(400), 123L
           )
 
           val list = TransactionLogItem.list()
           list.size === 1
           list(0) === itemLog
           list(0).itemId === item.id.get
+          list(0).taxId === 123L
         }
       }
     }
@@ -440,10 +441,10 @@ class TransactionSpec extends Specification {
           val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
 
           val tranItem1 = TransactionLogItem.createNew(
-            tranSite1.id.get, item1.id.get, price1.id.get, 3, BigDecimal(400 * 3), BigDecimal(300)
+            tranSite1.id.get, item1.id.get, price1.id.get, 3, BigDecimal(400 * 3), BigDecimal(300), 123L
           )
           val tranItem2 = TransactionLogItem.createNew(
-            tranSite1.id.get, item2.id.get, price2.id.get, 5, BigDecimal(700 * 5), BigDecimal(400)
+            tranSite1.id.get, item2.id.get, price2.id.get, 5, BigDecimal(700 * 5), BigDecimal(400), 234L
           )
 
           val detail = TransactionDetail.show(tranSite1.id.get, Ja, Some(siteUser1))
