@@ -42,6 +42,16 @@
       </td>
     </tr>
     <tr>
+      <td class="transactionStatus" colspan="3">
+        <span class="status">
+          @Messages("transaction.status." + e.status)
+        </span>
+        <span class="shippingDate">
+          @shippingDate(e.shippingDate)
+        </span>
+      </td>
+    </tr>
+    <tr>
       <th class="itemName header">@Messages("itemName")</th>
       <th class="quantity header">@Messages("quantity")</th>
       <th class="price header">@Messages("price")</th>

@@ -574,9 +574,13 @@ tr.siteTableBody {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid;
-    margin-bottom: 20px;
 }
 
 .accountingBillHeaderTable td {
     border: 1px solid;
 }
+
+.accountingBillTable .transactionStatus {
+    padding-bottom: 20px;
+}
+

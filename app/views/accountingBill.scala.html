@@ -1,5 +1,6 @@
 @(
   accountingBillForm: Form[YearMonth],
+  accountingStoreBillForm: Form[YearMonth],
   summaries: Seq[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
@@ -19,13 +20,11 @@
 } {
   <h1 class="title">@Messages("accountingBillTitle")</h1>
 
-  @form(action = CSRF(routes.AccountingBill.show()), 'id -> "showAccountingBillForm") {
-    <table>
+  <table>
+    @form(action = CSRF(routes.AccountingBill.show()), 'id -> "showAccountingBillForm") {
       <tr valign="top">
         @if(loginSession.isSuperUser) {
-          <td>
-            @Messages("user")
-          </td>
+          <td>@Messages("user")</td>
         }
         <td>
           @inputText(
@@ -49,8 +48,37 @@
           <input type="submit" value="@Messages("showAccountingBill")">
         </td>
       </tr>
-    </table>
-  }
+    }
+
+    @if(loginSession.isSuperUser) {
+      @form(action = CSRF(routes.AccountingBill.showForStore()), 'id -> "showAccountingStoreBillForm") {
+        <tr valign="top">
+          <td>@Messages("site")</td>
+          <td>
+            @inputText(
+              accountingStoreBillForm("year"),
+              'size -> 4, 'maxLength -> 4, '_showConstraints -> false
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td>@Messages("year")</td>
+          <td>
+            @inputText(
+              accountingStoreBillForm("month"),
+              'size -> 2, 'maxLength -> 2, '_showConstraints -> false
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td>@Messages("month")</td>
+          <td>
+            <input type="submit" value="@Messages("showAccountingBill")">
+          </td>
+        </tr>
+      }
+    }
+  </table>
 
   @accountingBillTable(summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId, useCostPrice)
 }
