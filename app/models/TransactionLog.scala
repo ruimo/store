@@ -33,7 +33,7 @@ case class TransactionLogSite(
 case class TransactionLogShipping(
   id: Pk[Long] = NotAssigned,
   transactionSiteId: Long,
-  amount: BigDecimal,
+  amount: BigDecimal, // Unit price * boxCount
   addressId: Long,
   itemClass: Long,
   boxSize: Int,
@@ -464,6 +464,43 @@ case class PersistedTransaction(
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
   itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]] // First key = siteId
 ) extends NotNull {
+  lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
+    var result = LongMap[BigDecimal]()
+
+    siteTable.foreach { site =>
+      var amountByTaxId = LongMap[BigDecimal]()
+      val taxByTaxId = taxBySiteIdAndTaxId(site.id.get)
+
+      itemTable(site.id.get).foreach { s =>
+        if (taxByTaxId(s._2.taxId).taxType == TaxType.OUTER_TAX)
+          amountByTaxId = amountByTaxId.updated(
+            s._2.taxId,
+            s._2.costPrice * s._2.quantity + amountByTaxId.get(s._2.taxId).getOrElse(BigDecimal(0))
+          )
+      }
+      shippingTable(site.id.get).foreach { s =>
+        if (taxByTaxId(s.taxId).taxType == TaxType.OUTER_TAX)
+          amountByTaxId = amountByTaxId.updated(s.taxId, s.amount + amountByTaxId(s.taxId))
+      }
+
+      result = result.updated(
+        site.id.get,
+        amountByTaxId.foldLeft(BigDecimal(0)) { (sum, e) =>
+          sum + Tax.outerTax(e._2, TaxType.OUTER_TAX, taxByTaxId(e._1).rate / BigDecimal(100))
+        }
+      )
+    }
+
+    result
+  }
+  // Key: siteId, taxId
+  lazy val taxBySiteIdAndTaxId: Map[Long, Map[Long, TransactionLogTax]] = taxTable.mapValues {
+    seq => seq.foldLeft(
+      LongMap[TransactionLogTax]()
+    ) {
+      (map, e) => map.updated(e.taxId, e)
+    }
+  }
   lazy val sites: Map[Long, Site] = siteTable.foldLeft(
     LongMap[Site]()
   ) {
@@ -473,6 +510,16 @@ case class PersistedTransaction(
     LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_._2.amount).foldLeft(BigDecimal(0))(_ + _))
+  }
+  lazy val costPriceTotal: Map[Long, BigDecimal] = itemTable.foldLeft(
+    LongMap[BigDecimal]()
+  ) {
+    (map, e) => map.updated(
+      e._1,
+      e._2.foldLeft(BigDecimal(0)) {(sum, t) =>
+        sum + t._2.costPrice * t._2.quantity
+      }
+    )
   }
   lazy val itemGrandTotal: BigDecimal = itemTotal.values.fold(BigDecimal(0))(_ + _)
   lazy val itemQuantity: Map[Long, Long] = itemTable.foldLeft(
@@ -496,7 +543,9 @@ case class PersistedTransaction(
   lazy val outerTaxTotal: Map[Long, BigDecimal] = taxTable.foldLeft(
     LongMap[BigDecimal]()
   ) {
-    (map, e) => map.updated(e._1, e._2.filter(_.taxType == TaxType.OUTER_TAX).map(_.amount).foldLeft(BigDecimal(0))(_ + _))
+    (map, e) => map.updated(
+      e._1, e._2.filter(_.taxType == TaxType.OUTER_TAX).map(_.amount).foldLeft(BigDecimal(0))(_ + _)
+    )
   }
   lazy val outerTaxGrandTotal: BigDecimal = outerTaxTotal.values.fold(BigDecimal(0))(_ + _)
 }
@@ -643,13 +692,14 @@ object TransactionShipStatus {
 case class TransactionDetail(
   itemName: String,
   unitPrice: BigDecimal,
-  costPrice: BigDecimal,
+  costUnitPrice: BigDecimal,
   quantity: Int,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
 ) extends NotNull {
   lazy val price = unitPrice * quantity
+  lazy val costPrice = costUnitPrice * quantity
 }
 
 object TransactionDetail {
@@ -766,7 +816,7 @@ class TransactionPersister {
     tran.itemTotal.table.foreach { e =>
       TransactionLogItem.createNew(
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
-        e.quantity, e.itemPrice, e.costPrice, e.itemPriceHistory.taxId
+        e.quantity, e.itemPrice, e.costUnitPrice, e.itemPriceHistory.taxId
       )
     }
   }

@@ -451,7 +451,7 @@ class TransactionSpec extends Specification {
           detail.size === 2
           detail(0).itemName === "杉"
           detail(0).unitPrice === BigDecimal(400)
-          detail(0).costPrice === BigDecimal(300)
+          detail(0).costUnitPrice === BigDecimal(300)
           detail(0).quantity === 3
           detail(0).itemNumericMetadata.size === 1
           detail(0).itemNumericMetadata(ItemNumericMetadataType.HEIGHT).metadata === 10L
@@ -461,7 +461,7 @@ class TransactionSpec extends Specification {
 
           detail(1).itemName === "梅"
           detail(1).unitPrice === BigDecimal(700)
-          detail(1).costPrice === BigDecimal(400)
+          detail(1).costUnitPrice === BigDecimal(400)
           detail(1).quantity === 5
           detail(1).itemNumericMetadata.size === 1
           detail(1).itemNumericMetadata(ItemNumericMetadataType.HEIGHT).metadata === 20L

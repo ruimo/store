@@ -16,23 +16,25 @@ case class TaxHistory(
   id: Pk[Long] = NotAssigned, taxId: Long, taxType: TaxType, rate: BigDecimal, validUntil: Long
 ) extends NotNull {
   lazy val realRate = rate / BigDecimal(100)
-
-  def taxAmount(amount: BigDecimal): BigDecimal = (taxType match {
-      case TaxType.OUTER_TAX => amount * realRate
-      case TaxType.INNER_TAX => realRate * amount / (realRate + 1)
-      case TaxType.NON_TAX => BigDecimal(0)
-    }).setScale(0, RoundingMode.DOWN)
-
-  def outerTax(amount: BigDecimal): BigDecimal = (taxType match {
-      case TaxType.OUTER_TAX => amount * realRate
-      case TaxType.INNER_TAX => BigDecimal(0)
-      case TaxType.NON_TAX => BigDecimal(0)
-    }).setScale(0, RoundingMode.DOWN)
+  def taxAmount(target: BigDecimal): BigDecimal = Tax.taxAmount(target, taxType, realRate)
+  def outerTax(target: BigDecimal): BigDecimal = Tax.outerTax(target, taxType, realRate)
 }
 
 case class TaxName(id: Pk[Long] = NotAssigned, taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
 
 object Tax {
+  def taxAmount(target: BigDecimal, taxType: TaxType, rate: BigDecimal): BigDecimal = (taxType match {
+    case TaxType.OUTER_TAX => target * rate
+    case TaxType.INNER_TAX => rate * target / (rate + 1)
+    case TaxType.NON_TAX => BigDecimal(0)
+  }).setScale(0, RoundingMode.DOWN)
+
+  def outerTax(target: BigDecimal, taxType: TaxType, rate: BigDecimal): BigDecimal = (taxType match {
+    case TaxType.OUTER_TAX => target * rate
+    case TaxType.INNER_TAX => BigDecimal(0)
+    case TaxType.NON_TAX => BigDecimal(0)
+  }).setScale(0, RoundingMode.DOWN)
+
   val simple = {
     SqlParser.get[Pk[Long]]("tax.tax_id") map {
       case id => Tax(id)
@@ -91,9 +93,6 @@ object Tax {
     ).map {
       e => e._1.id.get.toString -> e._2.taxName
     }
-
-    
-
   }
 }
 

@@ -1,7 +1,8 @@
 @(
   tran: PagedRecords[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
-  boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]]
+  boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
+  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -34,6 +35,12 @@
               <td>@Messages("buyer"): @name(e.buyer)
             </tr>
             <tr class="totalAmount">
+              <td>@Messages("subtotal"): @amount(e.totalAmount)</td>
+            </tr>
+            <tr class="totalAmount">
+              <td>@Messages("outer.tax.amount"): @amount(e.totalTax)</td>
+            </tr>
+            <tr class="totalAmountWithTax">
               <td>@Messages("transaction.amount"): @amount(e.totalWithTax)</td>
             </tr>
           </table>
@@ -77,6 +84,14 @@
                       <td class="orderHistoryInnerTable3Body price">@amount(t.price)</td>
                     </tr>
                   }
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td class="orderHistoryInnerTable3Body subtotalHeader">@Messages("subtotal")</td>
+                    <td class="orderHistoryInnerTable3Body subtotalBody">
+                      @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
+                    </td>
+                  </tr>
                 </table>
               </td>
               <td>
@@ -93,6 +108,12 @@
                       <td class="orderHistoryInnerTable4Body boxPrice">@amount(box.amount)</td>
                     </tr>
                   }
+                  <tr>
+                    <td class="orderHistoryInnerTable4Body subtotalHeader">@Messages("subtotal")</td>
+                    <td class="orderHistoryInnerTable4Body subtotalBody">
+                      @amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))
+                    </td>
+                  </tr>
                 </table>
               </td>
             </tr>

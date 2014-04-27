@@ -26,7 +26,7 @@ case class ShoppingCartTotalEntry(
   lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
   lazy val quantity: Int = shoppingCartItem.quantity
   lazy val itemPrice: BigDecimal = unitPrice * quantity
-  lazy val costPrice: BigDecimal = itemPriceHistory.costPrice
+  lazy val costUnitPrice: BigDecimal = itemPriceHistory.costPrice
 }
 
 case class ShoppingCartTotal(

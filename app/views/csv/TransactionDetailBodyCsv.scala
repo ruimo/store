@@ -19,7 +19,7 @@ class TransactionDetailBodyCsv(csvWriter: CsvWriter) {
       detail.itemName,
       detail.quantity.toString,
       detail.unitPrice.toString,
-      detail.costPrice.toString
+      detail.costUnitPrice.toString
     )
   }
 

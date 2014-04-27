@@ -19,7 +19,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
   def index() = isAuthenticated { implicit login => implicit request =>
     Ok(
-      views.html.accountingBill(accountingBillForm, List(), LongMap(), LongMap(), LongMap())
+      views.html.accountingBill(accountingBillForm, List(), LongMap(), LongMap(), LongMap(), false)
     )
   }
 
@@ -27,7 +27,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     accountingBillForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(
-          views.html.accountingBill(formWithErrors, List(), LongMap(), LongMap(), LongMap())
+          views.html.accountingBill(formWithErrors, List(), LongMap(), LongMap(), LongMap(), false)
         )
       },
       yearMonth => {
@@ -62,7 +62,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
-            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId
+            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
+            login.siteUser.isDefined
           ))
         }
       }

@@ -2,12 +2,31 @@
   summaries: Seq[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
-  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction]
+  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
+  useCostPrice: Boolean
 )(
-  implicit lang: Lang
+  implicit lang: Lang,
+  loginSession: LoginSession
 )
 
 @import scala.collection.immutable.LongMap
+
+@itemPrice(tranDetail: TransactionDetail) = @{
+  if (useCostPrice) tranDetail.costPrice else tranDetail.price
+}
+
+@itemSubtotal(ptran: PersistedTransaction) = @{
+  if (useCostPrice) ptran.costPriceTotal else ptran.itemTotal
+}
+
+@outerTaxTotal(siteId: Long, ptran: PersistedTransaction) = @{
+  if (useCostPrice) ptran.outerTaxWhenCostPrice(siteId)
+  else ptran.outerTaxTotal(siteId)
+}
+
+@total(siteId: Long, ptran: PersistedTransaction) = @{
+  itemSubtotal(ptran)(siteId) + ptran.boxTotal(siteId) + outerTaxTotal(siteId, ptran)
+}
 
 @summaries.map { e =>
   <table class="accountingBillTable">
@@ -31,14 +50,14 @@
       <tr>
         <td class="itemName body">@t.itemName</td>
         <td class="quantity body">@t.quantity</td>
-        <td class="price body">@amount(t.price)</td>
+        <td class="price body">@amount(itemPrice(t))</td>
       </tr>
     }
 
     <tr>
       <td></td>
       <td class="subtotal header">@Messages("subtotal")</td>
-      <td class="subtotal body">@amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))</td>
+      <td class="subtotal body">@amount(itemSubtotal(siteTranByTranId(e.transactionId))(e.siteId))</td>
     </tr>
 
     @boxBySiteAndItemSize.get(
@@ -60,13 +79,13 @@
     <tr>
       <td></td>
       <td class="tax header">@Messages("outer.tax.amount")</td>
-      <td class="tax body">@amount(siteTranByTranId(e.transactionId).outerTaxTotal(e.siteId))</td>
+      <td class="tax body">@amount(outerTaxTotal(e.siteId, siteTranByTranId(e.transactionId)))</td>
     </tr>
 
     <tr>
       <td></td>
       <td class="tax header">@Messages("total")</td>
-      <td class="tax body">@amount(e.totalWithTax)</td>
+      <td class="tax body">@amount(total(e.siteId, siteTranByTranId(e.transactionId)))</td>
     </tr>
   </table>    
 }

@@ -515,6 +515,10 @@ tr.siteTableBody {
     text-align: right;
 }
 
+.orderHistoryInnerTable3Body.subtotalHeader {
+    border: none;
+}
+
 .orderHistoryInnerTable3Body.price {
     text-align: right;
 }

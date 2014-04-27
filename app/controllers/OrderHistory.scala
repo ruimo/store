@@ -33,6 +33,11 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
         storeUser = Some(login.storeUser),
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
+      val tranPersister = new TransactionPersister
+      val siteTranByTranId = pagedRecords.records.foldLeft(LongMap[PersistedTransaction]()) {
+        (sum, e) =>
+        sum.updated(e.transactionId, tranPersister.load(e.transactionId, LocaleInfo.getDefault))
+      }
       val detailByTranSiteId = pagedRecords.records.foldLeft(LongMap[Seq[TransactionDetail]]()) {
         (sum, e) =>
           val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
@@ -53,7 +58,9 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           }
       }
       Ok(
-        views.html.showOrderHistory(pagedRecords, detailByTranSiteId, boxBySiteAndItemSize)
+        views.html.showOrderHistory(
+          pagedRecords, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId
+        )
       )
     }
   }
@@ -70,10 +77,10 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           val summaries = TransactionSummary.listByPeriod(
             storeUser = Some(login.storeUser), yearMonth = yearMonth
           )
+          val tranPersister = new TransactionPersister
           val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
             (sum, e) =>
-            val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
-            sum.updated(e.transactionId, siteTran)
+            sum.updated(e.transactionId, tranPersister.load(e.transactionId, LocaleInfo.getDefault))
           }
           val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
             (sum, e) =>
