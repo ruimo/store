@@ -562,6 +562,10 @@ tr.siteTableBody {
     text-align: right;
 }
 
+.accountingBillTable td.total {
+    text-align: right;
+}
+
 .accountingBillTable .subtotal.header {
     text-align: left;
 }

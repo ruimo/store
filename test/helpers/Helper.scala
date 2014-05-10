@@ -30,6 +30,26 @@ object Helper {
     user
   }
 
+  def createNormalUser(
+    browser: TestBrowser,
+    userName: String,
+    password: String,
+    email: String,
+    firstName: String,
+    lastName: String,
+    companyName: String
+  ) {
+    browser.goTo("http://localhost:3333" + controllers.routes.UserMaintenance.startCreateNewNormalUser.url)
+    browser.fill("#userName").`with`(userName)
+    browser.fill("#firstName").`with`(firstName)
+    browser.fill("#lastName").`with`(lastName)
+    browser.fill("#companyName").`with`(companyName)
+    browser.fill("#email").`with`(email)
+    browser.fill("#password_main").`with`(password)
+    browser.fill("#password_confirm").`with`(password)
+    browser.click("#registerNormalUser")
+  }
+
   def takeScreenShot(browser: TestBrowser) {
     val stack = (new Throwable()).getStackTrace()(1)
     val fname = "screenShots/" + stack.getFileName() + "_" + stack.getLineNumber() + ".png"

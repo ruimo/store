@@ -34,9 +34,9 @@
       <td colspan="3">
         <table class="accountingBillHeaderTable">
           <tr>
-            <td>@e.transactionId</td>
-            <td>@yyyymmddhhmm(e.transactionTime)</td>
-            <td>@name(e.buyer)</td>
+            <td class="tranId">@e.transactionId</td>
+            <td class="tranDateTime">@yyyymmddhhmm(e.transactionTime)</td>
+            <td class="tranBuyer">@name(e.buyer)</td>
           </tr>
         </table>
       </td>
@@ -83,7 +83,7 @@
     <tr>
       <td></td>
       <td class="subtotal header">@Messages("fee.total")</td>
-      <td class="subtotal body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
+      <td class="subtotal box body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
     </tr>
 
     <tr>
@@ -94,8 +94,8 @@
 
     <tr>
       <td></td>
-      <td class="tax header">@Messages("total")</td>
-      <td class="tax body">@amount(total(e.siteId, siteTranByTranId(e.transactionId)))</td>
+      <td class="total header">@Messages("total")</td>
+      <td class="total body">@amount(total(e.siteId, siteTranByTranId(e.transactionId)))</td>
     </tr>
   </table>    
 }

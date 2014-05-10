@@ -64,7 +64,7 @@ case class ShoppingCartTotal(
       HashMap[Site, Vector[ShoppingCartTotalEntry]]()
         .withDefaultValue(Vector[ShoppingCartTotalEntry]())
     ) { (map, e) =>
-      map.updated(e.site, map(e.site).+:(e))
+      map.updated(e.site, map(e.site) :+ e)
     }.mapValues(e => ShoppingCartTotal(e.toSeq))
   def apply(index: Int): ShoppingCartTotalEntry = table(index)
 }

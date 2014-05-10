@@ -86,7 +86,8 @@ case class ShippingDateEntry(
 case class ShippingDate(
   tables: Map[Long, ShippingDateEntry] // Key is siteId
 ) extends NotNull {
-  def bySite(site: Site): ShippingDateEntry = tables(site.id.get)
+  def bySite(site: Site): ShippingDateEntry = bySiteId(site.id.get)
+  def bySiteId(siteId: Long): ShippingDateEntry = tables(siteId)
 }
 
 case class Transaction(

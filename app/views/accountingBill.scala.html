@@ -1,11 +1,12 @@
 @(
   accountingBillForm: Form[YearMonth],
-  accountingStoreBillForm: Form[YearMonth],
+  accountingStoreBillForm: Form[YearMonthSite],
   summaries: Seq[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
   siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
-  useCostPrice: Boolean
+  useCostPrice: Boolean,
+  siteDropDown: Seq[(String, String)]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -24,12 +25,13 @@
     @form(action = CSRF(routes.AccountingBill.show()), 'id -> "showAccountingBillForm") {
       <tr valign="top">
         @if(loginSession.isSuperUser) {
-          <td>@Messages("user")</td>
+          <td colspan="2">@Messages("user")</td>
         }
         <td>
           @inputText(
             accountingBillForm("year"),
-            'size -> 4, 'maxLength -> 4, '_showConstraints -> false
+            'size -> 4, 'maxLength -> 4, '_showConstraints -> false,
+            'id -> "userYear"
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )
@@ -38,14 +40,15 @@
         <td>
           @inputText(
             accountingBillForm("month"),
-            'size -> 2, 'maxLength -> 2, '_showConstraints -> false
+            'size -> 2, 'maxLength -> 2, '_showConstraints -> false,
+            'id -> "userMonth"
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )
         </td>
         <td>@Messages("month")</td>
         <td>
-          <input type="submit" value="@Messages("showAccountingBill")">
+          <input type="submit" id="userSubmit" value="@Messages("showAccountingBill")">
         </td>
       </tr>
     }
@@ -55,9 +58,17 @@
         <tr valign="top">
           <td>@Messages("site")</td>
           <td>
+            @select(
+              accountingStoreBillForm("site"), siteDropDown, '_showConstraints -> false, 'id -> "siteDropDown"
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td>
             @inputText(
               accountingStoreBillForm("year"),
-              'size -> 4, 'maxLength -> 4, '_showConstraints -> false
+              'size -> 4, 'maxLength -> 4, '_showConstraints -> false,
+              'id -> "storeYear"
             )(
               helper.FieldConstructor(simpleField.f), implicitly
             )
@@ -66,14 +77,15 @@
           <td>
             @inputText(
               accountingStoreBillForm("month"),
-              'size -> 2, 'maxLength -> 2, '_showConstraints -> false
+              'size -> 2, 'maxLength -> 2, '_showConstraints -> false,
+              'id -> "storeMonth"
             )(
               helper.FieldConstructor(simpleField.f), implicitly
             )
           </td>
           <td>@Messages("month")</td>
           <td>
-            <input type="submit" value="@Messages("showAccountingBill")">
+            <input type="submit" id="storeSubmit" value="@Messages("showAccountingBill")">
           </td>
         </tr>
       }

@@ -73,11 +73,11 @@ object TransactionSummary {
   """
 
   def baseSql(
-    siteUser: Option[SiteUser],
+    siteId: Option[Long],
     withLimit: Boolean,
     storeUser: Option[StoreUser] = None,
     additionalWhere: String = "",
-    orderByOpt: Option[OrderBy] = Some(ListDefaultOrderBy),
+    orderByOpt: Seq[OrderBy] = List(ListDefaultOrderBy),
     forCount: Boolean = false,
     columns: String = baseColumns
   ) =
@@ -107,7 +107,7 @@ object TransactionSummary {
         transaction_tax.transaction_site_id = transaction_site.transaction_site_id and
         transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal +
     " where 1 = 1" +
-    siteUser.map {u => " and transaction_site.site_id = " + u.siteId}.getOrElse("") +
+    siteId.map {id => " and transaction_site.site_id = " + id}.getOrElse("") +
     storeUser.map {u => " and transaction_header.store_user_id = " + u.id}.getOrElse("") +
     """
       group by
@@ -127,16 +127,16 @@ object TransactionSummary {
     """ +
     additionalWhere +
     (if (forCount) ""
-     else " order by " + orderByOpt.map {o => s"$o, "}.getOrElse("") + "base.transaction_site_id ") +
+     else " order by " + orderByOpt.map {o => s"$o, "}.mkString("") + "base.transaction_site_id asc") +
     (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
-    siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None,
+    siteId: Option[Long] = None, storeUser: Option[StoreUser] = None,
     page: Int = 0, pageSize: Int = 25, orderBy: OrderBy = ListDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
-      baseSql(columns = "count(*)", siteUser = siteUser, storeUser = storeUser, 
-              additionalWhere = "", withLimit = false, orderByOpt = None, forCount = true)
+      baseSql(columns = "count(*)", siteId = siteId, storeUser = storeUser,
+              additionalWhere = "", withLimit = false, orderByOpt = List(), forCount = true)
     ).as(
       SqlParser.scalar[Long].single
     )
@@ -147,7 +147,7 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       orderBy,
       SQL(
-        baseSql(siteUser = siteUser, storeUser = storeUser, additionalWhere = "", withLimit = true, orderByOpt = Some(orderBy))
+        baseSql(siteId = siteId, storeUser = storeUser, additionalWhere = "", withLimit = true, orderByOpt = List(orderBy))
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize
@@ -158,16 +158,17 @@ object TransactionSummary {
   }
 
   def listByPeriod(
-    siteUser: Option[SiteUser] = None, storeUser: Option[StoreUser] = None,
-    yearMonth: YearMonth
+    siteId: Option[Long] = None, storeUser: Option[StoreUser] = None,
+    yearMonth: HasYearMonth
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     val nextYearMonth = yearMonth.next
 
     SQL(
       baseSql(
-        siteUser = siteUser,
+        siteId = siteId,
         storeUser = storeUser,
         additionalWhere = "where date '%d-%02d-01' <= transaction_time and transaction_time < date '%d-%02d-01'".format(yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month),
+        orderByOpt = List(OrderBy("base.store_user_id", Asc), ListDefaultOrderBy),
         withLimit = false
       )
     ).as(
@@ -175,9 +176,9 @@ object TransactionSummary {
     )
   }
 
-  def get(user: Option[SiteUser], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] =
+  def get(siteId: Option[Long], tranSiteId: Long)(implicit conn: Connection): Option[TransactionSummaryEntry] =
     SQL(
-      baseSql(siteUser = user, additionalWhere = "where base.transaction_site_id = {tranSiteId}", withLimit = false)
+      baseSql(siteId = siteId, additionalWhere = "where base.transaction_site_id = {tranSiteId}", withLimit = false)
     ).on(
       'tranSiteId -> tranSiteId
     ).as(

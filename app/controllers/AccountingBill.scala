@@ -17,35 +17,126 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     )(YearMonth.apply)(YearMonth.unapply)
   )
 
+  val accountingBillForStoreForm = Form(
+    mapping(
+      "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
+      "month" -> number(min = 1, max = 12),
+      "site" -> longNumber
+    )(YearMonthSite.apply)(YearMonthSite.unapply)
+  )
+
   def index() = isAuthenticated { implicit login => implicit request =>
-    Ok(
-      views.html.accountingBill(
-        accountingBillForm, accountingBillForm, List(), LongMap(), LongMap(), LongMap(), false
+    DB.withConnection { implicit conn =>
+      Ok(
+        views.html.accountingBill(
+          accountingBillForm, accountingBillForStoreForm, List(), LongMap(), LongMap(), LongMap(),
+          false, Site.tableForDropDown
+        )
       )
-    )
+    }
   }
 
   def show() = isAuthenticated { implicit login => implicit request =>
     accountingBillForm.bindFromRequest.fold(
       formWithErrors => {
-        BadRequest(
-          views.html.accountingBill(formWithErrors, accountingBillForm, List(), LongMap(), LongMap(), LongMap(), false)
-        )
+        DB.withConnection { implicit conn =>
+          BadRequest(
+            views.html.accountingBill(
+              formWithErrors, accountingBillForStoreForm, List(), LongMap(), LongMap(), LongMap(),
+              false, Site.tableForDropDown
+            )
+          )
+        }
       },
       yearMonth => {
-        showCommon(yearMonth, false)
+        DB.withConnection { implicit conn =>
+          val summaries = TransactionSummary.listByPeriod(
+            siteId = login.siteUser.map(_.siteId), yearMonth = yearMonth
+          )
+          val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
+            (sum, e) =>
+            val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
+            sum.updated(e.transactionId, siteTran)
+          }
+          val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
+            (sum, e) =>
+            val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
+            sum.updated(e.transactionSiteId, details)
+          }
+          val boxBySiteAndItemSize = summaries.foldLeft(
+            LongMap[LongMap[TransactionLogShipping]]()
+          ) {
+            (sum, e) =>
+            sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
+              LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
+            ) {
+              (names, e2) =>
+              names.updated(
+                e.transactionSiteId,
+                names(e.transactionSiteId).updated(e2.itemClass, e2)
+              )
+            }
+          }
+          
+          Ok(views.html.accountingBill(
+            accountingBillForm.fill(yearMonth),
+            accountingBillForStoreForm,
+            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
+            false, Site.tableForDropDown
+          ))
+        }
       }
     )
   }
   def showForStore() = isAuthenticated { implicit login => implicit request =>
-    accountingBillForm.bindFromRequest.fold(
+    accountingBillForStoreForm.bindFromRequest.fold(
       formWithErrors => {
-        BadRequest(
-          views.html.accountingBill(accountingBillForm, formWithErrors, List(), LongMap(), LongMap(), LongMap(), false)
-        )
+        DB.withConnection { implicit conn =>
+          BadRequest(
+            views.html.accountingBill(
+              accountingBillForm, formWithErrors, List(), LongMap(), LongMap(), LongMap(), 
+              true, Site.tableForDropDown
+            )
+          )
+        }
       },
-      yearMonth => {
-        showCommon(yearMonth, true)
+      yearMonthSite => {
+        DB.withConnection { implicit conn =>
+          val summaries = TransactionSummary.listByPeriod(
+            siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite
+          )
+          val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
+            (sum, e) =>
+            val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
+            sum.updated(e.transactionId, siteTran)
+          }
+          val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
+            (sum, e) =>
+            val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
+            sum.updated(e.transactionSiteId, details)
+          }
+          val boxBySiteAndItemSize = summaries.foldLeft(
+            LongMap[LongMap[TransactionLogShipping]]()
+          ) {
+            (sum, e) =>
+            sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
+              LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
+            ) {
+              (names, e2) =>
+              names.updated(
+                e.transactionSiteId,
+                names(e.transactionSiteId).updated(e2.itemClass, e2)
+              )
+            }
+          }
+          
+          Ok(views.html.accountingBill(
+            accountingBillForm,
+            accountingBillForStoreForm.fill(yearMonthSite),
+            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
+            true, Site.tableForDropDown
+          ))
+        }
       }
     )
   }
@@ -57,7 +148,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
   ) = {
     DB.withConnection { implicit conn =>
       val summaries = TransactionSummary.listByPeriod(
-        siteUser = login.siteUser, yearMonth = yearMonth
+        siteId = login.siteUser.map(_.id.get), yearMonth = yearMonth
       )
       val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
         (sum, e) =>
@@ -86,9 +177,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
       Ok(views.html.accountingBill(
         accountingBillForm.fill(yearMonth),
-        accountingBillForm.fill(yearMonth),
+        accountingBillForStoreForm,
         summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
-        useCostPrice
+        useCostPrice, Site.tableForDropDown
       ))
     }
   }

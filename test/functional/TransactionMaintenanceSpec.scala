@@ -11,13 +11,9 @@ import helpers.Helper._
 import org.specs2.mutable.Specification
 import play.api.test.{Helpers, TestServer, FakeApplication}
 import play.api.i18n.{Lang, Messages}
-import play.api.test.TestServer
-import play.api.test.FakeApplication
 import play.api.db.DB
 import models._
 import java.sql.Date.{valueOf => date}
-import play.api.test.TestServer
-import play.api.test.FakeApplication
 import LocaleInfo._
 import java.sql.Connection
 import org.openqa.selenium.By

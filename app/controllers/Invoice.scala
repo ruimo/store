@@ -10,7 +10,7 @@ import models.{TransactionPersister, TransactionDetail, LocaleInfo, TransactionS
 object Invoice extends Controller with NeedLogin with HasLogger with I18nAware {
   def show(tranSiteId: Long) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
-      val entry = TransactionSummary.get(login.siteUser, tranSiteId).get
+      val entry = TransactionSummary.get(login.siteUser.map(_.id.get), tranSiteId).get
       val persistedTran = (new TransactionPersister()).load(entry.transactionId, LocaleInfo.getDefault)
       Ok(
         views.html.showInvoice(
