@@ -23,7 +23,7 @@
 @tran.itemTable(site.id.get).map { it =>
 @{it._1.name}/@Messages("item.size." + metadata(site.id.get -> it._2.itemId).get(SiteItemNumericMetadataType.SHIPPING_SIZE).map{_.metadata}.getOrElse(0))/@{it._2.quantity}点/@{"%,.0f".format(it._2.amount)}円 }
 小計 @{"%,.0f".format(tran.itemTotal(site.id.get))}円
-外税額 @{"%,.0f".format(tran.outerTaxTotal(site.id.get))}円
+@Messages("outer.tax.amount") @{"%,.0f".format(tran.outerTaxTotal(site.id.get))}円
 商品計 @{"%,.0f".format(tran.itemTotal(site.id.get) + tran.outerTaxTotal(site.id.get))}円
 
 <送料>
