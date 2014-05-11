@@ -30,7 +30,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       Ok(
         views.html.accountingBill(
           accountingBillForm, accountingBillForStoreForm, List(), LongMap(), LongMap(), LongMap(),
-          false, Site.tableForDropDown
+          false, Site.tableForDropDown, Map()
         )
       )
     }
@@ -43,7 +43,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           BadRequest(
             views.html.accountingBill(
               formWithErrors, accountingBillForStoreForm, List(), LongMap(), LongMap(), LongMap(),
-              false, Site.tableForDropDown
+              false, Site.tableForDropDown, Map()
             )
           )
         }
@@ -77,12 +77,24 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               )
             }
           }
-          
+          val addresses = scala.collection.mutable.Map[Long, Address]()
+          siteTranByTranId.values.foreach {
+            pt => pt.shippingTable.values.foreach {
+              seq => seq.foreach {
+                tranShipping =>
+                  val id = tranShipping.addressId
+                  if (! addresses.isDefinedAt(id)) {
+                    addresses.put(id, Address.byId(id))
+                  }
+              }
+            }
+          }
+
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
             accountingBillForStoreForm,
             summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
-            false, Site.tableForDropDown
+            false, Site.tableForDropDown, addresses.toMap
           ))
         }
       }
@@ -95,7 +107,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           BadRequest(
             views.html.accountingBill(
               accountingBillForm, formWithErrors, List(), LongMap(), LongMap(), LongMap(), 
-              true, Site.tableForDropDown
+              true, Site.tableForDropDown, Map()
             )
           )
         }
@@ -129,58 +141,28 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               )
             }
           }
+          val addresses = scala.collection.mutable.Map[Long, Address]()
+          siteTranByTranId.values.foreach {
+            pt => pt.shippingTable.values.foreach {
+              seq => seq.foreach {
+                tranShipping =>
+                  val id = tranShipping.addressId
+                  if (! addresses.isDefinedAt(id)) {
+                    addresses.put(id, Address.byId(id))
+                  }
+              }
+            }
+          }
           
           Ok(views.html.accountingBill(
             accountingBillForm,
             accountingBillForStoreForm.fill(yearMonthSite),
             summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
-            true, Site.tableForDropDown
+            true, Site.tableForDropDown,
+            addresses.toMap
           ))
         }
       }
     )
-  }
-
-  def showCommon(
-    yearMonth: YearMonth, useCostPrice: Boolean
-  )(
-    implicit login: LoginSession, request: play.api.mvc.Request[_]
-  ) = {
-    DB.withConnection { implicit conn =>
-      val summaries = TransactionSummary.listByPeriod(
-        siteId = login.siteUser.map(_.id.get), yearMonth = yearMonth
-      )
-      val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
-        (sum, e) =>
-        val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
-        sum.updated(e.transactionId, siteTran)
-      }
-      val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
-        (sum, e) =>
-        val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
-        sum.updated(e.transactionSiteId, details)
-      }
-      val boxBySiteAndItemSize = summaries.foldLeft(
-        LongMap[LongMap[TransactionLogShipping]]()
-      ) {
-        (sum, e) =>
-        sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
-          LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
-        ) {
-          (names, e2) =>
-          names.updated(
-            e.transactionSiteId,
-            names(e.transactionSiteId).updated(e2.itemClass, e2)
-          )
-        }
-      }
-
-      Ok(views.html.accountingBill(
-        accountingBillForm.fill(yearMonth),
-        accountingBillForStoreForm,
-        summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
-        useCostPrice, Site.tableForDropDown
-      ))
-    }
   }
 }

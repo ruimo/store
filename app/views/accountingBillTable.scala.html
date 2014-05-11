@@ -3,7 +3,8 @@
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
   siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
-  useCostPrice: Boolean
+  useCostPrice: Boolean,
+  addresses: Map[Long, Address]
 )(
   implicit lang: Lang,
   loginSession: LoginSession
@@ -49,6 +50,13 @@
         <span class="shippingDate">
           @shippingDate(e.shippingDate)
         </span>
+      </td>
+    </tr>
+    <tr>
+      <td class="address zip" colspan="3">
+        <table>
+          @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
+        </table>
       </td>
     </tr>
     <tr>

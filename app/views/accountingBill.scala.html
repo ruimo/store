@@ -6,7 +6,8 @@
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
   siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
   useCostPrice: Boolean,
-  siteDropDown: Seq[(String, String)]
+  siteDropDown: Seq[(String, String)],
+  addresses: Map[Long, Address]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -92,5 +93,5 @@
     }
   </table>
 
-  @accountingBillTable(summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId, useCostPrice)
+  @accountingBillTable(summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId, useCostPrice, addresses)
 }

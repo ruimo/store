@@ -4,21 +4,21 @@
 
 @if(address.hasName) {
   <tr class="shippingTableBody">
-    <td>お名前</td><td class="name">@address.firstName @address.lastName</td>
+    <td>@Messages("courtesyName")</td><td class="name">@address.firstName @address.lastName</td>
   </tr>
 }
 @if(address.hasKanaName) {
   <tr class="shippingTableBody">
-    <td>フリガナ</td><td class="nameKana">@address.firstNameKana @address.lastNameKana</td>
+    <td>@Messages("furiganaKana")</td><td class="nameKana">@address.firstNameKana @address.lastNameKana</td>
   </tr>
 }
 @if(address.hasZip) {
   <tr class="shippingTableBody">
-    <td>〒</td><td class="zip">@address.zip1 - @address.zip2</td>
+    <td>@Messages("zipMark")</td><td class="zip">@address.zip1 - @address.zip2</td>
   </tr>
 }
 <tr class="shippingTableBody">
-  <td class="addressHeader">ご住所</td>
+  <td class="addressHeader">@Messages("courtesyAddress")</td>
   <td class="address">
     @if(! address.prefecture.isUnknown) {
       <span class="prefecture">@address.prefecture</span><br>
@@ -62,6 +62,6 @@
 }
 @if(!address.comment.isEmpty) {
   <tr class="shippingTableBody">
-    <td>コメント</td><td class="comment">@address.comment</td>
+    <td>@Messages("comment")</td><td class="comment">@address.comment</td>
   </tr>
 }
