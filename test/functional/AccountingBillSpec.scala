@@ -127,7 +127,6 @@ class AccountingBillSpec extends Specification {
         browser.find("#userSubmit").click();
 
         browser.find(".accountingBillTable").size() === 6
-        Thread.sleep(20000)
         doWith(browser.find(".accountingBillTable", 0)) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
