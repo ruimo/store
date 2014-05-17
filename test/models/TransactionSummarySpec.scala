@@ -175,7 +175,7 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(storeUser = Some(user1)).records) { s =>
+          helpers.Helper.doWith(TransactionSummary.list(storeUserId = Some(user1.id.get)).records) { s =>
             s.size === 2
             helpers.Helper.doWith(s(0)) { e =>
               e.transactionId === tranNo1
@@ -198,7 +198,7 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(storeUser = Some(user2)).records) { s =>
+          helpers.Helper.doWith(TransactionSummary.list(storeUserId = Some(user2.id.get)).records) { s =>
             s.size === 1
             helpers.Helper.doWith(s(0)) { e =>
               e.transactionId === tranNo2

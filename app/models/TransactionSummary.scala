@@ -75,7 +75,7 @@ object TransactionSummary {
   def baseSql(
     siteId: Option[Long],
     withLimit: Boolean,
-    storeUser: Option[StoreUser] = None,
+    storeUserId: Option[Long] = None,
     additionalWhere: String = "",
     orderByOpt: Seq[OrderBy] = List(ListDefaultOrderBy),
     forCount: Boolean = false,
@@ -108,7 +108,7 @@ object TransactionSummary {
         transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal +
     " where 1 = 1" +
     siteId.map {id => " and transaction_site.site_id = " + id}.getOrElse("") +
-    storeUser.map {u => " and transaction_header.store_user_id = " + u.id}.getOrElse("") +
+    storeUserId.map {uid => " and transaction_header.store_user_id = " + uid}.getOrElse("") +
     """
       group by
         transaction_header.transaction_id,
@@ -131,11 +131,11 @@ object TransactionSummary {
     (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
-    siteId: Option[Long] = None, storeUser: Option[StoreUser] = None,
+    siteId: Option[Long] = None, storeUserId: Option[Long] = None,
     page: Int = 0, pageSize: Int = 25, orderBy: OrderBy = ListDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
-      baseSql(columns = "count(*)", siteId = siteId, storeUser = storeUser,
+      baseSql(columns = "count(*)", siteId = siteId, storeUserId = storeUserId,
               additionalWhere = "", withLimit = false, orderByOpt = List(), forCount = true)
     ).as(
       SqlParser.scalar[Long].single
@@ -147,7 +147,7 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       orderBy,
       SQL(
-        baseSql(siteId = siteId, storeUser = storeUser, additionalWhere = "", withLimit = true, orderByOpt = List(orderBy))
+        baseSql(siteId = siteId, storeUserId = storeUserId, additionalWhere = "", withLimit = true, orderByOpt = List(orderBy))
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize
@@ -158,7 +158,8 @@ object TransactionSummary {
   }
 
   def listByPeriod(
-    siteId: Option[Long] = None, storeUser: Option[StoreUser] = None,
+    siteId: Option[Long] = None,
+    storeUserId: Option[Long] = None,
     yearMonth: HasYearMonth
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     val nextYearMonth = yearMonth.next
@@ -166,8 +167,10 @@ object TransactionSummary {
     SQL(
       baseSql(
         siteId = siteId,
-        storeUser = storeUser,
-        additionalWhere = "where date '%d-%02d-01' <= transaction_time and transaction_time < date '%d-%02d-01'".format(yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month),
+        storeUserId = storeUserId,
+        additionalWhere = "where date '%d-%02d-01' <= transaction_time and transaction_time < date '%d-%02d-01'".format(
+          yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month
+        ),
         orderByOpt = List(OrderBy("base.store_user_id", Asc), ListDefaultOrderBy),
         withLimit = false
       )

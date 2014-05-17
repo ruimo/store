@@ -1,6 +1,6 @@
 package controllers
 
-import play.api.i18n.Lang
+import play.api.i18n.{Lang, Messages}
 import play.api.Play.current
 import play.api.data.Forms._
 import controllers.I18n.I18nAware
@@ -15,8 +15,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
   val accountingBillForm = Form(
     mapping(
       "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
-      "month" -> number(min = 1, max = 12)
-    )(YearMonth.apply)(YearMonth.unapply)
+      "month" -> number(min = 1, max = 12),
+      "user" -> longNumber
+    )(YearMonthUser.apply)(YearMonthUser.unapply)
   )
 
   val accountingBillForStoreForm = Form(
@@ -27,12 +28,14 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     )(YearMonthSite.apply)(YearMonthSite.unapply)
   )
 
+  def AllUser(implicit lang: Lang) = ("0", Messages("all"))
+
   def index() = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       Ok(
         views.html.accountingBill(
           accountingBillForm, accountingBillForStoreForm, List(), LongMap(), LongMap(), LongMap(),
-          false, Site.tableForDropDown, Map()
+          false, Site.tableForDropDown, Map(), List(AllUser)
         )
       )
     }
@@ -45,16 +48,22 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           BadRequest(
             views.html.accountingBill(
               formWithErrors, accountingBillForStoreForm, List(), LongMap(), LongMap(), LongMap(),
-              false, Site.tableForDropDown, Map()
+              false, Site.tableForDropDown, Map(), List(AllUser)
             )
           )
         }
       },
       yearMonth => {
         DB.withConnection { implicit conn =>
-          val summaries = TransactionSummary.listByPeriod(
-            siteId = login.siteUser.map(_.siteId), yearMonth = yearMonth
+          val summariesForAllUser: Seq[TransactionSummaryEntry] = TransactionSummary.listByPeriod(
+            siteId = login.siteUser.map(_.siteId), 
+            yearMonth = yearMonth
           )
+          val userDropDown = getUserDropDown(summariesForAllUser)
+          val summaries = yearMonth.userIdOpt match {
+            case Some(userId) => summariesForAllUser.filter(_.buyer.id.get == userId)
+            case None => summariesForAllUser
+          }
           val siteTranByTranId = getSiteTranByTranId(summaries)
 
           Ok(views.html.accountingBill(
@@ -63,7 +72,10 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             summaries, getDetailByTranSiteId(summaries, lang),
             getBoxBySiteAndItemSize(summaries),
             siteTranByTranId,
-            false, Site.tableForDropDown, getAddressTable(siteTranByTranId)
+            false,
+            Site.tableForDropDown,
+            getAddressTable(siteTranByTranId),
+            userDropDown
           ))
         }
       }
@@ -76,7 +88,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           BadRequest(
             views.html.accountingBill(
               accountingBillForm, formWithErrors, List(), LongMap(), LongMap(), LongMap(), 
-              true, Site.tableForDropDown, Map()
+              true, Site.tableForDropDown, Map(), List()
             )
           )
         }
@@ -95,7 +107,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             getBoxBySiteAndItemSize(summaries),
             siteTranByTranId,
             true, Site.tableForDropDown,
-            getAddressTable(siteTranByTranId)
+            getAddressTable(siteTranByTranId),
+            getUserDropDown(summaries)
           ))
         }
       }
@@ -162,4 +175,14 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
     sum.updated(e.transactionId, siteTran)
   }
+
+  def getUserDropDown(
+    summaries: Seq[TransactionSummaryEntry]
+  )(
+    implicit lang: Lang
+  ): Seq[(String, String)] = AllUser +: summaries.foldLeft(Set[StoreUser]()) {
+    (set, e) => set + e.buyer
+  }.map {
+    u => (u.id.get.toString, u.userName)
+  }.toSeq
 }

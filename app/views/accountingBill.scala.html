@@ -1,5 +1,5 @@
 @(
-  accountingBillForm: Form[YearMonth],
+  accountingBillForm: Form[YearMonthUser],
   accountingStoreBillForm: Form[YearMonthSite],
   summaries: Seq[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
@@ -7,7 +7,8 @@
   siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
   useCostPrice: Boolean,
   siteDropDown: Seq[(String, String)],
-  addresses: Map[Long, Address]
+  addresses: Map[Long, Address],
+  userDropDown: Seq[(String, String)]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -26,8 +27,15 @@
     @form(action = CSRF(routes.AccountingBill.show()), 'id -> "showAccountingBillForm") {
       <tr valign="top">
         @if(loginSession.isSuperUser) {
-          <td colspan="2">@Messages("user")</td>
+          <td>@Messages("user")</td>
         }
+        <td>
+          @select(
+            accountingStoreBillForm("user"), userDropDown, '_showConstraints -> false, 'id -> "userDropDown"
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
         <td>
           @inputText(
             accountingBillForm("year"),

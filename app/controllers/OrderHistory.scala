@@ -30,7 +30,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
   ) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val pagedRecords = TransactionSummary.list(
-        storeUser = Some(login.storeUser),
+        storeUserId = Some(login.storeUser.id.get),
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
       val tranPersister = new TransactionPersister
@@ -58,7 +58,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
       yearMonth => {
         DB.withConnection { implicit conn =>
           val summaries = TransactionSummary.listByPeriod(
-            storeUser = Some(login.storeUser), yearMonth = yearMonth
+            storeUserId = Some(login.storeUser.id.get), yearMonth = yearMonth
           )
           val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries)
           Ok(views.html.showMonthlyOrderHistory(
