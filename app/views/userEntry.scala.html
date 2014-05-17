@@ -1,0 +1,40 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@main(Messages("accountingBillTitle"), loginSession) {
+} {
+  <h1 class="title">@Messages("userEntryTitle")</h1>
+<table class="userEntry">
+  <tr>
+    <td>@Messages("companyName")</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>@Messages("courtesyAddress")</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>@Messages("courtesyTelNo")</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>@Messages("fax")</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>@Messages("title")</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>@Messages("entryName")</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>@Messages("email")</td>
+    <td></td>
+  </tr>
+</table>
+}
