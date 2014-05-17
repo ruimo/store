@@ -910,6 +910,10 @@ class TransactionPersister {
       map.updated(siteId, ((e._1, e._3)) :: map(siteId))
     }.mapValues(_.reverse)
 
+println("*** TransactionLog")
+println("*** id = " + tranId)
+println("*** locale = " + localeInfo.id)
+println("*** itemLog = " + itemLog)
     PersistedTransaction(
       header, siteLog, shippingLog, taxLog, itemLog
     )
