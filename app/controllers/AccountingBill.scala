@@ -64,7 +64,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             case Some(userId) => summariesForAllUser.filter(_.buyer.id.get == userId)
             case None => summariesForAllUser
           }
-          val siteTranByTranId = getSiteTranByTranId(summaries)
+          val siteTranByTranId = getSiteTranByTranId(summaries, lang)
 
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
@@ -98,8 +98,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           val summaries = TransactionSummary.listByPeriod(
             siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite
           )
-          val siteTranByTranId = getSiteTranByTranId(summaries)
+          val siteTranByTranId = getSiteTranByTranId(summaries, lang)
 
+println("***AccountingBill lang = " + lang)
 println("***AccountingBill siteTranByTranId = " + siteTranByTranId)
           Ok(views.html.accountingBill(
             accountingBillForm,
@@ -168,12 +169,12 @@ println("***AccountingBill siteTranByTranId = " + siteTranByTranId)
   }
 
   def getSiteTranByTranId(
-    summaries: Seq[TransactionSummaryEntry]
+    summaries: Seq[TransactionSummaryEntry], lang: Lang
   )(
     implicit conn: Connection
   ): LongMap[PersistedTransaction] = summaries.foldLeft(LongMap[PersistedTransaction]()) {
     (sum, e) =>
-    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
+    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault(lang))
     sum.updated(e.transactionId, siteTran)
   }
 

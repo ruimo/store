@@ -34,7 +34,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
       val tranPersister = new TransactionPersister
-      val siteTranByTranId = AccountingBill.getSiteTranByTranId(pagedRecords.records)
+      val siteTranByTranId = AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
 
       Ok(
         views.html.showOrderHistory(
@@ -60,7 +60,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           val summaries = TransactionSummary.listByPeriod(
             storeUserId = Some(login.storeUser.id.get), yearMonth = yearMonth
           )
-          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries)
+          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries, lang)
           Ok(views.html.showMonthlyOrderHistory(
             orderHistoryForm.fill(yearMonth),
             summaries,
