@@ -44,6 +44,7 @@
         </table>
       </td>
     </tr>
+@{println("*** accountingBillTable(2)")}
     <tr>
       <td class="transactionStatus" colspan="3">
         <span class="status">
@@ -54,6 +55,7 @@
         </span>
       </td>
     </tr>
+@{println("*** accountingBillTable(3)")}
     <tr>
       <td class="address zip" colspan="3">
         <table>
@@ -61,11 +63,13 @@
         </table>
       </td>
     </tr>
+@{println("*** accountingBillTable(4)")}
     <tr>
       <th class="itemName header">@Messages("itemName")</th>
       <th class="quantity header">@Messages("quantity")</th>
       <th class="price header">@Messages("price")</th>
     </tr>
+@{println("*** accountingBillTable(5)")}
     @detailByTranSiteId(e.transactionSiteId).map { t =>
       <tr>
         <td class="itemName body">@t.itemName</td>
@@ -73,6 +77,7 @@
         <td class="price body">@amount(itemPrice(t))</td>
       </tr>
     }
+@{println("*** accountingBillTable(6)")}
 
     <tr>
       <td></td>
@@ -80,6 +85,7 @@
       <td class="subtotal body">@amount(itemSubtotal(siteTranByTranId(e.transactionId))(e.siteId))</td>
     </tr>
 
+@{println("*** accountingBillTable(7)")}
     @boxBySiteAndItemSize.get(
       e.transactionSiteId
     ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
@@ -90,18 +96,21 @@
       </tr>
     }
 
+@{println("*** accountingBillTable(8)")}
     <tr>
       <td></td>
       <td class="subtotal header">@Messages("fee.total")</td>
       <td class="subtotal box body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
     </tr>
 
+@{println("*** accountingBillTable(9)")}
     <tr>
       <td></td>
       <td class="tax header">@Messages("outer.tax.amount")</td>
       <td class="tax body">@amount(outerTaxTotal(e.siteId, siteTranByTranId(e.transactionId)))</td>
     </tr>
 
+@{println("*** accountingBillTable(10)")}
     <tr>
       <td></td>
       <td class="total header">@Messages("total")</td>
