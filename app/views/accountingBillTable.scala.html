@@ -29,7 +29,9 @@
   itemSubtotal(ptran)(siteId) + ptran.boxTotal(siteId) + outerTaxTotal(siteId, ptran)
 }
 
+@{println("*** accountingBillTable(0)")}
 @summaries.map { e =>
+@{println("*** accountingBillTable(1) e = " + e)}
   <table class="accountingBillTable">
     <tr>
       <td colspan="3">
@@ -107,3 +109,4 @@
     </tr>
   </table>    
 }
+@{println("*** accountingBillTable(END)")}
