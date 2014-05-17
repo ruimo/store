@@ -835,7 +835,6 @@ class TransactionPersister {
   }
 
   def load(tranId: Long, localeInfo: LocaleInfo)(implicit conn: Connection): PersistedTransaction = {
-println("*** localeInfo.loadl() localeInfo = " + localeInfo)
     val header = TransactionLogHeader(tranId)
 
     val siteLog = SQL(
@@ -911,20 +910,6 @@ println("*** localeInfo.loadl() localeInfo = " + localeInfo)
       map.updated(siteId, ((e._1, e._3)) :: map(siteId))
     }.mapValues(_.reverse)
 
-println("*** TransactionLog")
-println(
-  "transaction_site = " + SQL("select * from transaction_site").as(TransactionLogSite.simple *)
-)
-println(
-  "transaction_item = " + SQL("select * from transaction_item").as(TransactionLogItem.simple *)
-)
-println(
-  "item_name = " + SQL("select * from item_name").as(ItemName.simple *)
-)
-
-println("*** id = " + tranId)
-println("*** locale = " + localeInfo.id)
-println("*** itemLog = " + itemLog)
     PersistedTransaction(
       header, siteLog, shippingLog, taxLog, itemLog
     )

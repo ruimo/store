@@ -100,8 +100,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           )
           val siteTranByTranId = getSiteTranByTranId(summaries, lang)
 
-println("***AccountingBill lang = " + lang)
-println("***AccountingBill siteTranByTranId = " + siteTranByTranId)
           Ok(views.html.accountingBill(
             accountingBillForm,
             accountingBillForStoreForm.fill(yearMonthSite),

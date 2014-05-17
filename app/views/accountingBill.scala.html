@@ -21,7 +21,6 @@
 
 @main(Messages("accountingBillTitle"), Some(loginSession)) {
 } {
-@{println("*** accountingBill(0)")}
   <h1 class="title">@Messages("accountingBillTitle")</h1>
 
   <table>
@@ -63,7 +62,6 @@
       </tr>
     }
 
-@{println("*** accountingBill(1)")}
     @if(loginSession.isSuperUser) {
       @form(action = CSRF(routes.AccountingBill.showForStore()), 'id -> "showAccountingStoreBillForm") {
         <tr valign="top">
@@ -103,8 +101,5 @@
     }
   </table>
 
-@{println("*** accountingBill(2)")}
   @accountingBillTable(summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId, useCostPrice, addresses)
-
-@{println("*** accountingBill(END)")}
 }
