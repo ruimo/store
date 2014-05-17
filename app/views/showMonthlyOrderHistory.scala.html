@@ -3,7 +3,8 @@
   summaries: Seq[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
-  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction]
+  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
+  addresses: Map[Long, Address]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -46,5 +47,5 @@
     </table>
   }
 
-  @accountingBillTable(summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId, false, Map())
+  @accountingBillTable(summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId, false, addresses)
 }

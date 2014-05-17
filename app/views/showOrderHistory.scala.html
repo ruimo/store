@@ -2,7 +2,8 @@
   tran: PagedRecords[TransactionSummaryEntry],
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
-  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction]
+  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
+  addresses: Map[Long, Address]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -117,6 +118,13 @@
                 </table>
               </td>
             </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td class="address zip" colspan="2">
+          <table>
+            @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
           </table>
         </td>
       </tr>

@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.i18n.Lang
 import play.api.Play.current
 import play.api.data.Forms._
 import controllers.I18n.I18nAware
@@ -8,6 +9,7 @@ import play.api.data.Form
 import play.api.db.DB
 import collection.immutable.LongMap
 import play.api.mvc.{Controller, RequestHeader}
+import java.sql.Connection
 
 object AccountingBill extends Controller with NeedLogin with HasLogger with I18nAware {
   val accountingBillForm = Form(
@@ -53,48 +55,15 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           val summaries = TransactionSummary.listByPeriod(
             siteId = login.siteUser.map(_.siteId), yearMonth = yearMonth
           )
-          val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
-            (sum, e) =>
-            val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
-            sum.updated(e.transactionId, siteTran)
-          }
-          val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
-            (sum, e) =>
-            val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
-            sum.updated(e.transactionSiteId, details)
-          }
-          val boxBySiteAndItemSize = summaries.foldLeft(
-            LongMap[LongMap[TransactionLogShipping]]()
-          ) {
-            (sum, e) =>
-            sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
-              LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
-            ) {
-              (names, e2) =>
-              names.updated(
-                e.transactionSiteId,
-                names(e.transactionSiteId).updated(e2.itemClass, e2)
-              )
-            }
-          }
-          val addresses = scala.collection.mutable.Map[Long, Address]()
-          siteTranByTranId.values.foreach {
-            pt => pt.shippingTable.values.foreach {
-              seq => seq.foreach {
-                tranShipping =>
-                  val id = tranShipping.addressId
-                  if (! addresses.isDefinedAt(id)) {
-                    addresses.put(id, Address.byId(id))
-                  }
-              }
-            }
-          }
+          val siteTranByTranId = getSiteTranByTranId(summaries)
 
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
             accountingBillForStoreForm,
-            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
-            false, Site.tableForDropDown, addresses.toMap
+            summaries, getDetailByTranSiteId(summaries, lang),
+            getBoxBySiteAndItemSize(summaries),
+            siteTranByTranId,
+            false, Site.tableForDropDown, getAddressTable(siteTranByTranId)
           ))
         }
       }
@@ -117,52 +86,80 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           val summaries = TransactionSummary.listByPeriod(
             siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite
           )
-          val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
-            (sum, e) =>
-            val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
-            sum.updated(e.transactionId, siteTran)
-          }
-          val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
-            (sum, e) =>
-            val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
-            sum.updated(e.transactionSiteId, details)
-          }
-          val boxBySiteAndItemSize = summaries.foldLeft(
-            LongMap[LongMap[TransactionLogShipping]]()
-          ) {
-            (sum, e) =>
-            sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
-              LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
-            ) {
-              (names, e2) =>
-              names.updated(
-                e.transactionSiteId,
-                names(e.transactionSiteId).updated(e2.itemClass, e2)
-              )
-            }
-          }
-          val addresses = scala.collection.mutable.Map[Long, Address]()
-          siteTranByTranId.values.foreach {
-            pt => pt.shippingTable.values.foreach {
-              seq => seq.foreach {
-                tranShipping =>
-                  val id = tranShipping.addressId
-                  if (! addresses.isDefinedAt(id)) {
-                    addresses.put(id, Address.byId(id))
-                  }
-              }
-            }
-          }
-          
+          val siteTranByTranId = getSiteTranByTranId(summaries)
+
           Ok(views.html.accountingBill(
             accountingBillForm,
             accountingBillForStoreForm.fill(yearMonthSite),
-            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId,
+            summaries, getDetailByTranSiteId(summaries, lang),
+            getBoxBySiteAndItemSize(summaries),
+            siteTranByTranId,
             true, Site.tableForDropDown,
-            addresses.toMap
+            getAddressTable(siteTranByTranId)
           ))
         }
       }
     )
+  }
+
+  def getAddressTable(
+    tran: LongMap[PersistedTransaction]
+  )(
+    implicit conn: Connection
+  ): Map[Long, Address] = {
+    val addresses = scala.collection.mutable.Map[Long, Address]()
+    tran.values.foreach {
+      pt => pt.shippingTable.values.foreach {
+        seq => seq.foreach {
+          tranShipping =>
+          val id = tranShipping.addressId
+          if (! addresses.isDefinedAt(id)) {
+            addresses.put(id, Address.byId(id))
+          }
+        }
+      }
+    }
+    addresses.toMap
+  }
+
+  def getBoxBySiteAndItemSize(
+    summaries: Seq[TransactionSummaryEntry]
+  )(
+    implicit conn: Connection
+  ): LongMap[LongMap[TransactionLogShipping]] = {
+    summaries.foldLeft(
+      LongMap[LongMap[TransactionLogShipping]]()
+    ) {
+      (sum, e) =>
+      sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
+        LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
+      ) {
+        (names, e2) =>
+        names.updated(
+          e.transactionSiteId,
+          names(e.transactionSiteId).updated(e2.itemClass, e2)
+        )
+      }
+    }
+  }
+
+  def getDetailByTranSiteId(
+    summaries: Seq[TransactionSummaryEntry], lang: Lang
+  )(
+    implicit conn: Connection
+  ): LongMap[Seq[TransactionDetail]] = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
+    (sum, e) =>
+    val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
+    sum.updated(e.transactionSiteId, details)
+  }
+
+  def getSiteTranByTranId(
+    summaries: Seq[TransactionSummaryEntry]
+  )(
+    implicit conn: Connection
+  ): LongMap[PersistedTransaction] = summaries.foldLeft(LongMap[PersistedTransaction]()) {
+    (sum, e) =>
+    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
+    sum.updated(e.transactionId, siteTran)
   }
 }

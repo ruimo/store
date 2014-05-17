@@ -34,32 +34,15 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
       val tranPersister = new TransactionPersister
-      val siteTranByTranId = pagedRecords.records.foldLeft(LongMap[PersistedTransaction]()) {
-        (sum, e) =>
-        sum.updated(e.transactionId, tranPersister.load(e.transactionId, LocaleInfo.getDefault))
-      }
-      val detailByTranSiteId = pagedRecords.records.foldLeft(LongMap[Seq[TransactionDetail]]()) {
-        (sum, e) =>
-          val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
-          sum.updated(e.transactionSiteId, details)
-      }
-      val boxBySiteAndItemSize = pagedRecords.records.foldLeft(
-        LongMap[LongMap[TransactionLogShipping]]()
-      ) {
-        (sum, e) =>
-          sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
-            LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
-          ) {
-            (names, e2) =>
-              names.updated(
-                e.transactionSiteId,
-                names(e.transactionSiteId).updated(e2.itemClass, e2)
-              )
-          }
-      }
+      val siteTranByTranId = AccountingBill.getSiteTranByTranId(pagedRecords.records)
+
       Ok(
         views.html.showOrderHistory(
-          pagedRecords, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId
+          pagedRecords,
+          AccountingBill.getDetailByTranSiteId(pagedRecords.records, lang),
+          AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
+          siteTranByTranId, 
+          AccountingBill.getAddressTable(siteTranByTranId)
         )
       )
     }
@@ -77,34 +60,14 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           val summaries = TransactionSummary.listByPeriod(
             storeUser = Some(login.storeUser), yearMonth = yearMonth
           )
-          val tranPersister = new TransactionPersister
-          val siteTranByTranId = summaries.foldLeft(LongMap[PersistedTransaction]()) {
-            (sum, e) =>
-            sum.updated(e.transactionId, tranPersister.load(e.transactionId, LocaleInfo.getDefault))
-          }
-          val detailByTranSiteId = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
-            (sum, e) =>
-            val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
-            sum.updated(e.transactionSiteId, details)
-          }
-          val boxBySiteAndItemSize = summaries.foldLeft(
-            LongMap[LongMap[TransactionLogShipping]]()
-          ) {
-            (sum, e) =>
-              sum ++ TransactionLogShipping.listBySite(e.transactionSiteId).foldLeft(
-                LongMap[LongMap[TransactionLogShipping]]().withDefaultValue(LongMap[TransactionLogShipping]())
-              ) {
-                (names, e2) =>
-                  names.updated(
-                    e.transactionSiteId,
-                    names(e.transactionSiteId).updated(e2.itemClass, e2)
-                  )
-              }
-          }
-
+          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries)
           Ok(views.html.showMonthlyOrderHistory(
             orderHistoryForm.fill(yearMonth),
-            summaries, detailByTranSiteId, boxBySiteAndItemSize, siteTranByTranId
+            summaries,
+            AccountingBill.getDetailByTranSiteId(summaries, lang),
+            AccountingBill.getBoxBySiteAndItemSize(summaries),
+            siteTranByTranId,
+            AccountingBill.getAddressTable(siteTranByTranId)
           ))
         }
       }
