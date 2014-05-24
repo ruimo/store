@@ -338,3 +338,7 @@ fax=FAX
 title=部署・役職
 entryName=ご登録者名
 userEntryTitle=新規ユーザ登録
+zipError=3桁-4桁の数値で指定してください。
+userEntryCompleted=ユーザー登録申請完了
+userEntryCompletedMessage=ユーザー登録の申請が完了しました。後日こちらからご連絡いたします。数日たっても連絡の無い場合はお問い合わせください。
+mail.user.entry.subject=ユーザー登録申請

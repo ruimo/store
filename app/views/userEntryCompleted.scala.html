@@ -1,0 +1,14 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@main(Messages("userEntryCompleted"), loginSession) {
+} {
+  <h1 class="title">@Messages("userEntryCompleted")</h1>
+
+  <span id="userEntryCompletedMessage">
+    @Messages("userEntryCompletedMessage")
+  </span>
+}

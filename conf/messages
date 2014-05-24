@@ -308,3 +308,7 @@ fax=FAX
 title=Title
 entryName=User Name
 userEntryTitle=User Entry
+zipError=Enter valid zip code
+userEntryCompleted=User entry completed
+userEntryCompletedMessage=User entry completed. We will contact you within few days.
+mail.user.entry.subject=User registration request

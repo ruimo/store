@@ -1,0 +1,20 @@
+@(
+  admin: StoreUser,
+  userRegistration: UserRegistration
+)(
+  implicit lang: Lang
+)
+
+以下のユーザーからユーザー登録の申請がありました。
+
+@userRegistration.companyName
+〒@userRegistration.zip1 - @userRegistration.zip2
+@JapanPrefecture.byIndex(userRegistration.prefecture.code)
+@userRegistration.address1
+@userRegistration.address2
+@userRegistration.address3
+TEL: @userRegistration.tel
+FAX: @userRegistration.fax
+@Messages("title"): @userRegistration.title
+@userRegistration.firstName @userRegistration.lastName 様
+e-mail: @userRegistration.email
