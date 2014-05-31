@@ -46,8 +46,14 @@
             </tr>
           </table>
         </td>
-
-        <td>
+        <td class="address zip">
+          <table>
+            @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
           <table class="orderHistoryInnerTable2">
             <tr>
               <td colspan="2">
@@ -118,13 +124,6 @@
                 </table>
               </td>
             </tr>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td class="address zip" colspan="2">
-          <table>
-            @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
           </table>
         </td>
       </tr>

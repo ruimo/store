@@ -82,6 +82,8 @@ object OrderNotification {
       """
     ).on(
       'siteId -> siteId
+
+    
     ).as(
       StoreUser.simple *
     )
