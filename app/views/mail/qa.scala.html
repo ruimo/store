@@ -1,0 +1,15 @@
+@(
+  admin: StoreUser,
+  qa: QaEntry
+)(
+  implicit lang: Lang
+)
+
+以下のユーザーから質問がありました。
+
+@qa.qaType
+@qa.comment
+@qa.companyName
+@qa.firstName @qa.lastName 様
+TEL: @qa.tel
+e-mail: @qa.email

@@ -588,3 +588,6 @@ tr.siteTableBody {
     padding-bottom: 20px;
 }
 
+#comment_field {
+    margin-top: 1em;
+}
