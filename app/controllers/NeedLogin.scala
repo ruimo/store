@@ -99,8 +99,14 @@ trait NeedLogin extends Controller with HasLogger {
   }
 
   def startLogin(uriOnLoginSuccess: String) = Action { implicit request =>
-    Ok(views.html.admin.login(loginForm, uriOnLoginSuccess))
+    Ok(views.html.admin.login(loginForm, sanitize(uriOnLoginSuccess)))
   }
+
+  def sanitize(url: String): String = 
+    if (url.trim.startsWith("//")) "/"
+    else if (url.indexOf("://") != -1) "/"
+    else if (url.indexOf("csrfToken=") != -1) "/"
+    else url
 
   def login = Action { implicit request => {
     val form = loginForm.bindFromRequest

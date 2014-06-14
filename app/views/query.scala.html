@@ -57,7 +57,9 @@
       $.ajax({
         type: 'post',
         url: '@helper.CSRF(routes.ShoppingCart.addToCartJson)',
-        data: {hello: 'World'},
+        data: JSON.stringify({siteId: siteId, itemId: itemId}),
+        contentType: 'application/json',
+        dataType: 'json',
         cache: false,
         success: function(data, status, jqXhr) {
 alert("Success data: " + data + ", status: " + status);
