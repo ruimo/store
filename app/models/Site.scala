@@ -29,14 +29,14 @@ object Site {
 
   def apply(siteId: Long)(implicit conn: Connection): Site =
     SQL(
-      "select * from site where site_id = {id}"
+      "select * from site where site_id = {id} and site.deleted = FALSE"
     ).on(
       'id -> siteId
     ).as(simple.single)
 
   def get(siteId: Long)(implicit conn: Connection): Option[Site] =
     SQL(
-      "select * from site where site_id = {id}"
+      "select * from site where site_id = {id} and site.deleted = FALSE"
     ).on(
       'id -> siteId
     ).as(simple.singleOpt)
@@ -71,8 +71,9 @@ object Site {
     SQL(
       """
       select * from site
+      where site.deleted = FALSE
       """ +
-      login.siteUser.map("where site_id = " + _.siteId).getOrElse("") +
+      login.siteUser.map("and site_id = " + _.siteId).getOrElse("") +
       """
       order by site_name
       """
@@ -85,7 +86,7 @@ object Site {
       """
       select * from site
       inner join site_item on site.site_id = site_item.site_id
-      where site_item.item_id = {itemId}
+      where site_item.item_id = {itemId} and site.deleted = FALSE
       """ +
       login.siteUser.map("and site.site_id = " + _.siteId).getOrElse("") +
       """
@@ -99,7 +100,7 @@ object Site {
 
   def listAsMap(implicit conn: Connection): Map[Long, Site] =
     SQL(
-      "select * from site order by site_name"
+      "select * from site where site.deleted = FALSE order by site_name"
     ).as(simple *).map {
       e => e.id.get -> e
     }.toMap

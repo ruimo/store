@@ -147,5 +147,41 @@ class SiteSpec extends Specification {
         }}
       }
     }
+
+    "Deleted record should be omitted from results." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => {
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          implicit val login = LoginSession(user1, None, 0L)
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          val item1 = Item.createNew(cat1)
+          SiteItem.createNew(site1, item1)
+
+          Site.listByName().size === 1
+          Site.tableForDropDown.size === 1
+          Site.tableForDropDown(item1.id.get).size === 1
+          Site.listAsMap.size === 1
+          Site.get(site1.id.get) === Some(site1)
+          Site(site1.id.get) === site1
+
+          Site.delete(site1.id.get)
+
+          Site.listByName().size === 0
+          Site.tableForDropDown.size === 0
+          Site.tableForDropDown(item1.id.get).size === 0
+          Site.listAsMap.size === 0
+          Site.get(site1.id.get) === None
+          Site(site1.id.get) must throwA[RuntimeException]
+        }}
+      }
+    }
   }
 }
