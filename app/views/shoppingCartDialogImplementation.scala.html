@@ -1,0 +1,14 @@
+@(
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+<div id="cartDialog" style="display:none;">
+  <table id="cartDialogContent"></table>
+</div>
+
+<div id="errorDialog" style="display:none;">
+  @Messages("unknownError")
+</div>

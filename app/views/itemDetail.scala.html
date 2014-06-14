@@ -12,7 +12,12 @@
 }
 
 @main(Messages("item.detail"), loginSession) {
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
+  @shoppingCartDialogDeclaration()
 } {
+  @shoppingCartDialogImplementation()
+
   <div class="itemDetailAll">
     <div class="itemDetailPicture">
       <div class="itemDetailPictureMain">
@@ -44,7 +49,7 @@
 
       <div class="itemDetailCartPanel">
         <button class="purchaseButton" type="button"
-                onclick="location.href='@routes.Purchase.addToCart(detail.siteId, detail.itemId)';">
+                onclick="shoppingCartDialog.putIntoCart(@detail.siteId, @detail.itemId);">
           @Messages("purchase")
         </button>
       </div>
