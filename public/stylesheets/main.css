@@ -591,3 +591,23 @@ tr.siteTableBody {
 #comment_field {
     margin-top: 1em;
 }
+
+#cartDialogContent {
+    width: 100%;
+}
+
+#cartDialogContent .header {
+    text-align: center;
+}
+
+#cartDialogContent .body.unitPrice {
+    text-align: right;
+}
+
+#cartDialogContent .body.quantity {
+    text-align: right;
+}
+
+#cartDialogContent .body.price {
+    text-align: right;
+}

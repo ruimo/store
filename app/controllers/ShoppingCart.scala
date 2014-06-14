@@ -12,6 +12,8 @@ import play.api.Play.current
 import helpers.{TokenGenerator, RandomTokenGenerator}
 import play.api.libs.json.Json
 
+import helpers.ViewHelpers
+
 object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLogger {
   def addToCartJson = isAuthenticatedJson { implicit login => implicit request =>
     request.body.asJson.map { json =>
@@ -24,9 +26,19 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
           LocaleInfo.getDefault, 
           login.userId
         )
-      }}
 
-      Ok(Json.toJson(Map("Hello" -> "World")))
+        Ok(Json.toJson(toJson(cart)))
+      }}
     }.get
+  }
+
+  def toJson(cart: ShoppingCartTotal): Seq[Map[String, String]] = cart.table.map { e =>
+    Map(
+      "itemName" -> e.itemName.name,
+      "siteName" -> e.site.name,
+      "unitPrice" -> ViewHelpers.toAmount(e.itemPriceHistory.unitPrice),
+      "quantity" -> e.shoppingCartItem.quantity.toString,
+      "price" -> ViewHelpers.toAmount(e.itemPrice)
+    )
   }
 }
