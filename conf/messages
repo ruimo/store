@@ -321,3 +321,5 @@ qaItemTitle=Select question type
 qaOpinion=Opinion
 qaSugestion=Sugestion
 qaOther=Oter
+unknownError=Surver is busy. Please try later.
+close=Close

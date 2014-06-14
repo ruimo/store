@@ -12,6 +12,7 @@ import helpers.PasswordHash
 import play.api.db.DB
 import play.api.Play.current
 import java.sql.Connection
+import play.api.libs.json.Json
 
 trait NeedLogin extends Controller with HasLogger {
   lazy val cfg = play.api.Play.maybeApplication.map(_.configuration).get
@@ -68,8 +69,29 @@ trait NeedLogin extends Controller with HasLogger {
     }
   }}
 
+  def onUnauthorizedJson(request: RequestHeader) = DB.withConnection { implicit conn => {
+    StoreUser.count match {
+      case 0 =>  {
+        logger.info("Json: User table empty. Go to first setup page.")
+        Unauthorized(Json.toJson(Map("status" -> "Redirect", "url" -> routes.Admin.startFirstSetup().url)))
+      }
+      case _ => {
+        logger.info("Json: User table is not empty. Go to login page.")
+        Unauthorized(Json.toJson(Map("status" -> "Redirect", "url" -> routes.Admin.startLogin(request.uri).url)))
+      }
+    }
+  }}
+
   def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result) = {
     Authenticated(retrieveLoginSession, onUnauthorized) { user =>
+      Action(request => f(user)(request).withSession(
+        request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+      ))
+    }
+  }
+
+  def isAuthenticatedJson(f: => LoginSession => Request[AnyContent] => Result) = {
+    Authenticated(retrieveLoginSession, onUnauthorizedJson) { user =>
       Action(request => f(user)(request).withSession(
         request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
       ))

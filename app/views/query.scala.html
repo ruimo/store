@@ -13,6 +13,7 @@
   )]
 )(
   implicit lang: Lang,
+  token: play.filters.csrf.CSRF.Token,
   request: RequestHeader,
   loginSession: Option[LoginSession]
 )
@@ -20,7 +21,80 @@
 @import helper._
 
 @main(Messages("item.list"), loginSession) {
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
+  <script type="text/javascript">
+    $(function() {
+      $("#cartDialog").dialog({
+        autoOpen: false,
+        width: '80%',
+        height: 450,
+        title: '@Messages("shopping.cart")',
+        modal: true,
+        buttons: {
+          '@Messages("doCancel")': function(e) {
+            $(this).dialog("close");
+          },
+          '@Messages("abortCancel")': function(e) {
+            $(this).dialog("close");
+          }
+        }
+      });
+
+      $("#errorDialog").dialog({
+        autoOpen: false,
+        title: 'Server error',
+        modal: true,
+        buttons: {
+          '@Messages("close")': function(e) {
+            $(this).dialog("close");
+          }
+        }
+      });
+    });
+
+    var putIntoCart = function(siteId, itemId) {
+      $.ajax({
+        type: 'post',
+        url: '@helper.CSRF(routes.ShoppingCart.addToCartJson)',
+        data: {hello: 'World'},
+        cache: false,
+        success: function(data, status, jqXhr) {
+alert("Success data: " + data + ", status: " + status);
+          var dlg = $("#cartDialog");
+          $("#cartDialogContent").empty();
+          $("#cartDialogContent").append('<div>Hello</div>').append('<div>World</div>');
+          dlg.dialog("open");
+        },
+        error: function(jqXhr, status, error) {
+alert("error: status: " + status + ", error: " + error);
+          if (jqXhr.status === 401) {
+            var responseJson = $.parseJSON(jqXhr.responseText);
+            if (responseJson.status === "Redirect") {
+              location.href = responseJson.url;
+            }
+          }
+          else if (jqXhr.status === 400) {
+            // CSRF error?
+            location.href = "/";
+          }
+          else {
+            var dlg = $("#errorDialog");
+            dlg.dialog("open");
+          }
+        }
+      });
+    };
+  </script>
 } {
+  <div id="cartDialog" style="display:none;">
+    <div id="cartDialogContent"></div>
+  </div>
+
+  <div id="errorDialog" style="display:none;">
+    @Messages("unknownError")
+  </div>
+
   @helper.form(action=routes.ItemQuery.query(queryString.table.toList)) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")"
            value="@queryString.toString">
@@ -70,6 +144,7 @@
         <td>
           <button type="button" 
                   onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
+@*                  onclick="putIntoCart(@e._4.id.get, @e._1.id.get);"> *@
             @Messages("purchase")
           </button>
         </td>

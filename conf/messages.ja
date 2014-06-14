@@ -351,3 +351,5 @@ qaItemTitle=お問い合わせ項目を選択してください
 qaOpinion=ご意見・ご要望
 qaSugestion=ご提案
 qaOther=その他
+unknownError=申し訳ありません、ただいま混雑しています。しばらくしてからやり直してください。
+close=閉じる
