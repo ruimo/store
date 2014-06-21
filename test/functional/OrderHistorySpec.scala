@@ -133,7 +133,7 @@ class OrderHistorySpec extends Specification {
     "Can add item that is bought before" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       val profile = new FirefoxProfile
-      profile.setPreference("general.useragent.locale", "ja-JP")
+      profile.setPreference("general.useragent.locale", "ja")
       profile.setPreference("intl.accept_languages", "ja, en")
       val firefox = new FirefoxDriver(profile)
       SeleniumHelpers.running(TestServer(3333, app), firefox) { browser => DB.withConnection { implicit conn =>
