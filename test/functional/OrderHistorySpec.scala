@@ -14,6 +14,7 @@ import play.api.Play.current
 import helpers.ViewHelpers
 import org.joda.time.format.DateTimeFormat
 import java.util.concurrent.TimeUnit
+import org.openqa.selenium.firefox.{FirefoxDriver, FirefoxProfile}
 
 class OrderHistorySpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -32,7 +33,7 @@ class OrderHistorySpec extends Specification {
   "Order history" should {
     "Show login user's order history" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
@@ -131,7 +132,10 @@ class OrderHistorySpec extends Specification {
 
     "Can add item that is bought before" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      val profile = new FirefoxProfile
+      profile.setPreference("intl.accept_languages", "ja, en")
+      val firefox = new FirefoxDriver(profile)
+      SeleniumHelpers.running(TestServer(3333, app), firefox) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
