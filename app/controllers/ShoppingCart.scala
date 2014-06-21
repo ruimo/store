@@ -52,12 +52,7 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
     }.get
   }
 
-  def toJson(cart: ShoppingCartTotal): Seq[Map[String, String]] = cart.table.map { e =>
-    def foo(implicit lang: Lang) {
-      println("*** lang = " + lang)
-    }
-    foo
-
+  def toJson(cart: ShoppingCartTotal)(implicit lang: Lang): Seq[Map[String, String]] = cart.table.map { e =>
     Map(
       "itemName" -> e.itemName.name,
       "siteName" -> e.site.name,
