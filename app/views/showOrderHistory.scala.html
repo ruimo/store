@@ -18,7 +18,11 @@
 @implicitLoginSessionOpt = @{Some(loginSession)}
 
 @main(Messages("order.history.title"), Some(loginSession)) {
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
+  @shoppingCartDialogDeclaration()
 } {
+  @shoppingCartDialogImplementation()
   <h1 class="title">@Messages("order.history.title")</h1>
 
   @tran.records.map { e =>
@@ -88,7 +92,13 @@
                       <td class="orderHistoryInnerTable3Body itemName">@t.itemName</td>
                       <td class="orderHistoryInnerTable3Body price">@amount(t.unitPrice)</td>
                       <td class="orderHistoryInnerTable3Body quantity">@t.quantity</td>
-                      <td class="orderHistoryInnerTable3Body price">@amount(t.price)</td>
+                      <td class="orderHistoryInnerTable3Body price">
+                        @amount(t.price)
+                        <button type="button" 
+                                onclick="shoppingCartDialog.putIntoCart(@t.siteId, @t.itemId);">
+                          @Messages("purchase")
+                        </button>
+                      </td>
                     </tr>
                   }
                   <tr>
@@ -97,6 +107,10 @@
                     <td class="orderHistoryInnerTable3Body subtotalHeader">@Messages("subtotal")</td>
                     <td class="orderHistoryInnerTable3Body subtotalBody">
                       @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
+                      <button type="button" 
+                              onclick="shoppingCartDialog.putOrderHistory(@e.siteId, @e.transactionSiteId);">
+                        @Messages("purchase")
+                      </button>
                     </td>
                   </tr>
                 </table>

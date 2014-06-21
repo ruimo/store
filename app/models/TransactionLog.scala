@@ -456,6 +456,19 @@ object TransactionLogItem {
     ).as(
       simple *
     )
+
+  def listBySite(tranSiteId: Long)(implicit conn: Connection): Seq[TransactionLogItem] =
+    SQL(
+      """ 
+      select * from transaction_item
+      where transaction_site_id = {tranSiteId}
+      order by transaction_item_id
+      """
+    ).on(
+      'tranSiteId -> tranSiteId
+    ).as(
+      simple *
+    )
 }
 
 case class PersistedTransaction(
@@ -691,6 +704,8 @@ object TransactionShipStatus {
 }
 
 case class TransactionDetail(
+  itemId: Long,
+  siteId: Long,
   itemName: String,
   unitPrice: BigDecimal,
   costUnitPrice: BigDecimal,
@@ -743,7 +758,7 @@ object TransactionDetail {
       val metadata = ItemNumericMetadata.allById(e._5)
       val textMetadata = ItemTextMetadata.allById(e._5)
       val siteMetadata = SiteItemNumericMetadata.all(e._6, e._5)
-      TransactionDetail(e._1, e._2, e._3, e._4, metadata, siteMetadata, textMetadata)
+      TransactionDetail(e._5, e._6, e._1, e._2, e._3, e._4, metadata, siteMetadata, textMetadata)
     }
   }
 }
