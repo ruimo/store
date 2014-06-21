@@ -11,21 +11,26 @@ import helpers.Helper._
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
+import helpers.ViewHelpers
+import org.joda.time.format.DateTimeFormat
+import java.util.concurrent.TimeUnit
 
 class OrderHistorySpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
 
   case class Tran(
+    now: Long,
     tranHeader: TransactionLogHeader,
     tranSiteHeader: Seq[TransactionLogSite],
     transporter1: Transporter,
     transporter2: Transporter,
     transporterName1: TransporterName,
-    transporterName2: TransporterName
+    transporterName2: TransporterName,
+    address: Address
   )
 
   "Order history" should {
-    "Show login user's history" in {
+    "Show login user's order history" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -34,7 +39,168 @@ class OrderHistorySpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
         )
-//Thread.sleep(20000)
+        browser.title === Messages("order.history.title")
+        doWith(browser.find(".orderHistoryInnerTable1")) { b =>
+          b.find(".transactionTime").getText ===
+            "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
+          b.find(".tranNo").getText === tran.tranHeader.id.toString
+          val user = StoreUser(tran.tranHeader.userId)
+          b.find(".buyerName").getText === user.firstName + " " + user.lastName
+          b.find(".subtotal").getText === ViewHelpers.toAmount(tran.tranSiteHeader.head.totalAmount)
+          b.find(".outerTaxAmount").getText === ViewHelpers.toAmount(0)
+          b.find(".total").getText === 
+            ViewHelpers.toAmount(tran.tranSiteHeader.head.totalAmount)
+        }
+        doWith(browser.find(".shippingAddressTable")) { b =>
+          b.find(".name").getText === tran.address.firstName + " " + tran.address.lastName
+          b.find(".zip").getText === tran.address.zip1 + " - " + tran.address.zip2
+          b.find(".prefecture").getText === tran.address.prefecture.toString
+          b.find(".address1").getText === tran.address.address1
+          b.find(".address2").getText === tran.address.address2
+          b.find(".tel1").getText === tran.address.tel1
+          b.find(".comment").getText === tran.address.comment
+        }
+        doWith(browser.find(".orderHistoryInnerTable2")) { b =>
+          b.find(".status").getText === Messages("transaction.status.ORDERED")
+          b.find(".shippingDate").getText === 
+            DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
+              date("2013-02-03")
+            )
+        }
+        doWith(browser.find(".orderHistoryInnerTable3")) { b =>
+          b.find("td.itemName").getText === "植木1"
+          b.find("td.unitPrice").getText === "100円"
+          b.find("td.quantity").getText === "3"
+          b.find("td.price").find(".body").getText === "300円"
+
+          b.find("td.itemName").get(1).getText === "植木3"
+          b.find("td.unitPrice").get(1).getText === "300円"
+          b.find("td.quantity").get(1).getText === "7"
+          b.find("td.price").get(1).find(".body").getText === "2,100円"
+
+          b.find("td.subtotalBody").find(".body").getText === "2,400円"
+        }
+        doWith(browser.find(".orderHistoryInnerTable4")) { b =>
+          b.find("td.boxName").getText === "site-box1"
+          b.find("td.boxPrice").getText === "123円"
+          b.find("td.subtotalBody").getText === "123円"
+        }
+
+        doWith(browser.find(".orderHistoryInnerTable1").get(1)) { b =>
+          b.find(".transactionTime").getText ===
+            "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
+          b.find(".tranNo").getText === tran.tranHeader.id.toString
+          val user = StoreUser(tran.tranHeader.userId)
+          b.find(".buyerName").getText === user.firstName + " " + user.lastName
+          b.find(".subtotal").getText === ViewHelpers.toAmount(1468)
+          b.find(".outerTaxAmount").getText === ViewHelpers.toAmount(0)
+          b.find(".total").getText === 
+            ViewHelpers.toAmount(1468)
+        }
+        doWith(browser.find(".shippingAddressTable").get(1)) { b =>
+          b.find(".name").getText === tran.address.firstName + " " + tran.address.lastName
+          b.find(".zip").getText === tran.address.zip1 + " - " + tran.address.zip2
+          b.find(".prefecture").getText === tran.address.prefecture.toString
+          b.find(".address1").getText === tran.address.address1
+          b.find(".address2").getText === tran.address.address2
+          b.find(".tel1").getText === tran.address.tel1
+          b.find(".comment").getText === tran.address.comment
+        }
+        doWith(browser.find(".orderHistoryInnerTable2").get(1)) { b =>
+          b.find(".status").getText === Messages("transaction.status.ORDERED")
+          b.find(".shippingDate").getText === 
+            DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
+              date("2013-02-04")
+            )
+        }
+        doWith(browser.find(".orderHistoryInnerTable3").get(1)) { b =>
+          b.find("td.itemName").getText === "植木2"
+          b.find("td.unitPrice").getText === "200円"
+          b.find("td.quantity").getText === "5"
+          b.find("td.price").find(".body").getText === "1,000円"
+
+          b.find("td.subtotalBody").find(".body").getText === "1,000円"
+        }
+        doWith(browser.find(".orderHistoryInnerTable4").get(1)) { b =>
+          b.find("td.boxName").getText === "site-box2"
+          b.find("td.boxPrice").getText === "468円"
+          b.find("td.subtotalBody").getText === "468円"
+        }
+      }}
+    }
+
+    "Can add item that is bought before" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.Purchase.clear() + "?lang=" + lang.code
+        )
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
+        )
+        browser.title === Messages("order.history.title")
+        browser.find(".orderHistoryInnerTable3").get(0).find("button").get(0).click()
+
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
+        doWith(browser.find("#cartDialogContent")) { b =>
+          b.find("td.itemName").getText === "植木1"
+          b.find("td.siteName").getText === "商店1"
+          b.find("td.unitPrice").getText === "100円"
+          b.find("td.quantity").getText === "1"
+          b.find("td.price").getText === "100円"
+        }
+
+        browser.find(".ui-dialog-buttonset").find("button").get(0).click()
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
+
+        browser.find(".orderHistoryInnerTable3").get(0).find("button").get(2).click()
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+
+        browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
+        doWith(browser.find("#cartDialogContent")) { b =>
+          b.find("td.itemName").getText === "植木1"
+          b.find("td.siteName").getText === "商店1"
+          b.find("td.unitPrice").getText === "100円"
+          b.find("td.quantity").getText === "4"
+          b.find("td.price").getText === "400円"
+
+          b.find("td.itemName").get(1).getText === "植木3"
+          b.find("td.siteName").get(1).getText === "商店1"
+          b.find("td.unitPrice").get(1).getText === "300円"
+          b.find("td.quantity").get(1).getText === "7"
+          b.find("td.price").get(1).getText === "2,100円"
+        }
+
+        browser.find(".ui-dialog-buttonset").find("button").get(0).click()
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
+
+        browser.find(".orderHistoryInnerTable3").get(1).find("button").get(0).click()
+        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+
+        browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
+        doWith(browser.find("#cartDialogContent")) { b =>
+          b.find("td.itemName").getText === "植木1"
+          b.find("td.siteName").getText === "商店1"
+          b.find("td.unitPrice").getText === "100円"
+          b.find("td.quantity").getText === "4"
+          b.find("td.price").getText === "400円"
+
+          b.find("td.itemName").get(1).getText === "植木3"
+          b.find("td.siteName").get(1).getText === "商店1"
+          b.find("td.unitPrice").get(1).getText === "300円"
+          b.find("td.quantity").get(1).getText === "7"
+          b.find("td.price").get(1).getText === "2,100円"
+
+          b.find("td.itemName").get(2).getText === "植木2"
+          b.find("td.siteName").get(2).getText === "商店2"
+          b.find("td.unitPrice").get(2).getText === "200円"
+          b.find("td.quantity").get(2).getText === "1"
+          b.find("td.price").get(2).getText === "200円"
+        }
       }}
     }
   }
@@ -143,7 +309,7 @@ class OrderHistorySpec extends Specification {
     val shippingDate1 = ShippingDate(
       Map(
         site1.id.get -> ShippingDateEntry(site1.id.get, date("2013-02-03")),
-        site2.id.get -> ShippingDateEntry(site2.id.get, date("2013-02-03"))
+        site2.id.get -> ShippingDateEntry(site2.id.get, date("2013-02-04"))
       )
     )
 
@@ -155,12 +321,14 @@ class OrderHistorySpec extends Specification {
     val tranSiteList = TransactionLogSite.list()
 
     Tran(
+      now,
       tranList(0),
       tranSiteList,
       transporter1 = trans1,
       transporter2 = trans2,
       transporterName1 = transName1,
-      transporterName2 = transName2
+      transporterName2 = transName2,
+      addr1
     )
   }
 }

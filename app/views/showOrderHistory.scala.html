@@ -34,24 +34,24 @@
               <td>@yyyymmddhhmm(e.transactionTime)</td>
             </tr>
             <tr class="transactionId">
-              <td>@Messages("transaction.id"): @e.transactionId</td>
+              <td>@Messages("transaction.id"): <span class="tranNo">@e.transactionId</span></td>
             </tr>
             <tr class="buyer">
-              <td>@Messages("buyer"): @name(e.buyer)
+              <td>@Messages("buyer"): <span class="buyerName">@name(e.buyer)</span>
             </tr>
             <tr class="totalAmount">
-              <td>@Messages("subtotal"): @amount(e.totalAmount)</td>
+              <td>@Messages("subtotal"): <span class="subtotal">@amount(e.totalAmount)</span></td>
             </tr>
-            <tr class="totalAmount">
-              <td>@Messages("outer.tax.amount"): @amount(e.totalTax)</td>
+            <tr class="outerTax">
+              <td>@Messages("outer.tax.amount"): <span class="outerTaxAmount">@amount(e.totalTax)</span></td>
             </tr>
             <tr class="totalAmountWithTax">
-              <td>@Messages("transaction.amount"): @amount(e.totalWithTax)</td>
+              <td>@Messages("transaction.amount"): <span class="total">@amount(e.totalWithTax)</span></td>
             </tr>
           </table>
         </td>
         <td class="address zip">
-          <table>
+          <table class="shippingAddressTable">
             @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
           </table>
         </td>
@@ -90,10 +90,10 @@
                   @detailByTranSiteId(e.transactionSiteId).map { t =>
                     <tr>
                       <td class="orderHistoryInnerTable3Body itemName">@t.itemName</td>
-                      <td class="orderHistoryInnerTable3Body price">@amount(t.unitPrice)</td>
+                      <td class="orderHistoryInnerTable3Body unitPrice">@amount(t.unitPrice)</td>
                       <td class="orderHistoryInnerTable3Body quantity">@t.quantity</td>
                       <td class="orderHistoryInnerTable3Body price">
-                        @amount(t.price)
+                        <span class="body">@amount(t.price)</span>
                         <button type="button" 
                                 onclick="shoppingCartDialog.putIntoCart(@t.siteId, @t.itemId);">
                           @Messages("purchase")
@@ -106,7 +106,9 @@
                     <td></td>
                     <td class="orderHistoryInnerTable3Body subtotalHeader">@Messages("subtotal")</td>
                     <td class="orderHistoryInnerTable3Body subtotalBody">
-                      @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
+                      <span class="body">
+                        @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
+                      </span>
                       <button type="button" 
                               onclick="shoppingCartDialog.putOrderHistory(@e.siteId, @e.transactionSiteId);">
                         @Messages("purchase")

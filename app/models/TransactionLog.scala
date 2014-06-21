@@ -26,7 +26,7 @@ case class TransactionLogSite(
   siteId: Long,
   // Item total and shipping total. Excluding outer tax, including inner tax.
   totalAmount: BigDecimal,
-  // Outer tax.
+  // Outer + Inner tax of items and shipping.
   taxAmount: BigDecimal
 ) extends NotNull
 
