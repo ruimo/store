@@ -143,7 +143,7 @@ object StoreUser {
     )
 
   def listUsers(
-    page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("store_user_.user_name")
+    page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("store_user.user_name")
   )(implicit conn: Connection): PagedRecords[ListUserEntry] = {
     val list = SQL(
       s"""
