@@ -143,16 +143,16 @@ object StoreUser {
     )
 
   def listUsers(
-    page: Int = 0, pageSize: Int = 50
-  )(implicit conn: Connection): Seq[ListUserEntry] =
-    SQL(
-      """
+    page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("store_user_.user_name")
+  )(implicit conn: Connection): PagedRecords[ListUserEntry] = {
+    val list = SQL(
+      s"""
       select * from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
       where store_user.deleted = FALSE
-      order by store_user.user_name
+      order by $orderBy
       limit {pageSize} offset {offset}
       """
     ).on(
@@ -161,6 +161,11 @@ object StoreUser {
     ).as(
       withSiteUser *
     )
+
+    val count = SQL("select count(*) from store_user where deleted = FALSE").as(SqlParser.scalar[Long].single)
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
+  }
 
   def delete(userId: Long)(implicit conn: Connection) {
     SQL(

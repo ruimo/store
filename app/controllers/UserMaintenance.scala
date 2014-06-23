@@ -9,7 +9,7 @@ import play.api.mvc.Controller
 import play.api.db.DB
 import play.api.i18n.{Lang, Messages}
 import play.api.Play.current
-import helpers.{TokenGenerator, RandomTokenGenerator}
+import helpers.{QueryString, TokenGenerator, RandomTokenGenerator}
 
 object UserMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
@@ -121,9 +121,11 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }}
 
-  def editUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
+  def editUser(
+    page: Int, pageSize: Int, orderBySpec: String
+  ) = isAuthenticated { implicit login => forSuperUser { implicit request =>
     DB.withConnection { implicit conn =>
-      Ok(views.html.admin.editUser(StoreUser.listUsers()))
+      Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
     }
   }}
 
@@ -142,7 +144,7 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
       newUser => DB.withConnection { implicit conn =>
         newUser.update
         Redirect(
-          routes.UserMaintenance.editUser
+          routes.UserMaintenance.editUser()
         ).flashing("message" -> Messages("userIsUpdated"))
       }
     )
@@ -152,6 +154,6 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     DB.withConnection { implicit conn =>
       StoreUser.delete(id)
     }
-    Redirect(routes.UserMaintenance.editUser)
+    Redirect(routes.UserMaintenance.editUser())
   }}
 }

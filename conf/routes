@@ -75,7 +75,7 @@ POST    /admin/addTransporterName        controllers.TransporterMaintenance.addT
 GET     /admin/userMaintenance           controllers.UserMaintenance.index
 GET     /admin/startCreateNewSuperUser   controllers.UserMaintenance.startCreateNewSuperUser
 POST    /admin/createNewSuperUser        controllers.UserMaintenance.createNewSuperUser
-GET     /admin/editUser                  controllers.UserMaintenance.editUser
+GET     /admin/editUser                  controllers.UserMaintenance.editUser(page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "store_user.user_name")
 POST    /admin/deleteUser                controllers.UserMaintenance.deleteUser(id: Long)
 GET     /admin/modifyUserStart           controllers.UserMaintenance.modifyUserStart(id: Long)
 POST    /admin/modifyUser                controllers.UserMaintenance.modifyUser

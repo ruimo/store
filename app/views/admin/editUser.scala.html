@@ -1,4 +1,4 @@
-@(users: Seq[ListUserEntry])(
+@(users: PagedRecords[ListUserEntry])(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
   request: RequestHeader,
@@ -6,6 +6,8 @@
 )
 
 @import helper._
+
+@implicitLoginSessionOpt = @{Some(loginSession)}
 
 @main(Messages("editUserTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
@@ -21,7 +23,7 @@
     <th class="role">@Messages("role")</th>
     <th class="action"></th>
   </tr>
-  @users.map { user =>
+  @users.records.map { user =>
     <tr class="userTableBody">
       <td class="id">
         <a href="@routes.UserMaintenance.modifyUserStart(user.user.id.get)">
@@ -52,6 +54,13 @@
     </tr>
   }
 </table>
+
+<br>
+@pagingPanel(
+  users,
+  routes.UserMaintenance.editUser,
+  10, 25, 50
+)
 
 <div class="menuPanel">
   <br>
