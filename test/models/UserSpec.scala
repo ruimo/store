@@ -62,11 +62,11 @@ class UserSpec extends Specification {
             1L, 2L, UserRole.ADMIN, None
           )
 
-          StoreUser.listUsers().size === 2
+          StoreUser.listUsers().records.size === 2
           StoreUser.delete(user2.id.get)
           val list = StoreUser.listUsers()
-          list.size === 1
-          list(0).user === user1
+          list.records.size === 1
+          list.records(0).user === user1
         }
       }
     }
@@ -93,12 +93,12 @@ class UserSpec extends Specification {
           u2.sendNoticeMail === true
 
           val list = StoreUser.listUsers()
-          list.size === 2
-          list(0).user === user1
-          list(0).sendNoticeMail === false
+          list.records.size === 2
+          list.records(0).user === user1
+          list.records(0).sendNoticeMail === false
 
-          list(1).user === user2
-          list(1).sendNoticeMail === true
+          list.records(1).user === user2
+          list.records(1).sendNoticeMail === true
         }
       }
     }
@@ -122,14 +122,14 @@ class UserSpec extends Specification {
           val siteUser = SiteUser.createNew(user2.id.get, site1.id.get)
 
           val list = StoreUser.listUsers()
-          list.size === 2
-          list(0).user === user1
-          list(0).siteUser === None
-          list(0).sendNoticeMail === false
+          list.records.size === 2
+          list.records(0).user === user1
+          list.records(0).siteUser === None
+          list.records(0).sendNoticeMail === false
 
-          list(1).user === user2
-          list(1).siteUser.get === siteUser
-          list(1).sendNoticeMail === false
+          list.records(1).user === user2
+          list.records(1).siteUser.get === siteUser
+          list.records(1).sendNoticeMail === false
         }
       }
     }
