@@ -149,7 +149,8 @@ object StoreUser {
       s"""
       select 
         *,
-        store_user.first_name || coalesce(store_user.middle_name, '') || store_user.last_name as full_name
+        store_user.first_name || coalesce(store_user.middle_name, '') || store_user.last_name as full_name,
+        (store_user.user_role + coalesce(site_user.site_id, 0)) role
       from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
