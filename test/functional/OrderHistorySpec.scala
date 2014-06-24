@@ -130,84 +130,84 @@ class OrderHistorySpec extends Specification {
       }}
     }
 
-    "Can add item that is bought before" in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      val profile = new FirefoxProfile
-      profile.setPreference("general.useragent.locale", "ja")
-      profile.setPreference("intl.accept_languages", "ja, en")
-      val firefox = new FirefoxDriver(profile)
-      SeleniumHelpers.running(TestServer(3333, app), firefox) { browser => DB.withConnection { implicit conn =>
-        implicit val lang = Lang("ja")
-        val user = loginWithTestUser(browser)
-        val tran = createTransaction(lang, user)
-        browser.goTo(
-          "http://localhost:3333" + controllers.routes.Purchase.clear() + "?lang=" + lang.code
-        )
-        browser.goTo(
-          "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
-        )
-        browser.title === Messages("order.history.title")
-        browser.find(".orderHistoryInnerTable3").get(0).find("button").get(0).click()
+  //   "Can add item that is bought before" in {
+  //     val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+  //     val profile = new FirefoxProfile
+  //     profile.setPreference("general.useragent.locale", "ja")
+  //     profile.setPreference("intl.accept_languages", "ja, en")
+  //     val firefox = new FirefoxDriver(profile)
+  //     SeleniumHelpers.running(TestServer(3333, app), firefox) { browser => DB.withConnection { implicit conn =>
+  //       implicit val lang = Lang("ja")
+  //       val user = loginWithTestUser(browser)
+  //       val tran = createTransaction(lang, user)
+  //       browser.goTo(
+  //         "http://localhost:3333" + controllers.routes.Purchase.clear() + "?lang=" + lang.code
+  //       )
+  //       browser.goTo(
+  //         "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
+  //       )
+  //       browser.title === Messages("order.history.title")
+  //       browser.find(".orderHistoryInnerTable3").get(0).find("button").get(0).click()
 
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
-        browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
-        doWith(browser.find("#cartDialogContent")) { b =>
-          b.find("td.itemName").getText === "植木1"
-          b.find("td.siteName").getText === "商店1"
-          b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "1"
-          b.find("td.price").getText === "100円"
-        }
+  //       browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+  //       browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
+  //       doWith(browser.find("#cartDialogContent")) { b =>
+  //         b.find("td.itemName").getText === "植木1"
+  //         b.find("td.siteName").getText === "商店1"
+  //         b.find("td.unitPrice").getText === "100円"
+  //         b.find("td.quantity").getText === "1"
+  //         b.find("td.price").getText === "100円"
+  //       }
 
-        browser.find(".ui-dialog-buttonset").find("button").get(0).click()
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
+  //       browser.find(".ui-dialog-buttonset").find("button").get(0).click()
+  //       browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
 
-        browser.find(".orderHistoryInnerTable3").get(0).find("button").get(2).click()
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+  //       browser.find(".orderHistoryInnerTable3").get(0).find("button").get(2).click()
+  //       browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
 
-        browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
-        doWith(browser.find("#cartDialogContent")) { b =>
-          b.find("td.itemName").getText === "植木1"
-          b.find("td.siteName").getText === "商店1"
-          b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "4"
-          b.find("td.price").getText === "400円"
+  //       browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
+  //       doWith(browser.find("#cartDialogContent")) { b =>
+  //         b.find("td.itemName").getText === "植木1"
+  //         b.find("td.siteName").getText === "商店1"
+  //         b.find("td.unitPrice").getText === "100円"
+  //         b.find("td.quantity").getText === "4"
+  //         b.find("td.price").getText === "400円"
 
-          b.find("td.itemName").get(1).getText === "植木3"
-          b.find("td.siteName").get(1).getText === "商店1"
-          b.find("td.unitPrice").get(1).getText === "300円"
-          b.find("td.quantity").get(1).getText === "7"
-          b.find("td.price").get(1).getText === "2,100円"
-        }
+  //         b.find("td.itemName").get(1).getText === "植木3"
+  //         b.find("td.siteName").get(1).getText === "商店1"
+  //         b.find("td.unitPrice").get(1).getText === "300円"
+  //         b.find("td.quantity").get(1).getText === "7"
+  //         b.find("td.price").get(1).getText === "2,100円"
+  //       }
 
-        browser.find(".ui-dialog-buttonset").find("button").get(0).click()
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
+  //       browser.find(".ui-dialog-buttonset").find("button").get(0).click()
+  //       browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
 
-        browser.find(".orderHistoryInnerTable3").get(1).find("button").get(0).click()
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+  //       browser.find(".orderHistoryInnerTable3").get(1).find("button").get(0).click()
+  //       browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
 
-        browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
-        doWith(browser.find("#cartDialogContent")) { b =>
-          b.find("td.itemName").getText === "植木1"
-          b.find("td.siteName").getText === "商店1"
-          b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "4"
-          b.find("td.price").getText === "400円"
+  //       browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
+  //       doWith(browser.find("#cartDialogContent")) { b =>
+  //         b.find("td.itemName").getText === "植木1"
+  //         b.find("td.siteName").getText === "商店1"
+  //         b.find("td.unitPrice").getText === "100円"
+  //         b.find("td.quantity").getText === "4"
+  //         b.find("td.price").getText === "400円"
 
-          b.find("td.itemName").get(1).getText === "植木3"
-          b.find("td.siteName").get(1).getText === "商店1"
-          b.find("td.unitPrice").get(1).getText === "300円"
-          b.find("td.quantity").get(1).getText === "7"
-          b.find("td.price").get(1).getText === "2,100円"
+  //         b.find("td.itemName").get(1).getText === "植木3"
+  //         b.find("td.siteName").get(1).getText === "商店1"
+  //         b.find("td.unitPrice").get(1).getText === "300円"
+  //         b.find("td.quantity").get(1).getText === "7"
+  //         b.find("td.price").get(1).getText === "2,100円"
 
-          b.find("td.itemName").get(2).getText === "植木2"
-          b.find("td.siteName").get(2).getText === "商店2"
-          b.find("td.unitPrice").get(2).getText === "200円"
-          b.find("td.quantity").get(2).getText === "1"
-          b.find("td.price").get(2).getText === "200円"
-        }
-      }}
-    }
+  //         b.find("td.itemName").get(2).getText === "植木2"
+  //         b.find("td.siteName").get(2).getText === "商店2"
+  //         b.find("td.unitPrice").get(2).getText === "200円"
+  //         b.find("td.quantity").get(2).getText === "1"
+  //         b.find("td.price").get(2).getText === "200円"
+  //       }
+  //     }}
+  //   }
   }
 
   def createTransaction(lang: Lang, user: StoreUser)(implicit conn: Connection): Tran = {

@@ -74,7 +74,13 @@
         <td class="queryItemSite">@e._4.name</td>
         <td class="queryItemUnitPrice">@amount(e._5.unitPrice)</td>
         <td>
-          <button type="button" 
+          <button type="button"
+                  class="addToCartButton"
+                  onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
+            @Messages("purchase")
+          </button>
+
+          <button type="button" style="display:none;"
                   onclick="shoppingCartDialog.putIntoCart(@e._4.id.get, @e._1.id.get);">
             @Messages("purchase")
           </button>

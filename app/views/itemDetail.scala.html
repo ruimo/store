@@ -48,8 +48,13 @@
       <img class="itemPictureForDetail" src="@routes.ItemPictures.getDetailPicture(detail.itemId)">
 
       <div class="itemDetailCartPanel">
-        <button class="purchaseButton" type="button"
+        <button class="purchaseButton" type="button" style="display:none;"
                 onclick="shoppingCartDialog.putIntoCart(@detail.siteId, @detail.itemId);">
+          @Messages("purchase")
+        </button>
+
+        <button class="purchaseButton" type="button"
+                onclick="location.href='@routes.Purchase.addToCart(detail.siteId, detail.itemId)';">
           @Messages("purchase")
         </button>
       </div>
