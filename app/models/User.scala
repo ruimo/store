@@ -147,7 +147,10 @@ object StoreUser {
   )(implicit conn: Connection): PagedRecords[ListUserEntry] = {
     val list = SQL(
       s"""
-      select * from store_user
+      select 
+        *,
+        store_user.first_name || coalesce(store_user.middle_name, '') || store_user.last_name as full_name
+      from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
