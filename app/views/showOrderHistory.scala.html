@@ -94,7 +94,7 @@
                       <td class="orderHistoryInnerTable3Body quantity">@t.quantity</td>
                       <td class="orderHistoryInnerTable3Body price">
                         <span class="body">@amount(t.price)</span>
-                        <button type="button" style="display:none;"
+                        <button type="button"
                                 onclick="shoppingCartDialog.putIntoCart(@t.siteId, @t.itemId);">
                           @Messages("purchase")
                         </button>
@@ -109,7 +109,7 @@
                       <span class="body">
                         @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
                       </span>
-                      <button type="button" style="display:none;"
+                      <button type="button"
                               onclick="shoppingCartDialog.putOrderHistory(@e.siteId, @e.transactionSiteId);">
                         @Messages("purchase")
                       </button>
