@@ -12,6 +12,7 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import java.util.concurrent.TimeUnit
+import org.openqa.selenium.firefox.{FirefoxDriver, FirefoxProfile}
 
 class ShoppingCartSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -19,7 +20,11 @@ class ShoppingCartSpec extends Specification {
   "ShoppingCart" should {
     "Show cart dialog" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      val profile = new FirefoxProfile
+      profile.setPreference("general.useragent.locale", "ja")
+      profile.setPreference("intl.accept_languages", "ja, en")
+      val firefox = new FirefoxDriver(profile)
+      SeleniumHelpers.running(TestServer(3333, app), firefox) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
 
