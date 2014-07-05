@@ -75,7 +75,9 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
     )
   }
 
-  def toJson(table: immutable.Seq[ShoppingCartTotalEntry]): immutable.Seq[immutable.Map[String, String]] = table.map { e =>
+  def toJson(
+    table: immutable.Seq[ShoppingCartTotalEntry]
+  )(implicit lang: Lang): immutable.Seq[immutable.Map[String, String]] = table.map { e =>
       Map(
         "itemName" -> e.itemName.name,
         "siteName" -> e.site.name,
