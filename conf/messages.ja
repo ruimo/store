@@ -353,3 +353,5 @@ qaSugestion=ご提案
 qaOther=その他
 unknownError=申し訳ありません、ただいま混雑しています。しばらくしてからやり直してください。
 close=閉じる
+addedToCart=今回追加された商品:
+currentCart=現在のショッピングカート:

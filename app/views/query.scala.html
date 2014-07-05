@@ -74,7 +74,7 @@
         <td class="queryItemSite">@e._4.name</td>
         <td class="queryItemUnitPrice">@amount(e._5.unitPrice)</td>
         <td>
-          <button type="button"
+          <button type="button" class="addToCartButton"
                   onclick="shoppingCartDialog.putIntoCart(@e._4.id.get, @e._1.id.get);">
             @Messages("purchase")
           </button>

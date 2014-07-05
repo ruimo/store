@@ -11,6 +11,7 @@ import collection.immutable.{LongMap, HashSet, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
+import collection.immutable
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -27,10 +28,25 @@ case class ShoppingCartTotalEntry(
   lazy val quantity: Int = shoppingCartItem.quantity
   lazy val itemPrice: BigDecimal = unitPrice * quantity
   lazy val costUnitPrice: BigDecimal = itemPriceHistory.costPrice
+  lazy val itemId: Long = shoppingCartItem.itemId
+
+  def withNewQuantity(quantity: Int): ShoppingCartTotalEntry = ShoppingCartTotalEntry(
+    shoppingCartItem = shoppingCartItem.copy(
+      quantity = quantity
+    ),
+    itemName,
+    itemDescription,
+    site,
+    itemPriceHistory,
+    taxHistory,
+    itemNumericMetadata,
+    siteItemNumericMetadata,
+    itemTextMetadata
+  )
 }
 
 case class ShoppingCartTotal(
-  table: Seq[ShoppingCartTotalEntry] = List()
+  table: immutable.Seq[ShoppingCartTotalEntry] = List()
 ) extends NotNull {
   def +(e: ShoppingCartTotalEntry) = ShoppingCartTotal(table :+ e)
   lazy val size: Int = table.size
@@ -74,9 +90,29 @@ case class ShoppingCart(
 ) extends NotNull
 
 case class ShoppingCartItem(
-  id: Pk[Long] = NotAssigned, storeUserId: Long, sequenceNumber: Int,
-  siteId: Long, itemId: Long, quantity: Int
-) extends NotNull
+  id: Pk[Long] = NotAssigned,
+  storeUserId: Long,
+  sequenceNumber: Int,
+  siteId: Long,
+  itemId: Long,
+  quantity: Int
+) extends NotNull {
+  def copy(
+    id: Pk[Long] = id,
+    storeUserId: Long = storeUserId,
+    sequenceNumber: Int = sequenceNumber,
+    siteId: Long = siteId,
+    itemId: Long = itemId,
+    quantity: Int = quantity
+  ) = ShoppingCartItem(
+      id: Pk[Long],
+      storeUserId: Long,
+      sequenceNumber: Int,
+      siteId: Long,
+      itemId: Long,
+      quantity: Int
+  )
+}
 
 case class ShoppingCartShipping(
   id: Pk[Long] = NotAssigned,

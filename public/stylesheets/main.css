@@ -596,18 +596,52 @@ tr.siteTableBody {
     width: 100%;
 }
 
-#cartDialogContent .header {
+#cartDialogCurrentContent, #cartDialogAddedContent {
+    width: 100%;
+}
+
+#cartDialogCurrentContent .header {
     text-align: center;
 }
 
-#cartDialogContent .body.unitPrice {
+#cartDialogCurrentContent .body.unitPrice {
     text-align: right;
 }
 
-#cartDialogContent .body.quantity {
+#cartDialogCurrentContent .body.quantity {
     text-align: right;
 }
 
-#cartDialogContent .body.price {
+#cartDialogCurrentContent .body.price {
     text-align: right;
+}
+
+#cartDialogAddedContent .header {
+    text-align: center;
+}
+
+#cartDialogAddedContent .body.unitPrice {
+    text-align: right;
+}
+
+#cartDialogAddedContent .body.quantity {
+    text-align: right;
+}
+
+#cartDialogAddedContent .body.price {
+    text-align: right;
+}
+
+#cartDialogAddedContent {
+    background: Moccasin;
+}
+
+#cartDialogCurrentTitle {
+    vertical-align: bottom;
+    height: 3em;
+}
+
+#cartDialogCurrentTitle, #cartDialogAddedTitle {
+    font-weight: bold;
+    font-size: 140%;
 }

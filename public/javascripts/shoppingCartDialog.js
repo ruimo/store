@@ -42,9 +42,10 @@ var shoppingCartDialog = {
 
   _showDialog: function(self, data, status, jqXhr) {
     var dlg = $("#cartDialog");
-    var content = $("#cartDialogContent");
-    content.empty();
-    content.append(
+
+    var addedContent = $("#cartDialogAddedContent");
+    addedContent.empty();
+    addedContent.append(
       "<tr>" +
       "  <th class='itemName header'>" + self.arg.cartDialog.itemNameHeader + "</th>" +
       "  <th class='siteName header'>" + self.arg.cartDialog.siteNameHeader + "</th>" +
@@ -53,8 +54,33 @@ var shoppingCartDialog = {
       "  <th class='subtotal header'>" + self.arg.cartDialog.subtotalHeader + "</th>" +
       "</tr>"
     );
-    $.each(data, function(idx, e) {
-      content.append(
+    
+    $.each(data.added, function(idx, e) {
+      addedContent.append(
+        "<tr>" +
+        "  <td class='itemName body'>" + e.itemName + "</td>" +
+        "  <td class='siteName body'>" + e.siteName + "</td>" +
+        "  <td class='unitPrice body'>" + e.unitPrice + "</td>" +
+        "  <td class='quantity body'>" + e.quantity + "</td>" +
+        "  <td class='price body'>" + e.price + "</td>" +
+        "</tr>"
+      );
+    });
+
+    var currentContent = $("#cartDialogCurrentContent");
+    currentContent.empty();
+    currentContent.append(
+      "<tr>" +
+      "  <th class='itemName header'>" + self.arg.cartDialog.itemNameHeader + "</th>" +
+      "  <th class='siteName header'>" + self.arg.cartDialog.siteNameHeader + "</th>" +
+      "  <th class='unitPrice header'>" + self.arg.cartDialog.unitPriceHeader + "</th>" +
+      "  <th class='quantity header'>" + self.arg.cartDialog.quantityHeader + "</th>" +
+      "  <th class='subtotal header'>" + self.arg.cartDialog.subtotalHeader + "</th>" +
+      "</tr>"
+    );
+
+    $.each(data.current, function(idx, e) {
+      currentContent.append(
         "<tr>" +
         "  <td class='itemName body'>" + e.itemName + "</td>" +
         "  <td class='siteName body'>" + e.siteName + "</td>" +
