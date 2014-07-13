@@ -284,7 +284,6 @@ class ItemPicturesSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val attachmentDir = testDir.resolve("attachments")
         Files.createDirectories(attachmentDir)
-
         Files.write(
           attachmentDir.resolve("1_2_file1.jpg"), util.Arrays.asList("000"), Charset.forName("US-ASCII")
         )

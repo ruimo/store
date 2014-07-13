@@ -341,7 +341,7 @@
 
   <h2 class="siteItem">@Messages("siteItem")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
+  <table class="changeHandlingSitePanel" style="margin-left: 20px; width: 70%;">
     <tr class="itemHeader">
       <th>@Messages("site")</th>
     </tr>
@@ -349,7 +349,7 @@
     @c.siteItemTable.map { e =>
       <tr>
         <td>
-          <button type="button"
+          <button type="button" class="deleteHandlingSiteButton"
                   onclick="location.href='@routes.ItemMaintenance.removeSiteItem(c.id, e._1.id.get)';">
             @Messages("remove")
           </button>
@@ -559,8 +559,9 @@
         <th>@Messages("validUntil")</th>
       </tr>
 
-      @repeat(c.itemPriceTableForm("itemPrices")) { price => @priceForm(price) }
-
+      @if(! c.itemPriceTableForm("itemPrices").indexes.isEmpty) {
+        @repeat(c.itemPriceTableForm("itemPrices")) { price => @priceForm(price) }
+      }
       <tr>
         <td colspan="5">
           <input style="float: right;" type="submit" value=@Messages("update")>

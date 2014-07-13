@@ -110,16 +110,17 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         case Buyer => throw new Error("Logic error.")
 
         case SuperUser =>
-          val list = Item.list(
+          val list = Item.listForMaintenance(
             siteUser = None, locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
-            pageSize = pgSize, showHidden = true, orderBy = OrderBy(orderBySpec)
+            pageSize = pgSize, orderBy = OrderBy(orderBySpec)
           )
+
           Ok(views.html.admin.editItem(queryStr, list))
 
         case SiteOwner(siteOwner) =>
-          val list = Item.list(
+          val list = Item.listForMaintenance(
             siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
-            pageSize = pgSize, showHidden = true, orderBy = OrderBy(orderBySpec)
+            pageSize = pgSize, orderBy = OrderBy(orderBySpec)
           )
           Ok(views.html.admin.editItem(queryStr, list))
       }
@@ -574,6 +575,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def removeSiteItem(itemId: Long, siteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
       SiteItem.remove(itemId, siteId)
+      ItemPrice.remove(itemId, siteId)
     }
 
     Redirect(

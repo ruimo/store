@@ -70,6 +70,12 @@ object Item {
     )
   }
 
+  val itemListForMaintenanceParser = Item.simple~ItemName.simple~ItemDescription.simple~(ItemPriceHistory.simple ?)~(Site.simple ?) map {
+    case item~itemName~itemDescription~itemPrice~site => (
+      item, itemName, itemDescription, itemPrice, site
+    )
+  }
+
   def apply(id: Long)(implicit conn: Connection): Item =
     SQL(
       "select * from item where item_id = {id}"
@@ -129,17 +135,92 @@ object Item {
     Item(Id(itemId), categoryId)
   }
 
+  def listForMaintenance(
+    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString,
+    page: Int = 0, pageSize: Int = 10,
+    now: Long = System.currentTimeMillis,
+    orderBy: OrderBy = ItemListDefaultOrderBy
+  )(
+    implicit conn: Connection
+  ): PagedRecords[(
+    Item, ItemName, ItemDescription, Option[Site], Option[ItemPriceHistory],
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Option[Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+    Map[ItemTextMetadataType, ItemTextMetadata]
+  )] = {
+    val sqlBody = """
+      inner join item_name on item.item_id = item_name.item_id
+      inner join item_description on item.item_id = item_description.item_id
+      left join item_price on item.item_id = item_price.item_id 
+      left join item_price_history on item_price.item_price_id = item_price_history.item_price_id
+      left join site_item on item.item_id = site_item.item_id and item_price.site_id = site_item.site_id
+      left join site on site_item.site_id = site.site_id
+      where item_name.locale_id = {localeId}
+    """ + 
+    siteUser.map { "  and site.site_id = " + _.siteId }.getOrElse("") +
+    """
+      and item_description.locale_id = {localeId}
+      and (item_price_history.item_price_history_id is null) or item_price_history.item_price_history_id = (
+        select iph.item_price_history_id
+        from item_price_history iph
+        where
+          iph.item_price_id = item_price.item_price_id and
+          iph.valid_until > {now}
+          order by iph.valid_until
+          limit 1
+      )
+    """ +
+    createQueryConditionSql(queryString)
+
+    val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
+
+    val sql = SQL(
+      s"select $columns from item $sqlBody order by $orderBy limit {pageSize} offset {offset}"
+    )
+
+    val list = applyQueryString(queryString, sql)
+      .on(
+        'localeId -> locale.id,
+        'pageSize -> pageSize,
+        'offset -> page * pageSize,
+        'now -> new Timestamp(now)
+      ).as(
+        itemListForMaintenanceParser *
+      ).map {e => {
+        val itemId = e._1.id.get
+        val metadata = ItemNumericMetadata.allById(itemId)
+        val textMetadata = ItemTextMetadata.allById(itemId)
+        val siteMetadata = e._5.map {md => SiteItemNumericMetadata.all(md.id.get, itemId)}
+
+        (e._1, e._2, e._3, e._5, e._4, metadata, siteMetadata, textMetadata)
+      }}
+
+    val countSql = SQL(
+      "select count(*) from item" + sqlBody
+    )
+
+    val count = applyQueryString(queryString, countSql)
+      .on(
+        'localeId -> locale.id,
+        'now -> new Timestamp(now)
+      ).as(
+        SqlParser.scalar[Long].single
+      )
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
+  }
+
   // Do not pass user input directly into orderBy argument. That will
   // be SQL injection vulnerability.
   def list(
     siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString,
     page: Int = 0, pageSize: Int = 10,
-    showHidden: Boolean = false, now: Long = System.currentTimeMillis,
+    now: Long = System.currentTimeMillis,
     orderBy: OrderBy = ItemListDefaultOrderBy
   )(
     implicit conn: Connection
   ): PagedRecords[(
-    Item, ItemName, ItemDescription, Site, ItemPriceHistory, 
+    Item, ItemName, ItemDescription, Site, ItemPriceHistory,
     Map[ItemNumericMetadataType, ItemNumericMetadata],
     Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
     Map[ItemTextMetadataType, ItemTextMetadata]
@@ -154,8 +235,7 @@ object Item {
       where item_name.locale_id = {localeId}
     """ + 
     siteUser.map { "  and site.site_id = " + _.siteId }.getOrElse("") +
-    (if (! showHidden)
-      """
+    """
       and not exists (
         select coalesce(metadata, 0) from site_item_numeric_metadata
         where item.item_id = site_item_numeric_metadata.item_id
@@ -165,9 +245,6 @@ object Item {
       """
         and site_item_numeric_metadata.metadata = 1
       )
-      """
-    else "") +
-    """
       and item_description.locale_id = {localeId}
       and item_price_history.item_price_history_id = (
         select iph.item_price_history_id
@@ -546,6 +623,15 @@ object ItemPrice {
     ).as(
       ItemPrice.simple.singleOpt
     )
+  }
+
+  def remove(itemId: Long, siteId: Long)(implicit conn: Connection) {
+    SQL(
+      "delete from item_price where item_id = {itemId} and site_id = {siteId}"
+    ).on(
+      'itemId -> itemId,
+      'siteId -> siteId
+    ).executeUpdate()
   }
 }
 

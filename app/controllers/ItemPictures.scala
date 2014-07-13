@@ -40,7 +40,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     logger.info("Using item.picture.path = '" + ret + "'")
     ret
   }
-  lazy val attachmentPath = {
+  def attachmentPath = {
     val path = picturePath.resolve("attachments")
     if (! Files.exists(path)) {
       Files.createDirectories(path)
@@ -63,7 +63,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       p
     }
   }
-  lazy val detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
+  def detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
   lazy val attachmentCount = config.getInt("item.attached.file.count").getOrElse(5)
 
   def upload(itemId: Long, no: Int) = Action(parse.multipartFormData) { implicit request =>
