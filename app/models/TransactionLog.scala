@@ -473,6 +473,7 @@ object TransactionLogItem {
 
 case class PersistedTransaction(
   header: TransactionLogHeader,
+  tranSiteLog: Map[Long, TransactionLogSite], // First key = siteId
   siteTable: Seq[Site],
   shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
@@ -554,6 +555,11 @@ case class PersistedTransaction(
     (map, e) => map.updated(e._1, e._2.map(_.boxCount).foldLeft(0)(_ + _))
   }
   lazy val boxGrandQuantity: Int = boxQuantity.values.fold(0)(_ + _)
+  lazy val boxNameBySiteIdAndItemClass: Map[Long, Map[Long, String]] = shippingTable.foldLeft(
+    LongMap[Map[Long, String]]().withDefaultValue(LongMap[String]())
+  ) {
+    (map, e) => map.updated(e._1, e._2.map {e => (e.itemClass -> e.boxName)}.toMap)
+  }
   lazy val outerTaxTotal: Map[Long, BigDecimal] = taxTable.foldLeft(
     LongMap[BigDecimal]()
   ) {
@@ -852,7 +858,7 @@ class TransactionPersister {
   def load(tranId: Long, localeInfo: LocaleInfo)(implicit conn: Connection): PersistedTransaction = {
     val header = TransactionLogHeader(tranId)
 
-    val siteLog = SQL(
+    val (tranSiteLog, siteLog) = SQL(
       """
       select * from transaction_site
       inner join site on site.site_id = transaction_site.site_id
@@ -862,10 +868,12 @@ class TransactionPersister {
     ).on(
       'id -> tranId
     ).as(
-      Site.simple *
-    )
+      (TransactionLogSite.simple ~ Site.simple) *
+    ).map {
+      e => (e._1 -> e._2)
+    }.unzip
 
-    var shippingLog = SQL(
+    val shippingLog = SQL(
       """
       select * from transaction_site
       inner join transaction_shipping
@@ -926,7 +934,7 @@ class TransactionPersister {
     }.mapValues(_.reverse)
 
     PersistedTransaction(
-      header, siteLog, shippingLog, taxLog, itemLog
+      header, tranSiteLog.map {e => (e.siteId -> e)}.toMap, siteLog, shippingLog, taxLog, itemLog
     )
   }
 }
