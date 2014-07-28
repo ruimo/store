@@ -1,6 +1,8 @@
 @(
-  myForm: Form[DirectSqlExec],
-  result: Seq[(String, scala.util.Try[Int])]
+  updateForm: Form[DirectSqlExec],
+  result: Seq[(String, scala.util.Try[Int])],
+  queryForm: Form[DirectSqlExec],
+  queryResult: Option[scala.util.Try[QueryResult]]
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -16,7 +18,7 @@
 } {
   <h1 class="title">@Messages("executeDirectSqlTitle")</h1>
 
-  @if(myForm.hasErrors) {
+  @if(updateForm.hasErrors) {
     <div class="globalErrorMessage">
       @Messages("inputError")
     </div>
@@ -30,7 +32,7 @@
 
   @helper.form(action = helper.CSRF(routes.DirectSql.execute()), 'id -> "directSqlForm") {
     @helper.textarea(
-      myForm("sql"),
+      updateForm("sql"),
       '_label -> Messages("sqlToExecute"),
       'rows -> 10, 'cols -> 50
     )
@@ -49,6 +51,40 @@
       </tr>
     }
   </table>
+
+  @helper.form(action = helper.CSRF(routes.DirectSql.query()), 'id -> "directQuerySqlForm") {
+    @helper.textarea(
+      queryForm("sql"),
+      '_label -> Messages("querySqlToExecute"),
+      'rows -> 10, 'cols -> 50
+    )
+
+    <input type="submit" value=@Messages("execute")>
+  }
+
+  @queryResult.map { q =>
+    @q match {
+      case Success(results) => {
+        <table>
+          <tr>
+            @results.columnNames.map { c =>
+              <th>@c</th>
+            }
+          </tr>
+          @results.rows.map { r =>
+            <tr>
+              @r.map { c =>
+                <td>@c</td>
+              }
+            </tr>
+          }
+        </table>
+      }
+      case Failure(e) => {
+       @e.toString
+      }
+    }
+  }
 
   <div class="menuPanel">
     @admin.backToAdminTop()
