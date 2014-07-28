@@ -325,3 +325,6 @@ unknownError=Surver is busy. Please try later.
 close=Close
 addedToCart=Added this time:
 currentCart=Current shopping cart:
+executeDirectSqlTitle=Execute SQL directly
+sqlToExecute=SQL(terminate with semi-colon)
+execute=Execute

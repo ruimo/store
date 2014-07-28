@@ -152,5 +152,8 @@ POST    /submitQaJa                      controllers.Qa.submitQaJa()
 POST    /addToCartJson                   controllers.ShoppingCart.addToCartJson()
 POST    /addOrderHistoryJson             controllers.ShoppingCart.addOrderHistoryJson()
 
+GET     /directSql                       controllers.DirectSql.index()
+POST    /executeSql                      controllers.DirectSql.execute()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
