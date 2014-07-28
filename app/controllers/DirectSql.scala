@@ -17,6 +17,7 @@ import models.DirectSqlExec
 
 object DirectSql extends Controller with I18nAware with NeedLogin with HasLogger {
   val SqlPattern = """(?m);$""".r
+  val SqlCommentRemovePattern = """(?m)--.*?$""".r
 
   val directSqlForm = Form(
     mapping(
@@ -51,16 +52,18 @@ object DirectSql extends Controller with I18nAware with NeedLogin with HasLogger
     )
   }}
 
-  def executeSql(sql: String): Seq[(String, Try[Boolean])] = {
+  def executeSql(sql: String): Seq[(String, Try[Int])] = {
     val sqlTable = SqlPattern.split(sql)
 
     DB.withConnection { implicit conn =>
       sqlTable.map { s =>
-        (s, Try(SQL(s).execute()))
+        (s, Try(SQL(removeComment(s)).executeUpdate()))
       }.toSeq
     }
   }
 
-  def errorExists(result: Seq[(String, Try[Boolean])]): Boolean =
-    result.exists(t => t._2.isFailure || t._2.get == false)
+  def removeComment(sql: String): String =
+    SqlCommentRemovePattern.replaceAllIn(sql, "")
+
+  def errorExists(result: Seq[(String, Try[Int])]): Boolean = result.exists(_._2.isFailure)
 }

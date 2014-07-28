@@ -1,6 +1,6 @@
 @(
   myForm: Form[DirectSqlExec],
-  result: Seq[(String, scala.util.Try[Boolean])]
+  result: Seq[(String, scala.util.Try[Int])]
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -43,7 +43,7 @@
       <tr>
         <td>@r._1</td>
         <td>@{r._2 match {
-          case Success(b) => if (b) "Ok" else "Fail"
+          case Success(cnt) => cnt + " rows updated"
           case Failure(e) => e.toString
         }}</td>
       </tr>
