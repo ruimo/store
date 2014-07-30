@@ -11,6 +11,7 @@ object ApplicationBuild extends Build {
     "postgresql" % "postgresql" % "9.1-901.jdbc4",
     "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
     "org.mockito" % "mockito-all" % "1.9.5",
+    "com.ruimo.recoengplugin" %% "recoengplugin" % "1.0-SNAPSHOT",
     jdbc,
     anorm,
     filters
@@ -21,6 +22,7 @@ object ApplicationBuild extends Build {
     javaOptions ++= sys.process.javaVmArguments.filter(
       a => Seq("-Xmx","-Xms","-XX").exists(a.startsWith)
     ),
-    scalaVersion := "2.10.4"
+    scalaVersion := "2.10.4",
+    resolvers += "ruimo.com" at "http://www.ruimo.com/release"
   )
 }
