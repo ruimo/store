@@ -3,13 +3,11 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
-import anorm.Id
 import java.sql.Date.{valueOf => date}
 import collection.immutable.LongMap
 

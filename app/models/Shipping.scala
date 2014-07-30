@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import scala.language.postfixOps
 import collection.immutable.{TreeMap, LongMap, HashMap, IntMap}
@@ -76,15 +75,15 @@ case class ShippingTotal(
 }
 
 case class ShippingBox(
-  id: Pk[Long] = NotAssigned, siteId: Long, itemClass: Long, boxSize: Int, boxName: String
+  id: Option[Long] = None, siteId: Long, itemClass: Long, boxSize: Int, boxName: String
 ) extends NotNull
 
 case class ShippingFee(
-  id: Pk[Long] = NotAssigned, shippingBoxId: Long, countryCode: CountryCode, locationCode: Int
+  id: Option[Long] = None, shippingBoxId: Long, countryCode: CountryCode, locationCode: Int
 ) extends NotNull
 
 case class ShippingFeeHistory(
-  id: Pk[Long] = NotAssigned, shippingFeeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
+  id: Option[Long] = None, shippingFeeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
 ) extends NotNull
 
 case class ShippingFeeEntries(
@@ -103,7 +102,7 @@ case class ShippingFeeEntries(
 
 object ShippingBox {
   val simple = {
-    SqlParser.get[Pk[Long]]("shipping_box.shipping_box_id") ~
+    SqlParser.get[Option[Long]]("shipping_box.shipping_box_id") ~
     SqlParser.get[Long]("shipping_box.site_id") ~
     SqlParser.get[Long]("shipping_box.item_class") ~
     SqlParser.get[Int]("shipping_box.box_size") ~
@@ -136,7 +135,7 @@ object ShippingBox {
     ).executeUpdate()
     
     val id = SQL("select currval('shipping_box_seq')").as(SqlParser.scalar[Long].single)
-    ShippingBox(Id(id), siteId, itemClass, boxSize, boxName)
+    ShippingBox(Some(id), siteId, itemClass, boxSize, boxName)
   }
 
   def apply(id: Long)(implicit conn: Connection): ShippingBox =
@@ -247,7 +246,7 @@ object ShippingBox {
 
 object ShippingFee {
   val simple = {
-    SqlParser.get[Pk[Long]]("shipping_fee.shipping_fee_id") ~
+    SqlParser.get[Option[Long]]("shipping_fee.shipping_fee_id") ~
     SqlParser.get[Long]("shipping_fee.shipping_box_id") ~
     SqlParser.get[Int]("shipping_fee.country_code") ~
     SqlParser.get[Int]("shipping_fee.location_code") map {
@@ -291,7 +290,7 @@ object ShippingFee {
 
     val id = SQL("select currval('shipping_fee_seq')").as(SqlParser.scalar[Long].single)
 
-    ShippingFee(Id(id), shippingBoxId, countryCode, locationCode)
+    ShippingFee(Some(id), shippingBoxId, countryCode, locationCode)
   }
 
   def apply(
@@ -371,7 +370,7 @@ object ShippingFee {
 
 object ShippingFeeHistory {
   val simple = {
-    SqlParser.get[Pk[Long]]("shipping_fee_history.shipping_fee_history_id") ~
+    SqlParser.get[Option[Long]]("shipping_fee_history.shipping_fee_history_id") ~
     SqlParser.get[Long]("shipping_fee_history.shipping_fee_id") ~
     SqlParser.get[Long]("shipping_fee_history.tax_id") ~
     SqlParser.get[java.math.BigDecimal]("shipping_fee_history.fee") ~
@@ -440,7 +439,7 @@ object ShippingFeeHistory {
 
     val id = SQL("select currval('shipping_fee_history_seq')").as(SqlParser.scalar[Long].single)
 
-    ShippingFeeHistory(Id(id), feeId, taxId, fee, validUntil)
+    ShippingFeeHistory(Some(id), feeId, taxId, fee, validUntil)
   }
 
   def list(feeId: Long)(implicit conn: Connection): Seq[ShippingFeeHistory] = SQL(

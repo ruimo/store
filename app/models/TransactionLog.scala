@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import scala.language.postfixOps
@@ -9,7 +8,7 @@ import collection.immutable.{LongMap, HashMap, IntMap}
 import java.sql.Connection
 
 case class TransactionLogHeader(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   userId: Long,
   transactionTime: Long,
   currencyId: Long,
@@ -21,7 +20,7 @@ case class TransactionLogHeader(
 ) extends NotNull
 
 case class TransactionLogSite(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionId: Long,
   siteId: Long,
   // Item total and shipping total. Excluding outer tax, including inner tax.
@@ -31,7 +30,7 @@ case class TransactionLogSite(
 ) extends NotNull
 
 case class TransactionLogShipping(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   amount: BigDecimal, // Unit price * boxCount
   addressId: Long,
@@ -44,7 +43,7 @@ case class TransactionLogShipping(
 ) extends NotNull
 
 case class TransactionLogTax(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   taxId: Long,
   taxType: TaxType,
@@ -54,7 +53,7 @@ case class TransactionLogTax(
 ) extends NotNull
 
 case class TransactionLogItem(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   itemId: Long,
   itemPriceHistoryId: Long,
@@ -70,7 +69,7 @@ case class ShippingInfo(
 ) extends NotNull
 
 case class TransactionShipStatus(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   status: TransactionStatus,
   lastUpdate: Long,
@@ -128,7 +127,7 @@ case class Transaction(
 
 object TransactionLogHeader {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_header.transaction_id") ~
+    SqlParser.get[Option[Long]]("transaction_header.transaction_id") ~
     SqlParser.get[Long]("transaction_header.store_user_id") ~
     SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
     SqlParser.get[Long]("transaction_header.currency_id") ~
@@ -160,7 +159,7 @@ object TransactionLogHeader {
       """
     ).on(
       'userId -> userId,
-      'transactionTime -> new java.sql.Date(now),
+      'transactionTime -> new java.util.Date(now),
       'currencyId -> currencyId,
       'totalAmount -> totalAmount.bigDecimal,
       'taxAmount -> taxAmount.bigDecimal,
@@ -169,7 +168,7 @@ object TransactionLogHeader {
 
     val id = SQL("select currval('transaction_header_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogHeader(Id(id), userId, now, currencyId, totalAmount, taxAmount, transactionType)
+    TransactionLogHeader(Some(id), userId, now, currencyId, totalAmount, taxAmount, transactionType)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogHeader] =
@@ -201,7 +200,7 @@ object TransactionLogHeader {
 
 object TransactionLogSite {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_site.transaction_site_id") ~
+    SqlParser.get[Option[Long]]("transaction_site.transaction_site_id") ~
     SqlParser.get[Long]("transaction_site.transaction_id") ~
     SqlParser.get[Long]("transaction_site.site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_site.total_amount") ~
@@ -232,7 +231,7 @@ object TransactionLogSite {
 
     val id = SQL("select currval('transaction_site_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogSite(Id(id), transactionId, siteId, totalAmount, taxAmount)
+    TransactionLogSite(Some(id), transactionId, siteId, totalAmount, taxAmount)
   }
 
   def byId(id: Long)(implicit conn: Connection): TransactionLogSite =
@@ -265,7 +264,7 @@ object TransactionLogSite {
 
 object TransactionLogShipping {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_shipping.transaction_shipping_id") ~
+    SqlParser.get[Option[Long]]("transaction_shipping.transaction_shipping_id") ~
     SqlParser.get[Long]("transaction_shipping.transaction_site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_shipping.amount") ~
     SqlParser.get[Long]("transaction_shipping.address_id") ~
@@ -304,12 +303,12 @@ object TransactionLogShipping {
       'taxId -> taxId,
       'boxCount -> boxCount,
       'boxName -> boxName,
-      'shippingDate -> new java.sql.Date(shippingDate)
+      'shippingDate -> new java.util.Date(shippingDate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_shipping_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
+    TransactionLogShipping(Some(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogShipping] =
@@ -342,7 +341,7 @@ object TransactionLogShipping {
 
 object TransactionLogTax {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_tax.transaction_tax_id") ~
+    SqlParser.get[Option[Long]]("transaction_tax.transaction_tax_id") ~
     SqlParser.get[Long]("transaction_tax.transaction_site_id") ~
     SqlParser.get[Long]("transaction_tax.tax_id") ~
     SqlParser.get[Int]("transaction_tax.tax_type") ~
@@ -379,7 +378,7 @@ object TransactionLogTax {
 
     val id = SQL("select currval('transaction_tax_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogTax(Id(id), transactionSiteId, taxId, taxType, rate, targetAmount, amount)
+    TransactionLogTax(Some(id), transactionSiteId, taxId, taxType, rate, targetAmount, amount)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogTax] =
@@ -399,7 +398,7 @@ object TransactionLogTax {
 
 object TransactionLogItem {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_item.transaction_item_id") ~
+    SqlParser.get[Option[Long]]("transaction_item.transaction_item_id") ~
     SqlParser.get[Long]("transaction_item.transaction_site_id") ~
     SqlParser.get[Long]("transaction_item.item_id") ~
     SqlParser.get[Long]("transaction_item.item_price_history_id") ~
@@ -439,7 +438,7 @@ object TransactionLogItem {
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
     TransactionLogItem(
-      Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice, taxId
+      Some(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice, taxId
     )
   }
 
@@ -572,7 +571,7 @@ case class PersistedTransaction(
 
 object TransactionShipStatus {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_status.transaction_status_id") ~
+    SqlParser.get[Option[Long]]("transaction_status.transaction_status_id") ~
     SqlParser.get[Long]("transaction_status.transaction_site_id") ~
     SqlParser.get[Int]("transaction_status.status") ~
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
@@ -622,12 +621,12 @@ object TransactionShipStatus {
       'status -> status.ordinal,
       'transporterId -> shippingInfo.map(_.transporterId),
       'slipCode -> shippingInfo.map(_.slipCode),
-      'lastUpdate -> new java.sql.Date(lastUpdate)
+      'lastUpdate -> new java.util.Date(lastUpdate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_status_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionShipStatus(Id(id), transactionSiteId, status, lastUpdate, shippingInfo, false)
+    TransactionShipStatus(Some(id), transactionSiteId, status, lastUpdate, shippingInfo, false)
   }
 
   def update(

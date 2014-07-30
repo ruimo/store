@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import model.Until
 import play.api.Play.current
@@ -15,16 +14,16 @@ import annotation.tailrec
 import helpers.QueryString
 import play.api.Play
 
-case class Item(id: Pk[Long] = NotAssigned, categoryId: Long) extends NotNull
+case class Item(id: Option[Long] = None, categoryId: Long) extends NotNull
 
 case class ItemName(localeId: Long, itemId: Long, name: String) extends NotNull
 
 case class ItemDescription(localeId: Long, itemId: Long, siteId: Long, description: String) extends NotNull
 
-case class ItemPrice(id: Pk[Long] = NotAssigned, siteId: Long, itemId: Long) extends NotNull
+case class ItemPrice(id: Option[Long] = None, siteId: Long, itemId: Long) extends NotNull
 
 case class ItemPriceHistory(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   itemPriceId: Long, 
   taxId: Long, 
   currency: CurrencyInfo,
@@ -34,17 +33,17 @@ case class ItemPriceHistory(
 ) extends NotNull
 
 case class ItemNumericMetadata(
-  id: Pk[Long] = NotAssigned, itemId: Long, metadataType: ItemNumericMetadataType, metadata: Long
+  id: Option[Long] = None, itemId: Long, metadataType: ItemNumericMetadataType, metadata: Long
 ) extends NotNull
 
 case class ItemTextMetadata(
-  id: Pk[Long] = NotAssigned, itemId: Long, metadataType: ItemTextMetadataType, metadata: String
+  id: Option[Long] = None, itemId: Long, metadataType: ItemTextMetadataType, metadata: String
 ) extends NotNull
 
 case class SiteItem(itemId: Long, siteId: Long) extends NotNull
 
 case class SiteItemNumericMetadata(
-  id: Pk[Long] = NotAssigned, itemId: Long, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
+  id: Option[Long] = None, itemId: Long, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
 ) extends NotNull
 
 object Item {
@@ -52,7 +51,7 @@ object Item {
   val ItemListQueryColumnsToAdd = Play.current.configuration.getString("item.list.query.columns.add").get
 
   val simple = {
-    SqlParser.get[Pk[Long]]("item.item_id") ~
+    SqlParser.get[Option[Long]]("item.item_id") ~
     SqlParser.get[Long]("item.category_id") map {
       case id~categoryId => Item(id, categoryId)
     }
@@ -132,7 +131,7 @@ object Item {
 
     val itemId = SQL("select currval('item_seq')").as(SqlParser.scalar[Long].single)
 
-    Item(Id(itemId), categoryId)
+    Item(Some(itemId), categoryId)
   }
 
   def listForMaintenance(
@@ -588,7 +587,7 @@ object ItemDescription {
 
 object ItemPrice {
   val simple = {
-    SqlParser.get[Pk[Long]]("item_price.item_price_id") ~
+    SqlParser.get[Option[Long]]("item_price.item_price_id") ~
     SqlParser.get[Long]("item_price.site_id") ~
     SqlParser.get[Long]("item_price.item_id") map {
       case id~siteId~itemId => ItemPrice(id, siteId, itemId)
@@ -611,7 +610,7 @@ object ItemPrice {
 
     val itemPriceId = SQL("select currval('item_price_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemPrice(Id(itemPriceId), siteId, itemId)
+    ItemPrice(Some(itemPriceId), siteId, itemId)
   }
 
   def get(site: Site, item: Item)(implicit conn: Connection): Option[ItemPrice] = {
@@ -637,7 +636,7 @@ object ItemPrice {
 
 object ItemPriceHistory {
   val simple = {
-    SqlParser.get[Pk[Long]]("item_price_history.item_price_history_id") ~
+    SqlParser.get[Option[Long]]("item_price_history.item_price_history_id") ~
     SqlParser.get[Long]("item_price_history.item_price_id") ~
     SqlParser.get[Long]("item_price_history.tax_id") ~
     SqlParser.get[Long]("item_price_history.currency_id") ~
@@ -672,7 +671,7 @@ object ItemPriceHistory {
 
     val id = SQL("select currval('item_price_history_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemPriceHistory(Id(id), itemPrice.id.get, tax.id.get, currency, unitPrice, costPrice, validUntil)
+    ItemPriceHistory(Some(id), itemPrice.id.get, tax.id.get, currency, unitPrice, costPrice, validUntil)
   }
 
   def update(
@@ -821,7 +820,7 @@ object ItemPriceHistory {
 
 object ItemNumericMetadata {
   val simple = {
-    SqlParser.get[Pk[Long]]("item_numeric_metadata.item_numeric_metadata_id") ~
+    SqlParser.get[Option[Long]]("item_numeric_metadata.item_numeric_metadata_id") ~
     SqlParser.get[Long]("item_numeric_metadata.item_id") ~
     SqlParser.get[Int]("item_numeric_metadata.metadata_type") ~
     SqlParser.get[Long]("item_numeric_metadata.metadata") map {
@@ -853,7 +852,7 @@ object ItemNumericMetadata {
 
     val id = SQL("select currval('item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemNumericMetadata(Id(id), itemId, ItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
+    ItemNumericMetadata(Some(id), itemId, ItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
   }
 
   def apply(
@@ -912,7 +911,7 @@ object ItemNumericMetadata {
 
 object ItemTextMetadata {
   val simple = {
-    SqlParser.get[Pk[Long]]("item_text_metadata.item_text_metadata_id") ~
+    SqlParser.get[Option[Long]]("item_text_metadata.item_text_metadata_id") ~
     SqlParser.get[Long]("item_text_metadata.item_id") ~
     SqlParser.get[Int]("item_text_metadata.metadata_type") ~
     SqlParser.get[String]("item_text_metadata.metadata") map {
@@ -944,7 +943,7 @@ object ItemTextMetadata {
 
     val id = SQL("select currval('item_text_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemTextMetadata(Id(id), itemId, ItemTextMetadataType.byIndex(metadataType.ordinal), metadata)
+    ItemTextMetadata(Some(id), itemId, ItemTextMetadataType.byIndex(metadataType.ordinal), metadata)
   }
 
   def apply(
@@ -1003,7 +1002,7 @@ object ItemTextMetadata {
 
 object SiteItemNumericMetadata {
   val simple = {
-    SqlParser.get[Pk[Long]]("site_item_numeric_metadata.site_item_numeric_metadata_id") ~
+    SqlParser.get[Option[Long]]("site_item_numeric_metadata.site_item_numeric_metadata_id") ~
     SqlParser.get[Long]("site_item_numeric_metadata.item_id") ~
     SqlParser.get[Long]("site_item_numeric_metadata.site_id") ~
     SqlParser.get[Int]("site_item_numeric_metadata.metadata_type") ~
@@ -1034,7 +1033,7 @@ object SiteItemNumericMetadata {
 
     val id = SQL("select currval('site_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    SiteItemNumericMetadata(Id(id), siteId, itemId, metadataType, metadata)
+    SiteItemNumericMetadata(Some(id), siteId, itemId, metadataType, metadata)
   }
 
   def add(
@@ -1058,7 +1057,7 @@ object SiteItemNumericMetadata {
 
     val id = SQL("select currval('site_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    SiteItemNumericMetadata(Id(id), itemId, siteId, SiteItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
+    SiteItemNumericMetadata(Some(id), itemId, siteId, SiteItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
   }
 
   def apply(

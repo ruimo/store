@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import model.Until
 import play.api.Play.current
@@ -90,7 +89,7 @@ case class ShoppingCart(
 ) extends NotNull
 
 case class ShoppingCartItem(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   storeUserId: Long,
   sequenceNumber: Int,
   siteId: Long,
@@ -98,14 +97,14 @@ case class ShoppingCartItem(
   quantity: Int
 ) extends NotNull {
   def copy(
-    id: Pk[Long] = id,
+    id: Option[Long] = id,
     storeUserId: Long = storeUserId,
     sequenceNumber: Int = sequenceNumber,
     siteId: Long = siteId,
     itemId: Long = itemId,
     quantity: Int = quantity
   ) = ShoppingCartItem(
-      id: Pk[Long],
+      id: Option[Long],
       storeUserId: Long,
       sequenceNumber: Int,
       siteId: Long,
@@ -115,7 +114,7 @@ case class ShoppingCartItem(
 }
 
 case class ShoppingCartShipping(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   storeUserId: Long,
   siteId: Long,
   shippingDate: Long
@@ -123,7 +122,7 @@ case class ShoppingCartShipping(
 
 object ShoppingCartItem {
   val simple = {
-    SqlParser.get[Pk[Long]]("shopping_cart_item.shopping_cart_item_id") ~
+    SqlParser.get[Option[Long]]("shopping_cart_item.shopping_cart_item_id") ~
     SqlParser.get[Long]("shopping_cart_item.store_user_id") ~
     SqlParser.get[Int]("shopping_cart_item.seq") ~
     SqlParser.get[Long]("shopping_cart_item.site_id") ~
@@ -209,7 +208,7 @@ object ShoppingCartItem {
         "select seq from shopping_cart_item where shopping_cart_item_id = {id}"
       ).on('id -> id).as(SqlParser.scalar[Int].single)
 
-      ShoppingCartItem(Id(id), userId, seq, siteId, itemId, quantity)
+      ShoppingCartItem(Some(id), userId, seq, siteId, itemId, quantity)
     }
   }
 
@@ -300,7 +299,7 @@ object ShoppingCartItem {
 
 object ShoppingCartShipping {
   val simple = {
-    SqlParser.get[Pk[Long]]("shopping_cart_shipping.shopping_cart_shipping_id") ~
+    SqlParser.get[Option[Long]]("shopping_cart_shipping.shopping_cart_shipping_id") ~
     SqlParser.get[Long]("shopping_cart_shipping.store_user_id") ~
     SqlParser.get[Long]("shopping_cart_shipping.site_id") ~
     SqlParser.get[java.util.Date]("shopping_cart_shipping.shipping_date") map {

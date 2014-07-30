@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
@@ -17,11 +16,11 @@ case class CategoryName(locale: LocaleInfo, categoryId: Long, name: String) exte
   assert(name != null && name.length <= 32, "length(= " + name + ") is invalid.")
 }
 
-case class Category(id: Pk[Long] = NotAssigned) extends NotNull
+case class Category(id: Option[Long] = None) extends NotNull
 
 object Category {
   val simple = {
-    SqlParser.get[Pk[Long]]("category.category_id") map {
+    SqlParser.get[Option[Long]]("category.category_id") map {
       case id => Category(id)
     }
   }
@@ -204,14 +203,14 @@ object Category {
       ).executeUpdate()
     }}
 
-    Category(Id(categoryId))
+    Category(Some(categoryId))
   }
 
   def get(id: Long)(implicit conn: Connection) : Option[Category] = SQL(
       """
       select category_id from category where category_id = {category_id}
       """
-    ).on('category_id -> id).as(SqlParser.scalar[Pk[Long]].singleOpt).map(Category(_))
+    ).on('category_id -> id).as(SqlParser.scalar[Option[Long]].singleOpt).map(Category(_))
 
   def rename(category: Category, newNames: Map[LocaleInfo, String])(implicit conn: Connection) : Unit =
     rename(category.id.get, newNames)
@@ -323,7 +322,7 @@ object CategoryPath {
   }
 
   val child = {
-    SqlParser.get[Pk[Long]]("category_path.descendant") map {
+    SqlParser.get[Option[Long]]("category_path.descendant") map {
       case descendant => Category(descendant)
     }
   }
@@ -344,7 +343,7 @@ object CategoryPath {
     ).on(
       'category_id -> categoryId
     ).as(
-      SqlParser.scalar[Pk[Long]].singleOpt
+      SqlParser.scalar[Option[Long]].singleOpt
     ).map(Category(_))
 
   def children(
@@ -405,7 +404,7 @@ object CategoryPath {
             or n.locale_id = {locale_id})
       """ replaceAll(" +"," ")
     ).on('locale_id -> locale.id).as(
-      SqlParser.get[Pk[Long]]("category_path.ancestor") ~ 
+      SqlParser.get[Option[Long]]("category_path.ancestor") ~ 
       SqlParser.get[Long]("category_name.locale_id") ~
       SqlParser.get[Long]("category_name.category_id") ~
       SqlParser.get[String]("category_name.category_name") map {

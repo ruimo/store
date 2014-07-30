@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
@@ -10,17 +9,17 @@ import play.api.i18n.{Messages, Lang}
 import java.sql.Connection
 import math.BigDecimal.RoundingMode
 
-case class Tax(id: Pk[Long] = NotAssigned) extends NotNull
+case class Tax(id: Option[Long] = None) extends NotNull
 
 case class TaxHistory(
-  id: Pk[Long] = NotAssigned, taxId: Long, taxType: TaxType, rate: BigDecimal, validUntil: Long
+  id: Option[Long] = None, taxId: Long, taxType: TaxType, rate: BigDecimal, validUntil: Long
 ) extends NotNull {
   lazy val realRate = rate / BigDecimal(100)
   def taxAmount(target: BigDecimal): BigDecimal = Tax.taxAmount(target, taxType, realRate)
   def outerTax(target: BigDecimal): BigDecimal = Tax.outerTax(target, taxType, realRate)
 }
 
-case class TaxName(id: Pk[Long] = NotAssigned, taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
+case class TaxName(id: Option[Long] = None, taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
 
 object Tax {
   def taxAmount(target: BigDecimal, taxType: TaxType, rate: BigDecimal): BigDecimal = (taxType match {
@@ -36,7 +35,7 @@ object Tax {
   }).setScale(0, RoundingMode.DOWN)
 
   val simple = {
-    SqlParser.get[Pk[Long]]("tax.tax_id") map {
+    SqlParser.get[Option[Long]]("tax.tax_id") map {
       case id => Tax(id)
     }
   }
@@ -59,7 +58,7 @@ object Tax {
 
     val taxId = SQL("select currval('tax_seq')").as(SqlParser.scalar[Long].single)
 
-    Tax(Id(taxId))
+    Tax(Some(taxId))
   }
 
   def list(implicit conn: Connection): Seq[Tax] = SQL(
@@ -98,7 +97,7 @@ object Tax {
 
 object TaxName {
   val simple = {
-    SqlParser.get[Pk[Long]]("tax_name.tax_name_id") ~
+    SqlParser.get[Option[Long]]("tax_name.tax_name_id") ~
     SqlParser.get[Long]("tax_name.tax_id") ~
     SqlParser.get[Long]("tax_name.locale_id") ~
     SqlParser.get[String]("tax_name.tax_name") map {
@@ -137,13 +136,13 @@ object TaxName {
 
     val id = SQL("select currval('tax_name_seq')").as(SqlParser.scalar[Long].single)
 
-    TaxName(Id(id), tax.id.get, locale, name)
+    TaxName(Some(id), tax.id.get, locale, name)
   }
 }
 
 object TaxHistory {
   val simple = {
-    SqlParser.get[Pk[Long]]("tax_history.tax_history_id") ~
+    SqlParser.get[Option[Long]]("tax_history.tax_history_id") ~
     SqlParser.get[Long]("tax_history.tax_id") ~
     SqlParser.get[Int]("tax_history.tax_type") ~
     SqlParser.get[java.math.BigDecimal]("tax_history.rate") ~
@@ -170,7 +169,7 @@ object TaxHistory {
 
     val id = SQL("select currval('tax_history_seq')").as(SqlParser.scalar[Long].single)
 
-    TaxHistory(Id(id), tax.id.get, taxType, rate, validUntil)
+    TaxHistory(Some(id), tax.id.get, taxType, rate, validUntil)
   }
 
   def at(

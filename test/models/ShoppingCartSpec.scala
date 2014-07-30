@@ -3,13 +3,11 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
-import anorm.Id
 import java.util.Locale
 import java.sql.Date.{valueOf => date}
 
@@ -420,7 +418,7 @@ class ShoppingCartSpec extends Specification {
 
           val e1 = ShoppingCartTotalEntry(
             ShoppingCartItem(
-              id = NotAssigned,
+              id = None,
               storeUserId = user1.id.get,
               sequenceNumber = 1,
               siteId = site1.id.get,
@@ -432,7 +430,7 @@ class ShoppingCartSpec extends Specification {
 
           val e2 = ShoppingCartTotalEntry(
             ShoppingCartItem(
-              id = NotAssigned,
+              id = None,
               storeUserId = user1.id.get,
               sequenceNumber = 2,
               siteId = site2.id.get,

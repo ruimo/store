@@ -4,7 +4,6 @@ import play.api.test._
 import org.specs2.mutable._
 import collection.immutable
 import models._
-import anorm.{Id, Pk}
 import org.specs2.mock.Mockito
 import helpers.Helper
 
@@ -14,7 +13,7 @@ class ShoppingCartSpec extends Specification with Mockito {
       val cart: immutable.Seq[ShoppingCartTotalEntry] = List(
         ShoppingCartTotalEntry(
           ShoppingCartItem(
-            id = mock[Pk[Long]],
+            id = mock[Option[Long]],
             storeUserId = 0L,
             sequenceNumber = 0,
             siteId = 1,
@@ -23,14 +22,14 @@ class ShoppingCartSpec extends Specification with Mockito {
           ),
           itemName = mock[ItemName],
           itemDescription = mock[ItemDescription],
-          site = Site(Id(1L), 0L, "site1"),
+          site = Site(Some(1L), 0L, "site1"),
           itemPriceHistory = mock[ItemPriceHistory],
           taxHistory = mock[TaxHistory]
         ),
 
         ShoppingCartTotalEntry(
           ShoppingCartItem(
-            id = mock[Pk[Long]],
+            id = mock[Option[Long]],
             storeUserId = 0L,
             sequenceNumber = 1,
             siteId = 1,
@@ -39,7 +38,7 @@ class ShoppingCartSpec extends Specification with Mockito {
           ),
           itemName = mock[ItemName],
           itemDescription = mock[ItemDescription],
-          site = Site(Id(1L), 0L, "site1"),
+          site = Site(Some(1L), 0L, "site1"),
           itemPriceHistory = mock[ItemPriceHistory],
           taxHistory = mock[TaxHistory]
         )

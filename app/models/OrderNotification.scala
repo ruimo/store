@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 
 import scala.language.postfixOps
@@ -9,13 +8,13 @@ import play.api.Play.current
 import java.sql.Connection
 
 case class OrderNotification(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   storeUserId: Long
 ) extends NotNull
 
 object OrderNotification {
   val simple = {
-    SqlParser.get[Pk[Long]]("order_notification.order_notification_id") ~
+    SqlParser.get[Option[Long]]("order_notification.order_notification_id") ~
     SqlParser.get[Long]("order_notification.store_user_id") map {
       case id~storeUserId => OrderNotification(id, storeUserId)
     }
@@ -45,7 +44,7 @@ object OrderNotification {
 
     val id = SQL("select currval('order_notification_seq')").as(SqlParser.scalar[Long].single)
 
-    OrderNotification(Id(id), storeUserId)
+    OrderNotification(Some(id), storeUserId)
   }
 
   def delete(storeUserId: Long)(implicit conn: Connection): Int =

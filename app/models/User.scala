@@ -8,7 +8,7 @@ import helpers.PasswordHash
 import java.sql.Connection
 
 case class StoreUser(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   userName: String,
   firstName: String,
   middleName: Option[String],
@@ -24,7 +24,7 @@ case class StoreUser(
     PasswordHash.generate(password, salt) == passwordHash
 }
 
-case class SiteUser(id: Pk[Long] = NotAssigned, siteId: Long, storeUserId: Long) extends NotNull
+case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long) extends NotNull
 
 case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) extends NotNull {
   lazy val userType: UserType = storeUser.userRole match {
@@ -45,7 +45,7 @@ case class ListUserEntry(
 
 object StoreUser {
   val simple = {
-    SqlParser.get[Pk[Long]]("store_user.store_user_id") ~
+    SqlParser.get[Option[Long]]("store_user.store_user_id") ~
     SqlParser.get[String]("store_user.user_name") ~
     SqlParser.get[String]("store_user.first_name") ~
     SqlParser.get[Option[String]]("store_user.middle_name") ~
@@ -122,7 +122,7 @@ object StoreUser {
     ).executeUpdate()
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
-    StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
+    StoreUser(Some(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
               salt, deleted = false, userRole, companyName)
   }
 
@@ -214,7 +214,7 @@ object StoreUser {
 
 object SiteUser {
   val simple = {
-    SqlParser.get[Pk[Long]]("site_user.site_user_id") ~
+    SqlParser.get[Option[Long]]("site_user.site_user_id") ~
     SqlParser.get[Long]("site_user.site_id") ~
     SqlParser.get[Long]("site_user.store_user_id") map {
       case id~siteId~storeUserId => SiteUser(id, siteId, storeUserId)
@@ -237,7 +237,7 @@ object SiteUser {
     ).executeUpdate()
 
     val id = SQL("select currval('site_user_seq')").as(SqlParser.scalar[Long].single)
-    SiteUser(Id(id), siteId, storeUserId)
+    SiteUser(Some(id), siteId, storeUserId)
   }
 
   def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[SiteUser] =

@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
@@ -11,7 +10,7 @@ import java.sql.Connection
 import play.api.i18n.Lang
 
 case class Site(
-  id: Pk[Long] = NotAssigned, localeId: Long, name: String
+  id: Option[Long] = None, localeId: Long, name: String
 ) extends NotNull with Ordered[Site] {
   def compare(that: Site) = {
     this.name.compare(that.name)
@@ -20,7 +19,7 @@ case class Site(
 
 object Site {
   val simple = {
-    SqlParser.get[Pk[Long]]("site.site_id") ~
+    SqlParser.get[Option[Long]]("site.site_id") ~
     SqlParser.get[Long]("site.locale_id") ~
     SqlParser.get[String]("site.site_name") map {
       case id~localeId~siteName => Site(id, localeId, siteName)
@@ -54,7 +53,7 @@ object Site {
 
     val siteId = SQL("select currval('site_seq')").as(SqlParser.scalar[Long].single)
 
-    Site(Id(siteId), locale.id, name)
+    Site(Some(siteId), locale.id, name)
   }
 
   def listByName(page: Int = 0, pageSize: Int = 20)(implicit conn: Connection): Seq[Site] = SQL(
