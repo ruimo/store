@@ -50,7 +50,7 @@ class AccountingBillSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
         )
-        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id + "\"]").click()
+        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
         browser.fill("#storeYear").`with`("%tY".format(tran.tranHeader.transactionTime))
         browser.fill("#storeMonth").`with`("%tm".format(tran.tranHeader.transactionTime))
@@ -120,7 +120,7 @@ class AccountingBillSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
         )
-        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id + "\"]").click()
+        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
         browser.fill("#userYear").`with`("%tY".format(trans(0).tranHeader.transactionTime))
         browser.fill("#userMonth").`with`("%tm".format(trans(0).tranHeader.transactionTime))

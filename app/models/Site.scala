@@ -77,7 +77,7 @@ object Site {
       order by site_name
       """
     ).as(simple *).map {
-      e => e.id.toString -> e.name
+      e => e.id.get.toString -> e.name
     }
 
   def tableForDropDown(itemId: Long)(implicit login: LoginSession,  conn: Connection): Seq[(String, String)] =
@@ -94,7 +94,7 @@ object Site {
     ).on(
       'itemId -> itemId
     ).as(simple *).map {
-      e => e.id.toString -> e.name
+      e => e.id.get.toString -> e.name
     }
 
   def listAsMap(implicit conn: Connection): Map[Long, Site] =

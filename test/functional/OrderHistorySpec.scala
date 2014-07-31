@@ -44,7 +44,7 @@ class OrderHistorySpec extends Specification {
         doWith(browser.find(".orderHistoryInnerTable1")) { b =>
           b.find(".transactionTime").getText ===
             "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
-          b.find(".tranNo").getText === tran.tranHeader.id.toString
+          b.find(".tranNo").getText === tran.tranHeader.id.get.toString
           val user = StoreUser(tran.tranHeader.userId)
           b.find(".buyerName").getText === user.firstName + " " + user.lastName
           b.find(".subtotal").getText === ViewHelpers.toAmount(tran.tranSiteHeader.head.totalAmount)
@@ -90,7 +90,7 @@ class OrderHistorySpec extends Specification {
         doWith(browser.find(".orderHistoryInnerTable1").get(1)) { b =>
           b.find(".transactionTime").getText ===
             "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
-          b.find(".tranNo").getText === tran.tranHeader.id.toString
+          b.find(".tranNo").getText === tran.tranHeader.id.get.toString
           val user = StoreUser(tran.tranHeader.userId)
           b.find(".buyerName").getText === user.firstName + " " + user.lastName
           b.find(".subtotal").getText === ViewHelpers.toAmount(1468)

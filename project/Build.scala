@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
     "postgresql" % "postgresql" % "9.1-901.jdbc4",
     "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
     "org.mockito" % "mockito-all" % "1.9.5",
-//    "com.ruimo" %% "recoengplugin" % "1.0-SNAPSHOT",
+    "com.ruimo" %% "recoengplugin" % "1.0-SNAPSHOT",
     jdbc,
     anorm,
     filters
@@ -23,7 +23,6 @@ object ApplicationBuild extends Build {
       a => Seq("-Xmx","-Xms","-XX").exists(a.startsWith)
     ),
     scalaVersion := "2.10.4",
-    resolvers += "play with latest fluentlenium" at "https://www.ruimo.com/jenkins/view/store/job/play-2.1.3-with-latest-fluentlenium/ws/repository/local",
     resolvers += "ruimo.com" at "http://www.ruimo.com/release"
   ).settings(
     net.virtualvoid.sbt.graph.Plugin.graphSettings: _*
