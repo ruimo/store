@@ -167,7 +167,7 @@
         )
       </td>
       <td>
-        @siteItemNumericMetadataLabel(SiteItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt))
+        @Messages("siteItemMetadata" + SiteItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt))
         <div style="display: none;">
         @inputText(field("metadataType"), 'type -> "hidden")(
           helper.FieldConstructor(simpleField.f), implicitly
