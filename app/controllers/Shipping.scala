@@ -1,5 +1,7 @@
 package controllers
 
+import controllers.I18n.I18nAware
+import models.CreateAddress
 import play.api._
 import data.Form
 import db.DB
@@ -14,11 +16,11 @@ import java.util.regex.Pattern
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import i18n.{Lang, Messages}
-import helpers.{NotificationMail, Enums}
-import controllers.I18n.I18nAware
+import helpers.{RecommendEngine, NotificationMail, Enums}
 import java.sql.Connection
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import play.api.libs.json.{JsResult, JsSuccess, JsError}
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   val Zip1Pattern = Pattern.compile("\\d{3}")
@@ -174,6 +176,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           val tran = persister.load(tranId, LocaleInfo.getDefault)
           val address = Address.byId(tran.shippingTable.head._2.head.addressId)
           NotificationMail.orderCompleted(loginSession.get, tran, address)
+          RecommendEngine.onSales(loginSession.get, tran, address)
           Ok(views.html.showTransactionJa(tran, address, textMetadata(tran), siteItemMetadata(tran)))
         }
         catch {
