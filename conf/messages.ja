@@ -358,4 +358,5 @@ currentCart=現在のショッピングカート:
 executeDirectSqlTitle=SQL直接実行
 sqlToExecute=更新用SQL(行末にセミコロンを付加)
 querySqlToExecute=照会用SQL(セミコロン無し)
-xecute=実行
+excute=実行
+recommendedItemTitle=こちらも一緒にいかがですか？

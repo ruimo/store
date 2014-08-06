@@ -641,7 +641,24 @@ tr.siteTableBody {
     height: 3em;
 }
 
-#cartDialogCurrentTitle, #cartDialogAddedTitle {
+#cartDialogCurrentTitle, #cartDialogAddedTitle, .recommendedItemTitle {
     font-weight: bold;
-    font-size: 140%;
+    font-size: 130%;
+}
+
+.recommendedItem {
+  display: inline-block;
+  padding: 4px;
+  margin: 2px;
+  vertical-align: top;
+}
+
+.recommendedItemImage {
+  max-width: 88px;
+  max-height: 88px;
+}
+
+.recommendedItem .itemName {
+  max-width: 200px;
+  max-height:200px;
 }

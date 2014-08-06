@@ -17,8 +17,8 @@ var shoppingCartDialog = {
 
     $("#cartDialog").dialog({
       autoOpen: false,
-      width: '80%',
-      height: 450,
+      width: '90%',
+      height: 550,
       title: arg.cartDialog.title,
       modal: true,
       buttons: cartDialogButtonFactory(
@@ -40,7 +40,7 @@ var shoppingCartDialog = {
     });
   },
 
-  _showDialog: function(self, data, status, jqXhr) {
+  _showDialog: function(self, siteId, itemId, data, status, jqXhr) {
     var dlg = $("#cartDialog");
 
     var addedContent = $("#cartDialogAddedContent");
@@ -90,6 +90,39 @@ var shoppingCartDialog = {
         "</tr>"
       );
     });
+
+    var recommendedContent = $("#recommendedContent");
+    recommendedContent.empty();
+
+    $.ajax({
+      type: 'get',
+      url: self.arg.recommendBySingleItemJsonUrl.replace('111', siteId).replace('222', itemId),
+      dataType: 'json',
+      cache: false,
+      success: function(data, status, jqXhr) {
+        if (data.recommended.length != 0) {
+          recommendedContent.append(
+            '<div class="recommendedItemTitle">' + self.arg.recommendedItemTitle + '</div>'
+          )
+        }
+
+        $.each(data.recommended, function(idx, e) {
+          recommendedContent.append(
+            '<div class="recommendedItem">' +
+            '  <a href="' + self.arg.itemDetailUrl.replace('111', e.itemId).replace('222', e.siteId) + '">' +
+            '    <img src="' + self.arg.itemImageUrl.replace('111', itemId) + '" class="recommendedItemImage">' +
+            '    <div class="itemName">' + e.name + '</div>' +
+            '    <div class="price">' + e.price + '</div>' +
+            '  </a>' +
+            '</div>'
+          );
+        });
+      },
+      error: function(jqXhr, status, error) {
+        // Just ignore.
+      }
+    });
+
     dlg.dialog("open");
   },
 
@@ -121,7 +154,7 @@ var shoppingCartDialog = {
       dataType: 'json',
       cache: false,
       success: function(data, status, jqXhr) {
-        self._showDialog(self, data, status, jqXhr);
+        self._showDialog(self, siteId, itemId, data, status, jqXhr);
       },
       error: function(jqXhr, status, error) {
         self._showErrorDialog(self, jqXhr, status, error);
@@ -140,7 +173,7 @@ var shoppingCartDialog = {
       dataType: 'json',
       cache: false,
       success: function(data, status, jqXhr) {
-        self._showDialog(self, data, status, jqXhr);
+        self._showDialog(self, siteId, itemId, data, status, jqXhr);
       },
       error: function(jqXhr, status, error) {
         self._showErrorDialog(self, jqXhr, status, error);

@@ -24,7 +24,11 @@
         closeButtonTitle: '@Messages("close")'
       },
       addToShoppingCardJsonUrl: '@helper.CSRF(routes.ShoppingCart.addToCartJson)',
-      addOrderHistoryJsonUrl: '@helper.CSRF(routes.ShoppingCart.addOrderHistoryJson)'
+      addOrderHistoryJsonUrl: '@helper.CSRF(routes.ShoppingCart.addOrderHistoryJson)',
+      recommendBySingleItemJsonUrl: '@routes.Recommendation.bySingleItemJson(111, 222)',
+      itemImageUrl: '@routes.ItemPictures.getPicture(111, 0)',
+      itemDetailUrl: '@routes.ItemDetail.show(111, 222)',
+      recommendedItemTitle: '@Messages("recommendedItemTitle")'
     });
   });
 </script>

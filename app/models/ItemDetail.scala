@@ -8,7 +8,6 @@ import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{HashMap, IntMap}
 import java.sql.Connection
-import play.api.data.Form
 import org.joda.time.DateTime
 
 case class ItemDetail(

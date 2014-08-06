@@ -20,7 +20,6 @@ import helpers.{RecommendEngine, NotificationMail, Enums}
 import java.sql.Connection
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import play.api.libs.json.{JsResult, JsSuccess, JsError}
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   val Zip1Pattern = Pattern.compile("\\d{3}")

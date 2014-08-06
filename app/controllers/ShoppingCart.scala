@@ -13,6 +13,7 @@ import helpers.{TokenGenerator, RandomTokenGenerator}
 import play.api.libs.json.Json
 
 import helpers.ViewHelpers
+import helpers.RecommendEngine
 import collection.immutable
 
 object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -68,12 +69,10 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
   def toJson(
     addedItems: immutable.Seq[ShoppingCartTotalEntry],
     cart: ShoppingCartTotal
-  )(implicit lang: Lang): immutable.Map[String, immutable.Seq[immutable.Map[String, String]]] = {
-    Map(
-      "added" -> toJson(addedItems),
-      "current" -> toJson(cart.table)
-    )
-  }
+  )(implicit lang: Lang): immutable.Map[String, immutable.Seq[immutable.Map[String, String]]] = Map(
+    "added" -> toJson(addedItems),
+    "current" -> toJson(cart.table)
+  )
 
   def toJson(
     table: immutable.Seq[ShoppingCartTotalEntry]
