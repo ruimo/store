@@ -88,14 +88,13 @@ object RecommendEngine extends HasLogger {
     )
 
   def sendRecommendBySingleItem(
-    siteId: Long, itemId: Long, api: RecoEngApi = RecoEngPlugin.api
+    siteId: Long, itemId: Long, 
+    paging: JsonRequestPaging = JsonRequestPaging(offset = 0, limit = 5),
+    api: RecoEngApi = RecoEngPlugin.api
   ): JsResult[RecommendBySingleItemJsonResponse] =
     api.recommendBySingleItem(
       storeCode = siteId.toString,
       itemCode = itemId.toString,
-      paging = JsonRequestPaging(
-        offset = 0,
-        limit = 5
-      )
+      paging = paging
     )
 }

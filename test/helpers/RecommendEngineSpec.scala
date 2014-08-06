@@ -3,6 +3,11 @@ package helpers
 import org.specs2.mutable._
 import com.ruimo.recoeng.RecoEngApi
 import com.ruimo.recoeng.json.{JsonResponseHeader, OnSalesJsonResponse, SalesItem, TransactionMode, TransactionSalesMode}
+import com.ruimo.recoeng.json.RecommendBySingleItemJsonResponse
+import com.ruimo.recoeng.json.SortOrder
+import com.ruimo.recoeng.json.Desc
+import com.ruimo.recoeng.json.ScoredItem
+import com.ruimo.recoeng.json.JsonRequestPaging
 import play.api.libs.json.{JsSuccess, JsResult}
 import models.LoginSession
 import org.mockito.Mockito.mock
@@ -37,14 +42,19 @@ class RecommendEngineSpec extends Specification {
 
           JsSuccess(
             OnSalesJsonResponse(
-              JsonResponseHeader(
-                sequenceNumber = "1234",
-                statusCode = "OK",
-                message = "msg"
-              )
+              JsonResponseHeader(sequenceNumber = "1234", statusCode = "OK", message = "msg")
             )
           )
         }
+        
+        def recommendBySingleItem(
+          requestTime: Long,
+          sequenceNumber: Long,
+          storeCode: String,
+          itemCode: String,
+          sort: SortOrder,
+          paging: JsonRequestPaging
+        ): JsResult[RecommendBySingleItemJsonResponse] = null
       }
 
       val login = mock(classOf[LoginSession])
@@ -105,6 +115,83 @@ class RecommendEngineSpec extends Specification {
         header.sequenceNumber === "1234"
         header.statusCode === "OK"
         header.message === "msg"
+      }
+    }
+
+    "Can get recommendBySingleItem" in {
+      val api: RecoEngApi = new RecoEngApi {
+        def onSales(
+          requestTime: Long,
+          sequenceNumber: Long,
+          transactionMode: TransactionMode,
+          transactionTime: Long,
+          userCode: String,
+          itemTable: Seq[SalesItem]
+        ): JsResult[OnSalesJsonResponse] = null
+
+        def recommendBySingleItem(
+          requestTime: Long,
+          sequenceNumber: Long,
+          storeCode: String,
+          itemCode: String,
+          sort: SortOrder,
+          paging: JsonRequestPaging
+        ): JsResult[RecommendBySingleItemJsonResponse] = {
+          storeCode === "11111"
+          itemCode === "22222"
+          sort === Desc("score")
+          paging.offset === 2
+          paging.limit === 20
+
+          JsSuccess(
+            RecommendBySingleItemJsonResponse(
+              JsonResponseHeader(sequenceNumber = "1234", statusCode = "OK", message = "msg"),
+              itemList = Seq(
+                ScoredItem(
+                  storeCode = "1212",
+                  itemCode = "2323",
+                  score = 12
+                ),
+                ScoredItem(
+                  storeCode = "3434",
+                  itemCode = "4545",
+                  score = 11
+                )
+              ),
+              "desc(\"col\")",
+              JsonRequestPaging(
+                offset = 2,
+                limit = 20
+              )
+            )
+          )
+        }
+      }
+
+      val result: JsResult[RecommendBySingleItemJsonResponse] =
+        RecommendEngine.sendRecommendBySingleItem(
+          siteId = 11111L, itemId = 22222L,
+          paging = JsonRequestPaging(offset = 2, limit = 20),
+          api)
+      doWith(result.get) { resp =>
+        doWith(resp.header) { header =>
+          header.sequenceNumber === "1234"
+          header.statusCode === "OK"
+          header.message === "msg"
+        }
+        doWith(resp.itemList) { itemList =>
+          itemList.size === 2
+          doWith(itemList(0)) { item =>
+            item.storeCode === "1212"
+            item.itemCode === "2323"
+            item.score === 12f
+          }
+          doWith(itemList(1)) { item =>
+            item.storeCode === "3434"
+            item.itemCode === "4545"
+            item.score === 11f
+          }
+        }
       }
     }
   }
