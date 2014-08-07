@@ -13,11 +13,11 @@ import helpers.ViewHelpers
 import play.api.Play.current
 
 object Recommendation extends Controller with NeedLogin with HasLogger with I18nAware {
-  def bySingleItemJson(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
+  def byItemJson(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
     Async {
       scala.concurrent.Future {
         DB.withConnection { implicit conn =>
-          val items: Seq[JsValue] = RecommendEngine.recommendBySingleItem(siteId, itemId).map {
+          val items: Seq[JsValue] = RecommendEngine.recommendByItem(siteId, itemId).map {
             it => models.ItemDetail.show(it.storeCode.toLong, it.itemCode.toLong, LocaleInfo.byLang(lang))
           }.filter {
             _.siteItemNumericMetadata.get(SiteItemNumericMetadataType.HIDE).map {

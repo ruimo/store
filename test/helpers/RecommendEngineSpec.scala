@@ -2,7 +2,8 @@ package helpers
 
 import org.specs2.mutable._
 import com.ruimo.recoeng.RecoEngApi
-import com.ruimo.recoeng.json.{JsonResponseHeader, OnSalesJsonResponse, SalesItem, TransactionMode, TransactionSalesMode}
+import com.ruimo.recoeng.json.{JsonResponseHeader, OnSalesJsonResponse, SalesItem, TransactionMode, TransactionSalesMode, SortOrder, JsonRequestPaging, Desc, Asc}
+import com.ruimo.recoeng.json.RecommendByItemJsonResponse
 import play.api.libs.json.{JsSuccess, JsResult}
 import models.LoginSession
 import org.mockito.Mockito.mock
@@ -24,13 +25,13 @@ class RecommendEngineSpec extends Specification {
           transactionMode: TransactionMode,
           transactionTime: Long,
           userCode: String,
-          itemTable: Seq[SalesItem]
+          salesItems: Seq[SalesItem]
         ): JsResult[OnSalesJsonResponse] = {
           transactionMode === TransactionSalesMode
           transactionTime === 23456L
           userCode === "12345"
-          itemTable.size === 3
-          val set = itemTable.toSet
+          salesItems.size === 3
+          val set = salesItems.toSet
           set.contains(SalesItem("555", "8192", 3)) must beTrue
           set.contains(SalesItem("555", "8193", 5)) must beTrue
           set.contains(SalesItem("666", "8194", 1)) must beTrue
@@ -45,6 +46,14 @@ class RecommendEngineSpec extends Specification {
             )
           )
         }
+
+        def recommendByItem(
+          requestTime: Long = System.currentTimeMillis,
+          sequenceNumber: Long,
+          salesItems: Seq[SalesItem],
+          sort: SortOrder = Desc("score"),
+          paging: JsonRequestPaging
+        ): JsResult[RecommendByItemJsonResponse] = null
       }
 
       val login = mock(classOf[LoginSession])

@@ -4,7 +4,7 @@ import controllers.HasLogger
 import models._
 import models.PersistedTransaction
 import com.ruimo.recoeng.json.{TransactionSalesMode, SalesItem, OnSalesJsonResponse, ScoredItem}
-import com.ruimo.recoeng.json.RecommendBySingleItemJsonResponse
+import com.ruimo.recoeng.json.RecommendByItemJsonResponse
 import com.ruimo.recoeng.json.JsonRequestPaging
 import com.ruimo.recoeng.{RecoEngApi, RecoEngPlugin}
 import play.api.Play.current
@@ -35,29 +35,29 @@ object RecommendEngine extends HasLogger {
     }
   }
 
-  def recommendBySingleItem(siteId: Long, itemId: Long): Seq[ScoredItem] = {
+  def recommendByItem(siteId: Long, itemId: Long): Seq[ScoredItem] = {
     try {
-      sendRecommendBySingleItem(siteId, itemId) match {
+      sendRecommendByItem(siteId, itemId) match {
         case JsSuccess(resp, _) =>
           resp.header.statusCode match {
             case "OK" => {
-              logger.info("Receive response of recommend info recommendBySingleItem: " + resp)
-              resp.itemList
+              logger.info("Receive response of recommend info recommendByItem: " + resp)
+              resp.salesItems
             }
             case _ => {
-              logger.error("Receive response of recommend info recommendBySingleItem: " + resp)
+              logger.error("Receive response of recommend info recommendByItem: " + resp)
               Seq()
             }
           }
         case JsError(errors) => {
-          logger.error("Cannot invoke recommend engine's recommendBySingleItem: " + errors)
+          logger.error("Cannot invoke recommend engine's recommendByItem: " + errors)
           Seq()
         }
       }
     }
     catch {
       case t: Throwable => {
-        logger.error("Failed with exception at recommend enging's recommendBySingleItem.", t)
+        logger.error("Failed with exception at recommend enging's recommendByItem.", t)
         Seq()
       }
     }
@@ -87,12 +87,17 @@ object RecommendEngine extends HasLogger {
       }
     )
 
-  def sendRecommendBySingleItem(
+  def sendRecommendByItem(
     siteId: Long, itemId: Long, api: RecoEngApi = RecoEngPlugin.api
-  ): JsResult[RecommendBySingleItemJsonResponse] =
-    api.recommendBySingleItem(
-      storeCode = siteId.toString,
-      itemCode = itemId.toString,
+  ): JsResult[RecommendByItemJsonResponse] =
+    api.recommendByItem(
+      salesItems = Seq(
+        SalesItem(
+          storeCode = siteId.toString,
+          itemCode = itemId.toString,
+          quantity = 1
+        )
+      ),
       paging = JsonRequestPaging(
         offset = 0,
         limit = 5

@@ -156,7 +156,7 @@ GET     /directSql                       controllers.DirectSql.index()
 POST    /executeSql                      controllers.DirectSql.execute()
 POST    /querySql                        controllers.DirectSql.query()
 
-GET     /recommendBySingleItemJson       controllers.Recommendation.bySingleItemJson(siteId: Long, itemId: Long)
+GET     /recommendByItemJson             controllers.Recommendation.byItemJson(siteId: Long, itemId: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
