@@ -40,7 +40,7 @@ var shoppingCartDialog = {
     });
   },
 
-  _showDialog: function(self, siteId, itemId, data, status, jqXhr) {
+  _showDialog: function(self, data, status, jqXhr) {
     var dlg = $("#cartDialog");
 
     var addedContent = $("#cartDialogAddedContent");
@@ -96,7 +96,7 @@ var shoppingCartDialog = {
 
     $.ajax({
       type: 'get',
-      url: self.arg.recommendBySingleItemJsonUrl.replace('111', siteId).replace('222', itemId),
+      url: self.arg.recommendByShoppingCartJsonUrl,
       dataType: 'json',
       cache: false,
       success: function(data, status, jqXhr) {
@@ -110,7 +110,7 @@ var shoppingCartDialog = {
           recommendedContent.append(
             '<div class="recommendedItem">' +
             '  <a href="' + self.arg.itemDetailUrl.replace('111', e.itemId).replace('222', e.siteId) + '">' +
-            '    <img src="' + self.arg.itemImageUrl.replace('111', itemId) + '" class="recommendedItemImage">' +
+            '    <img src="' + self.arg.itemImageUrl.replace('111', e.itemId) + '" class="recommendedItemImage">' +
             '    <div class="itemName">' + e.name + '</div>' +
             '    <div class="price">' + e.price + '</div>' +
             '  </a>' +
@@ -154,7 +154,7 @@ var shoppingCartDialog = {
       dataType: 'json',
       cache: false,
       success: function(data, status, jqXhr) {
-        self._showDialog(self, siteId, itemId, data, status, jqXhr);
+        self._showDialog(self, data, status, jqXhr);
       },
       error: function(jqXhr, status, error) {
         self._showErrorDialog(self, jqXhr, status, error);
@@ -173,7 +173,7 @@ var shoppingCartDialog = {
       dataType: 'json',
       cache: false,
       success: function(data, status, jqXhr) {
-        self._showDialog(self, siteId, itemId, data, status, jqXhr);
+        self._showDialog(self, data, status, jqXhr);
       },
       error: function(jqXhr, status, error) {
         self._showErrorDialog(self, jqXhr, status, error);

@@ -11,6 +11,7 @@ import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
 import collection.immutable
+import com.ruimo.recoeng.json.SalesItem
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -236,6 +237,19 @@ object ShoppingCartItem {
       cart, itemName, itemDescription, itemPrice, site
     )
   }
+
+  def listAllItemsForUser(userId: Long)(implicit conn: Connection): Seq[SalesItem] = SQL(
+      """
+      select * from shopping_cart_item
+      where shopping_cart_item.store_user_id = {userId}
+      """
+    ).on(
+      'userId -> userId
+    ).as(
+      simple *
+    ).map { e =>
+      SalesItem(e.siteId.toString, e.itemId.toString, e.quantity)
+    }
 
   def listItemsForUser(
     locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 100, now: Long = System.currentTimeMillis
