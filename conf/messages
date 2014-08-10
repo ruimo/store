@@ -330,3 +330,5 @@ sqlToExecute=SQL for update(terminate with semi-colon)
 querySqlToExecute=SQL for query(without semi-colon)
 execute=Execute
 recommendedItemTitle=Recommended items
+addItemIntoShoppingCart=Add this item
+addAllItemsIntoShoppingCart=Add all items

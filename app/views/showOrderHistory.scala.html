@@ -96,7 +96,7 @@
                         <span class="body">@amount(t.price)</span>
                         <button type="button"
                                 onclick="shoppingCartDialog.putIntoCart(@t.siteId, @t.itemId);">
-                          @Messages("purchase")
+                          @Messages("addItemIntoShoppingCart")
                         </button>
                       </td>
                     </tr>
@@ -111,7 +111,7 @@
                       </span>
                       <button type="button"
                               onclick="shoppingCartDialog.putOrderHistory(@e.siteId, @e.transactionSiteId);">
-                        @Messages("purchase")
+                        @Messages("addAllItemsIntoShoppingCart")
                       </button>
                     </td>
                   </tr>
