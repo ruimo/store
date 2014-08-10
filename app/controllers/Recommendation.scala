@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.i18n.Lang
 import play.api.db.DB
 import play.api.mvc.Controller
 import controllers.I18n.I18nAware
@@ -36,7 +37,8 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   def byItems(
     salesItems: Seq[SalesItem], locale: LocaleInfo
   )(
-    implicit conn: Connection
+    implicit conn: Connection,
+    lang: Lang
   ): Seq[JsValue] = RecommendEngine.recommendByItem(
     salesItems
   ).map {
