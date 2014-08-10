@@ -35,9 +35,9 @@ object RecommendEngine extends HasLogger {
     }
   }
 
-  def recommendByItem(siteId: Long, itemId: Long): Seq[ScoredItem] = {
+  def recommendByItem(salesItems: Seq[SalesItem]): Seq[ScoredItem] = {
     try {
-      sendRecommendByItem(siteId, itemId) match {
+      sendRecommendByItem(salesItems) match {
         case JsSuccess(resp, _) =>
           resp.header.statusCode match {
             case "OK" => {
@@ -88,16 +88,10 @@ object RecommendEngine extends HasLogger {
     )
 
   def sendRecommendByItem(
-    siteId: Long, itemId: Long, api: RecoEngApi = RecoEngPlugin.api
+    salesItems: Seq[SalesItem], api: RecoEngApi = RecoEngPlugin.api
   ): JsResult[RecommendByItemJsonResponse] =
     api.recommendByItem(
-      salesItems = Seq(
-        SalesItem(
-          storeCode = siteId.toString,
-          itemCode = itemId.toString,
-          quantity = 1
-        )
-      ),
+      salesItems = salesItems,
       paging = JsonRequestPaging(
         offset = 0,
         limit = 5
