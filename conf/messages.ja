@@ -360,5 +360,5 @@ sqlToExecute=更新用SQL(行末にセミコロンを付加)
 querySqlToExecute=照会用SQL(セミコロン無し)
 excute=実行
 recommendedItemTitle=こちらも一緒にいかがですか？
-addItemIntoShoppingCart=1点カートに入れる
+addItemIntoShoppingCart=この商品をカートに入れる
 addAllItemsIntoShoppingCart=この注文をカートに入れる

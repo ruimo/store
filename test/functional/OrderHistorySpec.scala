@@ -147,6 +147,7 @@ class OrderHistorySpec extends Specification {
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
         )
         browser.title === Messages("order.history.title")
+
         browser.find(".orderHistoryInnerTable3").get(0).find("button").get(0).click()
 
         browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
@@ -155,8 +156,8 @@ class OrderHistorySpec extends Specification {
           b.find("td.itemName").getText === "植木1"
           b.find("td.siteName").getText === "商店1"
           b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "1"
-          b.find("td.price").getText === "100円"
+          b.find("td.quantity").getText === "3"
+          b.find("td.price").getText === "300円"
         }
 
         browser.find(".ui-dialog-buttonset").find("button").get(0).click()
@@ -170,8 +171,8 @@ class OrderHistorySpec extends Specification {
           b.find("td.itemName").getText === "植木1"
           b.find("td.siteName").getText === "商店1"
           b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "4"
-          b.find("td.price").getText === "400円"
+          b.find("td.quantity").getText === "6"
+          b.find("td.price").getText === "600円"
 
           b.find("td.itemName").get(1).getText === "植木3"
           b.find("td.siteName").get(1).getText === "商店1"
@@ -191,8 +192,8 @@ class OrderHistorySpec extends Specification {
           b.find("td.itemName").getText === "植木1"
           b.find("td.siteName").getText === "商店1"
           b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "4"
-          b.find("td.price").getText === "400円"
+          b.find("td.quantity").getText === "6"
+          b.find("td.price").getText === "600円"
 
           b.find("td.itemName").get(1).getText === "植木3"
           b.find("td.siteName").get(1).getText === "商店1"
@@ -203,8 +204,8 @@ class OrderHistorySpec extends Specification {
           b.find("td.itemName").get(2).getText === "植木2"
           b.find("td.siteName").get(2).getText === "商店2"
           b.find("td.unitPrice").get(2).getText === "200円"
-          b.find("td.quantity").get(2).getText === "1"
-          b.find("td.price").get(2).getText === "200円"
+          b.find("td.quantity").get(2).getText === "5"
+          b.find("td.price").get(2).getText === "1,000円"
         }
       }}
     }

@@ -21,16 +21,17 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
     request.body.asJson.map { json =>
       val siteId = (json \ "siteId").as[Long]
       val itemId = (json \ "itemId").as[Long]
+      val quantity = (json \ "quantity").as[Int]
 
       DB.withConnection { implicit conn => {
-        ShoppingCartItem.addItem(login.userId, siteId, itemId, 1)
+        ShoppingCartItem.addItem(login.userId, siteId, itemId, quantity)
         val cart: ShoppingCartTotal = ShoppingCartItem.listItemsForUser(
           LocaleInfo.getDefault, 
           login.userId
         )
 
         Ok(Json.toJson(toJson(
-          getItemInfo(Map((siteId, itemId) -> 1), cart.table),
+          getItemInfo(Map((siteId, itemId) -> quantity), cart.table),
           cart
         )))
       }}

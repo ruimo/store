@@ -143,13 +143,13 @@ var shoppingCartDialog = {
     }
   },
 
-  putIntoCart: function(siteId, itemId) {
+  putIntoCart: function(siteId, itemId, quantity) {
     var self = this;
 
     $.ajax({
       type: 'post',
       url: self.arg.addToShoppingCardJsonUrl,
-      data: JSON.stringify({siteId: siteId, itemId: itemId}),
+      data: JSON.stringify({siteId: siteId, itemId: itemId, quantity: quantity}),
       contentType: 'application/json',
       dataType: 'json',
       cache: false,
