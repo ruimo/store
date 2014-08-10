@@ -1,5 +1,8 @@
 package controllers
 
+import scala.annotation.tailrec
+import scala.collection.immutable
+import java.io.InputStream
 import play.api.mvc.Security.Authenticated
 import controllers.I18n.I18nAware
 import play.api.mvc.Controller
@@ -53,15 +56,8 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   lazy val notfoundPathForProduction = notfoundPathForTesting
   def notfoundPathForTesting = {
     val path = picturePath.resolve("notfound.jpg")
-    if (Files.isReadable(path)) {
-      logger.info("Not found picture '" + path.toAbsolutePath + "' will be used.")
-      path
-    }
-    else  {
-      val p = Paths.get("public/images/notfound.jpg")
-      logger.warn("File '" + path.toAbsolutePath + "' not found. '" + p.toAbsolutePath + "' will be used for not found picture instead.")
-      p
-    }
+    logger.info("Not found picture '" + path.toAbsolutePath + "' will be used.")
+    path
   }
   def detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
   lazy val attachmentCount = config.getInt("item.attached.file.count").getOrElse(5)
@@ -145,7 +141,16 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
 
   def getPicture(itemId: Long, no: Int) = Action { request =>
     val path = getPath(itemId, no)
-    if (isModified(path, request)) readFile(path) else NotModified
+    if (Files.isReadable(path)) {
+      if (isModified(path, request)) readFile(path) else NotModified
+    }
+    else {
+      config.getBoolean("item.picture.for.demo").map {
+        b => if (b) {
+          readPictureFromClasspath(itemId, no)
+        } else Results.NotFound
+      }.getOrElse(Results.NotFound)
+    }
   }
 
   def getPath(itemId: Long, no: Int): Path = {
@@ -173,8 +178,85 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
 
   def readFile(path: Path, contentType: String = "image/jpeg", fileName: Option[String] = None): Result = {
     val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
-    val byteArray = source.map(_.toByte).toArray
-    source.close()
+    val byteArray = try {
+      source.map(_.toByte).toArray
+    }
+    finally {
+      try {
+        source.close()
+      }
+      catch {
+        case t: Throwable => logger.error("Cannot close stream.", t)
+      }
+    }
+
+    bytesResult(byteArray, contentType, fileName)
+  }
+
+  def readPictureFromClasspath(itemId: Long, no: Int, contentType: String = "image/jpeg"): Result = {
+    val fileName = "public/images/itemPictures/" + itemPictureName(itemId, no)
+    val result = readFileFromClasspath(fileName, contentType)
+    if (result == Results.NotFound) {
+      readFileFromClasspath("public/images/notfound.jpg", contentType)
+    }
+    else {
+      result
+    }
+  }
+
+  def readDetailPictureFromClasspath(itemId: Long, contentType: String = "image/jpeg"): Result = {
+    val fileName = "public/images/itemPictures/" + detailPictureName(itemId)
+    val result = readFileFromClasspath(fileName, contentType)
+    if (result == Results.NotFound) {
+      readFileFromClasspath("public/images/detailnotfound.jpg", contentType)
+    }
+    else {
+      result
+    }
+  }
+
+  def readFileFromClasspath(fileName: String, contentType: String): Result = {
+    Option(getClass.getClassLoader.getResourceAsStream(fileName)) match {
+      case None => Results.NotFound
+      case Some(is) =>
+        val byteArray = try {
+          readFully(is)
+        }
+      finally {
+        try {
+          is.close()
+        }
+        catch {
+          case t: Throwable => logger.error("Cannot close stream.", t)
+        }
+      }
+
+      bytesResult(byteArray, contentType, None)
+    }
+  }
+
+  def readFully(is: InputStream): Array[Byte] = {
+    @tailrec def readFully(size: Int, work: immutable.Vector[(Int, Array[Byte])]): Array[Byte] = {
+      val buf = new Array[Byte](64 * 1024)
+      val readLen = is.read(buf)
+      if (readLen == -1) {
+        var offset = 0
+        work.foldLeft(new Array[Byte](size)) {
+          (ary, e) => 
+            System.arraycopy(e._2, 0, ary, offset, e._1)
+            offset = offset + e._1
+            ary
+        }
+      }
+      else {
+        readFully(size + readLen, work :+ (readLen, buf))
+      }
+    }
+
+    readFully(0, immutable.Vector[(Int, Array[Byte])]())
+  }
+
+  def bytesResult(byteArray: Array[Byte], contentType: String, fileName: Option[String]): Result = {
     fileName match {
       case None =>
         Ok(byteArray).as(contentType).withHeaders(
@@ -191,7 +273,14 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
 
   def getDetailPicture(itemId: Long) = Action { request =>
     val path = getDetailPath(itemId)
-    if (isModified(path, request)) readFile(path) else NotModified
+    if (Files.isReadable(path)) {
+      if (isModified(path, request)) readFile(path) else NotModified
+    }
+    else {
+      config.getBoolean("item.picture.for.demo").map {
+        b => if (b) readDetailPictureFromClasspath(itemId) else Results.NotFound
+      }.getOrElse(Results.NotFound)
+    }
   }
 
   def getDetailPath(itemId: Long): Path = {
@@ -241,8 +330,10 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
-  def toPath(itemId: Long, no: Int) = picturePath.resolve(itemId + "_" + no + ".jpg")
-  def toDetailPath(itemId: Long) = picturePath.resolve("detail" + itemId + ".jpg")
+  def toPath(itemId: Long, no: Int) = picturePath.resolve(itemPictureName(itemId, no))
+  def itemPictureName(itemId: Long, no: Int) = itemId + "_" + no + ".jpg"
+  def detailPictureName(itemId: Long) = "detail" + itemId + ".jpg"
+  def toDetailPath(itemId: Long) = picturePath.resolve(detailPictureName(itemId))
   def toAttachmentPath(itemId: Long, idx: Int, fileName: String) = attachmentPath.resolve(itemId + "_" + idx + "_" + fileName)
 
   def getItemAttachment(itemId: Long, no: Int, fileName: String) = Action { request =>
