@@ -145,11 +145,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       if (isModified(path, request)) readFile(path) else NotModified
     }
     else {
-      config.getBoolean("item.picture.for.demo").map {
-        b => if (b) {
-          readPictureFromClasspath(itemId, no)
-        } else Results.NotFound
-      }.getOrElse(Results.NotFound)
+      readPictureFromClasspath(itemId, no)
     }
   }
 
@@ -194,8 +190,12 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }
 
   def readPictureFromClasspath(itemId: Long, no: Int, contentType: String = "image/jpeg"): Result = {
-    val fileName = "public/images/itemPictures/" + itemPictureName(itemId, no)
-    val result = readFileFromClasspath(fileName, contentType)
+    val result = if (config.getBoolean("item.picture.for.demo").getOrElse(false)) {
+      val fileName = "public/images/itemPictures/" + itemPictureName(itemId, no)
+      readFileFromClasspath(fileName, contentType)
+    }
+    else Results.NotFound
+
     if (result == Results.NotFound) {
       readFileFromClasspath("public/images/notfound.jpg", contentType)
     }
@@ -205,8 +205,12 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   }
 
   def readDetailPictureFromClasspath(itemId: Long, contentType: String = "image/jpeg"): Result = {
-    val fileName = "public/images/itemPictures/" + detailPictureName(itemId)
-    val result = readFileFromClasspath(fileName, contentType)
+    val result = if (config.getBoolean("item.picture.for.demo").getOrElse(false)) {
+      val fileName = "public/images/itemPictures/" + detailPictureName(itemId)
+      readFileFromClasspath(fileName, contentType)
+    }
+    else Results.NotFound
+
     if (result == Results.NotFound) {
       readFileFromClasspath("public/images/detailnotfound.jpg", contentType)
     }
@@ -277,9 +281,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       if (isModified(path, request)) readFile(path) else NotModified
     }
     else {
-      config.getBoolean("item.picture.for.demo").map {
-        b => if (b) readDetailPictureFromClasspath(itemId) else Results.NotFound
-      }.getOrElse(Results.NotFound)
+      readDetailPictureFromClasspath(itemId)
     }
   }
 
