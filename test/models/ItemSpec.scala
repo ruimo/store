@@ -9,6 +9,7 @@ import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
 import java.util.Locale
+import helpers.Helper.doWith
 
 import java.sql.Date.{valueOf => date}
 import helpers.QueryString
@@ -335,6 +336,149 @@ class ItemSpec extends Specification {
           list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 400
           list1(3)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
           list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
+        }}
+      }
+    }
+
+    "List item for maintenance." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          import LocaleInfo._
+          TestHelper.removePreloadedRecords()
+
+          val tax = Tax.createNew
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        
+          storeItems(tax, site1, site2)
+
+          val time = date("2013-01-04").getTime
+
+          val pages = Item.listForMaintenance(
+            siteUser = None,
+            locale = LocaleInfo.Ja,
+            queryString = QueryString(),
+            now = time
+          )
+          pages.pageCount === 1
+          pages.currentPage === 0
+          pages.pageSize === 10
+          val list1 = pages.records
+          list1.size === 5
+
+          list1(0)._2.get.name === "もみじ"
+          list1(1)._2.get.name === "杉"
+          list1(2)._2.get.name === "桃"
+          list1(3)._2.get.name === "桜"
+          list1(4)._2.get.name === "梅"
+
+          list1(0)._3.get.description === "もみじ説明"
+          list1(1)._3.get.description === "杉説明"
+          list1(2)._3.get.description === "桃説明"
+          list1(3)._3.get.description === "桜説明"
+          list1(4)._3.get.description === "梅説明"
+
+          doWith(list1(0)._5) { optPriceHistory =>
+            optPriceHistory.get.taxId === tax.id.get
+            optPriceHistory.get.currency === CurrencyInfo.Jpy
+            optPriceHistory.get.unitPrice === BigDecimal(2000)
+          }
+
+          doWith(list1(1)._5) { optPriceHistory =>
+            optPriceHistory.get.taxId === tax.id.get
+            optPriceHistory.get.currency === CurrencyInfo.Jpy
+            optPriceHistory.get.unitPrice === BigDecimal(101)
+          }
+
+          doWith(list1(2)._5) { optPriceHistory =>
+            optPriceHistory.get.taxId === tax.id.get
+            optPriceHistory.get.currency === CurrencyInfo.Jpy
+            optPriceHistory.get.unitPrice === BigDecimal(1200)
+          }
+
+          doWith(list1(3)._5) { optPriceHistory =>
+            optPriceHistory.get.taxId === tax.id.get
+            optPriceHistory.get.currency === CurrencyInfo.Jpy
+            optPriceHistory.get.unitPrice === BigDecimal(501)
+          }
+
+          doWith(list1(4)._5) { optPriceHistory =>
+            optPriceHistory.get.taxId === tax.id.get
+            optPriceHistory.get.currency === CurrencyInfo.Jpy
+            optPriceHistory.get.unitPrice === BigDecimal(301)
+          }
+
+          list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+          list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+          list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 400
+          list1(3)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
+          list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
+
+          doWith(
+            Item.listForMaintenance(
+              siteUser = None,
+              locale = LocaleInfo.En,
+              queryString = QueryString(),
+              now = time
+            )
+          ) { pages =>
+            pages.pageCount === 1
+            pages.currentPage === 0
+            pages.pageSize === 10
+            
+            doWith(pages.records) { list =>
+              list.size === 5
+              
+              list(0)._2.get.name === "Cedar"
+              list(1)._2.get.name === "Cherry"
+              list(2)._2.get.name === "Maple"
+              list(3)._2.get.name === "Peach"
+              list(4)._2.get.name === "Ume"
+
+              list(0)._3 === None
+              list(1)._3 === None
+              list(2)._3 === None
+              list(3)._3 === None
+              list(4)._3 === None
+
+              doWith(list(0)._5) { optPriceHistory =>
+                optPriceHistory.get.taxId === tax.id.get
+                optPriceHistory.get.currency === CurrencyInfo.Jpy
+                optPriceHistory.get.unitPrice === BigDecimal(101)
+              }
+
+              doWith(list(1)._5) { optPriceHistory =>
+                optPriceHistory.get.taxId === tax.id.get
+                optPriceHistory.get.currency === CurrencyInfo.Jpy
+                optPriceHistory.get.unitPrice === BigDecimal(501)
+              }
+
+              doWith(list(2)._5) { optPriceHistory =>
+                optPriceHistory.get.taxId === tax.id.get
+                optPriceHistory.get.currency === CurrencyInfo.Jpy
+                optPriceHistory.get.unitPrice === BigDecimal(2000)
+              }
+
+              doWith(list(3)._5) { optPriceHistory =>
+                optPriceHistory.get.taxId === tax.id.get
+                optPriceHistory.get.currency === CurrencyInfo.Jpy
+                optPriceHistory.get.unitPrice === BigDecimal(1200)
+              }
+
+              doWith(list(4)._5) { optPriceHistory =>
+                optPriceHistory.get.taxId === tax.id.get
+                optPriceHistory.get.currency === CurrencyInfo.Jpy
+                optPriceHistory.get.unitPrice === BigDecimal(301)
+              }
+
+              list(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+              list(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
+              list(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+              list(3)._6(ItemNumericMetadataType.HEIGHT).metadata === 400
+              list(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
+            }
+          }
         }}
       }
     }
