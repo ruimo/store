@@ -69,11 +69,12 @@ object Item {
     )
   }
 
-  val itemListForMaintenanceParser = Item.simple~ItemName.simple~ItemDescription.simple~(ItemPriceHistory.simple ?)~(Site.simple ?) map {
-    case item~itemName~itemDescription~itemPrice~site => (
-      item, itemName, itemDescription, itemPrice, site
-    )
-  }
+  val itemListForMaintenanceParser = 
+    Item.simple~(ItemName.simple ?)~(ItemDescription.simple ?)~(ItemPriceHistory.simple ?)~(Site.simple ?) map {
+      case item~itemName~itemDescription~itemPrice~site => (
+        item, itemName, itemDescription, itemPrice, site
+      )
+    }
 
   def apply(id: Long)(implicit conn: Connection): Item =
     SQL(
@@ -142,31 +143,33 @@ object Item {
   )(
     implicit conn: Connection
   ): PagedRecords[(
-    Item, ItemName, ItemDescription, Option[Site], Option[ItemPriceHistory],
+    Item, Option[ItemName], Option[ItemDescription], Option[Site], Option[ItemPriceHistory],
     Map[ItemNumericMetadataType, ItemNumericMetadata],
     Option[Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
     Map[ItemTextMetadataType, ItemTextMetadata]
   )] = {
     val sqlBody = """
-      inner join item_name on item.item_id = item_name.item_id
-      inner join item_description on item.item_id = item_description.item_id
+      left join item_name on item.item_id = item_name.item_id and item_name.locale_id = {localeId}
+      left join item_description on item.item_id = item_description.item_id and item_description.locale_id = {localeId}
       left join item_price on item.item_id = item_price.item_id 
       left join item_price_history on item_price.item_price_id = item_price_history.item_price_id
       left join site_item on item.item_id = site_item.item_id and item_price.site_id = site_item.site_id
       left join site on site_item.site_id = site.site_id
-      where item_name.locale_id = {localeId}
+      where 1 = 1
     """ + 
     siteUser.map { "  and site.site_id = " + _.siteId }.getOrElse("") +
     """
-      and item_description.locale_id = {localeId}
-      and (item_price_history.item_price_history_id is null) or item_price_history.item_price_history_id = (
-        select iph.item_price_history_id
-        from item_price_history iph
-        where
-          iph.item_price_id = item_price.item_price_id and
-          iph.valid_until > {now}
-          order by iph.valid_until
-          limit 1
+      and (
+        (item_price_history.item_price_history_id is null)
+        or item_price_history.item_price_history_id = (
+          select iph.item_price_history_id
+          from item_price_history iph
+          where
+            iph.item_price_id = item_price.item_price_id and
+            iph.valid_until > {now}
+            order by iph.valid_until
+            limit 1
+        )
       )
     """ +
     createQueryConditionSql(queryString)
@@ -337,7 +340,9 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])]  =
+  ): Seq[
+    (Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])
+  ]  =
     SQL(
       """
       select * from item

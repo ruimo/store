@@ -2,8 +2,8 @@
   queryString: helpers.QueryString,
   list: PagedRecords[(
     Item,
-    ItemName,
-    ItemDescription,
+    Option[ItemName],
+    Option[ItemDescription],
     Option[Site],
     Option[ItemPriceHistory],
     Map[ItemNumericMetadataType, ItemNumericMetadata],
@@ -64,7 +64,7 @@
     @list.records.map { e =>
     <tr class="itemTableBody">
       <td class="itemTableItemId"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get)">@e._1.id</a></td>
-      <td class="itemTableItemName">@e._2.name</td>
+      <td class="itemTableItemName">@e._2.map(_.name).getOrElse("-")</td>
       <td class="itemTableSiteName">@e._4.map(_.name).getOrElse("-")</td>
       <td class="itemTablePrice">@e._5.map {p => @amount(p.unitPrice)}.getOrElse("-")</td>
     </tr>
