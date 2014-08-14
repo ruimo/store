@@ -43,7 +43,7 @@ trait NeedLogin extends Controller with HasLogger {
   def loginSession(implicit request: RequestHeader, conn: Connection):
     Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
 
-  def retrieveLoginSession(request: RequestHeader) = DB.withConnection{conn =>
+  def retrieveLoginSession(request: RequestHeader) = DB.withConnection { conn =>
     loginSession(request, conn)
   }
 
@@ -64,7 +64,11 @@ trait NeedLogin extends Controller with HasLogger {
       }
       case _ => {
         logger.info("User table is not empty. Go to login page.")
-        Redirect(routes.Admin.startLogin(request.uri))
+        val urlAfterLogin = if (request.method.equalsIgnoreCase("get"))
+          routes.Admin.startLogin(request.uri)
+        else
+          routes.Application.index
+        Redirect(urlAfterLogin)
       }
     }
   }}
@@ -77,7 +81,17 @@ trait NeedLogin extends Controller with HasLogger {
       }
       case _ => {
         logger.info("Json: User table is not empty. Go to login page.")
-        Unauthorized(Json.toJson(Map("status" -> "Redirect", "url" -> routes.Admin.startLogin(request.uri).url)))
+        val urlAfterLogin: String = 
+          request.getQueryString("urlAfterLogin").getOrElse(routes.Application.index.url)
+
+        Unauthorized(
+          Json.toJson(
+            Map(
+              "status" -> "Redirect",
+              "url" -> routes.Admin.startLogin(urlAfterLogin).url
+            )
+          )
+        )
       }
     }
   }}

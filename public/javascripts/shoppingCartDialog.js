@@ -148,7 +148,8 @@ var shoppingCartDialog = {
 
     $.ajax({
       type: 'post',
-      url: self.arg.addToShoppingCardJsonUrl,
+      url: self.arg.addToShoppingCardJsonUrl + "&urlAfterLogin=" + 
+        self.arg.addToShoppingCartUrl.replace('111', siteId).replace('222', itemId).replace('333', quantity),
       data: JSON.stringify({siteId: siteId, itemId: itemId, quantity: quantity}),
       contentType: 'application/json',
       dataType: 'json',

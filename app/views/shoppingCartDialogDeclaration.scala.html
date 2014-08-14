@@ -24,6 +24,7 @@
         closeButtonTitle: '@Messages("close")'
       },
       addToShoppingCardJsonUrl: '@helper.CSRF(routes.ShoppingCart.addToCartJson)',
+      addToShoppingCartUrl: escape('@routes.Purchase.addToCart(111, 222, 333)'),
       addOrderHistoryJsonUrl: '@helper.CSRF(routes.ShoppingCart.addOrderHistoryJson)',
       recommendByShoppingCartJsonUrl: '@routes.Recommendation.byShoppingCartJson()',
       itemImageUrl: '@routes.ItemPictures.getPicture(111, 0)',

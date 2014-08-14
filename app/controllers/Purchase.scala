@@ -8,9 +8,9 @@ import play.api.Play.current
 import controllers.I18n.I18nAware
 
 object Purchase extends Controller with NeedLogin with HasLogger with I18nAware {
-  def addToCart(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
+  def addToCart(siteId: Long, itemId: Long, quantity: Int) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn => {
-      val cartItem = ShoppingCartItem.addItem(login.userId, siteId, itemId, 1)
+      val cartItem = ShoppingCartItem.addItem(login.userId, siteId, itemId, quantity)
       Redirect(routes.Purchase.showShoppingCart())
     }}
   }
