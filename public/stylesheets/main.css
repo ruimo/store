@@ -293,6 +293,10 @@ tr.userTableBody {
   text-align: right;
 }
 
+.boxUnitPrice {
+  text-align: right;
+}
+
 .boxQuantity {
   text-align: right;
 }
@@ -550,6 +554,10 @@ tr.siteTableBody {
     text-align: right;
 }
 
+.accountingBillTable td.unitPrice {
+    text-align: right;
+}
+
 .accountingBillTable td.boxCount {
     text-align: right;
 }
@@ -566,12 +574,12 @@ tr.siteTableBody {
     text-align: right;
 }
 
-.accountingBillTable .subtotal.header {
-    text-align: left;
+.accountingBillTable td.subtotal {
+    text-align: right;
 }
 
 .accountingBillTable .tax.header {
-    text-align: left;
+    text-align: right;
 }
 
 .accountingBillHeaderTable {

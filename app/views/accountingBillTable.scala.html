@@ -32,7 +32,7 @@
 @summaries.map { e =>
   <table class="accountingBillTable">
     <tr>
-      <td colspan="3">
+      <td colspan="4">
         <table class="accountingBillHeaderTable">
           <tr>
             <td class="tranId">@e.transactionId</td>
@@ -43,7 +43,7 @@
       </td>
     </tr>
     <tr>
-      <td class="transactionStatus" colspan="3">
+      <td class="transactionStatus" colspan="4">
         <span class="status">
           @Messages("transaction.status." + e.status)
         </span>
@@ -53,7 +53,7 @@
       </td>
     </tr>
     <tr>
-      <td class="address zip" colspan="3">
+      <td class="address zip" colspan="4">
         <table>
           @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
         </table>
@@ -61,20 +61,23 @@
     </tr>
     <tr>
       <th class="itemName header">@Messages("itemName")</th>
+      <th class="quantity header">@Messages("unitPrice")</th>
       <th class="quantity header">@Messages("quantity")</th>
       <th class="price header">@Messages("price")</th>
     </tr>
     @detailByTranSiteId(e.transactionSiteId).map { t =>
       <tr>
         <td class="itemName body">@t.itemName</td>
+        <td class="unitPrice body">@amount(t.unitPrice)</td>
         <td class="quantity body">@t.quantity</td>
         <td class="price body">@amount(itemPrice(t))</td>
       </tr>
     }
 
     <tr>
-      <td></td>
       <td class="subtotal header">@Messages("subtotal")</td>
+      <td></td>
+      <td></td>
       <td class="subtotal body">@amount(itemSubtotal(siteTranByTranId(e.transactionId))(e.siteId))</td>
     </tr>
 
@@ -83,26 +86,30 @@
     ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
       <tr>
         <td class="boxName body">@box.boxName</td>
+        <td class="boxUnitPrice body">@amount(box.amount / box.boxCount)</td>
         <td class="boxCount body">@box.boxCount</td>
         <td class="boxPrice body">@amount(box.amount)</td>
       </tr>
     }
 
     <tr>
-      <td></td>
       <td class="subtotal header">@Messages("fee.total")</td>
+      <td></td>
+      <td></td>
       <td class="subtotal box body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
     </tr>
 
     <tr>
-      <td></td>
       <td class="tax header">@Messages("outer.tax.amount")</td>
+      <td></td>
+      <td></td>
       <td class="tax body">@amount(outerTaxTotal(e.siteId, siteTranByTranId(e.transactionId)))</td>
     </tr>
 
     <tr>
-      <td></td>
       <td class="total header">@Messages("total")</td>
+      <td></td>
+      <td></td>
       <td class="total body">@amount(total(e.siteId, siteTranByTranId(e.transactionId)))</td>
     </tr>
   </table>    
