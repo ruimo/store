@@ -1,0 +1,23 @@
+@()(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("recommendationByAdminTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("recommendationByAdminTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.RecommendationByAdmin.selectItem(List())">
+      @Messages("createNewRecommendationByAdminTitle")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.RecommendationByAdmin.startEdit()">
+      @Messages("startEditRecommendationByAdminTitle")
+    </a>
+  </div>
+}

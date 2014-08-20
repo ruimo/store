@@ -71,4 +71,8 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
       }
     }
   }
+
+  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    Ok(views.html.admin.recommendationMenu())
+  }}
 }

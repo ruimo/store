@@ -159,5 +159,10 @@ POST    /querySql                        controllers.DirectSql.query()
 GET     /recommendByItemJson             controllers.Recommendation.byItemJson(siteId: Long, itemId: Long)
 GET     /recommendByShoppingCartJson     controllers.Recommendation.byShoppingCartJson()
 
+GET     /admin/recommend                 controllers.Recommendation.index
+GET     /admin/startEditRecommendByAdmin controllers.RecommendationByAdmin.startEditRecommendByAdmin
+GET     /admin/startEditRecommendByAdmin controllers.RecommendationByAdmin.startEdit
+GET     /admin/createRecommendByAdmin    controllers.RecommendationByAdmin.selectItem(q: List[String], page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "item_name.item_name")
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
