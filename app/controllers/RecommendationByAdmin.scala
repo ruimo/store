@@ -42,4 +42,12 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
   def startEdit = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Ok("")
   }}
+
+
+  def addRecommendation(
+    siteId: Long, itemId: Long
+  ) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+println("siteId = " + siteId + ", itemId = " + itemId)
+    Ok("")
+  }}
 }
