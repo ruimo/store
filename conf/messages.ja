@@ -370,3 +370,4 @@ createNewRecommendationByAdminDescription=商品を検索して、レコメン�
 startEditRecommendationByAdminTitle=管理者によるレコメンドの変更
 score=スコア
 enabled=有効
+recommendationIdRemoved=レコメンド レコードが削除されました

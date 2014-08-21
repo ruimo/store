@@ -2,6 +2,7 @@
   list: PagedRecords[(RecommendByAdmin, Option[ItemName], Option[Site])]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
   lang: Lang,
   request: RequestHeader,
   login: LoginSession
@@ -11,24 +12,42 @@
 
 @main(Messages("startEditRecommendationByAdminTitle"), Some(login), contentCssClass = "adminContents") {
 } {
-<h1 class="title">@Messages("startEditRecommendationByAdminTitle")</h1>
+  <h1 class="title">@Messages("startEditRecommendationByAdminTitle")</h1>
 
-<table class="recommendationByAdminTable">
-  <tr class="recommendationByAdminTable header">
-    <th class="siteName">@Messages("siteName")</th>
-    <th class="itemName">@Messages("itemName")</th>
-    <th class="score">@Messages("score")</th>
-    <th class="enabled">@Messages("enabled")</th>
-  </tr>
-  @list.records.map { e =>
-    <tr class="recommendationByAdminTable body">
-      <td class="siteName">@e._3.map(_.name).getOrElse("-")</td>
-      <td class="itemName">@e._2.map(_.name).getOrElse("-")</td>
-      <td class="score">@e._1.score</td>
-      <td class="enabled">@e._1.enabled</td>
-    </tr>
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
   }
-</table>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  <table class="recommendationByAdminTable">
+    <tr class="recommendationByAdminTable header">
+      <th class="siteName">@Messages("siteName")</th>
+      <th class="itemName">@Messages("itemName")</th>
+      <th class="score">@Messages("score")</th>
+      <th class="enabled">@Messages("enabled")</th>
+    </tr>
+    @list.records.map { e =>
+      <tr class="recommendationByAdminTable body">
+        <td class="siteName">
+          <form id="removeRecommendationByAdminForm" method="POST"
+                action="@helper.CSRF(routes.RecommendationByAdmin.removeRecommendation(e._1.id.get))">
+            <input type="submit" value="@Messages("remove")">
+          </form>
+          @e._3.map(_.name).getOrElse("-")
+        </td>
+        <td class="itemName">@e._2.map(_.name).getOrElse("-")</td>
+        <td class="score">@e._1.score</td>
+        <td class="enabled">@e._1.enabled</td>
+      </tr>
+    }
+  </table>
 
   @defining(Some(login)) { implicit loginSession =>
     @pagingPanel(
@@ -37,4 +56,14 @@
       10, 25, 50
     )
   }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.RecommendationByAdmin.startEditRecommendByAdmin()">
+      @Messages("backTo", Messages("recommendationByAdminTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
 }

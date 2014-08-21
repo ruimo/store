@@ -1,5 +1,9 @@
 package controllers
 
+import play.api.data.format.Formats._
+import play.api.data.Form
+import play.api.data.Forms
+import play.api.data.Forms._
 import play.api.i18n.Messages
 import play.api.i18n.Lang
 import play.api.db.DB
@@ -24,6 +28,14 @@ import models._
 object RecommendationByAdmin extends Controller with NeedLogin with HasLogger with I18nAware {
   def config = play.api.Play.maybeApplication.map(_.configuration).get
   def maxRecord: Int = config.getInt("recommendByAdmin.maxRecordCount").getOrElse(10)
+
+  val changeRecordForm = Form(
+    mapping(
+      "id" -> longNumber,
+      "score" -> longNumber(min = 0),
+      "enabled" -> boolean
+    )(ChangeRecommendationByAdmin.apply)(ChangeRecommendationByAdmin.unapply)
+  )
 
   def startEditRecommendByAdmin = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Ok(views.html.admin.recommendationByAdminMenu())
@@ -74,6 +86,17 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
             "errorMessage" -> Messages("unique.constraint.violation")
           )
       }
+    }}
+  }}
+
+  def removeRecommendation(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    DB.withConnection { implicit conn => {
+      RecommendByAdmin.remove(id)
+      Redirect(
+          routes.RecommendationByAdmin.startUpdate()
+        ).flashing(
+          "message" -> Messages("recommendationIdRemoved")
+        )
     }}
   }}
 }
