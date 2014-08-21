@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.i18n.Messages
 import play.api.i18n.Lang
 import play.api.db.DB
 import play.api.mvc.Controller
@@ -21,6 +22,9 @@ import helpers.QueryString
 import models._
 
 object RecommendationByAdmin extends Controller with NeedLogin with HasLogger with I18nAware {
+  def config = play.api.Play.maybeApplication.map(_.configuration).get
+  def maxRecord: Int = config.getInt("recommendByAdmin.maxRecordCount").getOrElse(10)
+
   def startEditRecommendByAdmin = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Ok(views.html.admin.recommendationByAdminMenu())
   }}
@@ -39,15 +43,37 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
     }}
   }}
 
-  def startEdit = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok("")
+  def startUpdate(
+    page: Int, pageSize: Int, orderBySpec: String
+  ) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    DB.withConnection { implicit conn => {
+      val records = RecommendByAdmin.listByScore(
+        true, LocaleInfo.getDefault(lang), page, pageSize
+      )
+      Ok(views.html.admin.editRecommendationByAdmin(records))
+    }}
   }}
-
 
   def addRecommendation(
     siteId: Long, itemId: Long
   ) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-println("siteId = " + siteId + ", itemId = " + itemId)
-    Ok("")
+    DB.withConnection { implicit conn => {
+      try {
+        RecommendByAdmin.createNew(siteId, itemId)
+        Redirect(
+          routes.RecommendationByAdmin.selectItem(List())
+        ).flashing(
+          "message" -> Messages("itemIsCreated")
+        )
+      }
+      catch {
+        case e: UniqueConstraintException =>
+          Redirect(
+            routes.RecommendationByAdmin.selectItem(List())
+          ).flashing(
+            "errorMessage" -> Messages("unique.constraint.violation")
+          )
+      }
+    }}
   }}
 }

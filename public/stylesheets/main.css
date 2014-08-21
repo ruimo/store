@@ -427,12 +427,26 @@ table.siteTable {
     background-color: DarkGreen;
 }
 
+table.recommendationByAdminTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
 tr.siteTableHeader {
     background-color: DarkGreen;
     color: White;
 }
 
+tr.recommendationByAdminTable.header {
+    background-color: DarkGreen;
+    color: White;
+}
+
 tr.siteTableBody {
+    background-color: white;
+}
+
+tr.recommendationByAdminTable.body {
     background-color: white;
 }
 
@@ -669,4 +683,8 @@ tr.siteTableBody {
 .recommendedItem .itemName {
   max-width: 200px;
   max-height:200px;
+}
+
+.body .score {
+  text-align: right;
 }

@@ -368,3 +368,5 @@ editRecommendByAdminTitle=管理者によるレコメンドの編集
 createNewRecommendationByAdminTitle=管理者によるレコメンドの新規作成
 createNewRecommendationByAdminDescription=商品を検索して、レコメンド対象を選択してください。
 startEditRecommendationByAdminTitle=管理者によるレコメンドの変更
+score=スコア
+enabled=有効

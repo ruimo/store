@@ -34,25 +34,27 @@ object RecommendByAdmin {
     ).as(simple.single)
 
   def createNew(
-    siteId: Long, itemId: Long, score: Double, enabled: Boolean
+    siteId: Long, itemId: Long, score: Double = 1, enabled: Boolean = true
   )(
     implicit conn: Connection
   ): RecommendByAdmin = {
-    SQL(
-      """
-      insert into recommend_by_admin (
-        recommend_by_admin_id, site_id, item_id, score, enabled
-      ) values (
-        (select nextval('recommend_by_admin_seq')),
+    ExceptionMapper.mapException {
+      SQL(
+        """
+        insert into recommend_by_admin (
+          recommend_by_admin_id, site_id, item_id, score, enabled
+        ) values (
+          (select nextval('recommend_by_admin_seq')),
         {site_id}, {item_id}, {score}, {enabled}
-      )
-      """
-    ).on(
-      'site_id -> siteId,
-      'item_id -> itemId,
-      'score -> score,
-      'enabled -> enabled
-    ).executeUpdate()
+        )
+        """
+      ).on(
+        'site_id -> siteId,
+        'item_id -> itemId,
+        'score -> score,
+        'enabled -> enabled
+      ).executeUpdate()
+    }
 
     val id = SQL("select currval('recommend_by_admin_seq')").as(SqlParser.scalar[Long].single)
     RecommendByAdmin(Some(id), siteId, itemId, score, enabled)
@@ -64,11 +66,45 @@ object RecommendByAdmin {
     SqlParser.scalar[Long].single
   )
 
-  def listByScore(showDisabled: Boolean = true)(implicit conn: Connection): Seq[RecommendByAdmin] = SQL(
-    "select * from recommend_by_admin " +
-    (if (showDisabled) "" else "where enabled = true") +
-    "  order by score desc"
-  ).as(RecommendByAdmin.simple *)
+  val listParser = RecommendByAdmin.simple~(ItemName.simple?)~(Site.simple?) map {
+    case recommend~itemName~site => (
+      recommend, itemName, site
+    )
+  }
+
+  def listByScore(
+    showDisabled: Boolean = true, locale: LocaleInfo,
+    page: Int = 0, pageSize: Int = 10
+  )(implicit conn: Connection): PagedRecords[(RecommendByAdmin, Option[ItemName], Option[Site])] = {
+    val baseSql = """
+      from recommend_by_admin
+      left join item_name on recommend_by_admin.item_id = item_name.item_id and item_name.locale_id = {localeId}
+      left join site on recommend_by_admin.site_id = site.site_id
+    """ +
+    (if (showDisabled) "" else "where enabled = true")
+
+    val records = SQL(
+      "select * " + baseSql +
+      "  order by score desc" +
+      "  limit {pageSize} offset {offset}"
+    ).on(
+      'localeId -> locale.id,
+      'pageSize -> pageSize,
+      'offset -> page * pageSize
+    ).as(
+      listParser *
+    )
+
+    val count = SQL(
+      "select count(*) " + baseSql
+    ).on(
+      'localeId -> locale.id
+    ).as(
+      SqlParser.scalar[Long].single
+    ) 
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, OrderBy("score", Desc), records)
+  }
 
   def remove(id: Long)(implicit conn: Connection) {
     SQL("delete from recommend_by_admin where recommend_by_admin_id = {id}").on('id -> id).executeUpdate()

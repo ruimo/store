@@ -161,7 +161,7 @@ GET     /recommendByShoppingCartJson     controllers.Recommendation.byShoppingCa
 
 GET     /admin/recommend                 controllers.Recommendation.index
 GET     /admin/startEditRecommendByAdmin controllers.RecommendationByAdmin.startEditRecommendByAdmin
-GET     /admin/startEditRecommendByAdmin controllers.RecommendationByAdmin.startEdit
+GET     /admin/startUpdateRecommendByAdmin controllers.RecommendationByAdmin.startUpdate(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "recommend_by_admin.score")
 GET     /admin/createRecommendByAdmin    controllers.RecommendationByAdmin.selectItem(q: List[String], page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "item_name.item_name")
 POST    /admin/addRecommendationByAdmin  controllers.RecommendationByAdmin.addRecommendation(siteId: Long, itemId: Long)
 

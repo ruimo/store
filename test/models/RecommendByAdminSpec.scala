@@ -61,6 +61,7 @@ class RecommendByAdminSpec extends Specification {
             Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
           )
           val item1 = Item.createNew(cat1)
+          val itemName1 = ItemName.createNew(item1, Map(LocaleInfo.Ja -> "Item1"))
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
           val cat2 = Category.createNew(
             Map(LocaleInfo.Ja -> "植木2", LocaleInfo.En -> "Plant2")
@@ -71,17 +72,27 @@ class RecommendByAdminSpec extends Specification {
           val rec1 = RecommendByAdmin.createNew(site1.id.get, item1.id.get, 123, true)
           val rec2 = RecommendByAdmin.createNew(site2.id.get, item2.id.get, 100, true)
           val rec3 = RecommendByAdmin.createNew(site2.id.get, item3.id.get, 105, false)
-          doWith(RecommendByAdmin.listByScore(showDisabled = false)) { list =>
-            list.size === 2
-            list(0) === rec1
-            list(1) === rec2
+          doWith(RecommendByAdmin.listByScore(showDisabled = false, locale = LocaleInfo.Ja)) { list =>
+            list.records.size === 2
+            list.records(0)._1 === rec1
+            list.records(0)._2 === Some(itemName1(LocaleInfo.Ja))
+            list.records(0)._3 === Some(site1)
+            list.records(1)._1 === rec2
+            list.records(1)._2 === None
+            list.records(1)._3 === Some(site2)
           }
 
-          doWith(RecommendByAdmin.listByScore(showDisabled = true)) { list =>
-            list.size === 3
-            list(0) === rec1
-            list(1) === rec3
-            list(2) === rec2
+          doWith(RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja)) { list =>
+            list.records.size === 3
+            list.records(0)._1 === rec1
+            list.records(0)._2 === Some(itemName1(LocaleInfo.Ja))
+            list.records(0)._3 === Some(site1)
+            list.records(1)._1 === rec3
+            list.records(1)._2 === None
+            list.records(1)._3 === Some(site2)
+            list.records(2)._1 === rec2
+            list.records(2)._2 === None
+            list.records(2)._3 === Some(site2)
           }
         }
       }

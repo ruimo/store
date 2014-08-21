@@ -12,6 +12,7 @@
   )]
 )(
   implicit lang: Lang,
+  flash: play.api.mvc.Flash,
   request: RequestHeader,
   login: LoginSession
 )
@@ -21,6 +22,18 @@
   <h1 class="title">@Messages("createNewRecommendationByAdminTitle")</h1>
 
   <p class="createNewRecommendation description">@Messages("createNewRecommendationByAdminDescription")</p>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
 
   @helper.form(action=routes.RecommendationByAdmin.selectItem(queryString.table.toList)) {
     <input id="searchBox" type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString.toString">

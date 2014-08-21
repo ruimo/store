@@ -338,3 +338,5 @@ editRecommendByAdminTitle=Edit recommendation by admin
 createNewRecommendationByAdminTitle=Create recommendation by admin
 createNewRecommendationByAdminDescription=Query item and select one of them as recommendation.
 startEditRecommendationByAdminTitle=Update recommendation by admin
+score=Score
+enabled=Enabled
