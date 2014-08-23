@@ -66,7 +66,7 @@ class ShoppingCartSpec extends Specification {
         browser.find(".ui-dialog-buttonset button").get(0).click()
 
         browser.find(".addToCartButton").click()
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded();
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.await().atMost(5, TimeUnit.SECONDS).until("#cartDialogCurrentContent tr .body.quantity").hasText("2")
         browser.find("#cartDialogAddedContent tr .body.itemName").getText === "かえで"
         browser.find("#cartDialogAddedContent tr .body.siteName").getText === "商店1"

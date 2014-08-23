@@ -38,7 +38,7 @@
     @list.records.map { e =>
       <tr class="recommendationByAdminTable body">
         <td class="siteName">
-          <form id="removeRecommendationByAdminForm" method="POST"
+          <form class="removeRecommendationByAdminForm" method="POST"
                 action="@CSRF(routes.RecommendationByAdmin.removeRecommendation(e._1.id.get))">
             <input type="submit" value="@Messages("remove")">
           </form>
@@ -48,23 +48,27 @@
         @form(
           action = helper.CSRF(
             routes.RecommendationByAdmin.changeRecommendation(list.currentPage, list.pageSize, list.orderBy.toString)
-          )
+          ),
+          'class -> "updateForm"
         ) {
           <td class="score">
             @inputText(
-              e._4("id"), 'type -> "hidden", '_showConstraints -> false
+              e._4("id"), 'type -> "hidden", '_showConstraints -> false,
+              'class -> "idInput"
             )(
               helper.FieldConstructor(simpleField.f), implicitly
             )
             @inputText(
-              e._4("score"), '_showConstraints -> false, 'class -> "score"
+              e._4("score"), '_showConstraints -> false, 'class -> "score",
+              'class -> "scoreInput"
             )(
               helper.FieldConstructor(simpleField.f), implicitly
             )
           </td>
           <td class="enabled">
             @checkbox(
-              e._4("enabled"), '_showConstraints -> false
+              e._4("enabled"), '_showConstraints -> false,
+              'class -> "enabledInput"
             )(
               helper.FieldConstructor(simpleField.f), implicitly
             )

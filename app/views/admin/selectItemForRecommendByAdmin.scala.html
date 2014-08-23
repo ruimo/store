@@ -80,7 +80,7 @@
     <tr class="itemTableBody">
       <td class="itemTableItemId">@e._1.id</td>
       <td class="itemTableItemName">
-        <form id="addRecommendationByAdminForm" method="POST"
+        <form class="addRecommendationByAdminForm" method="POST"
               action="@helper.CSRF(routes.RecommendationByAdmin.addRecommendation(e._4.get.id.get, e._1.id.get))">
           <input type="submit" value="Add">
         </form>

@@ -1,5 +1,6 @@
 package functional
 
+import java.util.concurrent.TimeUnit
 import play.api.test.Helpers._
 import play.api.i18n.{Lang, Messages}
 import play.api.db.DB
@@ -75,6 +76,32 @@ class RecommendationByAdminSpec extends Specification {
         browser.find(".itemTablePrice", 0).getText === "100円"
         browser.find(".itemTablePrice", 1).getText === "200円"
         browser.find(".itemTablePrice", 2).getText === "300円"
+
+        DB.withConnection { implicit conn =>
+          RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja).records.size === 0
+        }
+
+        val f = browser.find(".addRecommendationByAdminForm input[type='submit']", 1).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        DB.withConnection { implicit conn =>
+          doWith(RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja).records) { rec =>
+            rec.size === 1
+            rec(0)._1.siteId === sites(1).id.get
+            rec(0)._1.itemId === items(1).id.get
+            rec(0)._1.score === 1
+            rec(0)._1.enabled === true
+
+            rec(0)._2 === Some(itemNames(1)(LocaleInfo.Ja))
+            rec(0)._3 === Some(sites(1))
+          }
+        }
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.RecommendationByAdmin.startUpdate() + "?lang=" + lang.code
+        )
+
+        browser.find(".recommendationByAdminTable.body").size === 1
       }}      
     }
   }
