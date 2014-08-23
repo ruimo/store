@@ -5,7 +5,7 @@ create table recommend_by_admin (
   recommend_by_admin_id bigint not null,
   site_id bigint not null references site on delete cascade,
   item_id bigint not null references item on delete cascade,
-  score double precision not null,
+  score bigint not null,
   enabled boolean not null,
   constraint pk_recommend_by_admin primary key(recommend_by_admin_id),
   unique(site_id, item_id)

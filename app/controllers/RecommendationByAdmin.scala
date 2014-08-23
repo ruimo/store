@@ -26,9 +26,6 @@ import helpers.QueryString
 import models._
 
 object RecommendationByAdmin extends Controller with NeedLogin with HasLogger with I18nAware {
-  def config = play.api.Play.maybeApplication.map(_.configuration).get
-  def maxRecord: Int = config.getInt("recommendByAdmin.maxRecordCount").getOrElse(10)
-
   val changeRecordForm = Form(
     mapping(
       "id" -> longNumber,
@@ -61,7 +58,9 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
     DB.withConnection { implicit conn => {
       val records = RecommendByAdmin.listByScore(
         true, LocaleInfo.getDefault(lang), page, pageSize
-      )
+      ).map { t =>
+        (t._1, t._2, t._3, changeRecordForm.fill(ChangeRecommendationByAdmin(t._1.id.get, t._1.score, t._1.enabled)))
+      }
       Ok(views.html.admin.editRecommendationByAdmin(records))
     }}
   }}
@@ -93,10 +92,47 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
     DB.withConnection { implicit conn => {
       RecommendByAdmin.remove(id)
       Redirect(
-          routes.RecommendationByAdmin.startUpdate()
-        ).flashing(
-          "message" -> Messages("recommendationIdRemoved")
-        )
+        routes.RecommendationByAdmin.startUpdate()
+      ).flashing(
+        "message" -> Messages("recommendationIdRemoved")
+      )
     }}
+  }}
+
+  def changeRecommendation(
+    page: Int, pageSize: Int, orderBySpec: String
+  ) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    changeRecordForm.bindFromRequest.fold(
+      formWithErrors => {
+        DB.withConnection { implicit conn => {
+          val records = RecommendByAdmin.listByScore(
+            true, LocaleInfo.getDefault(lang), page, pageSize
+          ).map { t =>
+            if (t._1.id.get == formWithErrors("id").value.get.toLong) {
+              (t._1, t._2, t._3, formWithErrors)
+            }
+            else {
+              (t._1, t._2, t._3, 
+               changeRecordForm.fill(ChangeRecommendationByAdmin(t._1.id.get, t._1.score, t._1.enabled)))
+            }
+          }
+          BadRequest(views.html.admin.editRecommendationByAdmin(records))
+        }}
+      },
+      newRecommendation => {
+        DB.withConnection { implicit conn => {
+          RecommendByAdmin.updateScoreAndEnabled(
+            newRecommendation.id,
+            newRecommendation.score,
+            newRecommendation.enabled
+          )
+          Redirect(
+            routes.RecommendationByAdmin.startUpdate(page, pageSize)
+          ).flashing(
+            "message" -> Messages("recommendationUpdated")
+          )
+        }}
+      }
+    )
   }}
 }

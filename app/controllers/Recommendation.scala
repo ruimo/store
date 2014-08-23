@@ -17,8 +17,12 @@ import models.ShoppingCartItem
 import scala.concurrent.Future
 import play.api.mvc.Result
 import java.sql.Connection
+import models.RecommendByAdmin
 
 object Recommendation extends Controller with NeedLogin with HasLogger with I18nAware {
+  def config = play.api.Play.maybeApplication.map(_.configuration).get
+  def maxRecommendCount: Int = config.getInt("recommend.maxCount").getOrElse(5)
+
   def byItemJson(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
     Async {
       scala.concurrent.Future {
@@ -37,24 +41,48 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   def byItems(
     salesItems: Seq[SalesItem], locale: LocaleInfo
   )(
-    implicit conn: Connection,
-    lang: Lang
-  ): Seq[JsValue] = RecommendEngine.recommendByItem(
-    salesItems
-  ).map {
-    it => models.ItemDetail.show(it.storeCode.toLong, it.itemCode.toLong, locale)
-  }.filter {
-    _.siteItemNumericMetadata.get(SiteItemNumericMetadataType.HIDE).map {
-      _.metadata != 1
-    }.getOrElse(true)
-  }.map {
-    detail => Json.obj(
-      "siteId" -> detail.siteId,
-      "itemId" -> detail.itemId,
-      "name" -> detail.name,
-      "siteName" -> detail.siteName,
-      "price" -> ViewHelpers.toAmount(detail.price)
-    )
+    implicit conn: Connection, lang: Lang
+  ): Seq[JsValue] = {
+    val byTransaction: Seq[models.ItemDetail] = RecommendEngine.recommendByItem(
+      salesItems
+    ).map {
+      it => models.ItemDetail.show(it.storeCode.toLong, it.itemCode.toLong, locale)
+    }.filter {
+      _.siteItemNumericMetadata.get(SiteItemNumericMetadataType.HIDE).map {
+        _.metadata != 1
+      }.getOrElse(true)
+    }
+
+    val byBoth = if (byTransaction.size < maxRecommendCount) {
+      byTransaction ++ byAdmin(salesItems, maxRecommendCount - byTransaction.size, locale)
+    }
+    else {
+      byTransaction
+    }
+
+    byBoth.map {
+      detail => Json.obj(
+        "siteId" -> detail.siteId,
+        "itemId" -> detail.itemId,
+        "name" -> detail.name,
+        "siteName" -> detail.siteName,
+        "price" -> ViewHelpers.toAmount(detail.price)
+      )
+    }
+  }
+
+  def byAdmin(salesItems: Seq[SalesItem], maxCount: Int, locale: LocaleInfo)(
+    implicit conn: Connection, lang: Lang
+  ): Seq[models.ItemDetail] = {
+    val salesItemsSet = salesItems.map { it => (it.storeCode.toLong, it.itemCode.toLong) }.toSet
+
+    RecommendByAdmin.listByScore(
+      showDisabled = false, locale, page = 0, pageSize = salesItems.size + maxCount
+    ).records.filter { t =>
+      ! salesItemsSet.contains((t._1.siteId, t._1.itemId))
+    }.map { t =>
+      models.ItemDetail.show(t._1.siteId, t._1.itemId, locale)
+    }
   }
 
   def byShoppingCartJson() = isAuthenticated { implicit login => implicit request =>

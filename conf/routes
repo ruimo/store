@@ -165,6 +165,7 @@ GET     /admin/startUpdateRecommendByAdmin controllers.RecommendationByAdmin.sta
 GET     /admin/createRecommendByAdmin    controllers.RecommendationByAdmin.selectItem(q: List[String], page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "item_name.item_name")
 POST    /admin/addRecommendationByAdmin  controllers.RecommendationByAdmin.addRecommendation(siteId: Long, itemId: Long)
 POST    /admin/removeRecommendationByAdmin controllers.RecommendationByAdmin.removeRecommendation(id: Long)
+POST    /admin/changeRecommendationByAdmin controllers.RecommendationByAdmin.changeRecommendation(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "score")
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

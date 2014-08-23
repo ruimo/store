@@ -97,5 +97,43 @@ class RecommendByAdminSpec extends Specification {
         }
       }
     }
+
+    "Hidden items should not be shown" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn =>
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          val item1 = Item.createNew(cat1)
+          val itemName1 = ItemName.createNew(item1, Map(LocaleInfo.Ja -> "Item1"))
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val cat2 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木2", LocaleInfo.En -> "Plant2")
+          )
+          val item2 = Item.createNew(cat2)
+          SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get,
+            SiteItemNumericMetadataType.HIDE,
+            0
+          )
+          SiteItemNumericMetadata.createNew(
+            site2.id.get, item2.id.get,
+            SiteItemNumericMetadataType.HIDE,
+            1
+          )
+
+          val rec1 = RecommendByAdmin.createNew(site1.id.get, item1.id.get, 123, true)
+          val rec2 = RecommendByAdmin.createNew(site2.id.get, item2.id.get, 100, true)
+          doWith(RecommendByAdmin.listByScore(showDisabled = false, locale = LocaleInfo.Ja)) { list =>
+            list.records.size === 1
+            list.records(0)._1 === rec1
+            list.records(0)._2 === Some(itemName1(LocaleInfo.Ja))
+            list.records(0)._3 === Some(site1)
+          }
+        }
+      }
+    }
   }
 }

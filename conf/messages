@@ -340,4 +340,5 @@ createNewRecommendationByAdminDescription=Query item and select one of them as r
 startEditRecommendationByAdminTitle=Update recommendation by admin
 score=Score
 enabled=Enabled
-recommendationIdRemoved=Recommendation record is removed
+recommendationRemoved=Recommendation record is removed
+recommendationUpdated=Recommendation record is updated

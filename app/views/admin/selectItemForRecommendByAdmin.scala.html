@@ -84,7 +84,7 @@
               action="@helper.CSRF(routes.RecommendationByAdmin.addRecommendation(e._4.get.id.get, e._1.id.get))">
           <input type="submit" value="Add">
         </form>
-        @e._2.map(_.name).getOrElse("-")
+        <span class="itemName">@e._2.map(_.name).getOrElse("-")</span>
       </td>
       <td class="itemTableSiteName">@e._4.map(_.name).getOrElse("-")</td>
       <td class="itemTablePrice">@e._5.map {p => @amount(p.unitPrice)}.getOrElse("-")</td>
