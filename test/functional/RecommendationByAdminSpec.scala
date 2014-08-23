@@ -1,5 +1,6 @@
 package functional
 
+import org.openqa.selenium.By
 import java.util.concurrent.TimeUnit
 import play.api.test.Helpers._
 import play.api.i18n.{Lang, Messages}
@@ -81,19 +82,36 @@ class RecommendationByAdminSpec extends Specification {
           RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja).records.size === 0
         }
 
-        val f = browser.find(".addRecommendationByAdminForm input[type='submit']", 1).click
+        browser.find(".addRecommendationByAdminForm input[type='submit']", 0).click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
+        browser.find(".addRecommendationByAdminForm input[type='submit']", 1).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".addRecommendationByAdminForm input[type='submit']", 2).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        var recoId1: Long = 0
+        var recoId2: Long = 0
         DB.withConnection { implicit conn =>
+          // Hidden item should not be listed.
           doWith(RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja).records) { rec =>
-            rec.size === 1
-            rec(0)._1.siteId === sites(1).id.get
-            rec(0)._1.itemId === items(1).id.get
+            rec.size === 2
+            rec(0)._1.siteId === sites(0).id.get
+            rec(0)._1.itemId === items(0).id.get
             rec(0)._1.score === 1
             rec(0)._1.enabled === true
 
-            rec(0)._2 === Some(itemNames(1)(LocaleInfo.Ja))
-            rec(0)._3 === Some(sites(1))
+            rec(0)._2 === Some(itemNames(0)(LocaleInfo.Ja))
+            rec(0)._3 === Some(sites(0))
+
+            rec(1)._1.siteId === sites(1).id.get
+            rec(1)._1.itemId === items(1).id.get
+            rec(1)._1.score === 1
+            rec(1)._1.enabled === true
+
+            rec(1)._2 === Some(itemNames(1)(LocaleInfo.Ja))
+            rec(1)._3 === Some(sites(1))
           }
         }
 
@@ -101,7 +119,68 @@ class RecommendationByAdminSpec extends Specification {
           "http://localhost:3333" + controllers.routes.RecommendationByAdmin.startUpdate() + "?lang=" + lang.code
         )
 
-        browser.find(".recommendationByAdminTable.body").size === 1
+        browser.find(".recommendationByAdminTable.body").size === 2
+        recoId1 = browser.find(".idInput", 0).getAttribute("value").toLong
+        recoId2 = browser.find(".idInput", 1).getAttribute("value").toLong
+
+        // Check validation
+        browser.find(".scoreInput", 0).text("")
+        browser.find(".updateButton", 0).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".recommendationByAdminTable.body")
+          .find(".error").getText === Messages("error.number")
+
+        browser.find(".scoreInput", 0).text("ABC")
+        browser.find(".updateButton", 0).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".recommendationByAdminTable.body")
+          .find(".error").getText === Messages("error.number")
+
+        browser.find(".scoreInput", 0).text("-1")
+        browser.find(".updateButton", 0).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".recommendationByAdminTable.body")
+          .find(".error").getText === Messages("error.min", 0)
+
+        browser.find(".scoreInput", 0).text("123")
+        browser.find(".recommendationByAdminTable.body", 0).find("input[type='checkbox']").click
+        browser.find(".updateButton", 0).click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        DB.withConnection { implicit conn =>
+          doWith(RecommendByAdmin(recoId1)) { rec =>
+            rec.score === 123
+            rec.enabled === false
+          }
+        }
+
+        browser.find(".scoreInput", 0).getAttribute("value") === "123"
+        browser.webDriver.findElements(
+          By.cssSelector(".recommendationByAdminTable.body input[type='checkbox']")
+        ).get(0).isSelected === false
+
+        browser.find(".removeRecommendationByAdminForm", 0).find("input[type='submit']").click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".removeRecommendationByAdminForm").size === 1
+        browser.find(".idInput").getAttribute("value").toLong === recoId2
+
+        DB.withConnection { implicit conn =>
+          doWith(RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja).records) { rec =>
+            rec.size === 1
+
+            rec(0)._1.siteId === sites(1).id.get
+            rec(0)._1.itemId === items(1).id.get
+            rec(0)._1.score === 1
+            rec(0)._1.enabled === true
+
+            rec(0)._2 === Some(itemNames(1)(LocaleInfo.Ja))
+            rec(0)._3 === Some(sites(1))
+          }          
+        }
       }}      
     }
   }

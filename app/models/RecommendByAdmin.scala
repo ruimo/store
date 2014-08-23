@@ -89,7 +89,7 @@ object RecommendByAdmin {
 
     val records = SQL(
       "select * " + baseSql +
-      "  order by score desc" +
+      "  order by score desc, recommend_by_admin.recommend_by_admin_id" +
       "  limit {pageSize} offset {offset}"
     ).on(
       'localeId -> locale.id,

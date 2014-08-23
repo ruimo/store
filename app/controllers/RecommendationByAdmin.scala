@@ -94,7 +94,7 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
       Redirect(
         routes.RecommendationByAdmin.startUpdate()
       ).flashing(
-        "message" -> Messages("recommendationIdRemoved")
+        "message" -> Messages("recommendationRemoved")
       )
     }}
   }}
