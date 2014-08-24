@@ -7,6 +7,51 @@
 )
 
 @main(Messages("shopping.cart"), Some(loginSession)) {
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <script type="text/javascript">
+    var showRecommendation = function(cartApiUrl, title, itemUrlTemplate, imageUrlTemplate) {
+      var recommendedContent = $("#recommendedContent");
+      recommendedContent.empty();
+
+      $.ajax({
+        type: 'get',
+        url: cartApiUrl,
+        dataType: 'json',
+        cache: false,
+        success: function(data, status, jqXhr) {
+          if (data.recommended.length != 0) {
+            recommendedContent.append(
+              '<div class="recommendedItemTitle">' + title + '</div>'
+            )
+          }
+
+          $.each(data.recommended, function(idx, e) {
+            recommendedContent.append(
+              '<div class="recommendedItem">' +
+              '  <a href="' + itemUrlTemplate.replace('111', e.itemId).replace('222', e.siteId) + '">' +
+              '    <img src="' + imageUrlTemplate.replace('111', e.itemId) + '" class="recommendedItemImage">' +
+              '    <div class="itemName">' + e.name + '</div>' +
+              '    <div class="price">' + e.price + '</div>' +
+              '  </a>' +
+              '</div>'
+            );
+          });
+        },
+        error: function(jqXhr, status, error) {
+          // Just ignore.
+        }
+      });
+    };
+
+    $(function() {
+      showRecommendation(
+        '@routes.Purchase.showShoppingCart',
+        '@Messages("recommendedItemTitle")',
+        '@routes.ItemDetail.show(111, 222)',
+        '@routes.ItemPictures.getPicture(111, 0)'
+      );
+    })
+  </script>
 } {
   <h2 class="shoppingCart">@Messages("shopping.cart")</h2>
 
@@ -47,6 +92,9 @@
         </tr>
       }
     </table>
+
+    <div id="recommendedContent">
+    </div>
 
     <div class="toEnterShippingAddress">
       <div class="toEnterShippingAddressInner">
