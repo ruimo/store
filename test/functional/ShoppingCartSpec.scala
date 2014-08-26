@@ -43,6 +43,18 @@ class ShoppingCartSpec extends Specification {
           itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
         )
 
+        val item2 = Item.createNew(cat)
+        val siteItem2 = SiteItem.createNew(site, item2)
+        val itemName2 = ItemName.createNew(item2, Map(LocaleInfo.Ja -> "松"))
+        val itemDesc2 = ItemDescription.createNew(item2, site, "松説明")
+        val itemPrice2 = ItemPrice.createNew(item2, site)
+        val itemPriceHistory2 = ItemPriceHistory.createNew(
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(777), BigDecimal("666"), date("9999-12-31")
+        )
+
+        RecommendByAdmin.createNew(site.id.get, item.id.get, 10)
+        RecommendByAdmin.createNew(site.id.get, item2.id.get, 20)
+
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List()) + "?lang=" + lang.code
         )
