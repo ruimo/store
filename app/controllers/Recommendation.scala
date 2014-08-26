@@ -18,6 +18,9 @@ import scala.concurrent.Future
 import play.api.mvc.Result
 import java.sql.Connection
 import models.RecommendByAdmin
+import models.PagedRecords
+import models.ItemName
+import models.Site
 
 object Recommendation extends Controller with NeedLogin with HasLogger with I18nAware {
   def config = play.api.Play.maybeApplication.map(_.configuration).get
@@ -39,12 +42,12 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   }
 
   def byItems(
-    salesItems: Seq[SalesItem], locale: LocaleInfo
+    shoppingCartItems: Seq[SalesItem], locale: LocaleInfo
   )(
     implicit conn: Connection, lang: Lang
   ): Seq[JsValue] = {
     val byTransaction: Seq[models.ItemDetail] = RecommendEngine.recommendByItem(
-      salesItems
+      shoppingCartItems
     ).map {
       it => models.ItemDetail.show(it.storeCode.toLong, it.itemCode.toLong, locale)
     }.filter {
@@ -54,7 +57,7 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
     }
 
     val byBoth = if (byTransaction.size < maxRecommendCount) {
-      byTransaction ++ byAdmin(salesItems, maxRecommendCount - byTransaction.size, locale)
+      byTransaction ++ byAdmin(shoppingCartItems, maxRecommendCount - byTransaction.size, locale)
     }
     else {
       byTransaction
@@ -71,17 +74,27 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def byAdmin(salesItems: Seq[SalesItem], maxCount: Int, locale: LocaleInfo)(
+  def byAdmin(shoppingCartItems: Seq[SalesItem], maxCount: Int, locale: LocaleInfo)(
     implicit conn: Connection, lang: Lang
-  ): Seq[models.ItemDetail] = {
-    val salesItemsSet = salesItems.map { it => (it.storeCode.toLong, it.itemCode.toLong) }.toSet
+  ): Seq[models.ItemDetail] = calcByAdmin(
+    shoppingCartItems, maxCount, 
+    (maxRecordCount: Int) => RecommendByAdmin.listByScore(
+      showDisabled = false, locale, page = 0, pageSize = maxRecordCount
+    ),
+    (siteId: Long, itemId: Long) => models.ItemDetail.show(siteId, itemId, locale)
+  )
 
-    RecommendByAdmin.listByScore(
-      showDisabled = false, locale, page = 0, pageSize = salesItems.size + maxCount
-    ).records.filter { t =>
+  def calcByAdmin(
+    shoppingCartItems: Seq[SalesItem], maxCount: Int,
+    queryRecommendByAdmin: Int => PagedRecords[(RecommendByAdmin, Option[ItemName], Option[Site])],
+    queryItemDetail: (Long, Long) => models.ItemDetail
+  ): Seq[models.ItemDetail] = {
+    val salesItemsSet = shoppingCartItems.map { it => (it.storeCode.toLong, it.itemCode.toLong) }.toSet
+    
+    queryRecommendByAdmin(shoppingCartItems.size + maxCount).records.filter { t =>
       ! salesItemsSet.contains((t._1.siteId, t._1.itemId))
-    }.map { t =>
-      models.ItemDetail.show(t._1.siteId, t._1.itemId, locale)
+    }.take(maxCount).map { t =>
+      queryItemDetail(t._1.siteId, t._1.itemId)
     }
   }
 
