@@ -91,37 +91,13 @@ var shoppingCartDialog = {
       );
     });
 
-    var recommendedContent = $("#recommendedContent");
-    recommendedContent.empty();
-
-    $.ajax({
-      type: 'get',
-      url: self.arg.recommendByShoppingCartJsonUrl,
-      dataType: 'json',
-      cache: false,
-      success: function(data, status, jqXhr) {
-        if (data.recommended.length != 0) {
-          recommendedContent.append(
-            '<div class="recommendedItemTitle">' + self.arg.recommendedItemTitle + '</div>'
-          )
-        }
-
-        $.each(data.recommended, function(idx, e) {
-          recommendedContent.append(
-            '<div class="recommendedItem">' +
-            '  <a href="' + self.arg.itemDetailUrl.replace('111', e.itemId).replace('222', e.siteId) + '">' +
-            '    <img src="' + self.arg.itemImageUrl.replace('111', e.itemId) + '" class="recommendedItemImage">' +
-            '    <div class="itemName">' + e.name + '</div>' +
-            '    <div class="price">' + e.price + '</div>' +
-            '  </a>' +
-            '</div>'
-          );
-        });
-      },
-      error: function(jqXhr, status, error) {
-        // Just ignore.
-      }
-    });
+    showRecommendation(
+      $("#recommendedContent"),
+      self.arg.recommendByShoppingCartJsonUrl,
+      self.arg.recommendedItemTitle,
+      self.arg.itemDetailUrl,
+      self.arg.itemImageUrl
+    );
 
     dlg.dialog("open");
   },

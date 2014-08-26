@@ -7,6 +7,20 @@
 )
 
 @main(Messages("shopping.cart"), Some(loginSession)) {
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <script src="@routes.Assets.at("javascripts/showRecommendation.js")"></script>
+  <script type="text/javascript">
+    $(function() {
+      showRecommendation(
+        $("#recommendedContent"),
+        '@routes.Recommendation.byShoppingCartJson()',
+        '@Messages("recommendedItemTitle")',
+        '@routes.ItemDetail.show(111, 222)',
+        '@routes.ItemPictures.getPicture(111, 0)'
+      );
+    })
+  </script>
 } {
   <h2 class="shoppingCart">@Messages("shopping.cart")</h2>
 
@@ -47,6 +61,9 @@
         </tr>
       }
     </table>
+
+    <div id="recommendedContent">
+    </div>
 
     <div class="toEnterShippingAddress">
       <div class="toEnterShippingAddressInner">
