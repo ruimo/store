@@ -13,6 +13,8 @@ import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import java.util.concurrent.TimeUnit
 import org.openqa.selenium.firefox.{FirefoxDriver, FirefoxProfile}
+import com.ruimo.scoins.Scoping._
+
 
 class ShoppingCartSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
