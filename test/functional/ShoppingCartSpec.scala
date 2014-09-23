@@ -62,6 +62,7 @@ class ShoppingCartSpec extends Specification {
         browser.find(".addToCartButton", 0).click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).until("#cartDialogAddedContent tr .body.itemName").hasSize.greaterThan(0)
+
         browser.find("#cartDialogAddedContent tr .body.itemName").getText === "かえで"
         browser.find("#cartDialogAddedContent tr .body.siteName").getText === "商店1"
         browser.find("#cartDialogAddedContent tr .body.unitPrice").getText === "999円"
@@ -73,6 +74,17 @@ class ShoppingCartSpec extends Specification {
         browser.find("#cartDialogCurrentContent tr .body.unitPrice").getText === "999円"
         browser.find("#cartDialogCurrentContent tr .body.quantity").getText === "1"
         browser.find("#cartDialogCurrentContent tr .body.price").getText === "999円"
+
+        doWith(browser.find(".recommendedItem")) { e =>
+          e.find("a").getAttribute("href") ===
+            "http://localhost:3333" + controllers.routes.ItemDetail.show(item2.id.get, site.id.get)
+          doWith(e.find("a")) { a =>
+            a.find("img").getAttribute("src") ===
+              "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item2.id.get, 0)
+            a.find("div.itemName").getText === "松"
+            a.find("div.price").getText === "777円"
+          }
+        }
 
         // Close button
         browser.find(".ui-dialog-buttonset button").get(0).click()
