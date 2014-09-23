@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit
 import controllers.TransactionMaintenance
 import java.io.{StringReader, BufferedReader}
 import helpers.Helper.disableMailer
+import com.ruimo.scoins.Scoping._
 
 class TransactionMaintenanceSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime

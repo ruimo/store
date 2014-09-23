@@ -13,6 +13,7 @@ import java.sql.Date.{valueOf => date}
 import LocaleInfo._
 import java.sql.Connection
 import scala.collection.JavaConversions._
+import com.ruimo.scoins.Scoping._
 
 class AccountingBillSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime

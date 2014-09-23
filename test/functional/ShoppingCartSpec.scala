@@ -59,7 +59,7 @@ class ShoppingCartSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List()) + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
-        browser.find(".addToCartButton").click()
+        browser.find(".addToCartButton", 0).click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).until("#cartDialogAddedContent tr .body.itemName").hasSize.greaterThan(0)
         browser.find("#cartDialogAddedContent tr .body.itemName").getText === "かえで"
@@ -77,7 +77,7 @@ class ShoppingCartSpec extends Specification {
         // Close button
         browser.find(".ui-dialog-buttonset button").get(0).click()
 
-        browser.find(".addToCartButton").click()
+        browser.find(".addToCartButton", 0).click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.await().atMost(5, TimeUnit.SECONDS).until("#cartDialogCurrentContent tr .body.quantity").hasText("2")
         browser.find("#cartDialogAddedContent tr .body.itemName").getText === "かえで"

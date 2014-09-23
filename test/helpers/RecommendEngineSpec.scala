@@ -14,6 +14,7 @@ import models.TransactionType
 import models.Address
 import models.ItemName
 import helpers.Helper._
+import com.ruimo.scoins.Scoping._
 
 class RecommendEngineSpec extends Specification {
   "Recommend engine" should {

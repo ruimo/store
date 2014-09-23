@@ -7,6 +7,7 @@ import play.api.test._
 import java.sql.Date.{valueOf => date}
 import play.api.test.Helpers._
 import play.api.Play.current
+import com.ruimo.scoins.Scoping._
 
 class TransactionSummarySpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -139,9 +140,9 @@ class TransactionSummarySpec extends Specification {
 
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          helpers.Helper.doWith(TransactionSummary.list(Some(siteUser1.id.get)).records) { s =>
+          doWith(TransactionSummary.list(Some(siteUser1.id.get)).records) { s =>
             s.size === 2
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
@@ -151,7 +152,7 @@ class TransactionSummarySpec extends Specification {
               e.status === TransactionStatus.ORDERED
             }
 
-            helpers.Helper.doWith(s(1)) { e =>
+            doWith(s(1)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
@@ -162,9 +163,9 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(Some(siteUser2.id.get)).records) { s =>
+          doWith(TransactionSummary.list(Some(siteUser2.id.get)).records) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(59 + 2345)
@@ -175,9 +176,9 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(storeUserId = Some(user1.id.get)).records) { s =>
+          doWith(TransactionSummary.list(storeUserId = Some(user1.id.get)).records) { s =>
             s.size === 2
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
@@ -187,7 +188,7 @@ class TransactionSummarySpec extends Specification {
               e.status === TransactionStatus.ORDERED
             }
 
-            helpers.Helper.doWith(s(1)) { e =>
+            doWith(s(1)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(59 + 2345)
@@ -198,9 +199,9 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(storeUserId = Some(user2.id.get)).records) { s =>
+          doWith(TransactionSummary.list(storeUserId = Some(user2.id.get)).records) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
@@ -333,9 +334,9 @@ class TransactionSummarySpec extends Specification {
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          helpers.Helper.doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 1))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 1))) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
@@ -346,9 +347,9 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 3))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 3))) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)

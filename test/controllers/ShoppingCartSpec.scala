@@ -5,7 +5,7 @@ import org.specs2.mutable._
 import collection.immutable
 import models._
 import org.specs2.mock.Mockito
-import helpers.Helper
+import com.ruimo.scoins.Scoping._
 
 class ShoppingCartSpec extends Specification with Mockito {
   "ShoppingCart" should {
@@ -44,7 +44,7 @@ class ShoppingCartSpec extends Specification with Mockito {
         )
       )
 
-      Helper.doWith(
+      doWith(
         controllers.ShoppingCart.getItemInfo(
           Map(), 
           cart
@@ -53,14 +53,14 @@ class ShoppingCartSpec extends Specification with Mockito {
         newCart.size === 0
       }
 
-      Helper.doWith(
+      doWith(
         controllers.ShoppingCart.getItemInfo(
           Map((1L, 2L) -> 2), 
           cart
         )
       ) { newCart =>
         newCart.size === 1
-        Helper.doWith(newCart.head.shoppingCartItem) { item =>
+        doWith(newCart.head.shoppingCartItem) { item =>
           item.siteId === 1L
           item.itemId === 2L
           item.quantity === 2
@@ -68,14 +68,14 @@ class ShoppingCartSpec extends Specification with Mockito {
         newCart.head.itemName === cart(0).itemName
       }
 
-      Helper.doWith(
+      doWith(
         controllers.ShoppingCart.getItemInfo(
           Map((1L, 3L) -> 1), 
           cart
         )
       ) { newCart =>
         newCart.size === 1
-        Helper.doWith(newCart.head.shoppingCartItem) { item =>
+        doWith(newCart.head.shoppingCartItem) { item =>
           item.siteId === 1L
           item.itemId === 3L
           item.quantity === 1

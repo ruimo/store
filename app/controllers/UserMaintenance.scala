@@ -1,15 +1,21 @@
 package controllers
 
+import java.nio.file.Path
+import scala.util.{Try, Failure, Success}
+import java.nio.file.Files
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models._
 import play.api.data.Form
 import controllers.I18n.I18nAware
-import play.api.mvc.Controller
+import play.api.mvc._
 import play.api.db.DB
 import play.api.i18n.{Lang, Messages}
 import play.api.Play.current
 import helpers.{QueryString, TokenGenerator, RandomTokenGenerator}
+import com.ruimo.scoins.LoanPattern.iteratorFromReader
+import java.nio.charset.Charset
+import com.ruimo.csv.CsvParseException
 
 object UserMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
@@ -156,4 +162,71 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
     Redirect(routes.UserMaintenance.editUser())
   }}
+
+  def startAddUsersByCsv = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    Ok(views.html.admin.addUsersByCsv())
+  }}
+
+  def addUsersByCsv = Action(parse.multipartFormData) { implicit request =>
+    retrieveLoginSession(request) match {
+      case None => onUnauthorized(request)
+      case Some(user) =>
+        request.body.file("attachment").map { csvFile =>
+          val filename = csvFile.filename
+          val contentType = csvFile.contentType
+          logger.info("Users are uploaded. filename='" + filename + "', contentType='" + contentType + "'")
+          if (contentType != Some("text/csv")) {
+            Redirect(
+              routes.UserMaintenance.startAddUsersByCsv()
+            ).flashing("errorMessage" -> Messages("csv.needed"))
+          }
+          else {
+            createResultFromUserCsvFile(csvFile.ref.file.toPath)
+          }
+        }.getOrElse {
+          logger.error("Users are uploaded. But no attachment found.")
+          Redirect(routes.UserMaintenance.startAddUsersByCsv()).flashing(
+            "errorMessage" -> Messages("file.not.found")
+          )
+        }.withSession(
+          request.session + 
+          (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+        )
+    }
+  }  
+
+  def createResultFromUserCsvFile(path: Path)(implicit lang: Lang): PlainResult = {
+    import com.ruimo.csv.Parser.parseLines
+    import Files.newBufferedReader
+
+    iteratorFromReader(newBufferedReader(path, Charset.forName("Windows-31j"))) {
+      in: Iterator[Char] =>
+        val z: Iterator[Try[Seq[String]]] = parseLines(in)
+        z.foldLeft(0) { (sum, e) => e match {
+          case Success(cols) => {
+            println("cols: " + cols)
+            sum + 1
+          }
+          case Failure(e) => throw e
+        }}
+    } match {
+      case Success(updatedColumnCount) =>
+        Redirect(
+          routes.UserMaintenance.startAddUsersByCsv()
+        ).flashing("message" -> Messages("usersAreUpdated", updatedColumnCount))
+
+      case Failure(e) => e match {
+        case cpe: CsvParseException =>
+          logger.error("CSV format error", cpe)
+          Redirect(
+            routes.UserMaintenance.startAddUsersByCsv()
+          ).flashing("errorMessage" -> Messages("csv.error", cpe.lineNo))
+        case t: Throwable =>
+          logger.error("CSV general error", t)
+          Redirect(
+            routes.UserMaintenance.startAddUsersByCsv()
+          ).flashing("errorMessage" -> Messages("general.error"))
+      }
+    }
+  }
 }

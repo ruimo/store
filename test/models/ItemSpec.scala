@@ -9,10 +9,11 @@ import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
 import java.util.Locale
-import helpers.Helper.doWith
+import com.ruimo.scoins.Scoping._
 
 import java.sql.Date.{valueOf => date}
 import helpers.QueryString
+import com.ruimo.scoins.Scoping._
 
 class ItemSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime

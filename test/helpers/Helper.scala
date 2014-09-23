@@ -56,10 +56,6 @@ object Helper {
     browser.takeScreenShot(fname)
   }
 
-  def doWith[T](arg: T)(func: T => Unit) {
-    func(arg)
-  }
-
   def downloadString(urlString: String): (Int, String) = downloadString(None, urlString)
   def downloadBytes(urlString: String): (Int, Array[Byte]) = downloadBytes(None, urlString)
 

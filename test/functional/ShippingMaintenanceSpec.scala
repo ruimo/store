@@ -17,6 +17,7 @@ import org.openqa.selenium.By
 import java.util.concurrent.TimeUnit
 import play.api.test.TestServer
 import play.api.test.FakeApplication
+import com.ruimo.scoins.Scoping._
 
 class ShippingMaintenanceSpec extends Specification {
   "Shipping fee maintenance" should {

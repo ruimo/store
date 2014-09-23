@@ -10,8 +10,10 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     "postgresql" % "postgresql" % "9.1-901.jdbc4",
     "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
-    "org.mockito" % "mockito-all" % "1.9.5",
+    "org.mockito" % "mockito-all" % "1.9.5" % "test",
     "com.ruimo" %% "recoengplugin" % "1.0-SNAPSHOT",
+    "com.ruimo" %% "csvparser" % "1.0-SNAPSHOT",
+    "com.ruimo" %% "scoins" % "1.0-SNAPSHOT",
     jdbc,
     anorm,
     filters

@@ -13,6 +13,7 @@ import helpers.Helper._
 import LocaleInfo._
 import java.sql.Date.{valueOf => date}
 import play.api.Play.current
+import com.ruimo.scoins.Scoping._
 
 class RecommendationByAdminSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime

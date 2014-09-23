@@ -24,6 +24,7 @@ import java.io.{BufferedReader, InputStreamReader}
 import java.text.SimpleDateFormat
 import java.sql.Date.{valueOf => date}
 import helpers.{ViewHelpers, QueryString}
+import com.ruimo.scoins.Scoping._
 
 class ItemMaintenanceSpec extends Specification {
   "Item maintenance should" should {

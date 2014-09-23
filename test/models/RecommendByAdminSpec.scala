@@ -8,6 +8,7 @@ import play.api.db.DB
 import play.api.Play.current
 import anorm.Id
 import helpers.Helper._
+import com.ruimo.scoins.Scoping._
 
 class RecommendByAdminSpec extends Specification {
   "RecommendByAdmin" should {
