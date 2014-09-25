@@ -16,6 +16,7 @@ import play.api.libs.json.Json
 
 trait NeedLogin extends Controller with HasLogger {
   lazy val cfg = play.api.Play.maybeApplication.map(_.configuration).get
+  lazy val needAuthenticationEntirely = cfg.getBoolean("need.authentication.entirely").getOrElse(false)
   lazy val loginTimeoutInMinute = cfg.getString("login.timeout.minute").map {
     _.toInt
   }.getOrElse {
@@ -43,7 +44,7 @@ trait NeedLogin extends Controller with HasLogger {
   def loginSession(implicit request: RequestHeader, conn: Connection):
     Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
 
-  def retrieveLoginSession(request: RequestHeader) = DB.withConnection { conn =>
+  def retrieveLoginSession(request: RequestHeader): Option[LoginSession] = DB.withConnection { conn =>
     loginSession(request, conn)
   }
 
@@ -95,6 +96,30 @@ trait NeedLogin extends Controller with HasLogger {
       }
     }
   }}
+
+  def optIsAuthenticated(f: => Option[LoginSession] => Request[AnyContent] => Result) = 
+    if (needAuthenticationEntirely) {
+      Authenticated(retrieveLoginSession, onUnauthorized) { user =>
+        Action(request => f(Some(user))(request).withSession(
+          request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+        ))
+      }
+    }
+    else {
+      DB.withConnection { conn =>
+        Action(request => {
+          val optLogin: Option[LoginSession] = loginSession(request, conn)
+          val result = f(optLogin)(request)
+          optLogin match {
+            case Some(login) =>
+              result.withSession(
+                request.session + (LoginUserKey -> login.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+              )
+            case None => result
+          }
+        })
+      }
+    }
 
   def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result) = {
     Authenticated(retrieveLoginSession, onUnauthorized) { user =>
