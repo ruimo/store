@@ -4,6 +4,14 @@
   loginSession: LoginSession
 )
 
+@config = @{
+  play.api.Play.maybeApplication.map(_.configuration).get
+}
+
+@siteOwnerCanUploadUserCsv = @{
+  config.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
+}
+
 @main(Messages("userMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   <h1 class="title">@Messages("userMaintenanceTitle")</h1>
@@ -32,7 +40,9 @@
         @Messages("editUserMenu")
       </a>
     </div>
+  }
 
+  @if(siteOwnerCanUploadUserCsv || loginSession.isSuperUser) {
     <div class="menuItem">
       <a href="@routes.UserMaintenance.startAddUsersByCsv()">
         @Messages("addUsersByCsv")

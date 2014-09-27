@@ -8,6 +8,7 @@ case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expire
   def withExpireTime(newExpireTime: Long) = LoginSession(storeUser, siteUser, newExpireTime)
   def toSessionString = storeUser.id.get + ";" + expireTime
   lazy val role: UserType = user.userType
+  lazy val isBuyer = role == Buyer
   lazy val isSuperUser = role == SuperUser
   lazy val isAdmin = role != Buyer
 }

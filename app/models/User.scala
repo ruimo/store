@@ -126,7 +126,7 @@ object StoreUser {
               salt, deleted = false, userRole, companyName)
   }
 
-  def withSite(userId: Long)(implicit conn: Connection): ListUserEntry =
+  def withSite(userId: Long)(implicit conn: Connection): ListUserEntry = {
     SQL(
       """
       select * from store_user
@@ -141,6 +141,7 @@ object StoreUser {
     ).as(
       withSiteUser.single
     )
+  }
 
   def listUsers(
     page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("store_user.user_name")

@@ -16,9 +16,13 @@ import helpers.{QueryString, TokenGenerator, RandomTokenGenerator}
 import com.ruimo.scoins.LoanPattern.iteratorFromReader
 import java.nio.charset.Charset
 import com.ruimo.csv.CsvParseException
+import com.ruimo.csv.CsvRecord
+import com.ruimo.csv.Parser._
 
 object UserMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
+  lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
+  lazy val siteOwnerCanUploadUserCsv = config.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
 
   def modifyUserForm(implicit lang: Lang) = Form(
     mapping(
@@ -57,8 +61,8 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     )(CreateSiteOwner.fromForm)(CreateSiteOwner.toForm)
   )
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    if (login.isSuperUser) {
+  def index = isAuthenticated { implicit login => forAdmin { implicit request =>
+    if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
       Ok(views.html.admin.userMaintenance())
     }
     else {
@@ -163,35 +167,47 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     Redirect(routes.UserMaintenance.editUser())
   }}
 
-  def startAddUsersByCsv = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.addUsersByCsv())
+  def startAddUsersByCsv = isAuthenticated { implicit login => forAdmin { implicit request =>
+    if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
+      DB.withConnection { implicit conn =>
+        Ok(views.html.admin.addUsersByCsv(Site.tableForDropDown))
+      }
+    }
+    else {
+      Redirect(routes.Admin.index)
+    }
   }}
 
   def addUsersByCsv = Action(parse.multipartFormData) { implicit request =>
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
-        request.body.file("attachment").map { csvFile =>
-          val filename = csvFile.filename
-          val contentType = csvFile.contentType
-          logger.info("Users are uploaded. filename='" + filename + "', contentType='" + contentType + "'")
-          if (contentType != Some("text/csv")) {
-            Redirect(
-              routes.UserMaintenance.startAddUsersByCsv()
-            ).flashing("errorMessage" -> Messages("csv.needed"))
-          }
-          else {
-            createResultFromUserCsvFile(csvFile.ref.file.toPath)
-          }
-        }.getOrElse {
-          logger.error("Users are uploaded. But no attachment found.")
-          Redirect(routes.UserMaintenance.startAddUsersByCsv()).flashing(
-            "errorMessage" -> Messages("file.not.found")
+        if (user.isBuyer) onUnauthorized(request)
+        else {
+          val siteId = request.body.dataParts("site").head.toLong
+
+          request.body.file("attachment").map { csvFile =>
+            val filename = csvFile.filename
+            val contentType = csvFile.contentType
+            logger.info("Users are uploaded. filename='" + filename + "', contentType='" + contentType + "'")
+            if (contentType != Some("text/csv")) {
+              Redirect(
+                routes.UserMaintenance.startAddUsersByCsv()
+              ).flashing("errorMessage" -> Messages("csv.needed"))
+            }
+            else {
+              createResultFromUserCsvFile(csvFile.ref.file.toPath)
+            }
+          }.getOrElse {
+            logger.error("Users are uploaded. But no attachment found.")
+            Redirect(routes.UserMaintenance.startAddUsersByCsv()).flashing(
+              "errorMessage" -> Messages("file.not.found")
+            )
+          }.withSession(
+            request.session + 
+            (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
           )
-        }.withSession(
-          request.session + 
-          (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-        )
+        }
     }
   }  
 
@@ -201,7 +217,7 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
 
     iteratorFromReader(newBufferedReader(path, Charset.forName("Windows-31j"))) {
       in: Iterator[Char] =>
-        val z: Iterator[Try[Seq[String]]] = parseLines(in)
+        val z: Iterator[Try[CsvRecord]] = asHeaderedCsv(parseLines(in))
         z.foldLeft(0) { (sum, e) => e match {
           case Success(cols) => {
             println("cols: " + cols)

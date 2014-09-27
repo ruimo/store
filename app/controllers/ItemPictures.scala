@@ -66,27 +66,30 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
-        request.body.file("picture").map { picture =>
-          val filename = picture.filename
-          val contentType = picture.contentType
-          if (contentType != Some("image/jpeg")) {
-            Redirect(
-              routes.ItemMaintenance.startChangeItem(itemId)
-            ).flashing("errorMessage" -> Messages("jpeg.needed"))
-          }
-          else {
-            picture.ref.moveTo(toPath(itemId, no).toFile, true)
-            Redirect(
-              routes.ItemMaintenance.startChangeItem(itemId)
-            ).flashing("message" -> Messages("itemIsUpdated"))
-          }
-        }.getOrElse {
-          Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
-            "errorMessage" -> Messages("file.not.found")
+        if (user.isBuyer) onUnauthorized(request)
+        else {
+          request.body.file("picture").map { picture =>
+            val filename = picture.filename
+            val contentType = picture.contentType
+            if (contentType != Some("image/jpeg")) {
+              Redirect(
+                routes.ItemMaintenance.startChangeItem(itemId)
+              ).flashing("errorMessage" -> Messages("jpeg.needed"))
+            }
+            else {
+              picture.ref.moveTo(toPath(itemId, no).toFile, true)
+              Redirect(
+                routes.ItemMaintenance.startChangeItem(itemId)
+              ).flashing("message" -> Messages("itemIsUpdated"))
+            }
+          }.getOrElse {
+            Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
+              "errorMessage" -> Messages("file.not.found")
+            )
+          }.withSession(
+            request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
           )
-        }.withSession(
-          request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-        )
+        }
     }
   }
 
@@ -94,27 +97,30 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
-        request.body.file("picture").map { picture =>
-          val filename = picture.filename
-          val contentType = picture.contentType
-          if (contentType != Some("image/jpeg")) {
-            Redirect(
-              routes.ItemMaintenance.startChangeItem(itemId)
-            ).flashing("errorMessage" -> Messages("jpeg.needed"))
-          }
-          else {
-            picture.ref.moveTo(toDetailPath(itemId).toFile, true)
-            Redirect(
-              routes.ItemMaintenance.startChangeItem(itemId)
-            ).flashing("message" -> Messages("itemIsUpdated"))
-          }
-        }.getOrElse {
-          Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
-            "errorMessage" -> Messages("file.not.found")
+        if (user.isBuyer) onUnauthorized(request)
+        else {
+          request.body.file("picture").map { picture =>
+            val filename = picture.filename
+            val contentType = picture.contentType
+            if (contentType != Some("image/jpeg")) {
+              Redirect(
+                routes.ItemMaintenance.startChangeItem(itemId)
+              ).flashing("errorMessage" -> Messages("jpeg.needed"))
+            }
+            else {
+              picture.ref.moveTo(toDetailPath(itemId).toFile, true)
+              Redirect(
+                routes.ItemMaintenance.startChangeItem(itemId)
+              ).flashing("message" -> Messages("itemIsUpdated"))
+            }
+          }.getOrElse {
+            Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
+              "errorMessage" -> Messages("file.not.found")
+            )
+          }.withSession(
+            request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
           )
-        }.withSession(
-          request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-        )
+        }
     }
   }
 
@@ -122,20 +128,23 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
-        request.body.file("attachment").map { picture =>
-          val fileName = picture.filename
-          val contentType = picture.contentType
-          picture.ref.moveTo(toAttachmentPath(itemId, no, fileName).toFile, true)
-          Redirect(
-            routes.ItemMaintenance.startChangeItem(itemId)
-          ).flashing("message" -> Messages("itemIsUpdated"))
-        }.getOrElse {
-          Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
-            "errorMessage" -> Messages("file.not.found")
+        if (user.isBuyer) onUnauthorized(request)
+        else {
+          request.body.file("attachment").map { picture =>
+            val fileName = picture.filename
+            val contentType = picture.contentType
+            picture.ref.moveTo(toAttachmentPath(itemId, no, fileName).toFile, true)
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(itemId)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }.getOrElse {
+            Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
+              "errorMessage" -> Messages("file.not.found")
+            )
+          }.withSession(
+            request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
           )
-        }.withSession(
-          request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-        )
+        }
     }
   }
 
