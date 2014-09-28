@@ -170,7 +170,8 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
   def startAddUsersByCsv = isAuthenticated { implicit login => forAdmin { implicit request =>
     if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
       DB.withConnection { implicit conn =>
-        Ok(views.html.admin.addUsersByCsv(Site.tableForDropDown))
+//        Ok(views.html.admin.addUsersByCsv(Site.tableForDropDown))
+        Ok(views.html.admin.addUsersByCsv())
       }
     }
     else {
@@ -178,13 +179,21 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }}
 
-  def addUsersByCsv = Action(parse.multipartFormData) { implicit request =>
+  def addUsersByCsv = maintainUsersByCsv(
+    csvRecordFilter = (_, _) => true,
+    deleteSqlSupplemental = _ => None
+  )
+
+  def maintainUsersByCsv(
+    csvRecordFilter: (Map[String, Seq[String]], CsvRecord) => Boolean,
+    deleteSqlSupplemental: Map[String, Seq[String]] => Option[String]
+  ) = Action(parse.multipartFormData) { implicit request =>
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
         if (user.isBuyer) onUnauthorized(request)
         else {
-          val siteId = request.body.dataParts("site").head.toLong
+//          val siteId = request.body.dataParts("site").head.toLong
 
           request.body.file("attachment").map { csvFile =>
             val filename = csvFile.filename
@@ -196,7 +205,11 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
               ).flashing("errorMessage" -> Messages("csv.needed"))
             }
             else {
-              createResultFromUserCsvFile(csvFile.ref.file.toPath)
+              createResultFromUserCsvFile(
+                csvFile.ref.file.toPath,
+                csvRecordFilter(request.body.dataParts, _: CsvRecord),
+                deleteSqlSupplemental(request.body.dataParts)
+              )
             }
           }.getOrElse {
             logger.error("Users are uploaded. But no attachment found.")
@@ -211,25 +224,29 @@ object UserMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }  
 
-  def createResultFromUserCsvFile(path: Path)(implicit lang: Lang): PlainResult = {
+  def createResultFromUserCsvFile(
+    path: Path,
+    csvRecordFilter: CsvRecord => Boolean,
+    deleteSqlSupplemental: Option[String]
+  )(implicit lang: Lang): PlainResult = {
     import com.ruimo.csv.Parser.parseLines
     import Files.newBufferedReader
-
+    
     iteratorFromReader(newBufferedReader(path, Charset.forName("Windows-31j"))) {
       in: Iterator[Char] =>
         val z: Iterator[Try[CsvRecord]] = asHeaderedCsv(parseLines(in))
-        z.foldLeft(0) { (sum, e) => e match {
-          case Success(cols) => {
-            println("cols: " + cols)
-            sum + 1
-          }
-          case Failure(e) => throw e
-        }}
+        DB.withConnection { implicit conn => 
+          StoreUser.maintainByCsv(
+            z,
+            csvRecordFilter,
+            deleteSqlSupplemental
+          ) 
+        }
     } match {
       case Success(updatedColumnCount) =>
         Redirect(
           routes.UserMaintenance.startAddUsersByCsv()
-        ).flashing("message" -> Messages("usersAreUpdated", updatedColumnCount))
+        ).flashing("message" -> Messages("usersAreUpdated", updatedColumnCount._1, updatedColumnCount._2))
 
       case Failure(e) => e match {
         case cpe: CsvParseException =>

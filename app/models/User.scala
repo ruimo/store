@@ -6,6 +6,9 @@ import play.api.db._
 import scala.language.postfixOps
 import helpers.PasswordHash
 import java.sql.Connection
+import scala.util.{Try, Failure, Success}
+import com.ruimo.csv.CsvRecord
+import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 
 case class StoreUser(
   id: Option[Long] = None,
@@ -44,6 +47,8 @@ case class ListUserEntry(
 ) extends NotNull
 
 object StoreUser {
+  implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
+
   val simple = {
     SqlParser.get[Option[Long]]("store_user.store_user_id") ~
     SqlParser.get[String]("store_user.user_name") ~
@@ -211,6 +216,97 @@ object StoreUser {
       'companyName -> companyName,
       'userId -> userId
     ).executeUpdate()
+
+  def maintainByCsv(
+    z: Iterator[Try[CsvRecord]],
+    csvRecordFilter: CsvRecord => Boolean = _ => true,
+    deleteSqlSupplemental: Option[String] = None
+  )(
+    implicit conn: Connection
+  ): (Int, Int) = {
+    SQL(
+      """
+      create temp table user_csv (
+        user_name varchar(64) not null unique,
+        salt bigint not null,
+        password_hash bigint not null
+      )
+      """
+    ).executeUpdate()
+
+    var sql: BatchSql = SQL(
+      """
+      insert into user_csv (
+        user_name, salt, password_hash
+      ) values (
+        {userName}, {salt}, {passwordHash}
+      )
+      """
+    )
+
+    z.foreach {
+      case Success(cols) =>
+        if (csvRecordFilter(cols)) {
+          val companyId = cols('CompanyId)
+          val userName = (if (companyId.isEmpty) "" else companyId + "-") + cols('EmployeeNo)
+          val password = cols('Password)
+          val salt = tokenGenerator.next
+          val hash = PasswordHash.generate(password, salt)
+          sql = sql.addBatchParams(userName, salt, hash)
+        }
+
+      case Failure(e) => throw e
+    }
+
+    sql.execute()
+
+    var insSql: BatchSql = SQL(
+      """
+      insert into store_user (
+        store_user_id, user_name, first_name, middle_name, last_name,
+        email, password_hash, salt, deleted, user_role, company_name
+      ) values (
+        (select nextval('store_user_seq')), {userName}, '', null, '',
+        '', {passwordHash}, {salt}, FALSE, """ +
+      UserRole.NORMAL.ordinal +
+      """
+        , null
+      )
+      """
+    )
+
+    var insCount = 0
+    SQL(
+      """
+      select user_csv.user_name, user_csv.salt, user_csv.password_hash from user_csv
+      left join store_user
+      on user_csv.user_name = store_user.user_name
+      where store_user.user_name is null
+      """
+    ).as(
+      SqlParser.str("user_name") ~ SqlParser.long("password_hash") ~ SqlParser.long("salt") map(SqlParser.flatten) *
+    ).foreach { t =>
+      insSql = insSql.addBatchParams(t._1, t._2, t._3)
+      insCount += 1
+    }
+
+    insSql.execute()
+
+    val delCount = SQL(
+      """
+      update store_user
+      set deleted = TRUE
+      where user_role = """ + UserRole.NORMAL.ordinal +
+      """
+      and deleted = FALSE
+      and user_name not in (
+        select user_name from user_csv
+      )
+      """ + deleteSqlSupplemental.map { "and " + _ }.getOrElse("")
+    ).executeUpdate()
+
+    (insCount, delCount)
+  }
 }
 
 object SiteUser {
@@ -251,5 +347,4 @@ object SiteUser {
     ).as(
       SiteUser.simple.singleOpt
     )
-
 }

@@ -345,5 +345,5 @@ recommendationUpdated=Recommendation record is updated
 addUsersByCsv=User is updated
 csv.needed=File format should be csv
 csv.error=CSV format error at {0}
-usersAreUpdated={0} users are updated
+usersAreUpdated={0} user(s) are created and {1} user(s) are delted
 general.error=Sorry server is busy. Try again later

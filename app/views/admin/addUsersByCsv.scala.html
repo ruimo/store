@@ -1,5 +1,4 @@
 @(
-  sites: Seq[(String, String)]
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -26,15 +25,6 @@
   }
 
   @form(action = helper.CSRF(routes.UserMaintenance.addUsersByCsv()), 'enctype -> "multipart/form-data") {
-    <div class="siteName">
-      <label for="site">@Messages("siteName")</label>
-      <select name="site">
-        @sites.map { e =>
-          <option value="@e._1">@e._2</option>
-        }
-      </select>
-    </div>
-
     <input id="usersCsv" type="file" name="attachment">
     <input id="submitUserScsv" type="submit">
   }

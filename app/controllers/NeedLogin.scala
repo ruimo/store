@@ -119,21 +119,19 @@ trait NeedLogin extends Controller with HasLogger {
       })
     }
 
-  def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result) = {
+  def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result): EssentialAction =
     Authenticated(retrieveLoginSession, onUnauthorized) { user =>
       Action(request => f(user)(request).withSession(
         request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
       ))
     }
-  }
 
-  def isAuthenticatedJson(f: => LoginSession => Request[AnyContent] => Result) = {
+  def isAuthenticatedJson(f: => LoginSession => Request[AnyContent] => Result): EssentialAction =
     Authenticated(retrieveLoginSession, onUnauthorizedJson) { user =>
       Action(request => f(user)(request).withSession(
         request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
       ))
     }
-  }
 
   def startLogin(uriOnLoginSuccess: String) = Action { implicit request =>
     Ok(views.html.admin.login(loginForm, sanitize(uriOnLoginSuccess)))
@@ -195,9 +193,9 @@ trait NeedLogin extends Controller with HasLogger {
     ))
   }
 
-  def forAdmin[T](
-    f: Request[T] => Result
-  )(implicit login: LoginSession): Request[T] => Result = { request =>
+  def forAdmin(
+    f: Request[AnyContent] => Result
+  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
     if (login.isAdmin) f(request)
     else Redirect(routes.Application.index)
   }

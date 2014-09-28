@@ -375,5 +375,5 @@ recommendationUpdated=レコメンド レコードが更新されました
 addUsersByCsv=ユーザの一括登録
 csv.needed=ファイルはcsv形式である必要があります
 csv.error=CSVのフォーマットに間違いがあります。行{0}付近
-usersAreUpdated={0} 件のユーザが更新されました
+usersAreUpdated={0} 件のユーザが作成、{1}件のユーザが削除されました
 general.error=ただいま混雑しております。しばらくしてから再度お試しください
