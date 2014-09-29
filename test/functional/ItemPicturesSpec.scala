@@ -178,7 +178,6 @@ class ItemPicturesSpec extends Specification {
         )._1 === Status.NOT_MODIFIED
 
         // Now upload new file.
-        val now = System.currentTimeMillis
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get).url +
           "&lang=" + lang.code
@@ -186,6 +185,7 @@ class ItemPicturesSpec extends Specification {
         browser.webDriver
           .findElement(By.id("itemPictureUpload0"))
           .sendKeys(Paths.get("testdata/kinseimaruIdx.jpg").toFile.getAbsolutePath)
+        val now = System.currentTimeMillis
         browser.click("#itemPictureUploadSubmit0")
 
         testDir.resolve(item.id.get + "_0.jpg").toFile.exists === true
@@ -197,7 +197,7 @@ class ItemPicturesSpec extends Specification {
         )._1 === Status.OK
         
         downloadBytes(
-          Some(now + 1000),
+          Some(now + 5000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
         )._1 === Status.NOT_MODIFIED
 
