@@ -24,6 +24,8 @@
     </div>
   }
 
+  <p>@Messages("csvUserUpdateMemo")</p>
+
   @form(action = helper.CSRF(routes.UserMaintenance.addUsersByCsv()), 'enctype -> "multipart/form-data") {
     <input id="usersCsv" type="file" name="attachment">
     <input id="submitUserScsv" type="submit">
