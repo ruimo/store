@@ -170,7 +170,6 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def startAddUsersByCsv = isAuthenticated { implicit login => forAdmin { implicit request =>
     if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
       DB.withConnection { implicit conn =>
-//        Ok(views.html.admin.addUsersByCsv(Site.tableForDropDown))
         Ok(views.html.admin.addUsersByCsv())
       }
     }

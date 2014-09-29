@@ -224,74 +224,8 @@ object StoreUser {
   )(
     implicit conn: Connection
   ): (Int, Int) = {
-    SQL(
-      """
-      create temp table user_csv (
-        user_name varchar(64) not null unique,
-        salt bigint not null,
-        password_hash bigint not null
-      )
-      """
-    ).executeUpdate()
-
-    var sql: BatchSql = SQL(
-      """
-      insert into user_csv (
-        user_name, salt, password_hash
-      ) values (
-        {userName}, {salt}, {passwordHash}
-      )
-      """
-    )
-
-    z.foreach {
-      case Success(cols) =>
-        if (csvRecordFilter(cols)) {
-          val companyId = cols('CompanyId)
-          val userName = (if (companyId.isEmpty) "" else companyId + "-") + cols('EmployeeNo)
-          val password = cols('Password)
-          val salt = tokenGenerator.next
-          val hash = PasswordHash.generate(password, salt)
-          sql = sql.addBatchParams(userName, salt, hash)
-        }
-
-      case Failure(e) => throw e
-    }
-
-    sql.execute()
-
-    var insSql: BatchSql = SQL(
-      """
-      insert into store_user (
-        store_user_id, user_name, first_name, middle_name, last_name,
-        email, password_hash, salt, deleted, user_role, company_name
-      ) values (
-        (select nextval('store_user_seq')), {userName}, '', null, '',
-        '', {passwordHash}, {salt}, FALSE, """ +
-      UserRole.NORMAL.ordinal +
-      """
-        , null
-      )
-      """
-    )
-
-    var insCount = 0
-    SQL(
-      """
-      select user_csv.user_name, user_csv.salt, user_csv.password_hash from user_csv
-      left join store_user
-      on user_csv.user_name = store_user.user_name
-      where store_user.user_name is null
-      """
-    ).as(
-      SqlParser.str("user_name") ~ SqlParser.long("password_hash") ~ SqlParser.long("salt") map(SqlParser.flatten) *
-    ).foreach { t =>
-      insSql = insSql.addBatchParams(t._1, t._2, t._3)
-      insCount += 1
-    }
-
-    insSql.execute()
-
+    insertCsvIntoTempTable(z, csvRecordFilter)
+    val insCount = insertByCsv(conn)
     val delCount = SQL(
       """
       update store_user
@@ -306,6 +240,77 @@ object StoreUser {
     ).executeUpdate()
 
     (insCount, delCount)
+  }
+
+  def insertCsvIntoTempTable(
+    z: Iterator[Try[CsvRecord]], csvRecordFilter: CsvRecord => Boolean
+  )(implicit conn: Connection) {
+    SQL(
+      """
+      create temp table user_csv (
+        user_name varchar(64) not null unique,
+        salt bigint not null,
+        password_hash bigint not null
+      )
+      """
+    ).executeUpdate()
+
+    val sql: BatchSql = SQL(
+      """
+      insert into user_csv (
+        user_name, salt, password_hash
+      ) values (
+        {userName}, {salt}, {passwordHash}
+      )
+      """
+    )
+
+    z.foldLeft(sql) { (sql, e) => e match {
+      case Success(cols) =>
+        if (csvRecordFilter(cols)) {
+          val companyId = cols('CompanyId)
+          val userName = (if (companyId.isEmpty) "" else companyId + "-") + cols('EmployeeNo)
+          val password = cols('Password)
+          val salt = tokenGenerator.next
+          val hash = PasswordHash.generate(password, salt)
+          sql.addBatchParams(userName, salt, hash)
+        }
+        else sql
+
+      case Failure(e) => throw e
+    }}.execute()
+  }
+
+  def insertByCsv(implicit conn: Connection): Int = {
+    val insSql: BatchSql = SQL(
+      """
+      insert into store_user (
+        store_user_id, user_name, first_name, middle_name, last_name,
+        email, password_hash, salt, deleted, user_role, company_name
+      ) values (
+        (select nextval('store_user_seq')), {userName}, '', null, '',
+        '', {passwordHash}, {salt}, FALSE, """ +
+      UserRole.NORMAL.ordinal +
+      """
+        , null
+      )
+      """
+    )
+
+    SQL(
+      """
+      select user_csv.user_name, user_csv.salt, user_csv.password_hash from user_csv
+      left join store_user
+      on user_csv.user_name = store_user.user_name
+      where store_user.user_name is null
+      """
+    ).as(
+      SqlParser.str("user_name") ~
+      SqlParser.long("password_hash") ~
+      SqlParser.long("salt") map(SqlParser.flatten) *
+    ).foldLeft(insSql) {
+      (sql, t) => sql.addBatchParams(t._1, t._2, t._3)
+    }.execute().length
   }
 }
 
