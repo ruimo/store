@@ -168,6 +168,8 @@ POST    /admin/removeRecommendationByAdmin controllers.RecommendationByAdmin.rem
 POST    /admin/changeRecommendationByAdmin controllers.RecommendationByAdmin.changeRecommendation(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "score")
 GET     /admin/startAddUsersByCsv        controllers.UserMaintenance.startAddUsersByCsv()
 POST    /admin/addUsersByCsv             controllers.UserMaintenance.addUsersByCsv()
+GET     /registerUserInformation         controllers.UserEntry.registerUserInformation()
+POST    /submitUserInformation           controllers.UserEntry.submitUserInfo()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

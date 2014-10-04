@@ -25,6 +25,7 @@ case class StoreUser(
 ) extends NotNull {
   def passwordMatch(password: String): Boolean =
     PasswordHash.generate(password, salt) == passwordHash
+  lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
 }
 
 case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long) extends NotNull
@@ -190,7 +191,7 @@ object StoreUser {
   def update(
     userId: Long,
     userName: String, firstName: String, middleName: Option[String], lastName: String,
-    email: String, passwordHash: Long, salt: Long, companyName: String
+    email: String, passwordHash: Long, salt: Long, companyName: Option[String]
   )(implicit conn: Connection): Int =
     SQL(
       """

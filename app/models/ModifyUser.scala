@@ -12,7 +12,7 @@ case class ModifyUser(
     val salt = tokenGenerator.next
     val hash = PasswordHash.generate(password, salt)
     StoreUser.update(
-      userId, userName, firstName, middleName, lastName, email, hash, salt, companyName
+      userId, userName, firstName, middleName, lastName, email, hash, salt, Some(companyName)
     )
 
     OrderNotification.delete(userId)

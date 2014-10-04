@@ -348,3 +348,6 @@ csv.error=CSV format error at {0}
 usersAreUpdated={0} user(s) are created and {1} user(s) are delted
 general.error=Sorry server is busy. Try again later
 csvUserUpdateMemo=Caution! Users not in CSV will be all removed! Only normal users are modified. Users specified by CSV but already registered in this system will be just ignored.
+registerUserInformation=Enter user information
+currentPassword=Current password
+currentPasswordNotMatch=password does not match

@@ -15,20 +15,7 @@ import java.sql.Connection
 import play.api.libs.json.Json
 
 trait NeedLogin extends Controller with HasLogger {
-  lazy val cfg = play.api.Play.maybeApplication.map(_.configuration).get
-  lazy val needAuthenticationEntirely = cfg.getBoolean("need.authentication.entirely").getOrElse(false)
-  lazy val loginTimeoutInMinute = cfg.getString("login.timeout.minute").map {
-    _.toInt
-  }.getOrElse {
-    5
-  }
-
-  val userNameConstraint = List(minLength(6), maxLength(24))
-  val passwordConstraint = List(minLength(6), maxLength(24))
-  val firstNameConstraint = List(nonEmpty, maxLength(32))
-  val lastNameConstraint = List(nonEmpty, maxLength(32))
-  val emailConstraint = List(maxLength(255))
-  val companyNameConstraint = List(nonEmpty, maxLength(32))
+  import NeedLogin._
 
   val LoginUserKey = "loginUser"
   lazy val SessionTimeout = loginTimeoutInMinute * 60 * 1000
@@ -41,8 +28,8 @@ trait NeedLogin extends Controller with HasLogger {
     )(LoginUser.apply)(LoginUser.unapply)
   )
 
-  def loginSession(implicit request: RequestHeader, conn: Connection):
-    Option[LoginSession] = loginSessionWithTime(request, System.currentTimeMillis)
+  def loginSession(implicit request: RequestHeader, conn: Connection): Option[LoginSession] =
+    loginSessionWithTime(request, System.currentTimeMillis)
 
   def retrieveLoginSession(request: RequestHeader): Option[LoginSession] = DB.withConnection { conn =>
     loginSession(request, conn)
@@ -50,12 +37,13 @@ trait NeedLogin extends Controller with HasLogger {
 
   def loginSessionWithTime(
     request: RequestHeader, now: Long
-  )(implicit conn: Connection): Option[LoginSession] =
+  )(implicit conn: Connection): Option[LoginSession] = {
     request.session.get(LoginUserKey).flatMap {
       sessionString =>
         val s = LoginSession(sessionString)
         if (s.expireTime < now) None else Some(s)
     }
+  }
 
   def onUnauthorized(request: RequestHeader) = DB.withConnection { implicit conn => {
     StoreUser.count match {
@@ -143,14 +131,13 @@ trait NeedLogin extends Controller with HasLogger {
     else if (url.indexOf("csrfToken=") != -1) "/"
     else url
 
-  def login = Action { implicit request => {
+  def login = Action { implicit request =>
     val form = loginForm.bindFromRequest
-
-    form.bindFromRequest.fold(
+    form.fold(
       onValidationErrorInLogin,
       user => tryLogin(user, form)
     )
-  }}
+  }
 
   def logoff(uriOnLogoffSuccess: String) = Action { implicit request =>
     Redirect(routes.Application.index).withSession(session - LoginUserKey)
@@ -163,25 +150,38 @@ trait NeedLogin extends Controller with HasLogger {
 
   def tryLogin(
     user: LoginUser, form: Form[LoginUser]
-  )(implicit request: Request[AnyContent]) = DB.withConnection { implicit conn => {
+  )(implicit request: Request[AnyContent]): Result = DB.withConnection { implicit conn => {
     StoreUser.findByUserName(user.userName) match {
-      case None => onLoginUserNotFound(form)
-      case Some(rec) => {
+      case None => 
+        logger.error("Cannot find user '" + user.userName + "'")
+        onLoginUserNotFound(form)
+      case Some(rec) =>
         if (rec.passwordMatch(user.password)) {
-          Redirect(user.uri).flashing(
-            "message" -> "Welcome"
-          ).withSession {
-            (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
+          logger.info("Password ok '" + user.userName + "'")
+          if (rec.isRegistrationIncomplete) {
+            logger.info("Need user registration '" + user.userName + "'")
+            Redirect(
+              routes.UserEntry.registerUserInformation()
+            ).withSession {
+              (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
+            }
+          }
+          else {
+            logger.info("Login success '" + user.userName + "'")
+            Redirect(user.uri).flashing(
+              "message" -> "Welcome"
+            ).withSession {
+              (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
+            }
           }
         }
         else {
-          logger.error("Password doesnot match.")
+          logger.error("Password doesnot match '" + user.userName + "'")
           BadRequest(views.html.admin.login(
             form.withGlobalError(Messages("cannotLogin")),
             form("uri").value.get
           ))
         }
-      }
     }
   }}
 
@@ -206,4 +206,22 @@ trait NeedLogin extends Controller with HasLogger {
     if (login.isSuperUser) f(request)
     else Redirect(routes.Application.index)
   }
+}
+
+object NeedLogin {
+  lazy val cfg = play.api.Play.maybeApplication.map(_.configuration).get
+  lazy val passwordMinLength = cfg.getInt("password.min.length").getOrElse(6)
+  lazy val needAuthenticationEntirely = cfg.getBoolean("need.authentication.entirely").getOrElse(false)
+  lazy val loginTimeoutInMinute = cfg.getString("login.timeout.minute").map {
+    _.toInt
+  }.getOrElse {
+    5
+  }
+
+  val userNameConstraint = List(minLength(6), maxLength(24))
+  val passwordConstraint = List(minLength(passwordMinLength), maxLength(24))
+  val firstNameConstraint = List(nonEmpty, maxLength(64))
+  val lastNameConstraint = List(nonEmpty, maxLength(64))
+  val emailConstraint = List(maxLength(255))
+  val companyNameConstraint = List(nonEmpty, maxLength(32))
 }

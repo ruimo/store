@@ -142,5 +142,5 @@ object CreateAddress {
              addr.prefecture.code,
              addr.address1, addr.address2, addr.address3, addr.address4, addr.address5,
              addr.tel1, addr.tel2, addr.tel3, addr.shippingDate, addr.comment
-           ))
+  ))
 }

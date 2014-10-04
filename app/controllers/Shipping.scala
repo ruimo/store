@@ -22,6 +22,11 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
+  import NeedLogin._
+
+  val firstNameKanaConstraint = List(nonEmpty, maxLength(64))
+  val lastNameKanaConstraint = List(nonEmpty, maxLength(64))
+
   val Zip1Pattern = Pattern.compile("\\d{3}")
   val Zip2Pattern = Pattern.compile("\\d{4}")
   val TelPattern = Pattern.compile("\\d+{1,32}")
@@ -30,10 +35,10 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
 
   def jaForm(implicit lang: Lang) = Form(
     mapping(
-      "firstName" -> text.verifying(nonEmpty, maxLength(64)),
-      "lastName" -> text.verifying(nonEmpty, maxLength(64)),
-      "firstNameKana" -> text.verifying(nonEmpty, maxLength(64)),
-      "lastNameKana" -> text.verifying(nonEmpty, maxLength(64)),
+      "firstName" -> text.verifying(firstNameConstraint: _*),
+      "lastName" -> text.verifying(lastNameConstraint: _*),
+      "firstNameKana" -> text.verifying(firstNameKanaConstraint: _*),
+      "lastNameKana" -> text.verifying(lastNameKanaConstraint: _*),
       "zip1" -> text.verifying(z => Zip1Pattern.matcher(z).matches),
       "zip2" -> text.verifying(z => Zip2Pattern.matcher(z).matches),
       "prefecture" -> number,

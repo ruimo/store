@@ -20,6 +20,8 @@ import com.ruimo.csv.CsvRecord
 import com.ruimo.csv.Parser._
 
 class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with HasLogger {
+  import NeedLogin._
+
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
   lazy val siteOwnerCanUploadUserCsv = config.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
