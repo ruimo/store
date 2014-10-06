@@ -25,7 +25,7 @@ object ApplicationBuild extends Build {
       a => Seq("-Xmx","-Xms","-XX").exists(a.startsWith)
     ),
     scalaVersion := "2.10.4",
-    resolvers += "ruimo.com" at "http://www.ruimo.com/release"
+    resolvers += "ruimo.com" at "http://static.ruimo.com/release"
   ).settings(
     net.virtualvoid.sbt.graph.Plugin.graphSettings: _*
   )

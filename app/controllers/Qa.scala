@@ -25,8 +25,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
     )(QaEntry.apply4Japan)(QaEntry.unapply4Japan)
   )
 
-  def index() = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  def index() = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     lang.toLocale match {
       case Locale.JAPANESE =>
         Ok(views.html.qaJa(jaForm))
@@ -38,8 +37,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
     }
   }}}
 
-  def submitQaJa() = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  def submitQaJa() = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     jaForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(views.html.qaJa(formWithErrors))

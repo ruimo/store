@@ -64,8 +64,9 @@ class RegisterUserInformationSpec extends Specification {
         browser.find("#address3_field .help-inline").getText === ""
         browser.find("#tel1_field .help-inline").getText === Messages("error.number")
 
-        browser.fill("#password_main").`with`("1234567")
-        browser.fill("#password_confirm").`with`("12345678")
+        val password = "1" * (passwordMinLength - 1)
+        browser.fill("#password_main").`with`(password)
+        browser.fill("#password_confirm").`with`(password)
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.find("#password_main_field .help-inline").getText === Messages("error.minLength", passwordMinLength)

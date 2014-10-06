@@ -12,9 +12,8 @@ import helpers.QueryString
 object ItemQuery extends Controller with I18nAware with NeedLogin {
   def query(
     qs: List[String], page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
-  ) = Action { implicit request => DB.withConnection { implicit conn => {
+  ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
-    implicit val login = loginSession(request, conn)
 
     val list = Item.list(
       None, LocaleInfo.byLang(lang), queryString, page, pageSize, orderBy = OrderBy(orderBySpec)
@@ -29,8 +28,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
 
   def queryByCheckBox(
     page: Int, pageSize: Int, templateNo: Int
-  ) = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     request.queryString.get("queryText") match {
       case None =>
         Ok(views.html.queryByCheckBox())
@@ -41,8 +39,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
 
   def queryBySelect(
     page: Int, pageSize: Int, templateNo: Int
-  ) = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     request.queryString.get("queryText") match {
       case None =>
         Ok(views.html.queryBySelect())
@@ -53,8 +50,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
 
   def queryByRadio(
     page: Int, pageSize: Int, templateNo: Int
-  ) = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     val list = request.queryString.filterKeys {_.startsWith("queryText")}.values.foldLeft(List[String]())(_ ++ _)
     if (list .isEmpty)
       Ok(views.html.queryByRadio())

@@ -148,7 +148,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
-  def getPicture(itemId: Long, no: Int) = Action { request =>
+  def getPicture(itemId: Long, no: Int) = optIsAuthenticated { implicit optLogin => request =>
     val path = getPath(itemId, no)
     if (Files.isReadable(path)) {
       if (isModified(path, request)) readFile(path) else NotModified
@@ -284,7 +284,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
-  def getDetailPicture(itemId: Long) = Action { request =>
+  def getDetailPicture(itemId: Long) = optIsAuthenticated { implicit optLogin => request =>
     val path = getDetailPath(itemId)
     if (Files.isReadable(path)) {
       if (isModified(path, request)) readFile(path) else NotModified
@@ -300,7 +300,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     else detailNotfoundPath
   }
 
-  def remove(itemId: Long, no: Int) = Action { implicit request =>
+  def remove(itemId: Long, no: Int) = optIsAuthenticated { implicit optLogin => implicit request =>
     try {
       Files.delete(toPath(itemId, no))
       notfoundPath.toFile.setLastModified(System.currentTimeMillis)
@@ -314,7 +314,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
-  def removeDetail(itemId: Long) = Action { implicit request =>
+  def removeDetail(itemId: Long) = optIsAuthenticated { implicit optLogin => implicit request =>
     try {
       Files.delete(toDetailPath(itemId))
       detailNotfoundPath.toFile.setLastModified(System.currentTimeMillis)
@@ -328,7 +328,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
-  def removeAttachment(itemId: Long, no: Int, fileName: String) = Action { implicit request =>
+  def removeAttachment(itemId: Long, no: Int, fileName: String) = optIsAuthenticated { implicit optLogin => implicit request =>
     try {
       Files.delete(toAttachmentPath(itemId, no, fileName))
     }
@@ -347,7 +347,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
   def toDetailPath(itemId: Long) = picturePath.resolve(detailPictureName(itemId))
   def toAttachmentPath(itemId: Long, idx: Int, fileName: String) = attachmentPath.resolve(itemId + "_" + idx + "_" + fileName)
 
-  def getItemAttachment(itemId: Long, no: Int, fileName: String) = Action { request =>
+  def getItemAttachment(itemId: Long, no: Int, fileName: String) = optIsAuthenticated { implicit optLogin => request =>
     val path = toAttachmentPath(itemId, no, fileName)
     if (Files.isReadable(path)) {
       if (isModified(path, request)) readFile(path, "application/octet-stream", Some(fileName)) else NotModified
