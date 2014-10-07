@@ -8,6 +8,7 @@ import play.api.test.{Helpers, TestServer, FakeApplication}
 import play.api.i18n.{Lang, Messages}
 import play.api.db.DB
 import helpers.Helper.disableMailer
+import controllers.NeedLogin
 
 class QaSpec extends Specification {
   val conf = inMemoryDatabase() ++ disableMailer
@@ -17,6 +18,10 @@ class QaSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = conf)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
+        if (NeedLogin.needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
+
         browser.goTo(
           "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
         )
@@ -38,6 +43,9 @@ class QaSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = conf)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
+        if (NeedLogin.needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
         browser.goTo(
           "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
         )
