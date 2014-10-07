@@ -12,6 +12,7 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import scala.Some
 import java.sql.Date.{valueOf => date}
+import controllers.NeedLogin
 
 class ItemQuerySpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -59,6 +60,10 @@ class ItemQuerySpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List(""), 0, 10).url + "&lang=" + lang.code
         )
+
+        if (NeedLogin.needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         browser.title === Messages("item.list")
         val body1 = browser.$("tr.queryItemTableBody")
