@@ -36,6 +36,9 @@ class ItemPicturesSpec extends Specification {
     "item.picture.path" -> testDir.toFile.getAbsolutePath,
     "item.picture.fortest" -> true
   )
+  lazy val avoidLogin = Map(
+    "need.authentication.entirely" -> false
+  )
 
   "ItemPicture" should {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
@@ -274,15 +277,12 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified attachment is found but not modified, 304 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         Files.createDirectories(testDir.resolve("attachments"))
         val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
         downloadString(
           Some(file.toFile.lastModified),
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url

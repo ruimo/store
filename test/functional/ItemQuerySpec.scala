@@ -57,13 +57,13 @@ class ItemQuerySpec extends Specification {
           itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
         )
         
-        browser.goTo(
-          "http://localhost:3333" + controllers.routes.ItemQuery.query(List(""), 0, 10).url + "&lang=" + lang.code
-        )
-
         if (NeedLogin.needAuthenticationEntirely) {
           loginWithTestUser(browser)
         }
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemQuery.query(List(""), 0, 10).url + "&lang=" + lang.code
+        )
 
         browser.title === Messages("item.list")
         val body1 = browser.$("tr.queryItemTableBody")
