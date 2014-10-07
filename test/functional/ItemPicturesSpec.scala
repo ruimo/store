@@ -28,7 +28,6 @@ import org.openqa.selenium.By
 import scala.Some
 import play.api.test.TestServer
 import play.api.test.FakeApplication
-import controllers.NeedLogin
 
 class ItemPicturesSpec extends Specification {
   val testDir = Files.createTempDirectory(null)
@@ -42,14 +41,10 @@ class ItemPicturesSpec extends Specification {
 
   "ItemPicture" should {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("notfound.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
-
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(1, 0).url
@@ -60,15 +55,11 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified detail picture is not found, 'detailnotfound.jpg' will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("detailnotfound.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
-
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(1).url
@@ -79,14 +70,11 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified picture is found and modified, it will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
 
         downloadString(
           Some(file.toFile.lastModified - 1000),
@@ -98,14 +86,11 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified detail picture is found and modified, it will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
 
         downloadString(
           Some(file.toFile.lastModified - 1000),
@@ -117,14 +102,11 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified picture is found but not modified, 304 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
 
         downloadString(
           Some(file.toFile.lastModified),
@@ -141,15 +123,12 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified detail picture is found but not modified, 304 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
         downloadString(
           Some(file.toFile.lastModified),
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(2).url
@@ -165,7 +144,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "Upload item picture." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
@@ -189,9 +168,6 @@ class ItemPicturesSpec extends Specification {
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
 
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
         // Since no item pictures found, notfound.jpg will be obtained.
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
@@ -247,11 +223,8 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified attachment is not found, 404 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "foo").url
         ) must throwA[FileNotFoundException]
@@ -259,14 +232,11 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified attachment is found and modified, it will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         Files.createDirectories(testDir.resolve("attachments"))
         val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
-        if (NeedLogin.needAuthenticationEntirely) {
-          loginWithTestUser(browser)
-        }
         downloadString(
           Some(file.toFile.lastModified - 1000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
