@@ -121,7 +121,7 @@ trait NeedLogin extends Controller with HasLogger {
       ))
     }
 
-  def startLogin(uriOnLoginSuccess: String) = optIsAuthenticated { implicit optLogin => implicit request =>
+  def startLogin(uriOnLoginSuccess: String) = Action { implicit request =>
     Ok(views.html.admin.login(loginForm, sanitize(uriOnLoginSuccess)))
   }
 
