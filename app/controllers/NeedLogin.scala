@@ -122,7 +122,10 @@ trait NeedLogin extends Controller with HasLogger {
     }
 
   def startLogin(uriOnLoginSuccess: String) = Action { implicit request =>
-    Ok(views.html.admin.login(loginForm, sanitize(uriOnLoginSuccess)))
+    if (retrieveLoginSession(request).isDefined)
+      Redirect(uriOnLoginSuccess)
+    else
+      Ok(views.html.admin.login(loginForm, sanitize(uriOnLoginSuccess)))
   }
 
   def sanitize(url: String): String = 
