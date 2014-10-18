@@ -150,7 +150,11 @@ class ItemSpec extends Specification {
       }
     }
 
-    def storeItems(tax: Tax, site1: Site, site2: Site) {
+    case class CreatedRecords(
+      category1: Category, category2: Category
+    )
+
+    def storeItems(tax: Tax, site1: Site, site2: Site): CreatedRecords = {
       DB.withConnection { implicit conn => {
         import LocaleInfo._
 
@@ -232,6 +236,8 @@ class ItemSpec extends Specification {
         val height3 = ItemNumericMetadata.createNew(item3, ItemNumericMetadataType.HEIGHT, 300)
         val height4 = ItemNumericMetadata.createNew(item4, ItemNumericMetadataType.HEIGHT, 400)
         val height5 = ItemNumericMetadata.createNew(item5, ItemNumericMetadataType.HEIGHT, 500)
+
+        CreatedRecords(cat1, cat2)
       }}
     }
 
@@ -289,54 +295,89 @@ class ItemSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
         
-          storeItems(tax, site1, site2)
+          val createdRecords = storeItems(tax, site1, site2)
 
           val time = date("2013-01-04").getTime
 
-          val pages = Item.list(None, LocaleInfo.Ja, QueryString(), now = time)
-          pages.pageCount === 1
-          pages.currentPage === 0
-          pages.pageSize === 10
-          val list1 = pages.records
-          list1.size === 5
+          doWith(Item.list(None, LocaleInfo.Ja, QueryString(), now = time)) { pages =>
+            pages.pageCount === 1
+            pages.currentPage === 0
+            pages.pageSize === 10
+            val list1 = pages.records
+            list1.size === 5
 
-          list1(0)._2.name === "もみじ"
-          list1(1)._2.name === "杉"
-          list1(2)._2.name === "桃"
-          list1(3)._2.name === "桜"
-          list1(4)._2.name === "梅"
+            list1(0)._2.name === "もみじ"
+            list1(1)._2.name === "杉"
+            list1(2)._2.name === "桃"
+            list1(3)._2.name === "桜"
+            list1(4)._2.name === "梅"
 
-          list1(0)._3.description === "もみじ説明"
-          list1(1)._3.description === "杉説明"
-          list1(2)._3.description === "桃説明"
-          list1(3)._3.description === "桜説明"
-          list1(4)._3.description === "梅説明"
+            list1(0)._3.description === "もみじ説明"
+            list1(1)._3.description === "杉説明"
+            list1(2)._3.description === "桃説明"
+            list1(3)._3.description === "桜説明"
+            list1(4)._3.description === "梅説明"
 
-          list1(0)._5.taxId === tax.id.get
-          list1(0)._5.currency === CurrencyInfo.Jpy
-          list1(0)._5.unitPrice === BigDecimal(2000)
+            list1(0)._5.taxId === tax.id.get
+            list1(0)._5.currency === CurrencyInfo.Jpy
+            list1(0)._5.unitPrice === BigDecimal(2000)
 
-          list1(1)._5.taxId === tax.id.get
-          list1(1)._5.currency === CurrencyInfo.Jpy
-          list1(1)._5.unitPrice === BigDecimal(101)
+            list1(1)._5.taxId === tax.id.get
+            list1(1)._5.currency === CurrencyInfo.Jpy
+            list1(1)._5.unitPrice === BigDecimal(101)
 
-          list1(2)._5.taxId === tax.id.get
-          list1(2)._5.currency === CurrencyInfo.Jpy
-          list1(2)._5.unitPrice === BigDecimal(1200)
+            list1(2)._5.taxId === tax.id.get
+            list1(2)._5.currency === CurrencyInfo.Jpy
+            list1(2)._5.unitPrice === BigDecimal(1200)
 
-          list1(3)._5.taxId === tax.id.get
-          list1(3)._5.currency === CurrencyInfo.Jpy
-          list1(3)._5.unitPrice === BigDecimal(501)
+            list1(3)._5.taxId === tax.id.get
+            list1(3)._5.currency === CurrencyInfo.Jpy
+            list1(3)._5.unitPrice === BigDecimal(501)
 
-          list1(4)._5.taxId === tax.id.get
-          list1(4)._5.currency === CurrencyInfo.Jpy
-          list1(4)._5.unitPrice === BigDecimal(301)
+            list1(4)._5.taxId === tax.id.get
+            list1(4)._5.currency === CurrencyInfo.Jpy
+            list1(4)._5.unitPrice === BigDecimal(301)
 
-          list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
-          list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
-          list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 400
-          list1(3)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
-          list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
+            list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+            list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+            list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 400
+            list1(3)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
+            list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
+          }
+
+          doWith(
+            Item.list(None, LocaleInfo.Ja, QueryString(), Some(createdRecords.category1.id.get), now = time)
+          ) { pages =>
+            pages.pageCount === 1
+            pages.currentPage === 0
+            pages.pageSize === 10
+            val list1 = pages.records
+            list1.size === 3
+
+            list1(0)._2.name === "もみじ"
+            list1(1)._2.name === "杉"
+            list1(2)._2.name === "桜"
+
+            list1(0)._3.description === "もみじ説明"
+            list1(1)._3.description === "杉説明"
+            list1(2)._3.description === "桜説明"
+
+            list1(0)._5.taxId === tax.id.get
+            list1(0)._5.currency === CurrencyInfo.Jpy
+            list1(0)._5.unitPrice === BigDecimal(2000)
+
+            list1(1)._5.taxId === tax.id.get
+            list1(1)._5.currency === CurrencyInfo.Jpy
+            list1(1)._5.unitPrice === BigDecimal(101)
+
+            list1(2)._5.taxId === tax.id.get
+            list1(2)._5.currency === CurrencyInfo.Jpy
+            list1(2)._5.unitPrice === BigDecimal(501)
+
+            list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+            list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+            list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
+          }
         }}
       }
     }
@@ -485,9 +526,17 @@ class ItemSpec extends Specification {
     }
 
     "Can create sql for item query." in {
-      Item.createQueryConditionSql(QueryString(List("Hello", "World"))) ===
+      Item.createQueryConditionSql(QueryString(List("Hello", "World")), None) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) "
+
+      Item.createQueryConditionSql(QueryString(List("Hello", "World")), Some(123L)) ===
+        "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
+        "and (item_name.item_name like {query1} or item_description.description like {query1}) " +
+        "and item.category_id = 123 "
+
+      Item.createQueryConditionSql(QueryString(List()), Some(123L)) ===
+        "and item.category_id = 123 "
     }
   }
 }

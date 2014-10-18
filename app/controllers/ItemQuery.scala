@@ -16,7 +16,32 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
 
     val list = Item.list(
-      None, LocaleInfo.byLang(lang), queryString, page, pageSize, orderBy = OrderBy(orderBySpec)
+      locale = LocaleInfo.byLang(lang),
+      queryString = queryString,
+      page = page,
+      pageSize = pageSize,
+      orderBy = OrderBy(orderBySpec)
+    )
+    Ok(
+      if (templateNo == 0)
+        views.html.query("", queryString, list)
+      else
+        views.html.queryTemplate("", queryString, list, templateNo)
+    )
+  }}}
+
+  def queryByCategory(
+    qs: List[String], c: Option[Long], page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
+  ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
+    val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
+
+    val list = Item.list(
+      locale = LocaleInfo.byLang(lang), 
+      queryString = queryString,
+      category = c,
+      page = page,
+      pageSize = pageSize,
+      orderBy = OrderBy(orderBySpec)
     )
     Ok(
       if (templateNo == 0)

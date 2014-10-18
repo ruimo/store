@@ -172,7 +172,7 @@ object Item {
         )
       )
     """ +
-    createQueryConditionSql(queryString)
+    createQueryConditionSql(queryString, None)
 
     val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
@@ -215,7 +215,9 @@ object Item {
   // Do not pass user input directly into orderBy argument. That will
   // be SQL injection vulnerability.
   def list(
-    siteUser: Option[SiteUser] = None, locale: LocaleInfo, queryString: QueryString,
+    siteUser: Option[SiteUser] = None,
+    locale: LocaleInfo, queryString: QueryString,
+    category: Option[Long] = None,
     page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis,
     orderBy: OrderBy = ItemListDefaultOrderBy
@@ -258,7 +260,7 @@ object Item {
           limit 1
       )
     """ +
-    createQueryConditionSql(queryString)
+    createQueryConditionSql(queryString, category: Option[Long])
 
     val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
@@ -298,20 +300,21 @@ object Item {
     PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
   }
 
-  def createQueryConditionSql(q: QueryString): String = {
+  def createQueryConditionSql(q: QueryString, category: Option[Long]): String = {
     val buf = new StringBuilder
 
-    @tailrec def createQueryConditionSql(idx: Int): String = {
-        if (idx < q.size) {
-          buf.append(
-            f"and (item_name.item_name like {query$idx%d} or item_description.description like {query$idx%d}) "
-          )
-          createQueryConditionSql(idx + 1)
-        }
+    @tailrec def createQueryConditionSql(idx: Int): String =
+      if (idx < q.size) {
+        buf.append(
+          f"and (item_name.item_name like {query$idx%d} or item_description.description like {query$idx%d}) "
+        )
+        createQueryConditionSql(idx + 1)
+      }
       else buf.toString
-    }
 
-    createQueryConditionSql(0)
+    createQueryConditionSql(0) + category.map {
+      cid => f"and item.category_id = $cid "
+    }.getOrElse("")
   }
 
   def applyQueryString(queryString: QueryString, sql: SimpleSql[Row]): SimpleSql[Row] = {
