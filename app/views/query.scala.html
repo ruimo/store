@@ -21,8 +21,6 @@
 @import helper._
 
 @main(Messages("item.list"), loginSession) {
-  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-  <link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
   @shoppingCartDialogDeclaration()
 } {
   @shoppingCartDialogImplementation()
