@@ -119,7 +119,7 @@ class TransactionSummarySpec extends Specification {
 
           val ptran1 = persister.load(tranNo1, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
-          val summary1 = TransactionSummary.list(Some(siteUser1.id.get)).records
+          val summary1 = TransactionSummary.list(Some(siteUser1.siteId)).records
           summary1.size === 1
           val entry1 = summary1.head
           entry1.transactionId === tranNo1
@@ -130,7 +130,7 @@ class TransactionSummarySpec extends Specification {
           entry1.shippingFee === BigDecimal(1234)
           entry1.status === TransactionStatus.ORDERED
 
-          val sum1 = TransactionSummary.get(Some(siteUser1.id.get), entry1.transactionSiteId)
+          val sum1 = TransactionSummary.get(Some(siteUser1.siteId), entry1.transactionSiteId)
           sum1.isDefined === true
 
           val tranNo2 = persister.persist(
@@ -140,7 +140,7 @@ class TransactionSummarySpec extends Specification {
 
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          doWith(TransactionSummary.list(Some(siteUser1.id.get)).records) { s =>
+          doWith(TransactionSummary.list(Some(siteUser1.siteId)).records) { s =>
             s.size === 2
             doWith(s(0)) { e =>
               e.transactionId === tranNo2
@@ -163,7 +163,7 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          doWith(TransactionSummary.list(Some(siteUser2.id.get)).records) { s =>
+          doWith(TransactionSummary.list(Some(siteUser2.siteId)).records) { s =>
             s.size === 1
             doWith(s(0)) { e =>
               e.transactionId === tranNo1
@@ -178,24 +178,26 @@ class TransactionSummarySpec extends Specification {
 
           doWith(TransactionSummary.list(storeUserId = Some(user1.id.get)).records) { s =>
             s.size === 2
-            doWith(s(0)) { e =>
-              e.transactionId === tranNo1
-              e.transactionTime === ptran1.header.transactionTime
-              e.totalAmount === BigDecimal(119 + 1234)
-              e.address === addr1
-              e.siteName === "商店1"
-              e.shippingFee === BigDecimal(1234)
-              e.status === TransactionStatus.ORDERED
-            }
+            doWith(s.map { ele => (ele.siteName, ele) }.toMap) { map =>
+              doWith(map("商店1")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(119 + 1234)
+                e.address === addr1
+                e.siteName === "商店1"
+                e.shippingFee === BigDecimal(1234)
+                e.status === TransactionStatus.ORDERED
+              }
 
-            doWith(s(1)) { e =>
-              e.transactionId === tranNo1
-              e.transactionTime === ptran1.header.transactionTime
-              e.totalAmount === BigDecimal(59 + 2345)
-              e.address === addr1
-              e.siteName === "商店2"
-              e.shippingFee === BigDecimal(2345)
-              e.status === TransactionStatus.ORDERED
+              doWith(map("商店2")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(59 + 2345)
+                e.address === addr1
+                e.siteName === "商店2"
+                e.shippingFee === BigDecimal(2345)
+                e.status === TransactionStatus.ORDERED
+              }
             }
           }
 
@@ -334,7 +336,7 @@ class TransactionSummarySpec extends Specification {
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 1))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 1))) { s =>
             s.size === 1
             doWith(s(0)) { e =>
               e.transactionId === tranNo1
@@ -347,7 +349,7 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 3))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 3))) { s =>
             s.size === 1
             doWith(s(0)) { e =>
               e.transactionId === tranNo2
