@@ -42,16 +42,28 @@ class OrderHistorySpec extends Specification {
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
         )
         browser.title === Messages("order.history.title")
+        browser.find(".orderHistoryInnerTable1").size === 2
         doWith(browser.find(".orderHistoryInnerTable1")) { b =>
-          b.find(".transactionTime").getText ===
+          b.find(".transactionTime td").getText ===
             "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
           b.find(".tranNo").getText === tran.tranHeader.id.get.toString
           val user = StoreUser(tran.tranHeader.userId)
           b.find(".buyerName").getText === user.firstName + " " + user.lastName
-          b.find(".subtotal").getText === ViewHelpers.toAmount(tran.tranSiteHeader.head.totalAmount)
+          if (b.find(".subtotal", 0).getText == ViewHelpers.toAmount(tran.tranSiteHeader(0).totalAmount)) {
+            b.find(".subtotal", 1).getText === ViewHelpers.toAmount(tran.tranSiteHeader(1).totalAmount)
+          }
+          else {
+            b.find(".subtotal", 0).getText === ViewHelpers.toAmount(tran.tranSiteHeader(1).totalAmount)
+            b.find(".subtotal", 1).getText === ViewHelpers.toAmount(tran.tranSiteHeader(0).totalAmount)
+          }
           b.find(".outerTaxAmount").getText === ViewHelpers.toAmount(0)
-          b.find(".total").getText === 
-            ViewHelpers.toAmount(tran.tranSiteHeader.head.totalAmount)
+          if (b.find(".total", 0).getText == ViewHelpers.toAmount(tran.tranSiteHeader(0).totalAmount)) {
+            b.find(".total", 1).getText === ViewHelpers.toAmount(tran.tranSiteHeader(1).totalAmount)
+          }
+          else {
+            b.find(".total", 0).getText === ViewHelpers.toAmount(tran.tranSiteHeader(1).totalAmount)
+            b.find(".total", 1).getText === ViewHelpers.toAmount(tran.tranSiteHeader(0).totalAmount)
+          }
         }
         doWith(browser.find(".shippingAddressTable")) { b =>
           b.find(".name").getText === tran.address.firstName + " " + tran.address.lastName
@@ -64,29 +76,58 @@ class OrderHistorySpec extends Specification {
         }
         doWith(browser.find(".orderHistoryInnerTable2")) { b =>
           b.find(".status").getText === Messages("transaction.status.ORDERED")
-          b.find(".shippingDate").getText === 
-            DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
-              date("2013-02-03")
-            )
+          if (b.find(".shippingDate", 0).getText == 
+            DateTimeFormat.forPattern(Messages("shipping.date.format")).print(date("2013-02-03"))
+          ) {
+            b.find(".shippingDate", 1).getText ===
+              DateTimeFormat.forPattern(Messages("shipping.date.format")).print(date("2013-02-04"))
+          }
+          else {
+            b.find(".shippingDate", 0).getText ===
+              DateTimeFormat.forPattern(Messages("shipping.date.format")).print(date("2013-02-04"))
+
+            b.find(".shippingDate", 1).getText ===
+              DateTimeFormat.forPattern(Messages("shipping.date.format")).print(date("2013-02-03"))
+          }
         }
+
+        val (tran0, tran1) = if (
+          browser.find(".orderHistoryInnerTable3").find("td.itemName", 0).getText == "植木1"
+        ) (0, 1) else (1, 0)
+
         doWith(browser.find(".orderHistoryInnerTable3")) { b =>
-          b.find("td.itemName").getText === "植木1"
-          b.find("td.unitPrice").getText === "100円"
-          b.find("td.quantity").getText === "3"
-          b.find("td.price").find(".body").getText === "300円"
+          b.size === 2
+          b.get(tran0).find("td.unitPrice", 0).getText === "100円"
+          b.get(tran0).find("td.quantity", 0).getText === "3"
+          b.get(tran0).find("td.price", 0).find(".body").getText === "300円"
+          b.get(tran0).find("td.itemName", 1).getText === "植木3"
+          b.get(tran0).find("td.unitPrice", 1).getText === "300円"
+          b.get(tran0).find("td.quantity", 1).getText === "7"
+          b.get(tran0).find("td.price", 1).find(".body").getText === "2,100円"
+          b.get(tran0).find("td.subtotalBody").find(".body").getText === "2,400円"
 
-          b.find("td.itemName").get(1).getText === "植木3"
-          b.find("td.unitPrice").get(1).getText === "300円"
-          b.find("td.quantity").get(1).getText === "7"
-          b.find("td.price").get(1).find(".body").getText === "2,100円"
-
-          b.find("td.subtotalBody").find(".body").getText === "2,400円"
+          b.get(tran1).find("td.unitPrice").getText === "200円"
+          b.get(tran1).find("td.quantity").getText === "5"
+          b.get(tran1).find("td.price").find(".body").getText === "1,000円"
+          b.get(tran1).find("td.itemName", 0).getText === "植木2"
+          b.get(tran1).find("td.subtotalBody").find(".body").getText === "1,000円"
         }
-        doWith(browser.find(".orderHistoryInnerTable4")) { b =>
+
+        val (box0, box1) = if (
+          browser.find(".orderHistoryInnerTable4", 0).find("td.boxName").getText == "site-box1"
+        ) (0, 1) else (1, 0)
+
+        doWith(browser.find(".orderHistoryInnerTable4", box0)) { b =>
           b.find("td.boxName").getText === "site-box1"
           b.find("td.boxPrice").getText === "123円"
           b.find("td.subtotalBody").getText === "123円"
         }
+        doWith(browser.find(".orderHistoryInnerTable4", box1)) { b =>
+          b.find("td.boxName").getText === "site-box2"
+          b.find("td.boxPrice").getText === "468円"
+          b.find("td.subtotalBody").getText === "468円"
+        }
+
 
         doWith(browser.find(".orderHistoryInnerTable1").get(1)) { b =>
           b.find(".transactionTime").getText ===
@@ -94,11 +135,16 @@ class OrderHistorySpec extends Specification {
           b.find(".tranNo").getText === tran.tranHeader.id.get.toString
           val user = StoreUser(tran.tranHeader.userId)
           b.find(".buyerName").getText === user.firstName + " " + user.lastName
-          b.find(".subtotal").getText === ViewHelpers.toAmount(1468)
-          b.find(".outerTaxAmount").getText === ViewHelpers.toAmount(0)
-          b.find(".total").getText === 
-            ViewHelpers.toAmount(1468)
         }
+
+        browser.find(".orderHistoryInnerTable1", tran1).find(".subtotal").getText === ViewHelpers.toAmount(1468)
+        browser.find(".orderHistoryInnerTable1", tran0).find(".subtotal").getText === ViewHelpers.toAmount(2523)
+          
+        browser.find(".orderHistoryInnerTable1").find(".outerTaxAmount").getText === ViewHelpers.toAmount(0)
+
+        browser.find(".orderHistoryInnerTable1", tran1).find(".total").getText === ViewHelpers.toAmount(1468)
+        browser.find(".orderHistoryInnerTable1", tran0).find(".total").getText === ViewHelpers.toAmount(2523)
+
         doWith(browser.find(".shippingAddressTable").get(1)) { b =>
           b.find(".name").getText === tran.address.firstName + " " + tran.address.lastName
           b.find(".zip").getText === tran.address.zip1 + " - " + tran.address.zip2
@@ -108,14 +154,21 @@ class OrderHistorySpec extends Specification {
           b.find(".tel1").getText === tran.address.tel1
           b.find(".comment").getText === tran.address.comment
         }
-        doWith(browser.find(".orderHistoryInnerTable2").get(1)) { b =>
+        doWith(browser.find(".orderHistoryInnerTable2", tran1)) { b =>
           b.find(".status").getText === Messages("transaction.status.ORDERED")
           b.find(".shippingDate").getText === 
             DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
               date("2013-02-04")
             )
         }
-        doWith(browser.find(".orderHistoryInnerTable3").get(1)) { b =>
+        doWith(browser.find(".orderHistoryInnerTable2", tran0)) { b =>
+          b.find(".status").getText === Messages("transaction.status.ORDERED")
+          b.find(".shippingDate").getText === 
+            DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
+              date("2013-02-03")
+            )
+        }
+        doWith(browser.find(".orderHistoryInnerTable3", tran1)) { b =>
           b.find("td.itemName").getText === "植木2"
           b.find("td.unitPrice").getText === "200円"
           b.find("td.quantity").getText === "5"
@@ -123,10 +176,23 @@ class OrderHistorySpec extends Specification {
 
           b.find("td.subtotalBody").find(".body").getText === "1,000円"
         }
-        doWith(browser.find(".orderHistoryInnerTable4").get(1)) { b =>
+        doWith(browser.find(".orderHistoryInnerTable3", tran0)) { b =>
+          b.find("td.itemName", 0).getText === "植木1"
+          b.find("td.unitPrice", 0).getText === "100円"
+          b.find("td.quantity", 0).getText === "3"
+          b.find("td.price", 0).find(".body").getText === "300円"
+
+          b.find("td.subtotalBody").find(".body").getText === "2,400円"
+        }
+        doWith(browser.find(".orderHistoryInnerTable4", tran1)) { b =>
           b.find("td.boxName").getText === "site-box2"
           b.find("td.boxPrice").getText === "468円"
           b.find("td.subtotalBody").getText === "468円"
+        }
+        doWith(browser.find(".orderHistoryInnerTable4", tran0)) { b =>
+          b.find("td.boxName").getText === "site-box1"
+          b.find("td.boxPrice").getText === "123円"
+          b.find("td.subtotalBody").getText === "123円"
         }
       }}
     }
@@ -149,7 +215,13 @@ class OrderHistorySpec extends Specification {
         )
         browser.title === Messages("order.history.title")
 
-        browser.find(".orderHistoryInnerTable3").get(0).find("button").get(0).click()
+        browser.find(".orderHistoryInnerTable3").size === 2
+        if (browser.find(".orderHistoryInnerTable3", 0).find("td.itemName").getText == "植木1") {
+          browser.find(".orderHistoryInnerTable3", 0).find("button").get(0).click()
+        }
+        else {
+          browser.find(".orderHistoryInnerTable3", 1).find("button").get(0).click()
+        }
 
         browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
         browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
@@ -164,7 +236,13 @@ class OrderHistorySpec extends Specification {
         browser.find(".ui-dialog-buttonset").find("button").get(0).click()
         browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
 
-        browser.find(".orderHistoryInnerTable3").get(0).find("button").get(2).click()
+        if (browser.find(".orderHistoryInnerTable3", 0).find("td.itemName").getText == "植木1") {
+          browser.find(".orderHistoryInnerTable3", 0).find("button").get(2).click()
+        }
+        else {
+          browser.find(".orderHistoryInnerTable3", 1).find("button").get(2).click()
+        }
+
         browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
 
         browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
@@ -185,7 +263,13 @@ class OrderHistorySpec extends Specification {
         browser.find(".ui-dialog-buttonset").find("button").get(0).click()
         browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areNotDisplayed()
 
-        browser.find(".orderHistoryInnerTable3").get(1).find("button").get(0).click()
+        if (browser.find(".orderHistoryInnerTable3", 0).find("td.itemName").getText == "植木1") {
+          browser.find(".orderHistoryInnerTable3", 1).find("button").get(0).click()
+        }
+        else {
+          browser.find(".orderHistoryInnerTable3", 0).find("button").get(0).click()
+        }
+
         browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
 
         browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
