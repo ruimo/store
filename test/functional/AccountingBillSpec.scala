@@ -128,7 +128,11 @@ class AccountingBillSpec extends Specification {
         browser.find("#userSubmit").click();
 
         browser.find(".accountingBillTable").size() === 6
-        doWith(browser.find(".accountingBillTable", 0)) { tbl =>
+        val (tbl0, tbl1) = if (
+          browser.find(".accountingBillTable", 0).find(".itemName.body").size == 2
+        ) (0, 1) else (1, 0)
+
+        doWith(browser.find(".accountingBillTable", tbl0)) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
             headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(trans(2).tranHeader.transactionTime)
@@ -180,7 +184,7 @@ class AccountingBillSpec extends Specification {
         }
 
         // Should be ordered by user and transaction id.
-        doWith(browser.find(".accountingBillTable", 1)) { tbl =>
+        doWith(browser.find(".accountingBillTable", tbl1)) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
             headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
