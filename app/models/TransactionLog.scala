@@ -760,9 +760,9 @@ object TransactionDetail {
     ).as(
       parser *
     ).map { e =>
-      val metadata = ItemNumericMetadata.allById(e._5)
-      val textMetadata = ItemTextMetadata.allById(e._5)
-      val siteMetadata = SiteItemNumericMetadata.all(e._6, e._5)
+      val metadata = ItemNumericMetadata.allById(ItemId(e._5))
+      val textMetadata = ItemTextMetadata.allById(ItemId(e._5))
+      val siteMetadata = SiteItemNumericMetadata.all(e._6, ItemId(e._5))
       TransactionDetail(e._5, e._6, e._1, e._2, e._3, e._4, metadata, siteMetadata, textMetadata)
     }
   }

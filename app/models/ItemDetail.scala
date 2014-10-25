@@ -51,14 +51,14 @@ object ItemDetail {
       nameDesc.single
     )
 
-    val priceHistory = ItemPriceHistory.atBySiteAndItem(siteId, itemId, now)
+    val priceHistory = ItemPriceHistory.atBySiteAndItem(siteId, ItemId(itemId), now)
 
     ItemDetail(
       siteId, itemId,
       name, description,
-      ItemNumericMetadata.allById(itemId),
-      ItemTextMetadata.allById(itemId),
-      SiteItemNumericMetadata.all(siteId, itemId),
+      ItemNumericMetadata.allById(ItemId(itemId)),
+      ItemTextMetadata.allById(ItemId(itemId)),
+      SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
       priceHistory.unitPrice,
       Site(siteId).name
     )

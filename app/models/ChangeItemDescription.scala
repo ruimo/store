@@ -18,13 +18,13 @@ case class ChangeItemDescription(
   siteId: Long, localeId: Long, itemDescription: String
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    ItemDescription.update(siteId, itemId, localeId, itemDescription)
+    ItemDescription.update(siteId, ItemId(itemId), localeId, itemDescription)
   }
 
   def add(itemId: Long) {
     ExceptionMapper.mapException {
       DB.withTransaction { implicit conn =>
-        ItemDescription.add(siteId, itemId, localeId, itemDescription)
+        ItemDescription.add(siteId, ItemId(itemId), localeId, itemDescription)
       }
     }
   }

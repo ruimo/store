@@ -62,10 +62,10 @@
     @list.records.map { e =>
       <tr class="queryItemTableBody">
         <td class="queryItemPhoto">
-          <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)">
+          <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get.id, 0)">
         </td>
         <td class="queryItemItemName">
-          <a href="@routes.ItemDetail.show(e._1.id.get, e._4.id.get)">
+          <a href="@routes.ItemDetail.show(e._1.id.get.id, e._4.id.get)">
             @e._2.name
           </a>
         </td>
@@ -73,7 +73,7 @@
         <td class="queryItemUnitPrice">@amount(e._5.unitPrice)</td>
         <td>
           <button type="button" class="addToCartButton"
-                  onclick="shoppingCartDialog.putIntoCart(@e._4.id.get, @e._1.id.get, 1);">
+                  onclick="shoppingCartDialog.putIntoCart(@e._4.id.get, @e._1.id.get.id, 1);">
             @Messages("purchase")
           </button>
         </td>

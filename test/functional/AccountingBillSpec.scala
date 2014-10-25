@@ -307,9 +307,9 @@ class AccountingBillSpec extends Specification {
     ShoppingCartItem.removeForUser(user.id.get)
 
     val shoppingCartItems = Vector(
-      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(0).id.get, 3),
-      ShoppingCartItem.addItem(user.id.get, master.sites(1).id.get, master.items(1).id.get, 5),
-      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(2).id.get, 7)
+      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(0).id.get.id, 3),
+      ShoppingCartItem.addItem(user.id.get, master.sites(1).id.get, master.items(1).id.get.id, 5),
+      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(2).id.get.id, 7)
     )
     
     val addr1 = Address.createNew(

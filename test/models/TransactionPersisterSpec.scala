@@ -37,7 +37,7 @@ class TransactionPersisterSpec extends Specification {
             itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal(900), date("9999-12-31")
           )
           val shoppingCartItem = ShoppingCartItem.addItem(
-            user.id.get, site.id.get, item.id.get, 2
+            user.id.get, site.id.get, item.id.get.id, 2
           )
           val cartTotal = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
           val address = Address.createNew(

@@ -99,7 +99,7 @@ class RecommendationByAdminSpec extends Specification {
           doWith(RecommendByAdmin.listByScore(showDisabled = true, locale = LocaleInfo.Ja).records) { rec =>
             rec.size === 2
             rec(0)._1.siteId === sites(0).id.get
-            rec(0)._1.itemId === items(0).id.get
+            rec(0)._1.itemId === items(0).id.get.id
             rec(0)._1.score === 1
             rec(0)._1.enabled === true
 
@@ -107,7 +107,7 @@ class RecommendationByAdminSpec extends Specification {
             rec(0)._3 === Some(sites(0))
 
             rec(1)._1.siteId === sites(1).id.get
-            rec(1)._1.itemId === items(1).id.get
+            rec(1)._1.itemId === items(1).id.get.id
             rec(1)._1.score === 1
             rec(1)._1.enabled === true
 
@@ -174,7 +174,7 @@ class RecommendationByAdminSpec extends Specification {
             rec.size === 1
 
             rec(0)._1.siteId === sites(1).id.get
-            rec(0)._1.itemId === items(1).id.get
+            rec(0)._1.itemId === items(1).id.get.id
             rec(0)._1.score === 1
             rec(0)._1.enabled === true
 

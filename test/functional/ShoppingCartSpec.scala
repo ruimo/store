@@ -54,8 +54,8 @@ class ShoppingCartSpec extends Specification {
           itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(777), BigDecimal("666"), date("9999-12-31")
         )
 
-        RecommendByAdmin.createNew(site.id.get, item.id.get, 10)
-        RecommendByAdmin.createNew(site.id.get, item2.id.get, 20)
+        RecommendByAdmin.createNew(site.id.get, item.id.get.id, 10)
+        RecommendByAdmin.createNew(site.id.get, item2.id.get.id, 20)
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List()) + "?lang=" + lang.code
@@ -79,10 +79,10 @@ class ShoppingCartSpec extends Specification {
 
         doWith(browser.find(".recommendedItem")) { e =>
           e.find("a").getAttribute("href") ===
-            "http://localhost:3333" + controllers.routes.ItemDetail.show(item2.id.get, site.id.get)
+            "http://localhost:3333" + controllers.routes.ItemDetail.show(item2.id.get.id, site.id.get)
           doWith(e.find("a")) { a =>
             a.find("img").getAttribute("src") ===
-              "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item2.id.get, 0)
+              "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item2.id.get.id, 0)
             a.find("div.itemName").getText === "松"
             a.find("div.price").getText === "777円"
           }

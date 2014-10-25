@@ -18,13 +18,13 @@ case class ChangeItemTextMetadata(
   metadataType: Int, metadata: String
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    ItemTextMetadata.update(itemId, ItemTextMetadataType.byIndex(metadataType), metadata)
+    ItemTextMetadata.update(ItemId(itemId), ItemTextMetadataType.byIndex(metadataType), metadata)
   }
 
   def add(itemId: Long) {
     ExceptionMapper.mapException {
       DB.withTransaction { implicit conn =>
-        ItemTextMetadata.add(itemId, ItemTextMetadataType.byIndex(metadataType), metadata)
+        ItemTextMetadata.add(ItemId(itemId), ItemTextMetadataType.byIndex(metadataType), metadata)
       }
     }
   }

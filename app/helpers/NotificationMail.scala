@@ -62,7 +62,7 @@ object NotificationMail extends HasLogger {
           it =>
             val tranItem = it._2
             val itemId = tranItem.itemId
-            buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
+            buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, ItemId(tranItem.itemId)))
         }
     }
     val metadata = buf.toMap

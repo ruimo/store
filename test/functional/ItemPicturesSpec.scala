@@ -170,7 +170,7 @@ class ItemPicturesSpec extends Specification {
 
         // Since no item pictures found, notfound.jpg will be obtained.
         downloadString(
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._2 === "Hello"
 
         // Set timestamp of 'notfound.jpg' to very old.
@@ -179,12 +179,12 @@ class ItemPicturesSpec extends Specification {
         // Of course, the file is not modified.
         downloadString(
           Some(date("2013-01-01")),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._1 === Status.NOT_MODIFIED
 
         // Now upload new file.
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get).url +
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get.id).url +
           "&lang=" + lang.code
         )
         browser.webDriver
@@ -193,29 +193,29 @@ class ItemPicturesSpec extends Specification {
         val now = System.currentTimeMillis
         browser.click("#itemPictureUploadSubmit0")
 
-        testDir.resolve(item.id.get + "_0.jpg").toFile.exists === true
+        testDir.resolve(item.id.get.id + "_0.jpg").toFile.exists === true
 
         // Download file.
         downloadBytes(
           Some(now - 1000),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._1 === Status.OK
         
         downloadBytes(
           Some(now + 5000),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._1 === Status.NOT_MODIFIED
 
         // Delete file.
         browser.click("#itemPictureRemove0")
 
-        testDir.resolve(item.id.get + "_0.jpg").toFile.exists === false
+        testDir.resolve(item.id.get.id + "_0.jpg").toFile.exists === false
         
         // Download file. 'notfound.jpg' should be obtained.
         // 200 should be returned. Otherwise, browser cache will not be refreshed!
         val str = downloadString(
           Some(now - 1000),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )
         str._1 === Status.OK
         str._2 === "Hello"

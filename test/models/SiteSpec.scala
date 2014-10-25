@@ -94,7 +94,7 @@ class SiteSpec extends Specification {
           SiteItem.createNew(site2, item1)
           
           implicit val login = LoginSession(user1, None, 0L)
-          val list = Site.tableForDropDown(item1.id.get)
+          val list = Site.tableForDropDown(item1.id.get.id)
           list.size === 2
           list(0)._1 === site2.id.get.toString
           list(0)._2 === site2.name
@@ -126,7 +126,7 @@ class SiteSpec extends Specification {
           SiteItem.createNew(site2, item1)
           
           implicit val login = LoginSession(user1, Some(siteUser), 0L)
-          val list = Site.tableForDropDown(item1.id.get)
+          val list = Site.tableForDropDown(item1.id.get.id)
           list.size === 1
           list(0)._1 === site1.id.get.toString
           list(0)._2 === site1.name
@@ -165,7 +165,7 @@ class SiteSpec extends Specification {
 
           Site.listByName().size === 1
           Site.tableForDropDown.size === 1
-          Site.tableForDropDown(item1.id.get).size === 1
+          Site.tableForDropDown(item1.id.get.id).size === 1
           Site.listAsMap.size === 1
           Site.get(site1.id.get) === Some(site1)
           Site(site1.id.get) === site1
@@ -174,7 +174,7 @@ class SiteSpec extends Specification {
 
           Site.listByName().size === 0
           Site.tableForDropDown.size === 0
-          Site.tableForDropDown(item1.id.get).size === 0
+          Site.tableForDropDown(item1.id.get.id).size === 0
           Site.listAsMap.size === 0
           Site.get(site1.id.get) === None
           Site(site1.id.get) must throwA[RuntimeException]

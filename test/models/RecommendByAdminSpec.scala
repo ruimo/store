@@ -24,7 +24,7 @@ class RecommendByAdminSpec extends Specification {
           )
           val item1 = Item.createNew(cat1)
           val rec1 = RecommendByAdmin.createNew(
-            site1.id.get, item1.id.get, 123, true
+            site1.id.get, item1.id.get.id, 123, true
           )
           val read1 = RecommendByAdmin(rec1.id.get)
           read1 === rec1
@@ -39,7 +39,7 @@ class RecommendByAdminSpec extends Specification {
           val rec2 = RecommendByAdmin(
             rec1.id,
             site2.id.get,
-            item2.id.get,
+            item2.id.get.id,
             234,
             false
           )
@@ -70,9 +70,9 @@ class RecommendByAdminSpec extends Specification {
           val item2 = Item.createNew(cat2)
           val item3 = Item.createNew(cat1)
 
-          val rec1 = RecommendByAdmin.createNew(site1.id.get, item1.id.get, 123, true)
-          val rec2 = RecommendByAdmin.createNew(site2.id.get, item2.id.get, 100, true)
-          val rec3 = RecommendByAdmin.createNew(site2.id.get, item3.id.get, 105, false)
+          val rec1 = RecommendByAdmin.createNew(site1.id.get, item1.id.get.id, 123, true)
+          val rec2 = RecommendByAdmin.createNew(site2.id.get, item2.id.get.id, 100, true)
+          val rec3 = RecommendByAdmin.createNew(site2.id.get, item3.id.get.id, 105, false)
           doWith(RecommendByAdmin.listByScore(showDisabled = false, locale = LocaleInfo.Ja)) { list =>
             list.records.size === 2
             list.records(0)._1 === rec1
@@ -125,8 +125,8 @@ class RecommendByAdminSpec extends Specification {
             1
           )
 
-          val rec1 = RecommendByAdmin.createNew(site1.id.get, item1.id.get, 123, true)
-          val rec2 = RecommendByAdmin.createNew(site2.id.get, item2.id.get, 100, true)
+          val rec1 = RecommendByAdmin.createNew(site1.id.get, item1.id.get.id, 123, true)
+          val rec2 = RecommendByAdmin.createNew(site2.id.get, item2.id.get.id, 100, true)
           doWith(RecommendByAdmin.listByScore(showDisabled = false, locale = LocaleInfo.Ja)) { list =>
             list.records.size === 1
             list.records(0)._1 === rec1

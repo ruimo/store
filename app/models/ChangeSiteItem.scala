@@ -13,8 +13,8 @@ case class ChangeSiteItem(
 ) {
   def add(itemId: Long)(implicit conn: Connection) {
     ExceptionMapper.mapException {
-      SiteItem.add(itemId, siteId)
-      ItemPrice.add(itemId, siteId)
+      SiteItem.add(ItemId(itemId), siteId)
+      ItemPrice.add(ItemId(itemId), siteId)
     }
   }
 }

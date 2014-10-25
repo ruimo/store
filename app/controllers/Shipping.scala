@@ -202,8 +202,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val items = e._2
       items.foreach { it =>
         val tranItem = it._2
-        val itemId = tranItem.itemId
-        buf.update(itemId, ItemTextMetadata.allById(tranItem.itemId))
+        val itemId = ItemId(tranItem.itemId)
+        buf.update(tranItem.itemId, ItemTextMetadata.allById(itemId))
       }
     }
 
@@ -222,7 +222,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       items.foreach { it =>
         val tranItem = it._2
         val itemId = tranItem.itemId
-        buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
+        buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, ItemId(tranItem.itemId)))
       }
     }
 

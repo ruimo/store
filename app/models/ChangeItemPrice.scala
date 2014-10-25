@@ -25,7 +25,7 @@ case class ChangeItemPrice(
 
   def add(itemId: Long)(implicit conn: Connection) {
     ExceptionMapper.mapException {
-      ItemPriceHistory.add(itemId, siteId, taxId, currencyId, unitPrice, costPrice, validUntil)
+      ItemPriceHistory.add(ItemId(itemId), siteId, taxId, currencyId, unitPrice, costPrice, validUntil)
     }
   }
 }

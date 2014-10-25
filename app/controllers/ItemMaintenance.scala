@@ -260,7 +260,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemNameTable(id: Long): Form[ChangeItemNameTable] = {
     DB.withConnection { implicit conn => {
-      val itemNames = ItemName.list(id).values.map {
+      val itemNames = ItemName.list(ItemId(id)).values.map {
         n => ChangeItemName(n.localeId, n.name)
       }.toSeq
 
@@ -270,7 +270,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemMetadataTable(id: Long): Form[ChangeItemMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadatas = ItemNumericMetadata.allById(id).values.map {
+      val itemMetadatas = ItemNumericMetadata.allById(ItemId(id)).values.map {
         n => ChangeItemMetadata(n.metadataType.ordinal, n.metadata)
       }.toSeq
 
@@ -280,7 +280,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemTextMetadataTable(id: Long): Form[ChangeItemTextMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadatas = ItemTextMetadata.allById(id).values.map {
+      val itemMetadatas = ItemTextMetadata.allById(ItemId(id)).values.map {
         n => ChangeItemTextMetadata(n.metadataType.ordinal, n.metadata)
       }.toSeq
 
@@ -290,7 +290,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createSiteItemMetadataTable(id: Long): Form[ChangeSiteItemMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadatas = SiteItemNumericMetadata.allById(id).values.map {
+      val itemMetadatas = SiteItemNumericMetadata.allById(ItemId(id)).values.map {
         n => ChangeSiteItemMetadata(n.siteId, n.metadataType.ordinal, n.metadata)
       }.toSeq
 
@@ -427,7 +427,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemName(itemId: Long, localeId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemName.remove(itemId, localeId)
+      ItemName.remove(ItemId(itemId), localeId)
     }
 
     Redirect(
@@ -437,7 +437,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemNumericMetadata.remove(itemId, metadataType)
+      ItemNumericMetadata.remove(ItemId(itemId), metadataType)
     }
 
     Redirect(
@@ -447,7 +447,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemTextMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemTextMetadata.remove(itemId, metadataType)
+      ItemTextMetadata.remove(ItemId(itemId), metadataType)
     }
 
     Redirect(
@@ -455,9 +455,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }}
 
-  def removeSiteItemMetadata(itemId: Long, siteId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
+  def removeSiteItemMetadata(
+    itemId: Long, siteId: Long, metadataType: Int
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      SiteItemNumericMetadata.remove(itemId, siteId, metadataType)
+      SiteItemNumericMetadata.remove(ItemId(itemId), siteId, metadataType)
     }
 
     Redirect(
@@ -485,7 +487,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createSiteItemTable(itemId: Long): Seq[(Site, SiteItem)] = {
     DB.withConnection { implicit conn => {
-      SiteItem.list(itemId)
+      SiteItem.list(ItemId(itemId))
     }}
   }
 
@@ -574,8 +576,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeSiteItem(itemId: Long, siteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      SiteItem.remove(itemId, siteId)
-      ItemPrice.remove(itemId, siteId)
+      SiteItem.remove(ItemId(itemId), siteId)
+      ItemPrice.remove(ItemId(itemId), siteId)
     }
 
     Redirect(
@@ -670,7 +672,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemDescriptionTable(id: Long): Form[ChangeItemDescriptionTable] = {
     DB.withConnection { implicit conn => {
-      val itemDescriptions = ItemDescription.list(id).map {
+      val itemDescriptions = ItemDescription.list(ItemId(id)).map {
         n => ChangeItemDescription(n._1, n._2.id, n._3.description)
       }.toSeq
 
@@ -812,7 +814,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     siteId: Long, itemId: Long, localeId: Long
   ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemDescription.remove(siteId, itemId, localeId)
+      ItemDescription.remove(siteId, ItemId(itemId), localeId)
     }
 
     Redirect(
@@ -852,7 +854,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemPriceTable(itemId: Long): Form[ChangeItemPriceTable] = {
     DB.withConnection { implicit conn => {
-      val histories = ItemPriceHistory.listByItemId(itemId).map {
+      val histories = ItemPriceHistory.listByItemId(ItemId(itemId)).map {
         e => ChangeItemPrice(
           e._1.siteId, e._2.itemPriceId, e._2.id.get, e._2.taxId, 
           e._2.currency.id, e._2.unitPrice, e._2.costPrice, new DateTime(e._2.validUntil)
@@ -998,7 +1000,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     itemId: Long, siteId: Long, itemPriceHistoryId: Long
   ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemPriceHistory.remove(itemId, siteId, itemPriceHistoryId)
+      ItemPriceHistory.remove(ItemId(itemId), siteId, itemPriceHistoryId)
     }
 
     Redirect(

@@ -278,7 +278,7 @@ object ShoppingCartItem {
     ).as(
       listParser *
     ).map { e =>
-      val itemId = e._1.itemId
+      val itemId = ItemId(e._1.itemId)
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val taxHistory = TaxHistory.at(priceHistory.taxId, now)
