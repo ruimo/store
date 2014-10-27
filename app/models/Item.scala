@@ -390,6 +390,8 @@ object Item {
     val tax = Tax(prototype.taxId)
     val priceHistory = ItemPriceHistory.createNew(price, tax, prototype.currency, prototype.price, prototype.costPrice, Until.Ever)
     val siteItem = SiteItem.createNew(site, item)
+    if (prototype.isCoupon)
+      Coupon.updateAsCoupon(item.id.get)
   }
 
   def changeCategory(itemId: ItemId, categoryId: Long)(implicit conn: Connection) {

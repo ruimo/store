@@ -52,6 +52,10 @@
       '_showConstraints -> false
     )
 
+    @checkbox(
+      myForm("isCoupon"), '_showConstraints -> false, '_label -> Messages("coupon")
+    )
+
     @helper.inputText(
       myForm("itemName"),
       '_label -> Messages("itemName"), 'size -> 24, 'maxlength -> 32
