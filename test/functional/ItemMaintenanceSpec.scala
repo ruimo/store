@@ -65,7 +65,7 @@ class ItemMaintenanceSpec extends Specification {
           item._4.name === "Store01"
           item._5.unitPrice === BigDecimal("1234")
           item._5.costPrice === BigDecimal("2345")
-          Coupon.isCoupon(item._1.id.get) === true
+          Coupon.isCoupon(item._1.id.get) === false
         }
       }}
     }
