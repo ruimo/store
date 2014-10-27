@@ -37,6 +37,8 @@ POST    /admin/addSiteItem               controllers.ItemMaintenance.addSiteItem
 GET     /admin/removeSiteItem            controllers.ItemMaintenance.removeSiteItem(itemId: Long, siteId: Long)
 POST    /admin/updateItemCategory        controllers.ItemMaintenance.updateItemCategory(id: Long)
 
+POST    /admin/updateItemAsCoupon        controllers.ItemMaintenance.updateItemAsCoupon(id: Long)
+
 POST    /admin/addItemDescription        controllers.ItemMaintenance.addItemDescription(id: Long)
 POST    /admin/changeItemDescription     controllers.ItemMaintenance.changeItemDescription(id: Long)
 GET     /admin/removeItemDescription     controllers.ItemMaintenance.removeItemDescription(siteId: Long, itemId: Long, localeId: Long)

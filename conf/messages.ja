@@ -382,3 +382,4 @@ registerUserInformation=ユーザー情報登録
 currentPassword=現在のパスワード
 currentPasswordNotMatch=パスワードが違います
 naivePassword=パスワードが単純すぎます
+coupon=クーポン

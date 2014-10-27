@@ -39,7 +39,8 @@ class ChangeItem(
   val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata],
   val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
   val newItemTextMetadataForm: Form[ChangeItemTextMetadata],
-  val attachmentNames: Map[Int, String]
+  val attachmentNames: Map[Int, String],
+  val couponForm: Form[ChangeCoupon]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -179,7 +180,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         addSiteItemMetadataForm,
         createItemTextMetadataTable(id),
         addItemTextMetadataForm,
-        ItemPictures.retrieveAttachmentNames(id)
+        ItemPictures.retrieveAttachmentNames(id),
+        createCouponForm(ItemId(id))
       )
     ))
   }}
@@ -258,6 +260,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeSiteItemMetadata.apply)(ChangeSiteItemMetadata.unapply)
   )
 
+  val couponForm = Form(
+    mapping(
+      "isCoupon" ->boolean
+    ) (ChangeCoupon.apply)(ChangeCoupon.unapply)
+  )
+
   def createItemNameTable(id: Long): Form[ChangeItemNameTable] = {
     DB.withConnection { implicit conn => {
       val itemNames = ItemName.list(ItemId(id)).values.map {
@@ -328,7 +336,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -374,7 +383,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -415,7 +425,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -521,7 +532,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -564,7 +576,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -598,11 +611,64 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
+  def createCouponForm(id: ItemId): Form[ChangeCoupon] = {
+    DB.withConnection { implicit conn => {
+      couponForm.fill(ChangeCoupon(Coupon.isCoupon(id)))
+    }}
+  }
+
   def createCategoryTable(implicit lang: Lang): Seq[(String, String)] = {
     DB.withConnection { implicit conn => {
       Category.tableForDropDown
     }}
   }
+
+  def updateItemAsCoupon(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    couponForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.updateItemAsItem." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            new ChangeItem(
+              id,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(id),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(id),
+              addSiteItemForm,
+              createItemCategoryForm(id),
+              createCategoryTable,
+              createItemDescriptionTable(id),
+              addItemDescriptionForm,
+              createItemPriceTable(id),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(id),
+              createItemMetadataTable(id),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id),
+              formWithErrors
+            )
+          )
+        )
+      },
+      newIsCoupon => {
+        DB.withConnection { implicit conn =>
+          newIsCoupon.update(ItemId(id))
+        }
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(id)
+        ).flashing("message" -> Messages("itemIsUpdated"))
+      }
+    )
+  }}
 
   def updateItemCategory(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     updateCategoryForm.bindFromRequest.fold(
@@ -634,7 +700,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -710,7 +777,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -756,7 +824,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -800,7 +869,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -895,7 +965,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -941,7 +1012,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -986,7 +1058,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -1038,7 +1111,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(itemId),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId)
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
             )
           )
         )
@@ -1084,7 +1158,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               formWithErrors,
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId)
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
             )
           )
         )
@@ -1130,7 +1205,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(itemId),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId)
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
             )
           )
         )
@@ -1176,7 +1252,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -1219,7 +1296,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addSiteItemMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -1259,7 +1337,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addSiteItemMetadataForm,
               createItemTextMetadataTable(id),
               formWithErrors,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -1302,7 +1381,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemTextMetadataForm
                     .fill(newMetadata)
                     .withError("metadataType", "unique.constraint.violation"),
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -1342,7 +1422,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               formWithErrors,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -1387,7 +1468,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                     .withError("metadataType", "unique.constraint.violation"),
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )

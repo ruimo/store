@@ -3,6 +3,7 @@
 # --- !Ups
 create table coupon (
   coupon_id bigint not null,
+  deleted boolean not null,
   constraint pk_coupon primary key (coupon_id)
 );
 
@@ -10,10 +11,11 @@ create sequence coupon_seq start with 1000;
 
 create table coupon_item (
   coupon_item_id bigint not null,
-  item_id bigint not null references address on delete cascade,
-  coupon_id bigint not null references address on delete cascade,
+  item_id bigint not null references item on delete cascade,
+  coupon_id bigint not null references coupon on delete cascade,
   constraint pk_coupon_item primary key (coupon_item_id),
-  unique(item_id, coupon_id)
+  unique(item_id),
+  unique(coupon_id)
 );
 
 create sequence coupon_item_seq start with 1000;

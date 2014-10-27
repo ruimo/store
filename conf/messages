@@ -351,3 +351,4 @@ csvUserUpdateMemo=Caution! Users not in CSV will be all removed! Only normal use
 registerUserInformation=Enter user information
 currentPassword=Current password
 currentPasswordNotMatch=password does not match
+coupon=Coupon

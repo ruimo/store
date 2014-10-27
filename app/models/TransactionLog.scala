@@ -63,6 +63,14 @@ case class TransactionLogItem(
   taxId: Long
 ) extends NotNull
 
+case class TransactionLogCouponId(id: Long) extends AnyVal
+
+case class TransactionLogCoupon(
+  id: Option[TransactionLogCouponId] = None,
+  transactionItemId: Long,
+  couponId: CouponId
+)
+
 case class ShippingInfo(
   transporterId: Long,
   slipCode: String
@@ -124,6 +132,13 @@ case class Transaction(
     }
   }
 }
+
+case class CouponDetail(
+  tranHeaderId: Long,
+  site: Site,
+  time: Long,
+  couponId: CouponId
+)
 
 object TransactionLogHeader {
   val simple = {
@@ -468,6 +483,75 @@ object TransactionLogItem {
     ).as(
       simple *
     )
+}
+
+object TransactionLogCoupon {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_coupon.transaction_coupon_id") ~
+    SqlParser.get[Long]("transaction_coupon.transaction_item_id") ~
+    SqlParser.get[Long]("transaction_coupon.coupon_id") map {
+      case id~tranItemId~couponId =>
+        TransactionLogCoupon(id.map(TransactionLogCouponId.apply), tranItemId, CouponId(couponId))
+    }
+  }
+
+  def createNew(
+    transactionItemId: Long, couponId: CouponId
+  )(implicit conn: Connection): TransactionLogCoupon = {
+    SQL(
+      """
+      insert into transaction_coupon (
+        transaction_coupon_id, transaction_item_id, coupon_id
+      ) values (
+        (select nextval('transaction_coupon_seq')),
+        {transactionItemId}, {couponId}
+      )
+      """
+    ).on(
+      'transactionItemId -> transactionItemId,
+      'couponId -> couponId.id
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_coupon_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogCoupon(
+      Some(TransactionLogCouponId(id)), transactionItemId, couponId
+    )
+  }
+
+  def list(
+    userId: Long, limit: Int = 20, offset: Int = 0
+  )(implicit conn: Connection): Seq[CouponDetail] = {
+    val parser = 
+      SqlParser.get[Long]("transaction_header.transaction_id") ~
+      SqlParser.get[Long]("transaction_site.site_id") ~
+      SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
+      SqlParser.get[Long]("transaction_coupon.coupon_id") map {
+        case tranId~siteId~time~couponId =>
+          CouponDetail(
+            tranId, Site(siteId), time.getTime, CouponId(couponId)
+          )
+      }
+
+    SQL(
+      """
+      select
+        h.transaction_id,
+        s.site_id,
+        h.transaction_time,
+        c.coupon_id
+      from transaction_header h
+      inner join transaction_site s on h.transaction_id = s.transaction_id
+      inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
+      inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
+      where h.store_user_id = {userId}
+      """
+    ).on(
+      'userId -> userId
+    ).as(
+      parser *
+    )
+  }
 }
 
 case class PersistedTransaction(
@@ -835,10 +919,16 @@ class TransactionPersister {
     siteLog: TransactionLogSite, tran: Transaction
   )(implicit conn: Connection) {
     tran.itemTotal.table.foreach { e =>
-      TransactionLogItem.createNew(
+      val tranItem = TransactionLogItem.createNew(
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
         e.quantity, e.itemPrice, e.costUnitPrice, e.itemPriceHistory.taxId
       )
+
+      Coupon.getByItem(ItemId(e.shoppingCartItem.itemId)).foreach { coupon =>
+        TransactionLogCoupon.createNew(
+          tranItem.id.get, coupon.id.get
+        )
+      }
     }
   }
 

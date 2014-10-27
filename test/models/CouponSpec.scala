@@ -24,5 +24,31 @@ class CouponSpec extends Specification {
         }}
       }
     }
+
+    "Can let item a coupon." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => {
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          val item = Item.createNew(cat1)
+          Coupon.isCoupon(item.id.get) === false
+
+          Coupon.update(item.id.get, false)
+          Coupon.isCoupon(item.id.get) === false
+
+          Coupon.update(item.id.get, true)
+          Coupon.isCoupon(item.id.get) === true
+
+          Coupon.update(item.id.get, false)
+          Coupon.isCoupon(item.id.get) === false
+
+          Coupon.update(item.id.get, true)
+          Coupon.isCoupon(item.id.get) === true
+        }}
+      }
+    }
   }
 }

@@ -392,6 +392,15 @@
     <input type="submit" value=@Messages("update")>
   }
 
+  <h2 class="coupon">@Messages("coupon")</h2>
+  @form(action = helper.CSRF(routes.ItemMaintenance.updateItemAsCoupon(c.id))) {
+    @checkbox(
+      c.couponForm("isCoupon"), '_showConstraints -> false, '_label -> Messages("coupon")
+    )
+
+    <input type="submit" value=@Messages("update")>
+  }
+
   <h2 class="itemMetadata">@Messages("itemMetadata")</h2>
 
   <table style="margin-left: 20px; width: 70%;">
