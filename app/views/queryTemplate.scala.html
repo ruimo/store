@@ -45,21 +45,21 @@
       <th id="itemNameHeader">
         @orderMark(
           Messages("itemName"),
-          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
+          query(_: Int, _: Int, templateNo, _: String),
           "item_name.item_name", list
         )
       </th>
       <th id="siteHeader">
         @orderMark(
           Messages("site"),
-          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
+          query(_: Int, _: Int, templateNo, _: String),
           "site.site_name", list
         )
       </th>
       <th id="unitPriceHeader">
         @orderMark(
           Messages("unitPrice"),
-          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
+          query(_: Int, _: Int, templateNo, _: String),
           "item_price_history.unit_price", list
         )
       </th>
