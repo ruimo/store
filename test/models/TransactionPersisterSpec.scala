@@ -186,12 +186,12 @@ class TransactionPersisterSpec extends Specification {
           itemLog(0).costPrice === BigDecimal(900)
           itemLog(0).taxId === tax.id.get
 
-          val couponLog = TransactionLogCoupon.list(user.id.get)
-          couponLog.size === 1
-          couponLog(0).tranHeaderId === header(0).id.get
-          couponLog(0).site === site
-          couponLog(0).time === now
-          couponLog(0).couponId === coupon.id.get
+          val couponLog = TransactionLogCoupon.list(LocaleInfo.Ja, user.id.get)
+          couponLog.records.size === 1
+          couponLog.records(0).tranHeaderId === header(0).id.get
+          couponLog.records(0).site === site
+          couponLog.records(0).time === now
+          couponLog.records(0).couponId === coupon.id.get
 
           val shippingLog = TransactionLogShipping.list()
           shippingLog.size === 1
@@ -211,7 +211,6 @@ class TransactionPersisterSpec extends Specification {
           taxLog(0).rate === BigDecimal(5)
           taxLog(0).targetAmount === BigDecimal(999 * 2 + 123)
           taxLog(0).amount === BigDecimal((999 * 2 + 123) * 5 / 105)
-
         }
       }      
     }

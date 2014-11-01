@@ -24,9 +24,17 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     )
     Ok(
       if (templateNo == 0)
-        views.html.query("", queryString, list)
+        views.html.query(
+          "", queryString, list,
+          (newPage, newPageSize, newTemplateNo, newOrderBy) =>
+            routes.ItemQuery.query(qs, newPage, newPageSize, newOrderBy, newTemplateNo)
+        )
       else
-        views.html.queryTemplate("", queryString, list, templateNo)
+        views.html.queryTemplate(
+          "", queryString, list, templateNo,
+          (newPage, newPageSize, newTemplateNo, newOrderBy) =>
+            routes.ItemQuery.query(qs, newPage, newPageSize, newOrderBy, newTemplateNo)
+        )
     )
   }}}
 
@@ -45,9 +53,17 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     )
     Ok(
       if (templateNo == 0)
-        views.html.query("", queryString, list)
+        views.html.query(
+          "", queryString, list,
+          (newPage, newPageSize, newTemplateNo, newOrderBy) =>
+            routes.ItemQuery.queryByCategory(qs, c, newPage, newPageSize, newOrderBy, newTemplateNo)
+        )
       else
-        views.html.queryTemplate("", queryString, list, templateNo)
+        views.html.queryTemplate(
+          "", queryString, list, templateNo,
+          (newPage, newPageSize, newTemplateNo, newOrderBy) =>
+            routes.ItemQuery.queryByCategory(qs, c, newPage, newPageSize, newOrderBy, newTemplateNo)
+        )
     )
   }}}
 

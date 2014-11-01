@@ -11,7 +11,8 @@
     Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
     Map[ItemTextMetadataType, ItemTextMetadata]
   )],
-  templateNo: Int
+  templateNo: Int,
+  query: (Int, Int, Int, String) => Call
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -88,9 +89,5 @@
     }
   </table>
   <br>
-  @pagingPanel(
-    list,
-    routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
-    10, 25, 50
-  )
+  @pagingPanel(list, query(_, _, templateNo, _), 10, 25, 50)
 }

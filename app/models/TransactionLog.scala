@@ -4,7 +4,7 @@ import anorm._
 import anorm.SqlParser
 import play.api.Play.current
 import scala.language.postfixOps
-import collection.immutable.{LongMap, HashMap, IntMap}
+import collection.immutable
 import java.sql.Connection
 
 case class TransactionLogHeader(
@@ -109,7 +109,7 @@ case class Transaction(
   lazy val total = itemTotal.total + shippingTotal.boxTotal  // Including inner tax excluding outer tax.
   lazy val taxAmount: BigDecimal = {
     val sumByTaxId = (itemTotal.sumByTaxId.toList ++ shippingTotal.sumByTaxId.toList).foldLeft(
-      LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
+      immutable.LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
     ) { (sum, e) => 
       sum.updated(e._1, sum(e._1) + e._2)
     }
@@ -121,7 +121,7 @@ case class Transaction(
   }
   lazy val bySite: Map[Site, Transaction] = {
     itemTotal.bySite.foldLeft(
-      new HashMap[Site, Transaction]()
+      new immutable.HashMap[Site, Transaction]()
     ) { (map, e) =>
       map.updated(
         e._1,
@@ -137,6 +137,8 @@ case class CouponDetail(
   tranHeaderId: Long,
   site: Site,
   time: Long,
+  itemId: ItemId,
+  itemName: String,
   couponId: CouponId
 )
 
@@ -486,6 +488,13 @@ object TransactionLogItem {
 }
 
 object TransactionLogCoupon {
+  val TransactionLogCouponDefaultOrderBy = OrderBy("h.transaction_id", Desc)
+  val DefaultOrderByMap = immutable.Map(
+    "h.transaction_id" -> OrderBy("h.transaction_id", Desc),
+    "s.site_id" -> OrderBy("s.site_id", Desc),
+    "c.coupon_id" -> OrderBy("c.coupon_id", Desc)
+  )
+
   val simple = {
     SqlParser.get[Option[Long]]("transaction_coupon.transaction_coupon_id") ~
     SqlParser.get[Long]("transaction_coupon.transaction_item_id") ~
@@ -520,37 +529,68 @@ object TransactionLogCoupon {
   }
 
   def list(
-    userId: Long, limit: Int = 20, offset: Int = 0
-  )(implicit conn: Connection): Seq[CouponDetail] = {
+    locale: LocaleInfo, userId: Long, 
+    page: Int = 0, pageSize: Int = 10, orderBy: OrderBy = TransactionLogCouponDefaultOrderBy
+  )(implicit conn: Connection): PagedRecords[CouponDetail] = {
     val parser = 
       SqlParser.get[Long]("transaction_header.transaction_id") ~
       SqlParser.get[Long]("transaction_site.site_id") ~
       SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
+      SqlParser.get[Long]("transaction_item.item_id") ~
+      SqlParser.get[String]("item_name.item_name") ~
       SqlParser.get[Long]("transaction_coupon.coupon_id") map {
-        case tranId~siteId~time~couponId =>
+        case tranId~siteId~time~itemId~itemName~couponId =>
           CouponDetail(
-            tranId, Site(siteId), time.getTime, CouponId(couponId)
+            tranId, Site(siteId), time.getTime, ItemId(itemId), itemName, CouponId(couponId)
           )
       }
 
-    SQL(
+    val orderByTable = DefaultOrderByMap + (orderBy.columnName -> orderBy)
+
+    val baseSql = 
+      """
+      from transaction_header h
+      inner join transaction_site s on h.transaction_id = s.transaction_id
+      inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
+      inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
+      inner join item it on it.item_id = i.item_id
+      inner join item_name iname on iname.item_id = i.item_id
+      where h.store_user_id = {userId}
+      and iname.locale_id = {localeId}
+    """
+
+    val count = SQL(
+      "select count(*) " + baseSql
+    ).on(
+      'userId -> userId,
+      'localeId -> locale.id
+    ).as(
+      SqlParser.scalar[Long].single
+    )
+
+    val list: Seq[CouponDetail] = SQL(
       """
       select
         h.transaction_id,
         s.site_id,
         h.transaction_time,
+        i.item_id,
+        iname.item_name,
         c.coupon_id
-      from transaction_header h
-      inner join transaction_site s on h.transaction_id = s.transaction_id
-      inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
-      inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
-      where h.store_user_id = {userId}
-      """
+      """ +
+      baseSql +
+      " order by " +
+      orderByTable("h.transaction_id") + ", " +
+      orderByTable("s.site_id") + ", " +
+      orderByTable("c.coupon_id")
     ).on(
-      'userId -> userId
+      'userId -> userId,
+      'localeId -> locale.id
     ).as(
       parser *
     )
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
   }
 }
 
@@ -563,10 +603,10 @@ case class PersistedTransaction(
   itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]] // First key = siteId
 ) extends NotNull {
   lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
-    var result = LongMap[BigDecimal]()
+    var result = immutable.LongMap[BigDecimal]()
 
     siteTable.foreach { site =>
-      var amountByTaxId = LongMap[BigDecimal]()
+      var amountByTaxId = immutable.LongMap[BigDecimal]()
       val taxByTaxId = taxBySiteIdAndTaxId(site.id.get)
 
       itemTable(site.id.get).foreach { s =>
@@ -594,23 +634,23 @@ case class PersistedTransaction(
   // Key: siteId, taxId
   lazy val taxBySiteIdAndTaxId: Map[Long, Map[Long, TransactionLogTax]] = taxTable.mapValues {
     seq => seq.foldLeft(
-      LongMap[TransactionLogTax]()
+      immutable.LongMap[TransactionLogTax]()
     ) {
       (map, e) => map.updated(e.taxId, e)
     }
   }
   lazy val sites: Map[Long, Site] = siteTable.foldLeft(
-    LongMap[Site]()
+    immutable.LongMap[Site]()
   ) {
     (map, e) => map.updated(e.id.get, e)
   }
   lazy val itemTotal: Map[Long, BigDecimal] = itemTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_._2.amount).foldLeft(BigDecimal(0))(_ + _))
   }
   lazy val costPriceTotal: Map[Long, BigDecimal] = itemTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(
       e._1,
@@ -621,30 +661,30 @@ case class PersistedTransaction(
   }
   lazy val itemGrandTotal: BigDecimal = itemTotal.values.fold(BigDecimal(0))(_ + _)
   lazy val itemQuantity: Map[Long, Long] = itemTable.foldLeft(
-    LongMap[Long]()
+    immutable.LongMap[Long]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_._2.quantity).foldLeft(0L)(_ + _))
   }
   lazy val itemGrandQuantity: Long = itemQuantity.values.fold(0L)(_ + _)
   lazy val boxTotal: Map[Long, BigDecimal] = shippingTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.amount).foldLeft(BigDecimal(0))(_ + _))
   }
   lazy val boxGrandTotal: BigDecimal = boxTotal.values.fold(BigDecimal(0))(_ + _)
   lazy val boxQuantity: Map[Long, Int] = shippingTable.foldLeft(
-    LongMap[Int]()
+    immutable.LongMap[Int]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.boxCount).foldLeft(0)(_ + _))
   }
   lazy val boxGrandQuantity: Int = boxQuantity.values.fold(0)(_ + _)
   lazy val boxNameBySiteIdAndItemClass: Map[Long, Map[Long, String]] = shippingTable.foldLeft(
-    LongMap[Map[Long, String]]().withDefaultValue(LongMap[String]())
+    immutable.LongMap[Map[Long, String]]().withDefaultValue(immutable.LongMap[String]())
   ) {
     (map, e) => map.updated(e._1, e._2.map {e => (e.itemClass -> e.boxName)}.toMap)
   }
   lazy val outerTaxTotal: Map[Long, BigDecimal] = taxTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(
       e._1, e._2.filter(_.taxType == TaxType.OUTER_TAX).map(_.amount).foldLeft(BigDecimal(0))(_ + _)
@@ -975,7 +1015,7 @@ class TransactionPersister {
     ).as(
       siteWithShipping *
     ).foldLeft(
-      LongMap[List[TransactionLogShipping]]().withDefaultValue(List())
+      immutable.LongMap[List[TransactionLogShipping]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._1.siteId
       map.updated(siteId, e._2 :: map(siteId))
@@ -994,7 +1034,7 @@ class TransactionPersister {
     ).as(
       siteWithTax *
     ).foldLeft(
-      LongMap[List[TransactionLogTax]]().withDefaultValue(List())
+      immutable.LongMap[List[TransactionLogTax]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._1.siteId
       map.updated(siteId, e._2 :: map(siteId))
@@ -1016,7 +1056,7 @@ class TransactionPersister {
     ).as(
       siteWithItem *
     ).foldLeft(
-      LongMap[List[(ItemName, TransactionLogItem)]]().withDefaultValue(List())
+      immutable.LongMap[List[(ItemName, TransactionLogItem)]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._2.siteId
       map.updated(siteId, ((e._1, e._3)) :: map(siteId))

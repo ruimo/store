@@ -352,3 +352,7 @@ registerUserInformation=Enter user information
 currentPassword=Current password
 currentPasswordNotMatch=password does not match
 coupon=Coupon
+coupon.history.title=Purchased Coupon
+top=Top
+publishedDate=Published date
+published.date.format=yyyy-MM-dd

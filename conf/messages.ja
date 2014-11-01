@@ -383,3 +383,7 @@ currentPassword=現在のパスワード
 currentPasswordNotMatch=パスワードが違います
 naivePassword=パスワードが単純すぎます
 coupon=クーポン
+coupon.history.title=購入済クーポン
+top=トップ
+publishedDate=発行日
+published.date.format=yyyy年MM月dd日

@@ -173,6 +173,8 @@ GET     /admin/startAddUsersByCsv        controllers.UserMaintenance.startAddUse
 POST    /admin/addUsersByCsv             controllers.UserMaintenance.addUsersByCsv()
 GET     /registerUserInformation         controllers.UserEntry.registerUserInformation()
 POST    /submitUserInformation           controllers.UserEntry.submitUserInfo()
+GET     /showPurchasedCouponList         controllers.CouponHistory.showPurchasedCouponList(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "h.transaction_id DESC")
+GET     /showPurchasedCoupon             controllers.CouponHistory.showPurchasedCoupon(tranCouponId: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
