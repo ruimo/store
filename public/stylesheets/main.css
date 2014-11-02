@@ -692,3 +692,11 @@ tr.recommendationByAdminTable.body {
 #recommendedContent {
   margin:1em 1em 2em 1em;
 }
+
+.couponDetail {
+  vertical-align: top;
+}
+
+.couponDetail .date {
+  text-align: right;
+}

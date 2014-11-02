@@ -25,7 +25,7 @@
         <td>@e.tranHeaderId</td>
         <td>@e.site.name</td>
         <td>@publishedDate(e.time)</td>
-        <td>@e.itemName</td>
+        <td><a href="@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)">@e.itemName</a></td>
       </tr>
     }
   </table>

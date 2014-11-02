@@ -135,6 +135,7 @@ case class Transaction(
 
 case class CouponDetail(
   tranHeaderId: Long,
+  tranCouponId: Long,
   site: Site,
   time: Long,
   itemId: ItemId,
@@ -528,22 +529,24 @@ object TransactionLogCoupon {
     )
   }
 
+  def couponParser(implicit conn: Connection) = 
+    SqlParser.get[Long]("transaction_header.transaction_id") ~
+    SqlParser.get[Long]("transaction_coupon.transaction_coupon_id") ~
+    SqlParser.get[Long]("transaction_site.site_id") ~
+    SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
+    SqlParser.get[Long]("transaction_item.item_id") ~
+    SqlParser.get[String]("item_name.item_name") ~
+    SqlParser.get[Long]("transaction_coupon.coupon_id") map {
+      case tranId~tranCouponId~siteId~time~itemId~itemName~couponId =>
+        CouponDetail(
+          tranId, tranCouponId, Site(siteId), time.getTime, ItemId(itemId), itemName, CouponId(couponId)
+        )
+    }
+
   def list(
     locale: LocaleInfo, userId: Long, 
     page: Int = 0, pageSize: Int = 10, orderBy: OrderBy = TransactionLogCouponDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[CouponDetail] = {
-    val parser = 
-      SqlParser.get[Long]("transaction_header.transaction_id") ~
-      SqlParser.get[Long]("transaction_site.site_id") ~
-      SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
-      SqlParser.get[Long]("transaction_item.item_id") ~
-      SqlParser.get[String]("item_name.item_name") ~
-      SqlParser.get[Long]("transaction_coupon.coupon_id") map {
-        case tranId~siteId~time~itemId~itemName~couponId =>
-          CouponDetail(
-            tranId, Site(siteId), time.getTime, ItemId(itemId), itemName, CouponId(couponId)
-          )
-      }
 
     val orderByTable = DefaultOrderByMap + (orderBy.columnName -> orderBy)
 
@@ -572,6 +575,7 @@ object TransactionLogCoupon {
       """
       select
         h.transaction_id,
+        c.transaction_coupon_id,
         s.site_id,
         h.transaction_time,
         i.item_id,
@@ -587,11 +591,31 @@ object TransactionLogCoupon {
       'userId -> userId,
       'localeId -> locale.id
     ).as(
-      parser *
+      couponParser *
     )
 
     PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
   }
+
+  def at(locale: LocaleInfo, userId: Long, id: Long)(implicit conn: Connection): CouponDetail = SQL(
+    """
+    select * from transaction_header h
+    inner join transaction_site s on h.transaction_id = s.transaction_id
+    inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
+    inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
+    inner join item it on it.item_id = i.item_id
+    inner join item_name iname on iname.item_id = i.item_id
+    where c.transaction_coupon_id = {id}
+    and h.store_user_id = {userId}
+    and iname.locale_id = {localeId}
+    """
+  ).on(
+    'id -> id,
+    'userId -> userId,
+    'localeId -> locale.id
+  ).as(
+    couponParser.single
+  )
 }
 
 case class PersistedTransaction(

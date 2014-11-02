@@ -27,6 +27,11 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
   def showPurchasedCoupon(
     tranCouponId: Long
   ) = isAuthenticated { implicit login => implicit request =>
-    Ok("")
+    DB.withConnection { implicit conn =>
+      val couponDetail = TransactionLogCoupon.at(
+        LocaleInfo.byLang(lang), login.userId, tranCouponId
+      )
+      Ok(views.html.showCoupon(couponDetail))
+    }
   }
 }
