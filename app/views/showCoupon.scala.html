@@ -1,0 +1,61 @@
+@(
+  couponDetail: CouponDetail
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  login: LoginSession
+)
+
+@import helper._
+@implicitLoginSessionOpt = @{Some(login)}
+
+@main(Messages("coupon.title"), Some(login)) {
+} {
+  <h1 class="title">@Messages("coupon.title")</h1>
+
+  <table class="showCouponTable">
+    <tr>
+      <td class="couponImage">
+        <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(couponDetail.itemId.id, 0)">
+      </td>
+      <td class="couponDetail">
+        <table>
+          <tr>
+            <td class="date">
+              <span>@Messages("publishedDate")</span><span>@publishedDate(couponDetail.time)</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="siteName">@couponDetail.site.name</td>
+          </tr>
+          <tr>
+            <td class="name">
+              @Messages("name.salutation",
+                login.storeUser.firstName,
+                login.storeUser.middleName.getOrElse(""),
+                login.storeUser.lastName
+              )
+            </td>
+          </tr>
+          <tr>
+            <td class="tranId">
+              @couponDetail.tranHeaderId
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <div class="menuPanel">
+    <a class="backLink" href="@routes.CouponHistory.showPurchasedCouponList()">
+      @Messages("backTo", Messages("coupon.history.title"))
+    </a>
+  </div>
+
+  <div class="menuPanel">
+    <a class="backLink" href="@routes.Application.index()">
+      @Messages("backTo", Messages("top"))
+    </a>
+  </div>
+}
