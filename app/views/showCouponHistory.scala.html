@@ -14,18 +14,18 @@
   <h1 class="title">@Messages("coupon.history.title")</h1>
 
   <table id="purchasedCouponHistory">
-    <tr>
+    <tr class="header">
       <th>@Messages("tranid")</th>
       <th>@Messages("siteName")</th>
       <th>@Messages("publishedDate")</th>
       <th>@Messages("itemName")</th>
     </tr>
     @list.records.map { e =>
-      <tr>
-        <td>@e.tranHeaderId</td>
-        <td>@e.site.name</td>
-        <td>@publishedDate(e.time)</td>
-        <td><a href="@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)">@e.itemName</a></td>
+      <tr class="body">
+        <td class="tranId">@e.tranHeaderId</td>
+        <td class="siteName">@e.site.name</td>
+        <td class="tranDate">@publishedDate(e.time)</td>
+        <td class="itemName"><a href="@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)">@e.itemName</a></td>
       </tr>
     }
   </table>

@@ -30,6 +30,17 @@ object Helper {
     user
   }
 
+  def login(browser: TestBrowser, userName: String, password: String) {
+    browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url)
+    browser.fill("#userName").`with`(userName)
+    browser.fill("#password").`with`(password)
+    browser.click("#doLoginButton")
+  }
+
+  def logoff(browser: TestBrowser) {
+    browser.goTo("http://localhost:3333" + controllers.routes.Admin.logoff("/").url)
+  }
+
   def createNormalUser(
     browser: TestBrowser,
     userName: String,
