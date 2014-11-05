@@ -1,6 +1,6 @@
 @(
   tran: PersistedTransaction, 
-  addr: Address,
+  addr: Option[Address],
   textMetadata: Map[Long, Map[ItemTextMetadataType, ItemTextMetadata]],
   siteItemMetadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
 )(
@@ -61,30 +61,32 @@
     </tr>
   </table>
 
-  <h1 class="shippingFee">送料</h1>
-
-  @tran.siteTable.map { site =>
-  <h2 class="siteName">@site.name</h2>
-
-  <table class="shipping">
-    <tr class="itemTableHeader">
-      <th>箱</th>
-      <th>箱単価</th>
-      <th>数量</th>
-      <th>金額</th>
-    </tr>
-    @tran.shippingTable(site.id.get).map { e =>
-      <tr class="shippingTableBody">
-        <td class="boxName">@e.boxName</td>
-        <td class="boxUnitPrice">@amount(e.amount / e.boxCount)</td>
-        <td class="boxQuantity">@e.boxCount 箱</td>
-        <td class="boxPrice">@amount(e.amount)</td>
+  @if(addr.isDefined) {
+    <h1 class="shippingFee">送料</h1>
+  
+    @tran.siteTable.map { site =>
+    <h2 class="siteName">@site.name</h2>
+  
+    <table class="shipping">
+      <tr class="itemTableHeader">
+        <th>箱</th>
+        <th>箱単価</th>
+        <th>数量</th>
+        <th>金額</th>
       </tr>
+      @tran.shippingTable(site.id.get).map { e =>
+        <tr class="shippingTableBody">
+          <td class="boxName">@e.boxName</td>
+          <td class="boxUnitPrice">@amount(e.amount / e.boxCount)</td>
+          <td class="boxQuantity">@e.boxCount 箱</td>
+          <td class="boxPrice">@amount(e.amount)</td>
+        </tr>
+      }
+    </table>
+    <h2 class="shippingDate">
+      配送希望日： @shippingDate(tran.shippingTable(site.id.get).head.shippingDate)
+    </h2>
     }
-  </table>
-  <h2 class="shippingDate">
-    配送希望日： @shippingDate(tran.shippingTable(site.id.get).head.shippingDate)
-  </h2>
   }
 
   <h1 class="grandTotalTitle">合計</h1>
@@ -110,8 +112,10 @@
     </tr>
   </table>
 
-  <h1 class="address">送付先</h1>
-  @address(addr)
+  @addr.map { a =>
+    <h1 class="address">送付先</h1>
+    @address(a)
+  }
 
   <br>
   <a href="/">TOPへ戻る</a>

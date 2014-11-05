@@ -15,7 +15,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.{JsResult, JsError, JsSuccess}
 
 object RecommendEngine extends HasLogger {
-  def onSales(login: LoginSession, tran: PersistedTransaction, addr: Address) {
+  def onSales(login: LoginSession, tran: PersistedTransaction, addr: Option[Address]) {
     Akka.system.scheduler.scheduleOnce(0.microsecond) {
       try {
         sendOnSales(login, tran, addr) match {
@@ -64,7 +64,7 @@ object RecommendEngine extends HasLogger {
   }
 
   def sendOnSales(
-    login: LoginSession, tran: PersistedTransaction, addr: Address, api: RecoEngApi = RecoEngPlugin.api
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address], api: RecoEngApi = RecoEngPlugin.api
   ): JsResult[OnSalesJsonResponse] =
     api.onSales(
       transactionMode = TransactionSalesMode,

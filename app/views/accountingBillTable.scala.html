@@ -42,23 +42,25 @@
         </table>
       </td>
     </tr>
-    <tr>
-      <td class="transactionStatus" colspan="4">
-        <span class="status">
-          @Messages("transaction.status." + e.status)
-        </span>
-        <span class="shippingDate">
-          @shippingDate(e.shippingDate)
-        </span>
-      </td>
-    </tr>
-    <tr>
-      <td class="address zip" colspan="4">
-        <table>
-          @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
-        </table>
-      </td>
-    </tr>
+    @if(!addresses.isEmpty) {
+      <tr>
+        <td class="transactionStatus" colspan="4">
+          <span class="status">
+            @Messages("transaction.status." + e.status)
+          </span>
+          <span class="shippingDate">
+            @shippingDate(e.shippingDate.get)
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td class="address zip" colspan="4">
+          <table>
+            @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
+          </table>
+        </td>
+      </tr>
+    }
     <tr>
       <th class="itemName header">@Messages("itemName")</th>
       <th class="quantity header">@Messages("unitPrice")</th>
@@ -92,12 +94,14 @@
       </tr>
     }
 
-    <tr>
-      <td class="subtotal header">@Messages("fee.total")</td>
-      <td></td>
-      <td></td>
-      <td class="subtotal box body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
-    </tr>
+    @if(!addresses.isEmpty) {
+      <tr>
+        <td class="subtotal header">@Messages("fee.total")</td>
+        <td></td>
+        <td></td>
+        <td class="subtotal box body">@amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))</td>
+      </tr>
+    }
 
     <tr>
       <td class="tax header">@Messages("outer.tax.amount")</td>

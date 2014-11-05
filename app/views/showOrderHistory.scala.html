@@ -49,24 +49,28 @@
           </table>
         </td>
         <td class="address zip">
-          <table class="shippingAddressTable">
-            @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
-          </table>
+          @if(e.shippingDate.isDefined) {
+            <table class="shippingAddressTable">
+              @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
+            </table>
+          }
         </td>
       </tr>
       <tr>
         <td colspan="2">
           <table class="orderHistoryInnerTable2">
-            <tr>
-              <td colspan="2">
-                <span class="status">
-                  @Messages("transaction.status." + e.status)
-                </span>
-                <span class="shippingDate">
-                  @shippingDate(e.shippingDate)
-                </span>
-              </td>
-            </tr>
+            @if(e.shippingDate.isDefined) {
+              <tr>
+                <td colspan="2">
+                  <span class="status">
+                    @Messages("transaction.status." + e.status)
+                  </span>
+                  <span class="shippingDate">
+                    @shippingDate(e.shippingDate.get)
+                  </span>
+                </td>
+              </tr>
+            }
             <tr>
               <td>
                 <table class="orderHistoryInnerTable3">
@@ -116,26 +120,28 @@
                 </table>
               </td>
               <td>
-                <table class="orderHistoryInnerTable4">
-                  <tr>
-                    <th class="orderHistoryInnerTable3Header boxName">@Messages("shippingBoxName")</th>
-                    <th class="orderHistoryInnerTable3Header boxPrice">@Messages("price")</th>
-                  </tr>
-                  @boxBySiteAndItemSize.get(
-                    e.transactionSiteId
-                  ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+                @if(e.shippingDate.isDefined) {
+                  <table class="orderHistoryInnerTable4">
                     <tr>
-                      <td class="orderHistoryInnerTable4Body boxName">@box.boxName</td>
-                      <td class="orderHistoryInnerTable4Body boxPrice">@amount(box.amount)</td>
+                      <th class="orderHistoryInnerTable3Header boxName">@Messages("shippingBoxName")</th>
+                      <th class="orderHistoryInnerTable3Header boxPrice">@Messages("price")</th>
                     </tr>
-                  }
-                  <tr>
-                    <td class="orderHistoryInnerTable4Body subtotalHeader">@Messages("subtotal")</td>
-                    <td class="orderHistoryInnerTable4Body subtotalBody">
-                      @amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))
-                    </td>
-                  </tr>
-                </table>
+                    @boxBySiteAndItemSize.get(
+                      e.transactionSiteId
+                    ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+                      <tr>
+                        <td class="orderHistoryInnerTable4Body boxName">@box.boxName</td>
+                        <td class="orderHistoryInnerTable4Body boxPrice">@amount(box.amount)</td>
+                      </tr>
+                    }
+                    <tr>
+                      <td class="orderHistoryInnerTable4Body subtotalHeader">@Messages("subtotal")</td>
+                      <td class="orderHistoryInnerTable4Body subtotalBody">
+                        @amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))
+                      </td>
+                    </tr>
+                  </table>
+                }
               </td>
             </tr>
           </table>

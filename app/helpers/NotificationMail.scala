@@ -19,7 +19,7 @@ object NotificationMail extends HasLogger {
   val from = Play.current.configuration.getString("order.email.from").get
 
   def orderCompleted(
-    login: LoginSession, tran: PersistedTransaction, addr: Address
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
 
@@ -70,7 +70,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendToBuyer(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   ) {
     logger.info("Sending confirmation for buyer sent to " + login.storeUser.email)
@@ -135,7 +135,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendToStoreOwner(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   )(implicit conn: Connection) {
     tran.siteTable.foreach { site =>
@@ -213,7 +213,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendToAdmin(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   )(implicit conn: Connection) {
     OrderNotification.listAdmin.foreach { admin =>

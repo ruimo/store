@@ -303,12 +303,22 @@ object ShoppingCartItem {
     ).executeUpdate()
   }
 
-  def apply(id: Long)(implicit conn: Connection): ShoppingCartItem =
-    SQL(
-      "select * from shopping_cart_item where shopping_cart_item_id = {id}"
-    ).on(
-      'id -> id
-    ).as(simple.single)
+  def apply(id: Long)(implicit conn: Connection): ShoppingCartItem = SQL(
+    "select * from shopping_cart_item where shopping_cart_item_id = {id}"
+  ).on(
+    'id -> id
+  ).as(simple.single)
+
+  def isAllCoupon(userId: Long)(implicit conn: Connection): Boolean = SQL(
+    """
+    select case when exists(
+      select * from shopping_cart_item si
+      left join coupon_item ci on si.item_id = ci.item_id
+      left join coupon c on ci.coupon_id = c.coupon_id
+      where coalesce(c.deleted, true) = true
+    ) then 1 else 0 end
+    """
+  ).as(SqlParser.scalar[Int].single) == 0
 }
 
 object ShoppingCartShipping {

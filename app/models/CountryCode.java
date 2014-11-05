@@ -252,7 +252,8 @@ public enum CountryCode {
     LSO, // Lesotho 426 LS
     LBN, // Lebanon 422 LB
     REU, // Réunion 638 RE
-    RUS; // Russian Federation 643 RU
+    RUS, // Russian Federation 643 RU
+    ___; // Not specified
 
     private static final CountryCode byIndex[] = CountryCode.class.getEnumConstants();
     private static final Map<String, CountryCode> byName = new HashMap<>();

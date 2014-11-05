@@ -33,7 +33,6 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
         storeUserId = Some(login.storeUser.id.get),
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
-      val tranPersister = new TransactionPersister
       val siteTranByTranId = AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
 
       Ok(

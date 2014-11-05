@@ -91,7 +91,7 @@ case class ShippingDateEntry(
 ) extends NotNull
 
 case class ShippingDate(
-  tables: Map[Long, ShippingDateEntry] // Key is siteId
+  tables: Map[Long, ShippingDateEntry] = Map() // Key is siteId
 ) extends NotNull {
   def bySite(site: Site): ShippingDateEntry = bySiteId(site.id.get)
   def bySiteId(siteId: Long): ShippingDateEntry = tables(siteId)
@@ -101,7 +101,7 @@ case class Transaction(
   userId: Long,
   currency: CurrencyInfo,
   itemTotal: ShoppingCartTotal,
-  shippingAddress: Address,
+  shippingAddress: Option[Address],
   shippingTotal: ShippingTotal,
   shippingDate: ShippingDate,
   now: Long = System.currentTimeMillis
@@ -694,13 +694,13 @@ case class PersistedTransaction(
     immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.amount).foldLeft(BigDecimal(0))(_ + _))
-  }
+  }.withDefaultValue(BigDecimal(0))
   lazy val boxGrandTotal: BigDecimal = boxTotal.values.fold(BigDecimal(0))(_ + _)
   lazy val boxQuantity: Map[Long, Int] = shippingTable.foldLeft(
     immutable.LongMap[Int]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.boxCount).foldLeft(0)(_ + _))
-  }
+  }.withDefaultValue(0)
   lazy val boxGrandQuantity: Int = boxQuantity.values.fold(0)(_ + _)
   lazy val boxNameBySiteIdAndItemClass: Map[Long, Map[Long, String]] = shippingTable.foldLeft(
     immutable.LongMap[Map[Long, String]]().withDefaultValue(immutable.LongMap[String]())
@@ -953,10 +953,12 @@ class TransactionPersister {
     siteLog: TransactionLogSite, tran: Transaction
   )(implicit conn: Connection) {
     tran.shippingTotal.table.foreach { e =>
-      TransactionLogShipping.createNew(
-        siteLog.id.get, e.boxTotal, tran.shippingAddress.id.get, e.itemClass, e.shippingBox.boxSize,
-        e.boxTaxInfo.taxId, e.boxQuantity, e.shippingBox.boxName, tran.shippingDate.tables(e.site.id.get).shippingDate
-      )
+      tran.shippingAddress.foreach { addr =>
+        TransactionLogShipping.createNew(
+          siteLog.id.get, e.boxTotal, addr.id.get, e.itemClass, e.shippingBox.boxSize,
+          e.boxTaxInfo.taxId, e.boxQuantity, e.shippingBox.boxName, tran.shippingDate.tables(e.site.id.get).shippingDate
+        )
+      }
     }
   }
 

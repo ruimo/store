@@ -64,7 +64,11 @@ case class ShippingTotal(
         .withDefaultValue(Vector[ShippingTotalEntry]())
     ) { (map, e) =>
       map.updated(e.site, map(e.site).+:(e))
-    }.mapValues(e => ShippingTotal(e.toSeq))
+    }.mapValues(
+      e => ShippingTotal(e.toSeq)
+    ).withDefaultValue(
+      ShippingTotal()
+    )
   lazy val byItemClass: Map[Long, ShippingTotal] =
     table.foldLeft(
       TreeMap[Long, Vector[ShippingTotalEntry]]()

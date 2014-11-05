@@ -30,37 +30,39 @@
                 </span>
               </td>
             </tr>
-            <tr id="invoiceCustomerAddressHeader">
-              <td>@Messages("shipping.address")</td>
-            </tr>
-            <tr id="invoiceCustomerAddressZip">
-              <td>〒@tranSummary.address.zip1 - @tranSummary.address.zip2</td>
-            </tr>
-            <tr id="invoiceCustomerAddressAddress">
-              <td>
-                @tranSummary.address.prefecture
-                @tranSummary.address.address1
-                @tranSummary.address.address2
-                @tranSummary.address.address3
-              </td>
-            </tr>
-            <tr id="invoiceCustomerAddressTel">
-              <td>
-                @tranSummary.address.tel1
-              </td>
-            </tr>
-            <tr id="invoiceCustomerAddressName">
-              <td>
-                @Messages("name.salutation", 
-                  tranSummary.address.firstName,
-                  tranSummary.address.middleName,
-                  tranSummary.address.lastName
-                )
-              </td>
-            </tr>
-            <tr id="invoiceCustomerAddressFooter">
-              <td></td>
-            </tr>
+            @tranSummary.address.map { addr =>
+              <tr id="invoiceCustomerAddressHeader">
+                <td>@Messages("shipping.address")</td>
+              </tr>
+              <tr id="invoiceCustomerAddressZip">
+                <td>〒@addr.zip1 - @addr.zip2</td>
+              </tr>
+              <tr id="invoiceCustomerAddressAddress">
+                <td>
+                  @addr.prefecture
+                  @addr.address1
+                  @addr.address2
+                  @addr.address3
+                </td>
+              </tr>
+              <tr id="invoiceCustomerAddressTel">
+                <td>
+                  @addr.tel1
+                </td>
+              </tr>
+              <tr id="invoiceCustomerAddressName">
+                <td>
+                  @Messages("name.salutation", 
+                    addr.firstName,
+                    addr.middleName,
+                    addr.lastName
+                  )
+                </td>
+              </tr>
+              <tr id="invoiceCustomerAddressFooter">
+                <td></td>
+              </tr>
+            }
           </table>
         </div>
         <div id="invoiceStore">
