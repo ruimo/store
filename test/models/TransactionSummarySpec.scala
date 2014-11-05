@@ -113,7 +113,7 @@ class TransactionSummarySpec extends Specification {
           )
           val persister = new TransactionPersister
           val tranNo1 = persister.persist(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart1, addr1,
+            Transaction(user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
                         controllers.Shipping.shippingFee(addr1, cart1), shippingDate1)
           )
 
@@ -125,7 +125,7 @@ class TransactionSummarySpec extends Specification {
           entry1.transactionId === tranNo1
           entry1.transactionTime === ptran1.header.transactionTime
           entry1.totalAmount === BigDecimal(119 + 1234)
-          entry1.address === addr1
+          entry1.address === Some(addr1)
           entry1.siteName === "商店1"
           entry1.shippingFee === BigDecimal(1234)
           entry1.status === TransactionStatus.ORDERED
@@ -134,7 +134,7 @@ class TransactionSummarySpec extends Specification {
           sum1.isDefined === true
 
           val tranNo2 = persister.persist(
-            Transaction(user2.id.get, CurrencyInfo.Jpy, cart2, addr2,
+            Transaction(user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
                         controllers.Shipping.shippingFee(addr2, cart2), shippingDate2)
           )
 
@@ -146,7 +146,7 @@ class TransactionSummarySpec extends Specification {
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
-              e.address === addr2
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
@@ -156,7 +156,7 @@ class TransactionSummarySpec extends Specification {
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
-              e.address === addr1
+              e.address === Some(addr1)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
@@ -169,7 +169,7 @@ class TransactionSummarySpec extends Specification {
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(59 + 2345)
-              e.address === addr1
+              e.address === Some(addr1)
               e.siteName === "商店2"
               e.shippingFee === BigDecimal(2345)
               e.status === TransactionStatus.ORDERED
@@ -183,7 +183,7 @@ class TransactionSummarySpec extends Specification {
                 e.transactionId === tranNo1
                 e.transactionTime === ptran1.header.transactionTime
                 e.totalAmount === BigDecimal(119 + 1234)
-                e.address === addr1
+                e.address === Some(addr1)
                 e.siteName === "商店1"
                 e.shippingFee === BigDecimal(1234)
                 e.status === TransactionStatus.ORDERED
@@ -193,7 +193,7 @@ class TransactionSummarySpec extends Specification {
                 e.transactionId === tranNo1
                 e.transactionTime === ptran1.header.transactionTime
                 e.totalAmount === BigDecimal(59 + 2345)
-                e.address === addr1
+                e.address === Some(addr1)
                 e.siteName === "商店2"
                 e.shippingFee === BigDecimal(2345)
                 e.status === TransactionStatus.ORDERED
@@ -207,7 +207,7 @@ class TransactionSummarySpec extends Specification {
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
-              e.address === addr2
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
@@ -318,7 +318,7 @@ class TransactionSummarySpec extends Specification {
           val persister = new TransactionPersister
           val tranNo1 = persister.persist(
             Transaction(
-              user1.id.get, CurrencyInfo.Jpy, cart1, addr1,
+              user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
               controllers.Shipping.shippingFee(addr1, cart1), shippingDate1,
               now = date("2013-01-31")
             )
@@ -326,7 +326,7 @@ class TransactionSummarySpec extends Specification {
 
           val tranNo2 = persister.persist(
             Transaction(
-              user2.id.get, CurrencyInfo.Jpy, cart2, addr2,
+              user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
               controllers.Shipping.shippingFee(addr2, cart2), shippingDate2,
               now = date("2013-03-01")
             )
@@ -342,7 +342,7 @@ class TransactionSummarySpec extends Specification {
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
-              e.address === addr1
+              e.address === Some(addr1)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
@@ -355,7 +355,7 @@ class TransactionSummarySpec extends Specification {
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
-              e.address === addr2
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED

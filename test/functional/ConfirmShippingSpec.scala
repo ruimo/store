@@ -19,59 +19,6 @@ class ConfirmShippingSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
 
   "ConfirmShipping" should {
-    "No item." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        implicit val lang = Lang("ja")
-        val user = loginWithTestUser(browser)
-        val address = createAddress
-        val addressHistory = ShippingAddressHistory.createNew(
-          user.id.get, address
-        )
-
-        browser.goTo(
-          "http://localhost:3333" + controllers.routes.Shipping.confirmShippingAddressJa().url + "?lang=" + lang.code
-        )
-        browser.title === Messages("confirm.shipping.address")
-        browser.find("table.itemTable").size === 0
-        browser.find("table.shipping").size === 0
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody")
-          .find("td", 1)
-          .getText === "firstName lastName"
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 1)
-          .find("td", 1)
-          .getText === "firstNameKana lastNameKana"
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 2)
-          .find("td", 1)
-          .getText === "zip1 - zip2"
-
-        val addressLine = browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 3)
-          .find("td", 1)
-          .getText
-
-          addressLine.contains(JapanPrefecture.三重県.toString) === true
-          addressLine.contains("address1")
-          addressLine.contains("address2")
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 4)
-          .find("td", 1)
-          .getText === "123-2345"
-      }}
-    }
-
     "More than one site and more than item classes." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>

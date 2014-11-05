@@ -106,7 +106,7 @@ class RecommendEngineSpec extends Specification {
         )
       )
       val addr = mock(classOf[Address])
-      val resp: JsResult[OnSalesJsonResponse] = RecommendEngine.sendOnSales(login, tran, addr, api)
+      val resp: JsResult[OnSalesJsonResponse] = RecommendEngine.sendOnSales(login, tran, Some(addr), api)
       doWith(resp.get.header) { header =>
         header.sequenceNumber === "1234"
         header.statusCode === "OK"

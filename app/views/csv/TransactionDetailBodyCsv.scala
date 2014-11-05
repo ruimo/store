@@ -14,7 +14,9 @@ class TransactionDetailBodyCsv(csvWriter: CsvWriter) {
     csvWriter.print(
       tranId.toString,
       Messages("csv.tran.detail.date.format").format(tranSummary.transactionTime),
-      Messages("csv.tran.detail.shippingDate.format").format(tranSummary.shippingDate),
+      tranSummary.shippingDate.map { shippingDate =>
+        Messages("csv.tran.detail.shippingDate.format").format(shippingDate)
+      }.getOrElse(""),
       Messages("csv.tran.detail.type.item"),
       detail.itemName,
       detail.quantity.toString,
@@ -32,7 +34,9 @@ class TransactionDetailBodyCsv(csvWriter: CsvWriter) {
     csvWriter.print(
       tranId.toString,
       Messages("csv.tran.detail.date.format").format(tranSummary.transactionTime),
-      Messages("csv.tran.detail.shippingDate.format").format(tranSummary.shippingDate),
+      tranSummary.shippingDate.map { shippingDate =>
+        Messages("csv.tran.detail.shippingDate.format").format(shippingDate)
+      }.getOrElse(""),
       Messages("csv.tran.detail.type.shipping"),
       detail.boxName,
       detail.boxCount.toString,
