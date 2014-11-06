@@ -83,18 +83,18 @@
       <td class="subtotal body">@amount(itemSubtotal(siteTranByTranId(e.transactionId))(e.siteId))</td>
     </tr>
 
-    @boxBySiteAndItemSize.get(
-      e.transactionSiteId
-    ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
-      <tr>
-        <td class="boxName body">@box.boxName</td>
-        <td class="boxUnitPrice body">@amount(box.amount / box.boxCount)</td>
-        <td class="boxCount body">@box.boxCount</td>
-        <td class="boxPrice body">@amount(box.amount)</td>
-      </tr>
-    }
+    @if(!addresses.isEmpty) {
+      @boxBySiteAndItemSize.get(
+        e.transactionSiteId
+      ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+        <tr>
+          <td class="boxName body">@box.boxName</td>
+          <td class="boxUnitPrice body">@amount(box.amount / box.boxCount)</td>
+          <td class="boxCount body">@box.boxCount</td>
+          <td class="boxPrice body">@amount(box.amount)</td>
+        </tr>
+      }
 
-    @if(!e.address.isEmpty) {
       <tr>
         <td class="subtotal header">@Messages("fee.total")</td>
         <td></td>

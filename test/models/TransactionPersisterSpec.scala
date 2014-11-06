@@ -63,7 +63,7 @@ class TransactionPersisterSpec extends Specification {
           val shippingDate = ShippingDate(Map(site.id.get -> ShippingDateEntry(site.id.get, date("2013-02-03"))))
 
           (new TransactionPersister).persist(
-            Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, address, shippingTotal, shippingDate, now)
+            Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(address), shippingTotal, shippingDate, now)
           )
 
           val header = TransactionLogHeader.list()
@@ -157,7 +157,7 @@ class TransactionPersisterSpec extends Specification {
           val shippingDate = ShippingDate(Map(site.id.get -> ShippingDateEntry(site.id.get, date("2013-02-03"))))
 
           (new TransactionPersister).persist(
-            Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, address, shippingTotal, shippingDate, now)
+            Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(address), shippingTotal, shippingDate, now)
           )
 
           val header = TransactionLogHeader.list()

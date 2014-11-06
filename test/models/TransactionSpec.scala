@@ -237,7 +237,7 @@ class TransactionSpec extends Specification {
           )
           val persister = new TransactionPersister
           val tranNo = persister.persist(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, addr, 
+            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr), 
                         controllers.Shipping.shippingFee(addr, cart), shippingDate)
           )
 
