@@ -42,7 +42,7 @@
         </table>
       </td>
     </tr>
-    @if(!addresses.isEmpty) {
+    @if(!e.address.isEmpty) {
       <tr>
         <td class="transactionStatus" colspan="4">
           <span class="status">
@@ -94,7 +94,7 @@
       </tr>
     }
 
-    @if(!addresses.isEmpty) {
+    @if(!e.address.isEmpty) {
       <tr>
         <td class="subtotal header">@Messages("fee.total")</td>
         <td></td>
