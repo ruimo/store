@@ -84,42 +84,6 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
   }
 
-  def createDummyShippingRecord(
-    userId: Long
-  )(
-    implicit conn: Connection
-  ) {
-    val addr = Address(
-      countryCode = CountryCode.___,
-      firstName = "",
-      middleName = "",
-      lastName = "",
-      firstNameKana = "",
-      lastNameKana = "",
-      zip1 = "",
-      zip2 = "",
-      zip3 = "",
-      prefecture = UnknownPrefecture.UNKNOWN,
-      address1 = "",
-      address2 = "",
-      address3 = "",
-      address4 = "",
-      address5 = "",
-      tel1 = "",
-      tel2 = "",
-      tel3 = "",
-      comment = ""
-    )
-
-    val shippingDate = new DateTime()
-
-    ShoppingCartItem.sites(userId).foreach { siteId =>
-      ShoppingCartShipping.updateOrInsert(userId, siteId, shippingDate.getMillis)
-    }
-
-    ShippingAddressHistory.createNew(userId, addr)
-  }
-
   def enterShippingAddressJa = isAuthenticated { implicit login => implicit request =>
     jaForm.bindFromRequest.fold(
       formWithErrors => {
@@ -140,9 +104,6 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   def confirmShippingAddressJa = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-      val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
-        sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
-      }
       if (ShoppingCartItem.isAllCoupon(login.userId)) {
         Ok(
           views.html.confirmShippingAddressJa(
@@ -153,6 +114,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         )
       }
       else {
+        val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+          sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
+        }
         val his = ShippingAddressHistory.list(login.userId).head
         val addr = Address.byId(his.addressId)
         try {

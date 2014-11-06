@@ -315,10 +315,14 @@ object ShoppingCartItem {
       select * from shopping_cart_item si
       left join coupon_item ci on si.item_id = ci.item_id
       left join coupon c on ci.coupon_id = c.coupon_id
-      where coalesce(c.deleted, true) = true
+      where si.store_user_id = {id} and coalesce(c.deleted, true) = true
     ) then 1 else 0 end
     """
-  ).as(SqlParser.scalar[Int].single) == 0
+  ).on(
+    'id -> userId
+  ).as(
+    SqlParser.scalar[Int].single
+  ) == 0
 }
 
 object ShoppingCartShipping {
