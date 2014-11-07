@@ -624,7 +624,7 @@ case class PersistedTransaction(
   siteTable: Seq[Site],
   shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
-  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]] // First key = siteId
+  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]] // First key = siteId
 ) extends NotNull {
   lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
     var result = immutable.LongMap[BigDecimal]()
@@ -1006,8 +1006,12 @@ class TransactionPersister {
     case site~tax => (site, tax)
   }
 
-  val siteWithItem = ItemName.simple ~ TransactionLogSite.simple ~ TransactionLogItem.simple map {
-    case name~site~item => (name, site, item)
+  val siteWithItem = 
+    ItemName.simple ~ 
+    TransactionLogSite.simple ~ 
+    TransactionLogItem.simple ~
+    (TransactionLogCoupon.simple ?) map {
+    case name~site~item~coupon => (name, site, item, coupon)
   }
 
   def load(tranId: Long, localeInfo: LocaleInfo)(implicit conn: Connection): PersistedTransaction = {
@@ -1082,10 +1086,10 @@ class TransactionPersister {
     ).as(
       siteWithItem *
     ).foldLeft(
-      immutable.LongMap[List[(ItemName, TransactionLogItem)]]().withDefaultValue(List())
+      immutable.LongMap[List[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._2.siteId
-      map.updated(siteId, ((e._1, e._3)) :: map(siteId))
+      map.updated(siteId, ((e._1, e._3, e._4)) :: map(siteId))
     }.mapValues(_.reverse)
 
     PersistedTransaction(

@@ -72,7 +72,7 @@ object RecommendEngine extends HasLogger {
       userCode = tran.header.userId.toString,
       itemTable = tran.itemTable.map { e =>
         val siteId: String = e._1.toString
-        val items: Seq[(ItemName, TransactionLogItem)] = e._2
+        val items: Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])] = e._2
         
         items.map { t =>
           val item = t._2
