@@ -26,7 +26,11 @@
             </td>
           </tr>
           <tr>
-            <td class="siteName">@login.storeUser.companyName.getOrElse("")</td>
+            <td class="siteName">
+              @Messages("coupon.user.company.name",
+                login.storeUser.companyName.getOrElse("")
+              )
+            </td>
           </tr>
           <tr>
             <td class="name">
