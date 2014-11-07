@@ -66,7 +66,13 @@ class PurchasedCouponSpec extends Specification {
           body.find(".itemName").getText === "植木1"
         }
 
-        browser.find(".itemName a").click()
+        browser.find(".itemName input").click()
+        
+        val currentWindow = browser.webDriver.getWindowHandle
+        val allWindows = browser.webDriver.getWindowHandles
+        allWindows.remove(currentWindow)
+        browser.webDriver.switchTo().window(allWindows.iterator.next)
+
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".date").find("span", 1).getText() === 
