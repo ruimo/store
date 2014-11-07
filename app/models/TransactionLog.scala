@@ -1076,6 +1076,7 @@ class TransactionPersister {
       inner join transaction_item
         on transaction_site.transaction_site_id = transaction_item.transaction_site_id
       inner join item_name on transaction_item.item_id = item_name.item_id
+      left join transaction_coupon c on c.transaction_item_id = transaction_item.transaction_item_id
       where transaction_site.transaction_id = {id}
       and item_name.locale_id = {locale}
       order by transaction_item.transaction_item_id

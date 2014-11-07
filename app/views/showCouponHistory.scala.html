@@ -25,7 +25,12 @@
         <td class="tranId">@e.tranHeaderId</td>
         <td class="siteName">@e.site.name</td>
         <td class="tranDate">@publishedDate(e.time)</td>
-        <td class="itemName"><a href="@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)">@e.itemName</a></td>
+        <td class="itemName">
+          <span class="itemNameBody">@e.itemName</span>
+          <input type="button"
+                 onclick="window.open('@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)')"
+                 value="@Messages("show.coupon")">
+        </td>
       </tr>
     }
   </table>
