@@ -72,7 +72,9 @@ class PurchasedCouponSpec extends Specification {
         browser.find(".date").find("span", 1).getText() === 
           DateTimeFormat.forPattern(Messages("published.date.format")).print(tran01.tranHeader.transactionTime)
         browser.find(".siteName").getText() === Messages("coupon.user.company.name", "company01")
-        browser.find(".name").getText() === Messages("coupon.user.name", "firstName01", "", "lastName01")
+        browser.find(".name").getText() === justOneSpace(
+          Messages("coupon.user.name", "firstName01", "", "lastName01")
+        )
       }}
     }
   }

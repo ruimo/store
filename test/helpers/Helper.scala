@@ -123,4 +123,27 @@ object Helper {
 
     readFully(new ListBuffer[String])
   }
+
+  // Trim consecutive more than one space char to single space character.
+  def justOneSpace(s: String): String = {
+    var buf = new StringBuilder
+    var spaceFound = false
+
+    s.foreach { c =>
+      if (spaceFound) {
+        if (c != ' ') {
+          spaceFound = false
+          buf.append(c)
+        }
+      }
+      else {
+        if (c == ' ') {
+          spaceFound = true
+        }
+        buf.append(c)
+      }
+    }
+
+    buf.toString
+  }
 }
