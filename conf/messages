@@ -357,5 +357,5 @@ top=Top
 publishedDate=Published date
 published.date.format=yyyy-MM-dd
 coupon.title=Purchased coupon
-coupon.user.company.name={1}
-coupon.user.name={1} {2} {3}
+coupon.user.company.name={0}
+coupon.user.name={0} {1} {2}
