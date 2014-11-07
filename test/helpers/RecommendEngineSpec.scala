@@ -9,6 +9,7 @@ import models.LoginSession
 import org.mockito.Mockito.mock
 import models.PersistedTransaction
 import models.TransactionLogItem
+import models.TransactionLogCoupon
 import models.TransactionLogHeader
 import models.TransactionType
 import models.Address
@@ -79,7 +80,7 @@ class RecommendEngineSpec extends Specification {
               amount = BigDecimal(123),
               costPrice = BigDecimal(555555),
               taxId = 1232L
-            )),
+            ), mock(classOf[Option[TransactionLogCoupon]])),
             (mock(classOf[ItemName]), TransactionLogItem(
               id = None,
               transactionSiteId = 889L,
@@ -89,7 +90,7 @@ class RecommendEngineSpec extends Specification {
               amount = BigDecimal(124),
               costPrice = BigDecimal(555556),
               taxId = 1234L
-            ))
+            ), mock(classOf[Option[TransactionLogCoupon]]))
           ),
           666L -> Seq(
             (mock(classOf[ItemName]), TransactionLogItem(
@@ -101,7 +102,7 @@ class RecommendEngineSpec extends Specification {
               amount = BigDecimal(125),
               costPrice = BigDecimal(555557),
               taxId = 1235L
-            ))
+            ), mock(classOf[Option[TransactionLogCoupon]]))
           )
         )
       )

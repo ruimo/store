@@ -303,18 +303,24 @@ class TransactionSpec extends Specification {
           taxTable2(tax2.id.get).amount === BigDecimal(2345 * 5 / 105)
 
           ptran.itemTable.size === 2
-          val itemTable1 = ptran.itemTable(site1.id.get).foldLeft(immutable.HashMap[ItemId, (ItemName, TransactionLogItem)]()) {
-            (map, e) => map.updated(e._1.itemId, e)
-          }
+          val itemTable1 = ptran.itemTable(site1.id.get)
+            .foldLeft(
+              immutable.HashMap[ItemId, (ItemName, TransactionLogItem, Option[TransactionLogCoupon])]()
+            ) {
+              (map, e) => map.updated(e._1.itemId, e)
+            }
           itemTable1(item1.id.get)._1.name === "杉"
           itemTable1(item1.id.get)._2.itemId === item1.id.get.id
           itemTable1(item1.id.get)._2.itemPriceHistoryId === ph1.id.get
           itemTable1(item1.id.get)._2.quantity === 1
           itemTable1(item1.id.get)._2.amount === BigDecimal(119)
           
-          val itemTable2 = ptran.itemTable(site2.id.get).foldLeft(immutable.HashMap[ItemId, (ItemName, TransactionLogItem)]()) {
-            (map, e) => map.updated(e._1.itemId, e)
-          }
+          val itemTable2 = ptran.itemTable(site2.id.get)
+            .foldLeft(
+              immutable.HashMap[ItemId, (ItemName, TransactionLogItem, Option[TransactionLogCoupon])]()
+            ) {
+              (map, e) => map.updated(e._1.itemId, e)
+            }
           itemTable2(item2.id.get)._1.name === "梅"
           itemTable2(item2.id.get)._2.itemId === item2.id.get.id
           itemTable2(item2.id.get)._2.itemPriceHistoryId === ph2.id.get
