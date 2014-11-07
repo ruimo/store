@@ -388,5 +388,5 @@ top=トップ
 publishedDate=発行日
 published.date.format=yyyy年MM月dd日
 coupon.title=購入されたクーポン
-coupon.user.company.name=[企業名] {1}
-coupon.user.name={1} {2} {3} 様
+coupon.user.company.name=[企業名] {0}
+coupon.user.name={0} {1} {2} 様
