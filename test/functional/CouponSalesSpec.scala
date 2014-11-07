@@ -98,6 +98,48 @@ class CouponSalesSpec extends Specification {
         browser.find(".subtotal").getText === ViewHelpers.toAmount(
           BigDecimal(101 * 15 + 301 * 28 + 401 * 40)
         )
+
+        browser.find("#finalizeTransactionForm input").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        doWith(browser.find(".itemTableBody", 0)) { b =>
+          b.find(".itemName .itemNameBody").getText === "クーポン1"
+          b.find(".siteName").getText === "商店1"
+          b.find(".quantity").getText === "15"
+          b.find(".itemPrice").getText === ViewHelpers.toAmount(BigDecimal(1515))
+        }
+
+        doWith(browser.find(".itemTableBody", 1)) { b =>
+          b.find(".itemName .itemNameBody").getText === "クーポン2"
+          b.find(".siteName").getText === "商店2"
+          b.find(".quantity").getText === "28"
+          b.find(".itemPrice").getText === ViewHelpers.toAmount(BigDecimal(8428))
+        }
+
+        doWith(browser.find(".itemTableBody", 2)) { b =>
+          b.find(".itemName .itemNameBody").getText === "クーポン3"
+          b.find(".siteName").getText === "商店2"
+          b.find(".quantity").getText === "40"
+          b.find(".itemPrice").getText === ViewHelpers.toAmount(BigDecimal(16040))
+        }
+
+        browser.find(".itemTableBody", 2).find(".itemName input").click()
+
+        val currentWindow = browser.webDriver.getWindowHandle
+        val allWindows = browser.webDriver.getWindowHandles
+        allWindows.remove(currentWindow)
+        browser.webDriver.switchTo().window(allWindows.iterator.next)
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        // browser.find(".date").find("span", 1).getText() === 
+        //   DateTimeFormat.forPattern(Messages("published.date.format")).print(tran01.tranHeader.transactionTime)
+        // browser.find(".siteName").getText() === Messages("coupon.user.company.name", "company01")
+        // browser.find(".name").getText() === justOneSpace(
+        //   Messages("coupon.user.name", "firstName01", "", "lastName01")
+        // )
+
+        // Thread.sleep(20000)
       }}
     }
   }
