@@ -155,15 +155,15 @@ trait NeedLogin extends Controller with HasLogger {
   def tryLogin(
     user: LoginUser, form: Form[LoginUser]
   )(implicit request: Request[AnyContent]): Result = DB.withConnection { implicit conn => {
-    StoreUser.findByUserName(user.userName) match {
+    StoreUser.findByUserName(user.compoundUserName) match {
       case None => 
-        logger.error("Cannot find user '" + user.userName + "'")
+        logger.error("Cannot find user '" + user.compoundUserName + "'")
         onLoginUserNotFound(form)
       case Some(rec) =>
         if (rec.passwordMatch(user.password)) {
-          logger.info("Password ok '" + user.userName + "'")
+          logger.info("Password ok '" + user.compoundUserName + "'")
           if (rec.isRegistrationIncomplete) {
-            logger.info("Need user registration '" + user.userName + "'")
+            logger.info("Need user registration '" + user.compoundUserName + "'")
             Redirect(
               routes.UserEntry.registerUserInformation()
             ).withSession {
@@ -171,7 +171,7 @@ trait NeedLogin extends Controller with HasLogger {
             }
           }
           else {
-            logger.info("Login success '" + user.userName + "'")
+            logger.info("Login success '" + user.compoundUserName + "'")
             Redirect(user.uri).flashing(
               "message" -> "Welcome"
             ).withSession {
@@ -180,7 +180,7 @@ trait NeedLogin extends Controller with HasLogger {
           }
         }
         else {
-          logger.error("Password doesnot match '" + user.userName + "'")
+          logger.error("Password doesnot match '" + user.compoundUserName + "'")
           BadRequest(views.html.admin.login(
             form.withGlobalError(Messages("cannotLogin")),
             form("uri").value.get
