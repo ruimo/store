@@ -22,6 +22,7 @@ trait NeedLogin extends Controller with HasLogger {
 
   val loginForm = Form(
     mapping(
+      "companyId" -> optional(text),
       "userName" -> text.verifying(nonEmpty),
       "password" -> text.verifying(nonEmpty),
       "uri" -> text
