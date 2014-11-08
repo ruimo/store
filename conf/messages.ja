@@ -391,3 +391,4 @@ coupon.title=購入されたクーポン
 coupon.user.company.name=[企業名] {0}
 coupon.user.name={0} {1} {2} 様
 show.coupon=クーポンの表示
+companyId=会社ID
