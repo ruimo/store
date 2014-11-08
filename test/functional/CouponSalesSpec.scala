@@ -1,5 +1,6 @@
 package functional
 
+import org.joda.time.format.DateTimeFormat
 import helpers.ViewHelpers
 import java.util.concurrent.TimeUnit
 import play.api.test._
@@ -59,9 +60,15 @@ class CouponSalesSpec extends Specification {
         val price2 = ItemPrice.createNew(item2, site2)
         val price3 = ItemPrice.createNew(item3, site2)
 
-        val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(90), date("9999-12-31"))
-        val ph2 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(200), date("9999-12-31"))
-        val ph3 = ItemPriceHistory.createNew(price3, tax, CurrencyInfo.Jpy, BigDecimal(401), BigDecimal(390), date("9999-12-31"))
+        val ph1 = ItemPriceHistory.createNew(
+          price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(90), date("9999-12-31")
+        )
+        val ph2 = ItemPriceHistory.createNew(
+          price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(200), date("9999-12-31")
+        )
+        val ph3 = ItemPriceHistory.createNew(
+          price3, tax, CurrencyInfo.Jpy, BigDecimal(401), BigDecimal(390), date("9999-12-31")
+        )
 
         val cart1 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item1.id.get.id, 15)
         val cart2 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item2.id.get.id, 28)
@@ -99,6 +106,7 @@ class CouponSalesSpec extends Specification {
           BigDecimal(101 * 15 + 301 * 28 + 401 * 40)
         )
 
+        val now = System.currentTimeMillis
         browser.find("#finalizeTransactionForm input").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -132,14 +140,12 @@ class CouponSalesSpec extends Specification {
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        // browser.find(".date").find("span", 1).getText() === 
-        //   DateTimeFormat.forPattern(Messages("published.date.format")).print(tran01.tranHeader.transactionTime)
-        // browser.find(".siteName").getText() === Messages("coupon.user.company.name", "company01")
-        // browser.find(".name").getText() === justOneSpace(
-        //   Messages("coupon.user.name", "firstName01", "", "lastName01")
-        // )
-
-        // Thread.sleep(20000)
+        browser.find(".date").find("span", 1).getText() === 
+          DateTimeFormat.forPattern(Messages("published.date.format")).print(now)
+        browser.find(".siteName").getText() === Messages("coupon.user.company.name", "Company1")
+        browser.find(".name").getText() === justOneSpace(
+          Messages("coupon.user.name", "Admin", "", "Manager")
+        )
       }}
     }
   }
