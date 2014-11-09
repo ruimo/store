@@ -22,6 +22,7 @@ import play.api.templates.Html
 import models.LoginSession
 import models.StoreUser
 import models.UserAddress
+import models.ChangeUserInfo
 
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
@@ -69,6 +70,27 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       }
     )
   }}}
+
+  val changeUserInfoForm = Form(
+    mapping(
+      "firstName" -> text.verifying(firstNameConstraint: _*),
+      "middleName" -> optional(text),
+      "lastName" -> text.verifying(lastNameConstraint: _*),
+      "firstNameKana" -> text.verifying(firstNameKanaConstraint: _*),
+      "lastNameKana" -> text.verifying(lastNameKanaConstraint: _*),
+      "email" -> email.verifying(emailConstraint: _*),
+      "currentPassword" -> text.verifying(nonEmpty, maxLength(24)),
+      "country" -> number,
+      "zip1" -> text.verifying(z => Zip1Pattern.matcher(z).matches),
+      "zip2" -> text.verifying(z => Zip2Pattern.matcher(z).matches),
+      "prefecture" -> number,
+      "address1" -> text.verifying(nonEmpty, maxLength(256)),
+      "address2" -> text.verifying(nonEmpty, maxLength(256)),
+      "address3" -> text.verifying(maxLength(256)),
+      "tel1" -> text.verifying(Messages("error.number"), z => TelPattern.matcher(z).matches)
+    )(ChangeUserInfo.apply)(ChangeUserInfo.unapply)
+  )
+    
 
   def createRegistrationForm(implicit lang: Lang) = Form(
     mapping(
