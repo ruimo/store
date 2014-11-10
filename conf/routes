@@ -175,6 +175,8 @@ GET     /registerUserInformation         controllers.UserEntry.registerUserInfor
 POST    /submitUserInformation           controllers.UserEntry.submitUserInfo()
 GET     /showPurchasedCouponList         controllers.CouponHistory.showPurchasedCouponList(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec: String ?= "h.transaction_id DESC")
 GET     /showPurchasedCoupon             controllers.CouponHistory.showPurchasedCoupon(tranCouponId: Long)
+GET     /updateUserInfoStart             controllers.UserEntry.updateUserInfoStart()
+POST    /updateUserInfo                  controllers.UserEntry.updateUserInfo()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

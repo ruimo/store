@@ -33,6 +33,14 @@ object UserAddress {
     'id -> id
   ).as(simple.single)
 
+  def getByUserId(storeUserId: Long)(implicit conn: Connection): Option[UserAddress] = SQL(
+    """
+    select * from user_address where store_user_id = {id} and seq = 1
+    """
+  ).on(
+    'id -> storeUserId
+  ).as(simple.singleOpt)
+
   def createNew(storeUserId: Long, addressId: Long)(implicit conn: Connection): UserAddress = {
     SQL(
       """

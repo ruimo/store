@@ -1,5 +1,5 @@
 @(
-  myForm: Form[RegisterUserInfo], prefectureTable: Seq[(String, String)]
+  myForm: Form[models.ChangeUserInfo], prefectureTable: Seq[(String, String)]
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -14,10 +14,10 @@
   f("zip1").error.isDefined || f("zip2").error.isDefined
 }
 
-@main(Messages("registerUserInformation"), Some(loginSession)) {
+@main(Messages("updateUserInformation"), Some(loginSession)) {
   <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
 } {
-  <h2 class="title">@Messages("registerUserInformation")</h2>
+  <h2 class="title">@Messages("updateUserInformation")</h2>
 
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">
@@ -31,21 +31,10 @@
     </div>
   }
 
-  @form(action = CSRF(routes.UserEntry.submitUserInfo()), 'id -> "submitUserForm") {
+  @form(action = CSRF(routes.UserEntry.updateUserInfo()), 'id -> "updateUserForm") {
     @helper.inputPassword(
       myForm("currentPassword"),
       '_label -> Messages("currentPassword"), 'size -> 24, 'maxlength -> 24
-    )
-
-    @helper.inputPassword(
-      myForm("password.main"),
-      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
-    )
-
-    @helper.inputPassword(
-      myForm("password.confirm"),
-      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
-      '_error -> myForm.error("password")
     )
 
     @helper.inputText(

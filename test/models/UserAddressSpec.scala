@@ -41,6 +41,39 @@ class UserAddressSpec extends Specification {
         }}
       }
     }
+
+    "Can get by userid" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          val user = StoreUser.create(
+            userName = "uno",
+            firstName = "",
+            middleName = None,
+            lastName = "",
+            email = "",
+            passwordHash = 0L,
+            salt = 0L,
+            userRole = UserRole.NORMAL,
+            companyName = None
+          )
+          val address01 = Address.createNew(
+            countryCode = CountryCode.JPN
+          )
+          val address02 = Address.createNew(
+            countryCode = CountryCode.JPN
+          )
+
+          val ua1 = UserAddress.createNew(user.id.get, address01.id.get)
+          val ua2 = UserAddress.createNew(user.id.get, address02.id.get)
+          val rec = UserAddress.getByUserId(user.id.get)
+
+          rec.isDefined === true
+          rec.get.storeUserId === user.id.get
+          rec.get.addressId === address01.id.get
+          rec.get.seq === 1
+        }}
+      }
+    }
   }
 }
 

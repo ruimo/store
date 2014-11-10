@@ -361,3 +361,4 @@ coupon.user.company.name={0}
 coupon.user.name={0} {1} {2}
 show.coupon=Show coupon
 companyId=Company id
+updateUserInformation=Update user information
