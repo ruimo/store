@@ -200,7 +200,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
             val filename = csvFile.filename
             val contentType = csvFile.contentType
             logger.info("Users are uploaded. filename='" + filename + "', contentType='" + contentType + "'")
-            if (contentType != Some("text/csv")) {
+            if (contentType != Some("text/csv") && contentType != Some("application/vnd.ms-excel")) {
               Redirect(
                 routes.UserMaintenance.startAddUsersByCsv()
               ).flashing("errorMessage" -> Messages("csv.needed"))
