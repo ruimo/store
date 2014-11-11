@@ -1,5 +1,6 @@
 @()(
   implicit lang: Lang,
+  flash: play.api.mvc.Flash,
   request: RequestHeader,
   loginSession: Option[LoginSession]
 )
@@ -9,5 +10,11 @@
   @helper.form(action=routes.ItemQuery.query(List())) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
   }
 }

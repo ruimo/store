@@ -393,3 +393,4 @@ coupon.user.name={0} {1} {2} 様
 show.coupon=クーポンの表示
 companyId=会社ID
 updateUserInformation=ユーザ情報の更新
+userInfoIsUpdated=ユーザ情報が更新されました

@@ -186,7 +186,9 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
             )
 
             UserAddress.createNew(login.storeUser.id.get, address.id.get)
-            Redirect(routes.Application.index)
+            Redirect(
+              routes.Application.index
+            ).flashing("message" -> Messages("userInfoIsUpdated"))
           }
         }
     )
@@ -287,7 +289,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
               UserAddress.createNew(login.storeUser.id.get, address.id.get)
           }
 
-          Ok("")
+          Redirect(routes.Application.index)
         }
       }
     )
