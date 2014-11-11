@@ -23,6 +23,10 @@ import models.LoginSession
 import models.StoreUser
 import models.UserAddress
 import models.ChangeUserInfo
+import models.Prefecture
+import models.CountryCode
+import models.JapanPrefecture
+import java.sql.Connection
 
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
@@ -249,6 +253,94 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
   }
 
   def updateUserInfo = isAuthenticated { implicit login => implicit request =>
-    Ok("")
+    updateUserInfoForm.bindFromRequest.fold(
+      formWithErrors => BadRequest(
+        lang.toLocale match {
+          case Locale.JAPANESE =>
+            views.html.updateUserInfoJa(formWithErrors, Address.JapanPrefectures)
+          case Locale.JAPAN =>
+            views.html.updateUserInfoJa(formWithErrors, Address.JapanPrefectures)
+
+          case _ =>
+            views.html.updateUserInfoJa(formWithErrors, Address.JapanPrefectures)
+        }
+      ),
+      newInfo => {
+        val prefTable = lang.toLocale match {
+          case Locale.JAPANESE =>
+            i: Int => JapanPrefecture.byIndex(i)
+          case Locale.JAPAN =>
+            i: Int => JapanPrefecture.byIndex(i)
+
+          case _ =>
+            i: Int => JapanPrefecture.byIndex(i)
+        }
+
+        DB.withConnection { implicit conn =>
+          updateUser(newInfo, login.storeUser)
+
+          UserAddress.getByUserId(login.storeUser.id.get) match {
+            case Some(ua: UserAddress) =>
+              updateAddress(Address.byId(ua.addressId), newInfo, prefTable)
+            case None =>
+              val address = createAddress(newInfo, prefTable)
+              UserAddress.createNew(login.storeUser.id.get, address.id.get)
+          }
+
+          Ok("")
+        }
+      }
+    )
+  }
+
+  def updateUser(userInfo: ChangeUserInfo, user: StoreUser)(implicit conn: Connection) {
+    StoreUser.update(
+      user.id.get,
+      user.userName, 
+      userInfo.firstName, userInfo.middleName, userInfo.lastName,
+      userInfo.email, user.passwordHash, user.salt, user.companyName
+    )
+  }
+
+  def updateAddress(
+    address: Address, userInfo: ChangeUserInfo, prefectureTable: Int => Prefecture
+  )(implicit conn: Connection) {
+    Address.update(
+      address.copy(
+        countryCode = CountryCode.byIndex(userInfo.countryIndex),
+        firstName = userInfo.firstName,
+        middleName = userInfo.middleName.getOrElse(""),
+        lastName = userInfo.lastName,
+        firstNameKana = userInfo.firstNameKana,
+        lastNameKana = userInfo.lastNameKana,
+        zip1 = userInfo.zip1,
+        zip2 = userInfo.zip2,
+        prefecture = prefectureTable(userInfo.prefectureIndex),
+        address1 = userInfo.address1,
+        address2 = userInfo.address2,
+        address3 = userInfo.address3,
+        tel1 = userInfo.tel1
+      )
+    )
+  }
+
+  def createAddress(
+    userInfo: ChangeUserInfo, prefectureTable: Int => Prefecture
+  )(implicit conn: Connection): Address = {
+    Address.createNew(
+      countryCode = CountryCode.byIndex(userInfo.countryIndex),
+      firstName = userInfo.firstName,
+      middleName = userInfo.middleName.getOrElse(""),
+      lastName = userInfo.lastName,
+      firstNameKana = userInfo.firstNameKana,
+      lastNameKana = userInfo.lastNameKana,
+      zip1 = userInfo.zip1,
+      zip2 = userInfo.zip2,
+      prefecture = prefectureTable(userInfo.prefectureIndex),
+      address1 = userInfo.address1,
+      address2 = userInfo.address2,
+      address3 = userInfo.address3,
+      tel1 = userInfo.tel1
+    )
   }
 }

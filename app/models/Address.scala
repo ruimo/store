@@ -164,6 +164,55 @@ object Address {
       """
     ).on('id -> id).as(simple.single)
 
+  def update(address: Address)(implicit conn: Connection): Int = {
+    SQL(
+      """
+      update address set
+      country_code = {countryCode},
+      first_name = {firstName},
+      middle_name = {middleName},
+      last_name = {lastName},
+      first_name_kana = {firstNameKana},
+      last_name_kana = {lastNameKana},
+      zip1 = {zip1},
+      zip2 = {zip2},
+      zip3 = {zip3},
+      prefecture = {prefecture},
+      address1 = {address1},
+      address2 = {address2},
+      address3 = {address3},
+      address4 = {address4},
+      address5 = {address5},
+      tel1 = {tel1},
+      tel2 = {tel2},
+      tel3 = {tel3},
+      comment = {comment}
+      where address_id = {id}
+      """
+    ).on(
+      'id -> address.id.get,
+      'countryCode -> address.countryCode.code,
+      'firstName -> address.firstName,
+      'middleName -> address.middleName,
+      'lastName -> address.lastName,
+      'firstNameKana -> address.firstNameKana,
+      'lastNameKana -> address.lastNameKana,
+      'zip1 -> address.zip1,
+      'zip2 -> address.zip2,
+      'zip3 -> address.zip3,
+      'prefecture -> address.prefecture.code,
+      'address1 -> address.address1,
+      'address2 -> address.address2,
+      'address3 -> address.address3,
+      'address4 -> address.address4,
+      'address5 -> address.address5,
+      'tel1 -> address.tel1,
+      'tel2 -> address.tel2,
+      'tel3 -> address.tel3,
+      'comment -> address.comment
+    ).executeUpdate()
+  }
+
   lazy val JapanPrefectures: Seq[(String, String)] = Enums.toDropdownTable(JapanPrefecture.all)
   lazy val JapanPrefecturesIntSeq: Seq[(Int, String)] = Enums.toTable(JapanPrefecture.all)
 }
