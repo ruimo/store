@@ -76,8 +76,6 @@ object NotificationMail extends HasLogger {
   ) {
     logger.info("Sending confirmation for buyer sent to " + login.storeUser.email)
     val body = views.html.mail.forBuyer(login, tran, addr, metadata).toString
-println("Default charset = '" + java.nio.charset.Charset.defaultCharset() + "'")
-println("Mail body = '" + body + "'")
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
         val mail = use[MailerPlugin].email
