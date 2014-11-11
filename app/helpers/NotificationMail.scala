@@ -13,6 +13,7 @@ import java.sql.Connection
 import play.api.Play
 import controllers.HasLogger
 import collection.immutable.LongMap
+import play.api.templates.Html
 
 object NotificationMail extends HasLogger {
   val disableMailer = Play.current.configuration.getBoolean("disable.mailer").getOrElse(false)
@@ -75,6 +76,8 @@ object NotificationMail extends HasLogger {
   ) {
     logger.info("Sending confirmation for buyer sent to " + login.storeUser.email)
     val body = views.html.mail.forBuyer(login, tran, addr, metadata).toString
+println("Default charset = '" + java.nio.charset.Charset.defaultCharset() + "'")
+println("Mail body = '" + body + "'")
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
         val mail = use[MailerPlugin].email
