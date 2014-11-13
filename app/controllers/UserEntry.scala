@@ -279,17 +279,33 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
         }
 
         DB.withConnection { implicit conn =>
-          updateUser(newInfo, login.storeUser)
+          if (login.storeUser.passwordMatch(newInfo.currentPassword)) {
+            updateUser(newInfo, login.storeUser)
 
-          UserAddress.getByUserId(login.storeUser.id.get) match {
-            case Some(ua: UserAddress) =>
-              updateAddress(Address.byId(ua.addressId), newInfo, prefTable)
-            case None =>
-              val address = createAddress(newInfo, prefTable)
-              UserAddress.createNew(login.storeUser.id.get, address.id.get)
+            UserAddress.getByUserId(login.storeUser.id.get) match {
+              case Some(ua: UserAddress) =>
+                updateAddress(Address.byId(ua.addressId), newInfo, prefTable)
+              case None =>
+                val address = createAddress(newInfo, prefTable)
+                UserAddress.createNew(login.storeUser.id.get, address.id.get)
+            }
+
+            Redirect(routes.Application.index).flashing("message" -> Messages("userInfoIsUpdated"))
           }
+          else {
+            val form = updateUserInfoForm.fill(newInfo).withError("currentPassword", "confirmPasswordDoesNotMatch")
+            BadRequest(
+              lang.toLocale match {
+                case Locale.JAPANESE =>
+                  views.html.updateUserInfoJa(form, Address.JapanPrefectures)
+                case Locale.JAPAN =>
+                  views.html.updateUserInfoJa(form, Address.JapanPrefectures)
 
-          Redirect(routes.Application.index)
+                case _ =>
+                  views.html.updateUserInfoJa(form, Address.JapanPrefectures)
+              }
+            )
+          }
         }
       }
     )
