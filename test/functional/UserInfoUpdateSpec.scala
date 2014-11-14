@@ -15,6 +15,11 @@ import play.api.db.DB
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
+import models.StoreUser
+import models.CountryCode
+import models.Address
+import models.UserAddress
+import models.JapanPrefecture
 
 import com.ruimo.scoins.Scoping._
 
@@ -22,7 +27,7 @@ class UserInfoUpdateSpec extends Specification {
   "Use info update" should {
     "Can update user info having no address redocrd" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
 
@@ -88,6 +93,43 @@ class UserInfoUpdateSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".message").getText === Messages("userInfoIsUpdated")
+
+        DB.withConnection { implicit conn =>
+          doWith(StoreUser(user.id.get)) { u =>
+            u.userName === "administrator"
+            u.firstName === "first name"
+            u.middleName === None
+            u.lastName === "last name"
+            u.email === "null@ruimo.com"
+            u.passwordHash === user.passwordHash
+            u.salt === user.salt
+            u.deleted === user.deleted
+            u.companyName === user.companyName
+          }
+
+          val userAddress = UserAddress.getByUserId(user.id.get).get
+          doWith(Address.byId(userAddress.addressId)) { a =>
+            a.countryCode === CountryCode.JPN
+            a.firstName === "first name"
+            a.middleName === ""
+            a.lastName === "last name"
+            a.firstNameKana === "first name kana"
+            a.lastNameKana === "last name kana"
+            a.zip1 === "123"
+            a.zip2 === "2334"
+            a.zip3 === ""
+            a.prefecture === JapanPrefecture.北海道
+            a.address1 === "address 1"
+            a.address2 === "address 2"
+            a.address3 === "address 3"
+            a.address4 === ""
+            a.address5 === ""
+            a.tel1 === "12345678"
+            a.tel2 === ""
+            a.tel3 === ""
+            a.comment === ""
+          }
+        }
       }}
     }
   }
