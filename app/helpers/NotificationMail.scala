@@ -288,4 +288,21 @@ object NotificationMail extends HasLogger {
       }
     }
   }
+
+  def sendResetPasswordConfirmation(
+    user: StoreUser, rec: ResetPassword
+  ) {
+    logger.info("Sending reset password confirmation to " + user.email)
+    val body = views.html.mail.resetPassword(user, rec).toString
+    if (! disableMailer) {
+      Akka.system.scheduler.scheduleOnce(0.microsecond) {
+        val mail = use[MailerPlugin].email
+        mail.setSubject(Messages("resetPassword.mail.subject"))
+        mail.addRecipient(user.email)
+        mail.addFrom(from)
+        mail.send(body)
+        logger.info("Reset password confirmation sent to " + user.email)
+      }
+    }
+  }    
 }

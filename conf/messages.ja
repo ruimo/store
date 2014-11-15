@@ -26,6 +26,7 @@ error.maxLength=最大長さは {0} です。
 error.email=正しいメールアドレスを入力してください。
 error.pattern=次のパターンに従う必要があります {0}
 error.invalid.yyyymmdd=YYYYMMDDの形式で入力してください。
+error.value=値が不適切です。
 
 adminTitle=管理サイト
 loginTitle=ログイン
@@ -394,3 +395,8 @@ show.coupon=クーポンの表示
 companyId=会社ID
 updateUserInformation=ユーザ情報の更新
 userInfoIsUpdated=ユーザ情報が更新されました
+resetPassword=パスワードのリセット
+submit=送信
+resetPasswordMailSent=パスワードリセットのためのメールが送信されました
+company.name=Functional Store
+enterNewPassword=新しいパスワードを入力してください。

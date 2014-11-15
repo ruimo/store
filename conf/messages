@@ -1,4 +1,5 @@
 constraint.email=xxx@yyy.zzz
+error.value=Invalid value
 
 adminTitle=Admin Site
 loginTitle=Login
@@ -363,3 +364,8 @@ show.coupon=Show coupon
 companyId=Company id
 updateUserInformation=Update user information
 userInfoIsUpdated=User information is updated
+resetPassword=Reset password
+submit=Submit
+resetPasswordMailSent=Reset password mail sent
+company.name=Functional Store
+enterNewPassword=Enter new password

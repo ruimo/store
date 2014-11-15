@@ -10,7 +10,10 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models.UserRegistration
+import models.ResetWithNewPassword
 import models.Address
+import models.ResetPassword
+import models.PasswordReset
 import helpers.UserEntryMail
 import controllers.Shipping.firstNameKanaConstraint
 import controllers.Shipping.lastNameKanaConstraint
@@ -27,9 +30,17 @@ import models.Prefecture
 import models.CountryCode
 import models.JapanPrefecture
 import java.sql.Connection
+import helpers.NotificationMail
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
+
+  val Config = play.api.Play.maybeApplication.map(_.configuration).get
+  val ResetPasswordTimeout: Long = Config.getMilliseconds("resetPassword.timeout").getOrElse {
+    (30 minutes).toMillis
+  }
 
   def jaForm(implicit lang: Lang) = Form(
     mapping(
@@ -47,6 +58,26 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> text.verifying(nonEmpty, maxLength(128))
     )(UserRegistration.apply4Japan)(UserRegistration.unapply4Japan)
+  )
+
+  val resetPasswordForm = Form(
+    mapping(
+      "companyId" -> optional(text),
+      "userName" -> text.verifying(nonEmpty)
+    )(PasswordReset.apply)(PasswordReset.unapply)
+  )
+
+  def resetWithNewPasswordForm(implicit lang: Lang) = Form(
+    mapping(
+      "userId" -> longNumber,
+      "token" -> longNumber,
+      "password" -> tuple(
+        "main" -> text.verifying(passwordConstraint: _*),
+        "confirm" -> text
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      )
+    )(ResetWithNewPassword.apply)(ResetWithNewPassword.unapply)
   )
 
   def index() = Action { implicit request => DB.withConnection { implicit conn => {
@@ -359,6 +390,67 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       address2 = userInfo.address2,
       address3 = userInfo.address3,
       tel1 = userInfo.tel1
+    )
+  }
+
+  def resetPasswordStart = Action { implicit request =>
+    Ok(views.html.resetPassword(resetPasswordForm))
+  }
+
+  def resetPassword = Action { implicit request =>
+    resetPasswordForm.bindFromRequest.fold(
+      formWithErrors =>
+        BadRequest(views.html.resetPassword(formWithErrors)),
+      newInfo => {
+        DB.withConnection { implicit conn =>
+          StoreUser.findByUserName(newInfo.userName) match {
+            case Some(user) => {
+              ResetPassword.removeByStoreUserId(user.id.get)
+              val rec = ResetPassword.createNew(user.id.get)
+              NotificationMail.sendResetPasswordConfirmation(user, rec)
+              Ok(views.html.resetPasswordMailSent(rec))
+            }
+
+            case None =>
+              BadRequest(
+                views.html.resetPassword(
+                  resetPasswordForm.fill(newInfo).withError("userName", "error.value")
+                )
+              )
+          }
+        }
+      }
+    )
+  }
+
+  def resetPasswordConfirm(userId: Long, token: Long) = Action { implicit request =>
+    DB.withConnection { implicit conn =>
+      if (ResetPassword.isValid(userId, token, System.currentTimeMillis - ResetPasswordTimeout)) {
+        Ok(
+          views.html.resetWithNewPassword(
+            resetWithNewPasswordForm.bind(
+              Map(
+                "userId" -> userId.toString,
+                "token" -> token.toString
+              )
+            )
+          )
+        )
+      }
+      else {
+        Redirect(routes.Application.index).flashing("message" -> Messages("general.error"))
+      }
+    }
+  }
+
+  def resetWithNewPassword = Action { implicit request =>
+    resetWithNewPasswordForm.bindFromRequest.fold(
+      formWithErrors => {
+        BadRequest(views.html.resetWithNewPassword(formWithErrors))
+      },
+      newInfo => {
+        Ok("")
+      }
     )
   }
 }
