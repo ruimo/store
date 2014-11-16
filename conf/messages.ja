@@ -400,3 +400,4 @@ submit=送信
 resetPasswordMailSent=パスワードリセットのためのメールが送信されました
 company.name=Functional Store
 enterNewPassword=新しいパスワードを入力してください。
+resetPassword.mail.subject=パスワードリセット要求

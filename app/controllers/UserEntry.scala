@@ -425,6 +425,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
 
   def resetPasswordConfirm(userId: Long, token: Long) = Action { implicit request =>
     DB.withConnection { implicit conn =>
+      logger.info("Password reset confirmation ok = " + userId + ", token = " + token)
       if (ResetPassword.isValid(userId, token, System.currentTimeMillis - ResetPasswordTimeout)) {
         Ok(
           views.html.resetWithNewPassword(
@@ -433,11 +434,12 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
                 "userId" -> userId.toString,
                 "token" -> token.toString
               )
-            )
+            ).discardingErrors
           )
         )
       }
       else {
+        logger.error("Invalid password reset confirmation userId = " + userId + ", token = " + token)
         Redirect(routes.Application.index).flashing("message" -> Messages("general.error"))
       }
     }
