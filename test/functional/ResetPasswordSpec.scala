@@ -14,6 +14,9 @@ import play.api.db.DB
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 import helpers.Helper.disableMailer
+import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
+import models.StoreUser
+import models.UserRole
 
 class ResetPasswordSpec extends Specification {
   val conf = inMemoryDatabase() ++ disableMailer
@@ -23,7 +26,7 @@ class ResetPasswordSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = conf)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
-        val salt = RandomTokenGenerator.next
+        val salt = RandomTokenGenerator().next
         val hash = PasswordHash.generate("password", salt)
 
         val user = StoreUser.create(
