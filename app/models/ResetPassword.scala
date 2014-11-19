@@ -7,6 +7,7 @@ import play.api.db._
 import scala.language.postfixOps
 import java.sql.Connection
 import helpers.RandomTokenGenerator
+import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 
 case class ResetPasswordId(id: Long) extends AnyVal
 
@@ -18,6 +19,8 @@ case class ResetPassword(
 )
 
 object ResetPassword {
+  val tokenGenerator: TokenGenerator = RandomTokenGenerator()
+
   val simple = {
     SqlParser.get[Option[Long]]("reset_password.reset_password_id") ~
     SqlParser.get[Long]("reset_password.store_user_id") ~
@@ -96,4 +99,29 @@ object ResetPassword {
     'token -> token,
     'resetTime -> new java.sql.Timestamp(timeout)
   ).as(SqlParser.scalar[Long].single) != 0
+
+  def changePassword(
+    storeUserId: Long, token: Long, timeout: Long, password: String
+  )(
+    implicit conn: Connection
+  ): Boolean = if (
+    SQL(
+      """
+      delete from reset_password
+      where store_user_id = {storeUserId}
+      and token = {token}
+      and reset_time > {resetTime}
+      """
+    ).on(
+      'storeUserId -> storeUserId,
+      'token -> token,
+      'resetTime -> new java.sql.Timestamp(timeout)
+    ).executeUpdate() != 0
+  ) {
+    val salt = tokenGenerator.next
+    StoreUser.changePassword(storeUserId, PasswordHash.generate(password, salt), salt) != 0
+  }
+  else {
+    false
+  }
 }

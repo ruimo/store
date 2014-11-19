@@ -458,6 +458,29 @@ class UserSpec extends Specification {
         }
       }
     }
+
+    "Can change password" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          val user2 = StoreUser.create(
+            "userName2", "firstName2", Some("middleName2"), "lastName2", "email2",
+            111L, 222L, UserRole.ADMIN, Some("companyName2")
+          )
+          
+          StoreUser.changePassword(user1.id.get, 123L, 234L)
+
+          doWith(StoreUser(user1.id.get)) { u =>
+            u.userName === "userName"
+            u.passwordHash === 123L
+            u.salt === 234L
+          }
+        }}
+      }
+    }
   }
 }
 

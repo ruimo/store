@@ -181,6 +181,7 @@ GET     /resetPasswordStart              controllers.UserEntry.resetPasswordStar
 POST    /resetPassword                   controllers.UserEntry.resetPassword()
 GET     /resetPasswordConfirm            controllers.UserEntry.resetPasswordConfirm(u: Long, t: Long)
 POST    /resetWithNewPassword            controllers.UserEntry.resetWithNewPassword()
+GET     /resetPasswordCompleted          controllers.UserEntry.resetPasswordCompleted()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

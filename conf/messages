@@ -371,3 +371,4 @@ company.name=Functional Store
 enterNewPassword=Enter new password
 toFullUrl=http://store.ruimo.com{0}
 resetPassword.mail.subject=Password reset request
+passwordIsUpdated=Password is updated

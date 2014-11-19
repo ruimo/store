@@ -313,6 +313,19 @@ object StoreUser {
       (sql, t) => sql.addBatchParams(t._1, t._2, t._3)
     }.execute().length
   }
+
+  def changePassword(userId: Long, passwordHash: Long, salt: Long)(implicit conn: Connection): Int = SQL(
+    """
+    update store_user set
+      password_hash = {passwordHash},
+      salt = {salt}
+    where store_user_id = {userId}
+    """
+  ).on(
+    'passwordHash -> passwordHash,
+    'salt -> salt,
+    'userId -> userId
+  ).executeUpdate()
 }
 
 object SiteUser {

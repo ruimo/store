@@ -73,7 +73,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       "token" -> longNumber,
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
-        "confirm" -> text
+        "confirm" -> text.verifying(passwordConstraint: _*)
       ).verifying(
         Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
       )
@@ -451,8 +451,30 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
         BadRequest(views.html.resetWithNewPassword(formWithErrors))
       },
       newInfo => {
-        Ok("")
+        DB.withConnection { implicit conn =>
+          if (
+            ResetPassword.changePassword(
+              newInfo.userId,
+              newInfo.token, 
+              System.currentTimeMillis - ResetPasswordTimeout,
+              newInfo.passwords._1
+            )
+          ) {
+            Redirect(routes.UserEntry.resetPasswordCompleted)
+          }
+          else {
+            logger.error(
+              "Cannot change password: userId = " + newInfo.userId + ", token = " + newInfo.token
+            )
+            Redirect(routes.Application.index)
+              .flashing("message" -> Messages("general.error"))
+          }
+        }
       }
     )
+  }
+
+  def resetPasswordCompleted = Action { implicit request =>
+    Ok(views.html.resetPasswordCompleted())
   }
 }

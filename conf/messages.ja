@@ -401,3 +401,4 @@ resetPasswordMailSent=パスワードリセットのためのメールが送信�
 company.name=Functional Store
 enterNewPassword=新しいパスワードを入力してください。
 resetPassword.mail.subject=パスワードリセット要求
+passwordIsUpdated=パスワードが更新されました
