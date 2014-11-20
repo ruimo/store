@@ -124,4 +124,15 @@ object ResetPassword {
   else {
     false
   }
+
+  def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[ResetPassword] = SQL(
+    """
+    select * from reset_password
+    where store_user_id = {id}
+    """
+  ).on(
+    'id -> storeUserId
+  ).as(
+    simple.singleOpt
+  )
 }
