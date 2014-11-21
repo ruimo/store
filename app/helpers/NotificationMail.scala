@@ -1,6 +1,7 @@
 package helpers
 
 import models._
+import play.api.i18n.{Lang, Messages}
 import play.api.libs.concurrent.Akka
 import com.typesafe.plugin.MailerPlugin
 import play.api.libs.concurrent.Execution.Implicits._
@@ -291,6 +292,8 @@ object NotificationMail extends HasLogger {
 
   def sendResetPasswordConfirmation(
     user: StoreUser, rec: ResetPassword
+  )(
+    implicit lang: Lang
   ) {
     logger.info("Sending reset password confirmation to " + user.email)
     val body = views.html.mail.resetPassword(user, rec).toString

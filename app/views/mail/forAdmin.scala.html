@@ -4,6 +4,8 @@
   tran: PersistedTransaction,
   addr: Option[Address],
   metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
+)(
+  implicit lang: Lang
 )
 @import org.joda.time.format.DateTimeFormat
 <ご注文者様>
