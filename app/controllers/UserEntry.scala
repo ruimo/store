@@ -403,7 +403,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
         BadRequest(views.html.resetPassword(formWithErrors)),
       newInfo => {
         DB.withConnection { implicit conn =>
-          StoreUser.findByUserName(newInfo.userName) match {
+          StoreUser.findByUserName(newInfo.compoundUserName) match {
             case Some(user) => {
               ResetPassword.removeByStoreUserId(user.id.get)
               val rec = ResetPassword.createNew(user.id.get)
