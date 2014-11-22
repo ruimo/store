@@ -371,3 +371,4 @@ company.name=Functional Store
 enterNewPassword=Enter new password
 resetPassword.mail.subject=Password reset request
 passwordIsUpdated=Password is updated
+forgetPassword=Click if you forget your password

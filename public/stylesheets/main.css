@@ -700,3 +700,7 @@ tr.recommendationByAdminTable.body {
 .couponDetail .date {
   text-align: right;
 }
+
+#forgetPasword {
+  line-height:3em;
+}
