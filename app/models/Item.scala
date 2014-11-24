@@ -174,7 +174,7 @@ object Item {
         )
       )
     """ +
-    createQueryConditionSql(queryString, None)
+    createQueryConditionSql(queryString, None, None)
 
     val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
@@ -215,11 +215,12 @@ object Item {
   }
 
   // Do not pass user input directly into orderBy argument. That will
-  // be SQL injection vulnerability.
+  // cause SQL injection vulnerability.
   def list(
     siteUser: Option[SiteUser] = None,
     locale: LocaleInfo, queryString: QueryString,
     category: Option[Long] = None,
+    siteId: Option[Long] = None,
     page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis,
     orderBy: OrderBy = ItemListDefaultOrderBy
@@ -262,7 +263,7 @@ object Item {
           limit 1
       )
     """ +
-    createQueryConditionSql(queryString, category: Option[Long])
+    createQueryConditionSql(queryString, category: Option[Long], siteId)
 
     val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
@@ -302,7 +303,7 @@ object Item {
     PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
   }
 
-  def createQueryConditionSql(q: QueryString, category: Option[Long]): String = {
+  def createQueryConditionSql(q: QueryString, category: Option[Long], siteId: Option[Long]): String = {
     val buf = new StringBuilder
 
     @tailrec def createQueryConditionSql(idx: Int): String =
