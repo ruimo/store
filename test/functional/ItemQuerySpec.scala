@@ -249,5 +249,67 @@ class ItemQuerySpec extends Specification {
         }
       }}
     }
+
+    "Query with site" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = StoreUser.create(
+          "userName", "firstName", Some("middleName"), "lastName", "email",
+          1L, 2L, UserRole.ADMIN, Some("companyName")
+        )
+        
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "植木"))
+        val tax = Tax.createNew
+        val taxHistory = TaxHistory.createNew(
+          tax, TaxType.INNER_TAX, BigDecimal(5), date("9999-12-31")
+        )
+        val item1 = Item.createNew(cat)
+        val item2 = Item.createNew(cat)
+        SiteItem.createNew(site1, item1)
+        SiteItem.createNew(site2, item2)
+        ItemName.createNew(item1, Map(LocaleInfo.Ja -> "松"))
+        ItemName.createNew(item2, Map(LocaleInfo.Ja -> "梅"))
+        ItemDescription.createNew(item1, site1, "松 常緑")
+        ItemDescription.createNew(item2, site2, "梅 常緑")
+        val itemPrice1 = ItemPrice.createNew(item1, site1)
+        ItemPriceHistory.createNew(
+          itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
+        )
+        val itemPrice2 = ItemPrice.createNew(item2, site2)
+        ItemPriceHistory.createNew(
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(333), BigDecimal("222"), date("9999-12-31")
+        )
+        
+        // Search by site
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.ItemQuery.queryBySite(List(), Some(site1.id.get), 0, 10).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("item.list")
+        doWith(browser.$("tr.queryItemTableBody")) { body =>
+          body.size() === 1
+          body.find("td.queryItemItemName").find("a").getText === "松"
+          body.find("td.queryItemSite").getText === "商店1"
+          body.find("td.queryItemUnitPrice").getText === "999円"
+        }
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.ItemQuery.queryBySite(List(), Some(site2.id.get), 0, 10).url + "&lang=" + lang.code
+        )
+
+        browser.title === Messages("item.list")
+        doWith(browser.$("tr.queryItemTableBody")) { body =>
+          body.size() === 1
+          body.find("td.queryItemItemName").find("a").getText === "梅"
+          body.find("td.queryItemSite").getText === "商店2"
+          body.find("td.queryItemUnitPrice").getText === "333円"
+        }
+      }}
+    }
   }
 }

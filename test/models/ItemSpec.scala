@@ -345,8 +345,44 @@ class ItemSpec extends Specification {
             list1(4)._6(ItemNumericMetadataType.HEIGHT).metadata === 200
           }
 
+          // Specify category
           doWith(
             Item.list(None, LocaleInfo.Ja, QueryString(), Some(createdRecords.category1.id.get), now = time)
+          ) { pages =>
+            pages.pageCount === 1
+            pages.currentPage === 0
+            pages.pageSize === 10
+            val list1 = pages.records
+            list1.size === 3
+
+            list1(0)._2.name === "もみじ"
+            list1(1)._2.name === "杉"
+            list1(2)._2.name === "桜"
+
+            list1(0)._3.description === "もみじ説明"
+            list1(1)._3.description === "杉説明"
+            list1(2)._3.description === "桜説明"
+
+            list1(0)._5.taxId === tax.id.get
+            list1(0)._5.currency === CurrencyInfo.Jpy
+            list1(0)._5.unitPrice === BigDecimal(2000)
+
+            list1(1)._5.taxId === tax.id.get
+            list1(1)._5.currency === CurrencyInfo.Jpy
+            list1(1)._5.unitPrice === BigDecimal(101)
+
+            list1(2)._5.taxId === tax.id.get
+            list1(2)._5.currency === CurrencyInfo.Jpy
+            list1(2)._5.unitPrice === BigDecimal(501)
+
+            list1(0)._6(ItemNumericMetadataType.HEIGHT).metadata === 500
+            list1(1)._6(ItemNumericMetadataType.HEIGHT).metadata === 100
+            list1(2)._6(ItemNumericMetadataType.HEIGHT).metadata === 300
+          }
+
+          // Specify site
+          doWith(
+            Item.list(None, LocaleInfo.Ja, QueryString(), None, Some(site1.id.get), now = time)
           ) { pages =>
             pages.pageCount === 1
             pages.currentPage === 0
@@ -526,17 +562,20 @@ class ItemSpec extends Specification {
     }
 
     "Can create sql for item query." in {
-      Item.createQueryConditionSql(QueryString(List("Hello", "World")), None) ===
+      Item.createQueryConditionSql(QueryString(List("Hello", "World")), None, None) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) "
 
-      Item.createQueryConditionSql(QueryString(List("Hello", "World")), Some(123L)) ===
+      Item.createQueryConditionSql(QueryString(List("Hello", "World")), Some(123L), None) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) " +
         "and item.category_id = 123 "
 
-      Item.createQueryConditionSql(QueryString(List()), Some(123L)) ===
+      Item.createQueryConditionSql(QueryString(List()), Some(123L), None) ===
         "and item.category_id = 123 "
+
+      Item.createQueryConditionSql(QueryString(List()), None, Some(234L)) ===
+        "and site.site_id = 234 "
     }
   }
 }

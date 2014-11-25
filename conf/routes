@@ -125,6 +125,7 @@ POST    /admin/removeFee                 controllers.ShippingFeeMaintenance.remo
 
 GET     /query                           controllers.ItemQuery.query(q: List[String], page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "item_name.item_name", templateNo:Int ?= 0)
 GET     /queryByCategory                 controllers.ItemQuery.queryByCategory(q: List[String], c: Option[Long], page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "item_name.item_name", templateNo:Int ?= 0)
+GET     /queryBySite                     controllers.ItemQuery.queryBySite(q: List[String], sid: Option[Long], page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "item_name.item_name", templateNo:Int ?= 0)
 GET     /queryByCheckBox                 controllers.ItemQuery.queryByCheckBox(page:Int ?= 0, pageSize:Int ?= 10, templateNo:Int ?= 0)
 GET     /queryBySelect                   controllers.ItemQuery.queryBySelect(page:Int ?= 0, pageSize:Int ?= 10, templateNo:Int ?= 0)
 GET     /queryByRadio                    controllers.ItemQuery.queryByRadio(page:Int ?= 0, pageSize:Int ?= 10, templateNo:Int ?= 0)
