@@ -6,7 +6,7 @@ import mvc.Controller
 import play.api.Play.current
 import controllers.I18n.I18nAware
 import models._
-import collection.immutable.{HashMap, LongMap}
+import collection.immutable
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.Some
@@ -33,7 +33,8 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
         storeUserId = Some(login.storeUser.id.get),
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
-      val siteTranByTranId = AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
+      val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
+        AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
 
       Ok(
         views.html.showOrderHistory(
@@ -44,6 +45,12 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           AccountingBill.getAddressTable(siteTranByTranId)
         )
       )
+    }
+  }
+
+  def showSingleOrderHistory(tranId: Long) = isAuthenticated { implicit longin => implicit request =>
+    DB.withConnection { implicit conn =>
+      Ok("")
     }
   }
 

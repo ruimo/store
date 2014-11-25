@@ -76,6 +76,7 @@ object TransactionSummary {
     siteId: Option[Long],
     withLimit: Boolean,
     storeUserId: Option[Long] = None,
+    tranId: Option[Long] = None,
     additionalWhere: String = "",
     orderByOpt: Seq[OrderBy] = List(ListDefaultOrderBy),
     forCount: Boolean = false,
@@ -109,6 +110,7 @@ object TransactionSummary {
     " where 1 = 1" +
     siteId.map {id => " and transaction_site.site_id = " + id}.getOrElse("") +
     storeUserId.map {uid => " and transaction_header.store_user_id = " + uid}.getOrElse("") +
+    tranId.map {id => " and transaction_header.transaction_id = " + id}.getOrElse("") +
     """
       group by
         transaction_header.transaction_id,
@@ -132,10 +134,11 @@ object TransactionSummary {
 
   def list(
     siteId: Option[Long] = None, storeUserId: Option[Long] = None,
+    tranId: Option[Long] = None,
     page: Int = 0, pageSize: Int = 25, orderBy: OrderBy = ListDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
-      baseSql(columns = "count(*)", siteId = siteId, storeUserId = storeUserId,
+      baseSql(columns = "count(*)", siteId = siteId, storeUserId = storeUserId, tranId = tranId,
               additionalWhere = "", withLimit = false, orderByOpt = List(), forCount = true)
     ).as(
       SqlParser.scalar[Long].single
@@ -147,7 +150,10 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       orderBy,
       SQL(
-        baseSql(siteId = siteId, storeUserId = storeUserId, additionalWhere = "", withLimit = true, orderByOpt = List(orderBy))
+        baseSql(
+          siteId = siteId, storeUserId = storeUserId, tranId = tranId,
+          additionalWhere = "", withLimit = true, orderByOpt = List(orderBy)
+        )
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize

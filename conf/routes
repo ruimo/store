@@ -143,6 +143,7 @@ POST    /finalizeTransactionJa           controllers.Shipping.finalizeTransactio
 
 GET     /orderHistory                    controllers.OrderHistory.index()
 GET     /showOrderHistory                controllers.OrderHistory.showOrderHistory(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec ?= "base.transaction_time DESC")
+GET     /showSingleOrderHistory          controllers.OrderHistory.showSingleOrderHistory(tranId: Long)
 GET     /showMonthlyOrderHistory         controllers.OrderHistory.showMonthly()
 GET     /invoice                         controllers.Invoice.show(tranSiteId: Long)
 GET     /accountingBill                  controllers.AccountingBill.index()
