@@ -26,11 +26,11 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
   }
 
   def showOrderHistory(
-    page: Int, pageSize: Int, orderBySpec: String
+    page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
   ) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val pagedRecords = TransactionSummary.list(
-        storeUserId = Some(login.storeUser.id.get),
+        storeUserId = Some(login.storeUser.id.get), tranId = tranId,
         page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
       )
       val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
@@ -42,15 +42,10 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           AccountingBill.getDetailByTranSiteId(pagedRecords.records, lang),
           AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
           siteTranByTranId, 
-          AccountingBill.getAddressTable(siteTranByTranId)
+          AccountingBill.getAddressTable(siteTranByTranId),
+          tranId
         )
       )
-    }
-  }
-
-  def showSingleOrderHistory(tranId: Long) = isAuthenticated { implicit longin => implicit request =>
-    DB.withConnection { implicit conn =>
-      Ok("")
     }
   }
 

@@ -213,6 +213,44 @@ class TransactionSummarySpec extends Specification {
               e.status === TransactionStatus.ORDERED
             }
           }
+
+          doWith(TransactionSummary.list(tranId = Some(tranNo1)).records) { s =>
+            s.size === 2
+            doWith(s.map { ele => (ele.siteName, ele) }.toMap) { map =>
+              doWith(map("商店1")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(119 + 1234)
+                e.address === Some(addr1)
+                e.siteName === "商店1"
+                e.shippingFee === BigDecimal(1234)
+                e.status === TransactionStatus.ORDERED
+              }
+
+              doWith(map("商店2")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(59 + 2345)
+                e.address === Some(addr1)
+                e.siteName === "商店2"
+                e.shippingFee === BigDecimal(2345)
+                e.status === TransactionStatus.ORDERED
+              }
+            }
+          }
+
+          doWith(TransactionSummary.list(tranId = Some(tranNo2)).records) { s =>
+            s.size === 1
+            doWith(s(0)) { e =>
+              e.transactionId === tranNo2
+              e.transactionTime === ptran2.header.transactionTime
+              e.totalAmount === BigDecimal(119 * 2 + 1234)
+              e.address === Some(addr2)
+              e.siteName === "商店1"
+              e.shippingFee === BigDecimal(1234)
+              e.status === TransactionStatus.ORDERED
+            }
+          }
         }
       }
     }

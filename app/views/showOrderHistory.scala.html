@@ -3,7 +3,8 @@
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
   siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
-  addresses: Map[Long, Address]
+  addresses: Map[Long, Address],
+  tranId: Option[Long]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -152,7 +153,7 @@
   <br>
   @pagingPanel(
     tran,
-    routes.OrderHistory.showOrderHistory(_: Int, _: Int, _: String),
+    routes.OrderHistory.showOrderHistory(_: Int, _: Int, _: String, tranId),
     10, 25, 50
   )
 
