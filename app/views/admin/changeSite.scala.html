@@ -1,0 +1,62 @@
+@(
+  myForm: Form[ChangeSite], langTable: Seq[(String, String)]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("changeSiteTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("changeSiteTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @helper.form(action = helper.CSRF(routes.SiteMaintenance.changeSite()), 'id -> "changeSiteForm") {
+    @inputText(myForm("siteId"), 'type -> "hidden")(
+      helper.FieldConstructor(simpleField.f), implicitly
+    )
+
+    @select(
+      myForm("langId"), 
+      langTable, 
+      '_label -> Messages("language"),
+      '_showConstraints -> false
+    )
+
+    @helper.inputText(
+      myForm("siteName"),
+      '_label -> Messages("siteName"), 'size -> 24, 'maxlength -> 32
+    )
+
+    <input type="submit" id="changeSite" value=@Messages("update")>
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.SiteMaintenance.editSite()">
+      @Messages("backTo", Messages("editSiteTitle"))
+    </a>
+    <br>
+    <a class="backLink" href="@routes.SiteMaintenance.index()">
+      @Messages("backTo", Messages("siteMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}
