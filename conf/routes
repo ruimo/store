@@ -59,6 +59,8 @@ GET     /admin/startCreateNewSite        controllers.SiteMaintenance.startCreate
 POST    /admin/createNewSite             controllers.SiteMaintenance.createNewSite
 GET     /admin/editSite                  controllers.SiteMaintenance.editSite
 POST    /admin/deleteSite                controllers.SiteMaintenance.deleteSite(id: Long)
+GET     /admin/changeSiteStart           controllers.SiteMaintenance.changeSiteStart(siteId: Long)
+POST    /admin/changeSite                controllers.SiteMaintenance.changeSite
 
 GET     /admin/taxMaintenance            controllers.TaxMaintenance.index
 GET     /admin/startCreateNewTax         controllers.TaxMaintenance.startCreateNewTax

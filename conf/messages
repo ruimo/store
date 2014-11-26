@@ -372,3 +372,5 @@ enterNewPassword=Enter new password
 resetPassword.mail.subject=Password reset request
 passwordIsUpdated=Password is updated
 forgetPassword=Click if you forget your password
+siteIsChanged=Site is changed
+changeSiteTitle=Edit site

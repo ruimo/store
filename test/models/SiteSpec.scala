@@ -2,6 +2,7 @@ package models
 
 import org.specs2.mutable._
 
+import com.ruimo.scoins.Scoping._
 import anorm._
 import anorm.SqlParser
 import play.api.test._
@@ -180,6 +181,28 @@ class SiteSpec extends Specification {
           Site(site1.id.get) must throwA[RuntimeException]
         }}
       }
+    }
+
+    "Can update record" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => {
+          val site = Site.createNew(LocaleInfo.Ja, "商店1")
+          doWith(Site.listByName()) { list =>
+            list.size === 1
+            list(0).localeId === LocaleInfo.Ja.id
+            list(0).name === "商店1"
+          }
+
+          Site.update(site.id.get, LocaleInfo.En, "Shop1")
+          doWith(Site.listByName()) { list =>
+            list.size === 1
+            list(0).localeId === LocaleInfo.En.id
+            list(0).name === "Shop1"
+          }
+        }}
+      }      
     }
   }
 }
