@@ -32,7 +32,9 @@
 }
 <合計>
 商品計 @{"%,.0f".format(tran.itemGrandTotal + tran.outerTaxGrandTotal)}円/個数 @{tran.itemQuantity.values.fold(0L){_+_}}点
+@if(addr.isDefined) {
 送料計 @{"%,.0f".format(tran.boxGrandTotal)}円/個数 @{tran.boxQuantity.values.fold(0){_+_}}点
+}
 合計 @{"%,.0f".format(tran.itemGrandTotal + tran.outerTaxGrandTotal + tran.boxGrandTotal)}円
 
 @addr.map{ a =><お届け先>

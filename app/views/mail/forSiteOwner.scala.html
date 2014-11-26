@@ -32,7 +32,9 @@
 
 <合計>
 商品計 @{"%,.0f".format(tran.itemTotal(site.id.get) + tran.outerTaxTotal(site.id.get))}円/個数 @{tran.itemQuantity(site.id.get)}点
+@if(addr.isDefined) {
 送料計 @{"%,.0f".format(tran.boxTotal(site.id.get))}円/個数 @{tran.boxQuantity(site.id.get)}点
+}
 合計 @{"%,.0f".format(tran.itemTotal(site.id.get) + tran.outerTaxTotal(site.id.get) + tran.boxTotal(site.id.get))}円
 
 <ご注文者様>
