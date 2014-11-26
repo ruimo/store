@@ -114,4 +114,16 @@ object Site {
     ).executeUpdate()
   }
 
+  def update(id: Long, locale: LocaleInfo, name: String)(implicit conn: Connection): Long = SQL(
+    """
+    update site set
+    locale_id = {localeId},
+    site_name = {siteName}
+    where site_id = {id}
+    """
+  ).on(
+    'localeId -> locale.id,
+    'siteName -> name,
+    'id -> id
+  ).executeUpdate()
 }

@@ -6,7 +6,7 @@
 
 @main(Messages("editSiteTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
-　<h1 class="title">@Messages("editSiteTitle")</h1>
+  <h1 class="title">@Messages("editSiteTitle")</h1>
 
   <table class="siteTable">
     <tr class="siteTableHeader">
@@ -16,7 +16,11 @@
     </tr>
     @sites.map { site =>
       <tr class="siteTableBody">
-        <td class="id">@site.id.get</td>
+        <td class="id">
+          <a href="@routes.SiteMaintenance.changeSiteStart(site.id.get)">
+            @site.id.get
+          </a>
+        </td>
         <td class="siteName">@site.name</td>
         <td class="action">
           @helper.form(action = helper.CSRF(routes.SiteMaintenance.deleteSite(site.id.get))) {
