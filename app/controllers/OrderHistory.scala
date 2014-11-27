@@ -1,8 +1,12 @@
 package controllers
 
+import play.api.i18n.Lang
 import play.api._
 import db.DB
 import mvc.Controller
+import mvc.SimpleResult
+import play.api.templates.Html
+import mvc.RequestHeader
 import play.api.Play.current
 import controllers.I18n.I18nAware
 import models._
@@ -10,6 +14,7 @@ import collection.immutable
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.Some
+import java.sql.Connection
 
 object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAware {
   val orderHistoryForm = Form(
@@ -25,28 +30,71 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     )
   }
 
+  type ShowOrderView = (
+    PagedRecords[TransactionSummaryEntry],
+    immutable.LongMap[Seq[TransactionDetail]],
+    immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
+    immutable.LongMap[PersistedTransaction],
+    immutable.Map[Long, Address],
+    Option[Long]
+  ) => Html
+
+  def showOrderHistoryList(
+    page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
+  ) = isAuthenticated { implicit login => implicit request =>
+    DB.withConnection { implicit conn =>
+      showOrderHistoryInternal(
+        page: Int, pageSize: Int, orderBySpec: String, tranId,
+        views.html.showOrderHistory.apply
+      )
+    }
+  }
+
   def showOrderHistory(
     page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
   ) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
-      val pagedRecords = TransactionSummary.list(
-        storeUserId = Some(login.storeUser.id.get), tranId = tranId,
-        page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
-      )
+      val pagedRecords: PagedRecords[TransactionSummaryEntry] =
+        TransactionSummary.list(
+          storeUserId = Some(login.storeUser.id.get), tranId = tranId,
+          page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
+        )
       val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
         AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
 
-      Ok(
-        views.html.showOrderHistory(
-          pagedRecords,
-          AccountingBill.getDetailByTranSiteId(pagedRecords.records, lang),
-          AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
-          siteTranByTranId, 
-          AccountingBill.getAddressTable(siteTranByTranId),
-          tranId
-        )
+      showOrderHistoryInternal(
+        page: Int, pageSize: Int, orderBySpec: String, tranId,
+        views.html.showOrderHistory.apply
       )
     }
+  }
+
+  def showOrderHistoryInternal(
+    page: Int, pageSize: Int, orderBySpec: String,
+    tranId: Option[Long],
+    view: ShowOrderView
+  )(
+    implicit login: LoginSession,
+    request: RequestHeader,
+    conn: Connection
+  ): SimpleResult[Html] = {
+    val pagedRecords = TransactionSummary.list(
+      storeUserId = Some(login.storeUser.id.get), tranId = tranId,
+      page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
+    )
+    val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
+      AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
+
+    Ok(
+      view(
+        pagedRecords,
+        AccountingBill.getDetailByTranSiteId(pagedRecords.records, lang),
+        AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
+        siteTranByTranId, 
+        AccountingBill.getAddressTable(siteTranByTranId),
+        tranId
+      )
+    )
   }
 
   def showMonthly() = isAuthenticated { implicit login => implicit request =>
