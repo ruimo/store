@@ -18,9 +18,9 @@
 
 @implicitLoginSessionOpt = @{Some(loginSession)}
 
-@main(Messages("order.history.title"), Some(loginSession)) {
+@main(Messages("order.history.list.title"), Some(loginSession)) {
 } {
-  <h1 class="title">@Messages("order.history.title")</h1>
+  <h1 class="title">@Messages("order.history.list.title")</h1>
 
   <table class="orderHistoryTable">
     <tr>
@@ -33,7 +33,9 @@
     @tran.records.map { e =>
       <tr>
         <td class="transactionId">
-          @e.transactionId
+          <a href="@routes.OrderHistory.showOrderHistory(tranId = Some(e.transactionId))">
+            @e.transactionId
+          </a>
         </td>
         <td class="transactionDate">@yyyymmddhhmm(e.transactionTime)</td>
         <td class="siteName">@e.siteName</td>

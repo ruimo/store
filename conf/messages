@@ -267,6 +267,7 @@ csv.tran.detail.date.format=%1$tY/%1$tm/%1$td
 csv.tran.detail.shippingDate.format=%1$tY/%1$tm/%1$td
 costPrice=Cost price
 order.history.title=Order history
+order.history.list.title=Order history List
 query.order.history=Order history
 invoice=Invoice
 invoice.title=Invoice

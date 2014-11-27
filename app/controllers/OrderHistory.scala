@@ -45,7 +45,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     DB.withConnection { implicit conn =>
       showOrderHistoryInternal(
         page: Int, pageSize: Int, orderBySpec: String, tranId,
-        views.html.showOrderHistory.apply
+        views.html.showOrderHistoryList.apply
       )
     }
   }

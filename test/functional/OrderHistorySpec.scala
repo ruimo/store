@@ -34,7 +34,7 @@ class OrderHistorySpec extends Specification {
   "Order history" should {
     "Show login user's order history" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
@@ -197,7 +197,38 @@ class OrderHistorySpec extends Specification {
       }}
     }
 
-    "Can add item that is bought before" in {
+    "Show login user's order history list" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistoryList() + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("order.history.list.title")
+        doWith(browser.find(".orderHistoryTable")) { b =>
+          b.find(".transactionId", 0).getText === tran.tranHeader.id.get.toString
+          b.find(".transactionDate", 0).getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
+          b.find(".siteName", 0).getText === "商店1"
+          b.find(".price", 0).getText === "2,523円"
+
+          b.find(".transactionId", 1).getText === tran.tranHeader.id.get.toString
+          b.find(".transactionDate", 1).getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
+          b.find(".siteName", 1).getText === "商店2"
+          b.find(".price", 1).getText === "1,468円"
+        }
+
+        browser.find(".transactionId", 0).find("a").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("order.history.title")
+        browser.find(".subtotal", 0).getText === "2,523円"
+        browser.find(".subtotal", 1).getText === "1,468円"
+      }}
+    }
+
+    "Can put an item that is bought before into shopping cart" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       val profile = new FirefoxProfile
       profile.setPreference("general.useragent.locale", "ja")
