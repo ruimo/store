@@ -129,7 +129,7 @@ object TransactionSummary {
     """ +
     additionalWhere +
     (if (forCount) ""
-     else " order by " + orderByOpt.map {o => s"$o, "}.mkString("") + "base.transaction_site_id asc ") +
+     else " order by " + orderByOpt.map {o => s"$o, "}.mkString("") + "base.site_id asc ") +
     (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
