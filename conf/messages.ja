@@ -297,6 +297,7 @@ csv.tran.detail.date.format=%1$tY/%1$tm/%1$td
 csv.tran.detail.shippingDate.format=%1$tY/%1$tm/%1$td
 costPrice=原価
 order.history.title=ご注文履歴
+order.history.list.title=ご注文履歴リスト
 query.order.history=ご注文履歴
 invoice=納品書
 invoice.title=納品書
