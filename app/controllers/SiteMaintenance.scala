@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.libs.json.{JsObject, Json}
 import models.ChangeSite
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
@@ -88,5 +89,13 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
       Site.delete(id)
     }
     Redirect(routes.SiteMaintenance.editSite())
+  }}
+
+  def sitesAsJson = isAuthenticated { implicit login => forSuperUser { implicit request =>
+    DB.withConnection { implicit conn =>
+      Ok(Json.obj(
+        "sites" -> Site.tableForDropDown.map { t => t._2 }.toSeq
+      ))
+    }
   }}
 }

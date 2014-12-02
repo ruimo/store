@@ -186,5 +186,7 @@ GET     /resetPasswordConfirm            controllers.UserEntry.resetPasswordConf
 POST    /resetWithNewPassword            controllers.UserEntry.resetWithNewPassword()
 GET     /resetPasswordCompleted          controllers.UserEntry.resetPasswordCompleted()
 
+GET     /sitesAsJson                     controllers.SiteMaintenance.sitesAsJson()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
