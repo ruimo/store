@@ -19,6 +19,7 @@ case class ItemDetail(
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
   price: BigDecimal,
+  listPrice: Option[BigDecimal],
   siteName: String
 ) extends NotNull
 
@@ -60,6 +61,7 @@ object ItemDetail {
       ItemTextMetadata.allById(ItemId(itemId)),
       SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
       priceHistory.unitPrice,
+      priceHistory.listPrice,
       Site(siteId).name
     )
   }

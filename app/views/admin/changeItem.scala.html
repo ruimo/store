@@ -264,6 +264,11 @@
       )
     </td>
     <td>
+      @inputText(field("listPrice"))(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+    </td>
+    <td>
       @inputText(field("costPrice"))(
         helper.FieldConstructor(simpleField.f), implicitly
       )
@@ -564,6 +569,7 @@
         <th>@Messages("tax")</th>
         <th>@Messages("currency")</th>
         <th>@Messages("price")</th>
+        <th>@Messages("listPrice")</th>
         <th>@Messages("costPrice")</th>
         <th>@Messages("validUntil")</th>
       </tr>
@@ -573,7 +579,7 @@
       }
       <tr>
         <td colspan="5">
-          <input style="float: right;" type="submit" value=@Messages("update")>
+          <input id="changeItemPriceButton" style="float: right;" type="submit" value=@Messages("update")>
         </td>
       </tr>
     }
@@ -618,6 +624,13 @@
         <td>
           @inputText(
             c.newItemPriceForm("itemPrice")
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newItemPriceForm("listPrice")
           )(
             helper.FieldConstructor(simpleField.f), implicitly
           )

@@ -81,6 +81,11 @@
     )
 
     @helper.inputText(
+      myForm("listPrice"),
+      '_label -> Messages("listPrice"), 'size -> 15, 'maxLength -> 15, '_showConstraints -> false
+    )
+
+    @helper.inputText(
       myForm("costPrice"),
       '_label -> Messages("costPrice"), 'size -> 15, 'maxlength -> 15, '_showConstraints -> false
     )

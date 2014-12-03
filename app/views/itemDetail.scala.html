@@ -32,6 +32,13 @@
         @itemNumericMetadataRows(detail.itemNumericMetadata)
         @itemTextMetadataRows(detail.itemTextMetadata)
 
+        @detail.listPrice.map { lp =>
+          <tr class="itemDetailListPrice">
+            <td class="label">@Messages("listPrice")</td>
+            <td class="value">@amount(lp)</td>
+          </tr>
+        }
+
         <tr class="itemDetailItemPrice">
           <td class="label">@Messages("price")</td>
           <td class="value">@amount(detail.price)</td>

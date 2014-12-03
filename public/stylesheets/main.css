@@ -334,6 +334,10 @@ tr.userTableBody {
   text-align: right;
 }
 
+.itemDetailListPrice .value {
+  text-align: right;
+}
+
 .itemNumericMetadataHEIGHT {
   text-align: right;
 }
