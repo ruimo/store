@@ -43,7 +43,7 @@ class AccountingBillSpec extends Specification {
         val adminUser = loginWithTestUser(browser)
 
         // Need site for other customizations where company is selected from sites available in the application.
-        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
           browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
         )
