@@ -41,10 +41,10 @@ class PurchasedCouponSpec extends Specification {
         // Need site for other customizations where company is selected from sites available in the application.
         val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
-          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
+          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
         )
         createNormalUser(
-          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "company02"
+          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
         )
 
         val user1 = StoreUser.findByUserName("user01").get
@@ -80,7 +80,7 @@ class PurchasedCouponSpec extends Specification {
 
         browser.find(".date").find("span", 1).getText() === 
           DateTimeFormat.forPattern(Messages("published.date.format")).print(tran01.tranHeader.transactionTime)
-        browser.find(".siteName").getText() === Messages("coupon.user.company.name", "company01")
+        browser.find(".siteName").getText() === Messages("coupon.user.company.name", "商店111")
         browser.find(".name").getText() === justOneSpace(
           Messages("coupon.user.name", "firstName01", "", "lastName01")
         )

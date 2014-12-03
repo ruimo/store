@@ -106,11 +106,14 @@ class AccountingBillSpec extends Specification {
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+
+        // Need site for other customizations where company is selected from sites available in the application.
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
-          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
+          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
         )
         createNormalUser(
-          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "company02"
+          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
         )
         val user01 = StoreUser.findByUserName("user01").get
         val user02 = StoreUser.findByUserName("user02").get
