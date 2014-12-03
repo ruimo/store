@@ -52,11 +52,19 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02"))
-          val ph2 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(100), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(100), date("9999-12-31")
+          )
 
-          val ph3 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(300), BigDecimal(290), date("2013-01-03"))
-          val ph4 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(300), date("9999-12-31"))
+          val ph3 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(300), None, BigDecimal(290), date("2013-01-03")
+          )
+          val ph4 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(300), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 3)
@@ -145,11 +153,19 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02"))
-          val ph2 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(100), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(100), date("9999-12-31")
+          )
 
-          val ph3 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(300), BigDecimal(290), date("2013-01-03"))
-          val ph4 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(300), date("9999-12-31"))
+          val ph3 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(300), None, BigDecimal(290), date("2013-01-03")
+          )
+          val ph4 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(300), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 3)
@@ -220,11 +236,19 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02"))
-          val ph2 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(100), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(100), date("9999-12-31")
+          )
 
-          val ph3 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(300), BigDecimal(290), date("2013-01-03"))
-          val ph4 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(300), date("9999-12-31"))
+          val ph3 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(300), None, BigDecimal(290), date("2013-01-03")
+          )
+          val ph4 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(300), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 3)
@@ -297,11 +321,19 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02"))
-          val ph2 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(100), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(100), date("9999-12-31")
+          )
 
-          val ph3 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(300), BigDecimal(290), date("2013-01-03"))
-          val ph4 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(300), date("9999-12-31"))
+          val ph3 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(300), None, BigDecimal(290), date("2013-01-03")
+          )
+          val ph4 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(300), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 3)
@@ -370,8 +402,12 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          val ph2 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(90), date("9999-12-31"))
-          val ph4 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(290), date("9999-12-31"))
+          val ph2 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(90), date("9999-12-31")
+          )
+          val ph4 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(290), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 10)
@@ -487,8 +523,12 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site1)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(90), date("9999-12-31"))
-          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(290), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(90), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(290), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 3)
@@ -538,8 +578,12 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site1)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          val ph2 = ItemPriceHistory.createNew(price2, tax2, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax2, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 1)
@@ -589,8 +633,12 @@ class ShoppingCartSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site1)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          val ph2 = ItemPriceHistory.createNew(price2, tax2, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax2, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
           val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 1)
@@ -635,8 +683,12 @@ class ShoppingCartSpec extends Specification {
           val price2 = ItemPrice.createNew(item2, site1)
 
           val tax1 = Tax.createNew
-          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
           val user1 = StoreUser.create(
             "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")

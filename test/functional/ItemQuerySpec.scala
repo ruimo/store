@@ -55,7 +55,7 @@ class ItemQuerySpec extends Specification {
         val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHistory = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
         )
         
         if (NeedLogin.needAuthenticationEntirely) {
@@ -160,7 +160,7 @@ class ItemQuerySpec extends Specification {
         val itemDesc = ItemDescription.createNew(item, site, "松 常緑")
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHistory = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
         )
         
         // Search by two conditions name
@@ -214,11 +214,11 @@ class ItemQuerySpec extends Specification {
         ItemDescription.createNew(item2, site, "梅 常緑")
         val itemPrice1 = ItemPrice.createNew(item1, site)
         ItemPriceHistory.createNew(
-          itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
+          itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
         )
         val itemPrice2 = ItemPrice.createNew(item2, site)
         ItemPriceHistory.createNew(
-          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(333), BigDecimal("222"), date("9999-12-31")
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(333), None, BigDecimal("222"), date("9999-12-31")
         )
         
         // Search by category
@@ -276,11 +276,11 @@ class ItemQuerySpec extends Specification {
         ItemDescription.createNew(item2, site2, "梅 常緑")
         val itemPrice1 = ItemPrice.createNew(item1, site1)
         ItemPriceHistory.createNew(
-          itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
+          itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
         )
         val itemPrice2 = ItemPrice.createNew(item2, site2)
         ItemPriceHistory.createNew(
-          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(333), BigDecimal("222"), date("9999-12-31")
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(333), None, BigDecimal("222"), date("9999-12-31")
         )
         
         // Search by site

@@ -129,13 +129,13 @@ class PurchasedCouponSpec extends Specification {
     val itemPrice3 = ItemPrice.createNew(item3, site1)
     
     val itemPriceHis1 = ItemPriceHistory.createNew(
-      itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal("100"), BigDecimal("90"), date("9999-12-31")
+      itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal("100"), None, BigDecimal("90"), date("9999-12-31")
     )
     val itemPriceHis2 = ItemPriceHistory.createNew(
-      itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal("200"), BigDecimal("190"), date("9999-12-31")
+      itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal("200"), None, BigDecimal("190"), date("9999-12-31")
     )
     val itemPriceHis3 = ItemPriceHistory.createNew(
-      itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal("300"), BigDecimal("290"), date("9999-12-31")
+      itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal("300"), None, BigDecimal("290"), date("9999-12-31")
     )
     
     val shoppingCartItem1 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item1.id.get.id, 3)

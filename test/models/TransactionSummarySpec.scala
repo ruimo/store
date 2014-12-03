@@ -48,8 +48,12 @@ class TransactionSummarySpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
           ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
           ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
@@ -290,8 +294,12 @@ class TransactionSummarySpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
           ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
           ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)

@@ -161,7 +161,7 @@ class ItemPicturesSpec extends Specification {
 
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHis = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal("123"), BigDecimal("234"), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal("123"), None, BigDecimal("234"), date("9999-12-31")
         )
 
         val file = testDir.resolve("notfound.jpg")

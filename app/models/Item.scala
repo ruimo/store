@@ -30,6 +30,7 @@ case class ItemPriceHistory(
   taxId: Long, 
   currency: CurrencyInfo,
   unitPrice: BigDecimal,
+  listPrice: Option[BigDecimal],
   costPrice: BigDecimal,
   validUntil: Long
 ) extends NotNull
@@ -391,7 +392,7 @@ object Item {
     val desc = ItemDescription.createNew(item, site, prototype.description)
     val price = ItemPrice.createNew(item, site)
     val tax = Tax(prototype.taxId)
-    val priceHistory = ItemPriceHistory.createNew(price, tax, prototype.currency, prototype.price, prototype.costPrice, Until.Ever)
+    val priceHistory = ItemPriceHistory.createNew(price, tax, prototype.currency, prototype.price, prototype.listPrice, prototype.costPrice, Until.Ever)
     val siteItem = SiteItem.createNew(site, item)
     if (prototype.isCoupon)
       Coupon.updateAsCoupon(item.id.get)
@@ -656,23 +657,24 @@ object ItemPriceHistory {
     SqlParser.get[Long]("item_price_history.tax_id") ~
     SqlParser.get[Long]("item_price_history.currency_id") ~
     SqlParser.get[java.math.BigDecimal]("item_price_history.unit_price") ~
+    SqlParser.get[Option[java.math.BigDecimal]]("item_price_history.list_price") ~
     SqlParser.get[java.math.BigDecimal]("item_price_history.cost_price") ~
     SqlParser.get[java.util.Date]("item_price_history.valid_until") map {
-      case id~itemPriceId~taxId~currencyId~unitPrice~costPrice~validUntil
-        => ItemPriceHistory(id, itemPriceId, taxId, CurrencyInfo(currencyId), unitPrice, costPrice, validUntil.getTime)
+      case id~itemPriceId~taxId~currencyId~unitPrice~listPrice~costPrice~validUntil
+        => ItemPriceHistory(id, itemPriceId, taxId, CurrencyInfo(currencyId), unitPrice, listPrice.map(BigDecimal.apply), costPrice, validUntil.getTime)
     }
   }
 
   def createNew(
-    itemPrice: ItemPrice, tax: Tax, currency: CurrencyInfo, unitPrice: BigDecimal, costPrice: BigDecimal, validUntil: Long
+    itemPrice: ItemPrice, tax: Tax, currency: CurrencyInfo, unitPrice: BigDecimal, listPrice: Option[BigDecimal] = None, costPrice: BigDecimal, validUntil: Long
   )(implicit conn: Connection) : ItemPriceHistory = {
     SQL(
       """
       insert into item_price_history(
-        item_price_history_id, item_price_id, tax_id, currency_id, unit_price, cost_price, valid_until
+        item_price_history_id, item_price_id, tax_id, currency_id, unit_price, list_price, cost_price, valid_until
       ) values (
         (select nextval('item_price_history_seq')),
-        {itemPriceId}, {taxId}, {currencyId}, {unitPrice}, {costPrice}, {validUntil}
+        {itemPriceId}, {taxId}, {currencyId}, {unitPrice}, {listPrice}, {costPrice}, {validUntil}
       )
       """
     ).on(
@@ -680,17 +682,18 @@ object ItemPriceHistory {
       'taxId -> tax.id.get,
       'currencyId -> currency.id,
       'unitPrice -> unitPrice.bigDecimal,
+      'listPrice -> listPrice.map(_.bigDecimal),
       'costPrice -> costPrice.bigDecimal,
       'validUntil -> new java.sql.Timestamp(validUntil)
     ).executeUpdate()
 
     val id = SQL("select currval('item_price_history_seq')").as(SqlParser.scalar[Long].single)
 
-    ItemPriceHistory(Some(id), itemPrice.id.get, tax.id.get, currency, unitPrice, costPrice, validUntil)
+    ItemPriceHistory(Some(id), itemPrice.id.get, tax.id.get, currency, unitPrice, listPrice, costPrice, validUntil)
   }
 
   def update(
-    id: Long, taxId: Long, currencyId: Long, unitPrice: BigDecimal, costPrice: BigDecimal, validUntil: DateTime
+    id: Long, taxId: Long, currencyId: Long, unitPrice: BigDecimal, listPrice: Option[BigDecimal], costPrice: BigDecimal, validUntil: DateTime
   )(implicit conn: Connection) {
     SQL(
       """
@@ -698,6 +701,7 @@ object ItemPriceHistory {
       set tax_id = {taxId},
       currency_id = {currencyId},
       unit_price = {unitPrice},
+      list_price = {listPrice},
       cost_price = {costPrice},
       valid_until = {validUntil}
       where item_price_history_id = {id}
@@ -706,6 +710,7 @@ object ItemPriceHistory {
       'taxId -> taxId,
       'currencyId -> currencyId,
       'unitPrice -> unitPrice.bigDecimal,
+      'listPrice -> listPrice.map(_.bigDecimal),
       'costPrice -> costPrice.bigDecimal,
       'validUntil -> new java.sql.Timestamp(validUntil.getMillis),
       'id -> id
@@ -714,7 +719,7 @@ object ItemPriceHistory {
 
   def add(
     itemId: ItemId, siteId: Long, taxId: Long, currencyId: Long, 
-    unitPrice: BigDecimal, costPrice: BigDecimal, validUntil: DateTime
+    unitPrice: BigDecimal, listPrice: Option[BigDecimal], costPrice: BigDecimal, validUntil: DateTime
   )(implicit conn: Connection) {
     val priceId = SQL(
       """
@@ -730,10 +735,10 @@ object ItemPriceHistory {
     SQL(
       """
       insert into item_price_history
-      (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, cost_price, valid_until)
+      (item_price_history_id, item_price_id, tax_id, currency_id, unit_price, list_price, cost_price, valid_until)
       values (
         (select nextval('item_price_history_seq')),
-        {itemPriceId}, {taxId}, {currencyId}, {unitPrice}, {costPrice}, {validUntil}
+        {itemPriceId}, {taxId}, {currencyId}, {unitPrice}, {listPrice}, {costPrice}, {validUntil}
       )
       """
     ).on(
@@ -741,6 +746,7 @@ object ItemPriceHistory {
       'taxId -> taxId,
       'currencyId -> currencyId,
       'unitPrice -> unitPrice.bigDecimal,
+      'listPrice -> listPrice.map(_.bigDecimal),
       'costPrice -> costPrice.bigDecimal,
       'validUntil -> new java.sql.Timestamp(validUntil.getMillis)
     ).executeUpdate()

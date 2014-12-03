@@ -85,9 +85,9 @@ class ConfirmShippingSpec extends Specification {
         val price2 = ItemPrice.createNew(item2, site2)
         val price3 = ItemPrice.createNew(item3, site2)
 
-        val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(90), date("9999-12-31"))
-        val ph2 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(200), date("9999-12-31"))
-        val ph3 = ItemPriceHistory.createNew(price3, tax, CurrencyInfo.Jpy, BigDecimal(401), BigDecimal(390), date("9999-12-31"))
+        val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(90), date("9999-12-31"))
+        val ph2 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(200), date("9999-12-31"))
+        val ph3 = ItemPriceHistory.createNew(price3, tax, CurrencyInfo.Jpy, BigDecimal(401), None, BigDecimal(390), date("9999-12-31"))
 
         val cart1 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item1.id.get.id, 15)
         val cart2 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item2.id.get.id, 28)

@@ -89,10 +89,10 @@ class ItemSpec extends Specification {
           implicit def date2milli(d: java.sql.Date) = d.getTime
 
           ItemPriceHistory.createNew(
-            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02")
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
           )
           ItemPriceHistory.createNew(
-            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), BigDecimal(190), date("9999-12-31")
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), None, BigDecimal(190), date("9999-12-31")
           )
 
           ItemPriceHistory.at(price1.id.get, date("2013-01-01")).unitPrice === BigDecimal(100)
@@ -197,38 +197,38 @@ class ItemSpec extends Specification {
         val price5 = ItemPrice.createNew(item5, site1)
 
         ItemPriceHistory.createNew(
-          price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02")
+          price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
         )
         ItemPriceHistory.createNew(
-          price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(89), date("9999-12-31")
-        )
-
-        ItemPriceHistory.createNew(
-          price2, tax, CurrencyInfo.Jpy, BigDecimal(300), BigDecimal(290), date("2013-01-03")
-        )
-        ItemPriceHistory.createNew(
-          price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(291), date("9999-12-31")
+          price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(89), date("9999-12-31")
         )
 
         ItemPriceHistory.createNew(
-          price3, tax, CurrencyInfo.Jpy, BigDecimal(500), BigDecimal(480), date("2013-01-04")
+          price2, tax, CurrencyInfo.Jpy, BigDecimal(300), None, BigDecimal(290), date("2013-01-03")
         )
         ItemPriceHistory.createNew(
-          price3, tax, CurrencyInfo.Jpy, BigDecimal(501), BigDecimal(481), date("9999-12-31")
-        )
-
-        ItemPriceHistory.createNew(
-          price4, tax, CurrencyInfo.Jpy, BigDecimal(1200), BigDecimal(1100), date("2013-01-05")
-        )
-        ItemPriceHistory.createNew(
-          price4, tax, CurrencyInfo.Jpy, BigDecimal(1201), BigDecimal(1101), date("9999-12-31")
+          price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(291), date("9999-12-31")
         )
 
         ItemPriceHistory.createNew(
-          price5, tax, CurrencyInfo.Jpy, BigDecimal(2000), BigDecimal(1900), date("2013-01-06")
+          price3, tax, CurrencyInfo.Jpy, BigDecimal(500), None, BigDecimal(480), date("2013-01-04")
         )
         ItemPriceHistory.createNew(
-          price5, tax, CurrencyInfo.Jpy, BigDecimal(2001), BigDecimal(1901), date("9999-12-31")
+          price3, tax, CurrencyInfo.Jpy, BigDecimal(501), None, BigDecimal(481), date("9999-12-31")
+        )
+
+        ItemPriceHistory.createNew(
+          price4, tax, CurrencyInfo.Jpy, BigDecimal(1200), None, BigDecimal(1100), date("2013-01-05")
+        )
+        ItemPriceHistory.createNew(
+          price4, tax, CurrencyInfo.Jpy, BigDecimal(1201), None, BigDecimal(1101), date("9999-12-31")
+        )
+
+        ItemPriceHistory.createNew(
+          price5, tax, CurrencyInfo.Jpy, BigDecimal(2000), None, BigDecimal(1900), date("2013-01-06")
+        )
+        ItemPriceHistory.createNew(
+          price5, tax, CurrencyInfo.Jpy, BigDecimal(2001), None, BigDecimal(1901), date("9999-12-31")
         )
 
         val height1 = ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 100)

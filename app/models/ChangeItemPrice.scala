@@ -17,15 +17,16 @@ case class ChangeItemPriceTable(
 
 case class ChangeItemPrice(
   siteId: Long, itemPriceId: Long, itemPriceHistoryId: Long, taxId: Long,
-  currencyId: Long, unitPrice: BigDecimal, costPrice: BigDecimal, validUntil: DateTime
+  currencyId: Long, unitPrice: BigDecimal, listPrice: Option[BigDecimal], costPrice: BigDecimal,
+  validUntil: DateTime
 ) {
   def update()(implicit conn: Connection) {
-    ItemPriceHistory.update(itemPriceHistoryId, taxId, currencyId, unitPrice, costPrice, validUntil)
+    ItemPriceHistory.update(itemPriceHistoryId, taxId, currencyId, unitPrice, listPrice, costPrice, validUntil)
   }
 
   def add(itemId: Long)(implicit conn: Connection) {
     ExceptionMapper.mapException {
-      ItemPriceHistory.add(ItemId(itemId), siteId, taxId, currencyId, unitPrice, costPrice, validUntil)
+      ItemPriceHistory.add(ItemId(itemId), siteId, taxId, currencyId, unitPrice, listPrice, costPrice, validUntil)
     }
   }
 }

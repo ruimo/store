@@ -42,7 +42,7 @@ class ShoppingCartSpec extends Specification {
         val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHistory = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal("888"), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
         )
 
         val item2 = Item.createNew(cat)
@@ -51,7 +51,7 @@ class ShoppingCartSpec extends Specification {
         val itemDesc2 = ItemDescription.createNew(item2, site, "松説明")
         val itemPrice2 = ItemPrice.createNew(item2, site)
         val itemPriceHistory2 = ItemPriceHistory.createNew(
-          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(777), BigDecimal("666"), date("9999-12-31")
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(777), None, BigDecimal("666"), date("9999-12-31")
         )
 
         RecommendByAdmin.createNew(site.id.get, item.id.get.id, 10)

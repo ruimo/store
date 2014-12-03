@@ -269,13 +269,13 @@ class AccountingBillSpec extends Specification {
     
     val itemPriceHistories = Vector(
       ItemPriceHistory.createNew(
-        itemPrice1, taxes(0), CurrencyInfo.Jpy, BigDecimal("100"), BigDecimal("90"), date("9999-12-31")
+        itemPrice1, taxes(0), CurrencyInfo.Jpy, BigDecimal("100"), None, BigDecimal("90"), date("9999-12-31")
       ),
       ItemPriceHistory.createNew(
-        itemPrice2, taxes(0), CurrencyInfo.Jpy, BigDecimal("200"), BigDecimal("190"), date("9999-12-31")
+        itemPrice2, taxes(0), CurrencyInfo.Jpy, BigDecimal("200"), None, BigDecimal("190"), date("9999-12-31")
       ),
       ItemPriceHistory.createNew(
-        itemPrice3, taxes(0), CurrencyInfo.Jpy, BigDecimal("300"), BigDecimal("290"), date("9999-12-31")
+        itemPrice3, taxes(0), CurrencyInfo.Jpy, BigDecimal("300"), None, BigDecimal("290"), date("9999-12-31")
       )
     )
 

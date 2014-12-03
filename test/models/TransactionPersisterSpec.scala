@@ -34,7 +34,7 @@ class TransactionPersisterSpec extends Specification {
           val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
           val itemPrice = ItemPrice.createNew(item, site)
           val itemPriceHistory = ItemPriceHistory.createNew(
-            itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal(900), date("9999-12-31")
+            itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal(900), date("9999-12-31")
           )
           val shoppingCartItem = ShoppingCartItem.addItem(
             user.id.get, site.id.get, item.id.get.id, 2
@@ -128,7 +128,7 @@ class TransactionPersisterSpec extends Specification {
           val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
           val itemPrice = ItemPrice.createNew(item, site)
           val itemPriceHistory = ItemPriceHistory.createNew(
-            itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), BigDecimal(900), date("9999-12-31")
+            itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal(900), date("9999-12-31")
           )
           val shoppingCartItem = ShoppingCartItem.addItem(
             user.id.get, site.id.get, item.id.get.id, 2

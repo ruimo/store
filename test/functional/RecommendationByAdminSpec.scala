@@ -45,13 +45,13 @@ class RecommendationByAdminSpec extends Specification {
         val itemPrice3 = ItemPrice.createNew(items(2), sites(0))
         val itemPriceHistories = Vector(
           ItemPriceHistory.createNew(
-            itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal("100"), BigDecimal("90"), date("9999-12-31")
+            itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal("100"), None, BigDecimal("90"), date("9999-12-31")
           ),
           ItemPriceHistory.createNew(
-            itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal("200"), BigDecimal("190"), date("9999-12-31")
+            itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal("200"), None, BigDecimal("190"), date("9999-12-31")
           ),
           ItemPriceHistory.createNew(
-            itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal("300"), BigDecimal("290"), date("9999-12-31")
+            itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal("300"), None, BigDecimal("290"), date("9999-12-31")
           )
         )
 

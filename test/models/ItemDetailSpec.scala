@@ -33,10 +33,10 @@ class ItemDetailSpec extends Specification {
           val tax = Tax.createNew
 
           ItemPriceHistory.createNew(
-            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02")
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
           )
           ItemPriceHistory.createNew(
-            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), BigDecimal(190), date("9999-12-31")
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), None, BigDecimal(190), date("9999-12-31")
           )
 
           val detail = ItemDetail.show(site1.id.get, item1.id.get.id, LocaleInfo.Ja, date("2013-01-01"))

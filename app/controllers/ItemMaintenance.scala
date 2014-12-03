@@ -53,6 +53,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "price" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
       "description" -> text.verifying(maxLength(2048)),
       "isCoupon" ->boolean
@@ -903,6 +904,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           "taxId" -> longNumber,
           "currencyId" -> longNumber,
           "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+          "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
           "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
           "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
         ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
@@ -918,6 +920,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
       "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
     ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
@@ -928,7 +931,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       val histories = ItemPriceHistory.listByItemId(ItemId(itemId)).map {
         e => ChangeItemPrice(
           e._1.siteId, e._2.itemPriceId, e._2.id.get, e._2.taxId, 
-          e._2.currency.id, e._2.unitPrice, e._2.costPrice, new DateTime(e._2.validUntil)
+          e._2.currency.id, e._2.unitPrice, e._2.listPrice, e._2.costPrice, new DateTime(e._2.validUntil)
         )
       }.toSeq
 
