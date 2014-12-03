@@ -37,6 +37,9 @@ class PurchasedCouponSpec extends Specification {
       running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
+
+        // Need site for other customizations where company is selected from sites available in the application.
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
         createNormalUser(
           browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
         )
