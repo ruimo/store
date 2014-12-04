@@ -114,12 +114,30 @@ class ItemSpec extends Specification {
           val item2 = Item.createNew(cat1)
 
           ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 100)
-
           ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 1000)
-
           ItemNumericMetadata(item1, ItemNumericMetadataType.HEIGHT).metadata === 100
-
           ItemNumericMetadata(item2, ItemNumericMetadataType.HEIGHT).metadata === 1000
+        }}
+      }
+    }
+
+    "Can create site item text metadata" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+
+        DB.withConnection { implicit conn => {
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          val item1 = Item.createNew(cat1)
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+
+          SiteItemTextMetadata.createNew(site1.id.get, item1.id.get, SiteItemTextMetadataType.PRICE_MEMO, "MEMO01")
+          SiteItemTextMetadata.createNew(site2.id.get, item1.id.get, SiteItemTextMetadataType.PRICE_MEMO, "MEMO02")
+
+          SiteItemTextMetadata(site1.id.get, item1.id.get, SiteItemTextMetadataType.PRICE_MEMO).metadata === "MEMO01"
+          SiteItemTextMetadata(site2.id.get, item1.id.get, SiteItemTextMetadataType.PRICE_MEMO).metadata === "MEMO02"
         }}
       }
     }

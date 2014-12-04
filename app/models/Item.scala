@@ -49,6 +49,10 @@ case class SiteItemNumericMetadata(
   id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
 ) extends NotNull
 
+case class SiteItemTextMetadata(
+  id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemTextMetadataType, metadata: String
+) extends NotNull
+
 object Item {
   val ItemListDefaultOrderBy = OrderBy("item_name.item_name", Asc)
   val ItemListQueryColumnsToAdd = Play.current.configuration.getString("item.list.query.columns.add").get
@@ -1144,6 +1148,137 @@ object SiteItemNumericMetadata {
   ).as(
     SiteItemNumericMetadata.simple *
   ).foldLeft(new HashMap[(Long, SiteItemNumericMetadataType), SiteItemNumericMetadata]) {
+    (map, e) => map.updated((e.siteId, e.metadataType), e)
+  }
+}
+
+object SiteItemTextMetadata {
+  val simple = {
+    SqlParser.get[Option[Long]]("site_item_text_metadata.site_item_text_metadata_id") ~
+    SqlParser.get[Long]("site_item_text_metadata.item_id") ~
+    SqlParser.get[Long]("site_item_text_metadata.site_id") ~
+    SqlParser.get[Int]("site_item_text_metadata.metadata_type") ~
+    SqlParser.get[String]("site_item_text_metadata.metadata") map {
+      case id~itemId~siteId~metadataType~metadata =>
+        SiteItemTextMetadata(id, ItemId(itemId), siteId, SiteItemTextMetadataType.byIndex(metadataType), metadata)
+    }
+  }
+
+  def createNew(
+    siteId: Long, itemId: ItemId, metadataType: SiteItemTextMetadataType, metadata: String
+  )(implicit conn: Connection): SiteItemTextMetadata = {
+    SQL(
+      """
+      insert into site_item_text_metadata(
+        site_item_text_metadata_id, site_id, item_id, metadata_type, metadata
+      ) values (
+        (select nextval('site_item_text_metadata_seq')),
+        {siteId}, {itemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'siteId -> siteId,
+      'itemId -> itemId.id,
+      'metadataType -> metadataType.ordinal,
+      'metadata -> metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('site_item_text_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    SiteItemTextMetadata(Some(id), itemId, siteId, metadataType, metadata)
+  }
+
+  def add(
+    itemId: ItemId, siteId: Long, metadataType: SiteItemTextMetadataType, metadata: String
+  )(implicit conn: Connection): SiteItemTextMetadata = {
+    SQL(
+      """
+      insert into site_item_text_metadata(
+        site_item_text_metadata_id, item_id, site_id, metadata_type, metadata
+      ) values (
+        (select nextval('site_item_text_metadata_seq')),
+        {itemId}, {siteId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'itemId -> itemId.id,
+      'siteId -> siteId,
+      'metadataType -> metadataType.ordinal,
+      'metadata -> metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('site_item_text_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    SiteItemTextMetadata(Some(id), itemId, siteId, SiteItemTextMetadataType.byIndex(metadataType.ordinal), metadata)
+  }
+
+  def apply(
+    siteId: Long, itemId: ItemId, metadataType: SiteItemTextMetadataType
+  )(implicit conn: Connection): SiteItemTextMetadata = SQL(
+    """
+    select * from site_item_text_metadata
+    where site_id = {siteId} and item_id = {itemId}
+    and metadata_type = {metadataType}
+    """
+  ).on(
+    'siteId -> siteId,
+    'itemId -> itemId.id,
+    'metadataType -> metadataType.ordinal
+  ).as(
+    SiteItemTextMetadata.simple.single
+  )
+
+  def all(
+    siteId: Long, itemId: ItemId
+  )(implicit conn: Connection): Map[SiteItemTextMetadataType, SiteItemTextMetadata] = SQL(
+    "select * from site_item_text_metadata where site_id = {siteId} and item_id = {itemId}"
+  ).on(
+    'siteId -> siteId,
+    'itemId -> itemId.id
+  ).as(
+    SiteItemTextMetadata.simple *
+  ).foldLeft(new HashMap[SiteItemTextMetadataType, SiteItemTextMetadata]) {
+    (map, e) => map.updated(e.metadataType, e)
+  }
+
+  def update(
+    itemId: ItemId, siteId: Long, metadataType: SiteItemTextMetadataType, metadata: String
+  )(implicit conn: Connection) {
+    SQL(
+      """
+      update site_item_text_metadata set metadata = {metadata}
+      where item_id = {itemId} and site_id = {siteId} and metadata_type = {metadataType}
+      """
+    ).on(
+      'metadata -> metadata,
+      'itemId -> itemId.id,
+      'siteId -> siteId,
+      'metadataType -> metadataType.ordinal
+    ).executeUpdate()
+  }
+
+  def remove(itemId: ItemId, siteId: Long, metadataType: Int)(implicit conn: Connection) {
+    SQL(
+      """
+      delete from site_item_text_metadata
+      where item_id = {itemId} and site_id = {siteId} and metadata_type = {metadataType}
+      """
+    ).on(
+      'itemId -> itemId.id,
+      'siteId -> siteId,
+      'metadataType -> metadataType
+    ).executeUpdate()
+  }
+
+  def allById(
+    itemId: ItemId
+  )(implicit conn: Connection): Map[(Long, SiteItemTextMetadataType), SiteItemTextMetadata] = SQL(
+    "select * from site_item_text_metadata where item_id = {itemId} "
+  ).on(
+    'itemId -> itemId.id
+  ).as(
+    SiteItemTextMetadata.simple *
+  ).foldLeft(new HashMap[(Long, SiteItemTextMetadataType), SiteItemTextMetadata]) {
     (map, e) => map.updated((e.siteId, e.metadataType), e)
   }
 }
