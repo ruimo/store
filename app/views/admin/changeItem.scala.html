@@ -185,6 +185,38 @@
   }
 }
 
+@siteItemTextMetadataForm(field: Field) = {
+  @if(field("siteId").value.isDefined && field("metadataType").value.isDefined) {
+    <tr>
+      <td>
+        <button type="button"
+                onclick="location.href='@routes.ItemMaintenance.removeSiteItemTextMetadata(c.id, field("siteId").value.get.toLong, field("metadataType").value.get.toInt)';">
+          @Messages("remove")
+        </button>
+        @c.siteMap(field("siteId").value.get.toLong).name
+        @inputText(field("siteId"), 'type -> "hidden")(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+      </td>
+      <td>
+        @Messages("siteItemTextMetadata" + SiteItemTextMetadataType.byIndex(field("metadataType").value.get.toInt))
+        <div style="display: none;">
+        @inputText(field("metadataType"), 'type -> "hidden")(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+        </div>
+      </td>
+      <td>
+        @inputText(
+          field("metadata")
+        )(
+          helper.FieldConstructor(simpleField.f), implicitly
+        )
+      </td>
+    </tr>
+  }
+}
+
 @descriptionForm(field: Field) = {
   <tr>
     <td>
@@ -536,8 +568,66 @@
         </td>
         <td>
           @select(
-            c.newItemMetadataForm("metadataType"), 
+            c.newSiteItemMetadataForm("metadataType"), 
             ItemMaintenance.siteItemMetadataTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newItemNameForm("metadata"), '_label -> ""
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="3">
+          <input style="float: right;" type="submit" value=@Messages("add")>
+        </td>
+      </tr>
+    }
+  </table>
+
+  <h2 class="siteItemTextMetadata">@Messages("siteItemTextMetadata")</h2>
+
+  <table style="margin-left: 20px; width: 70%;">
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeSiteItemTextMetadata(c.id))) {
+      <tr class="itemHeader">
+        <th>@Messages("site")</th>
+        <th>@Messages("itemMetadataType")</th>
+        <th>@Messages("itemMetadata")</th>
+      </tr>
+
+      @repeat(c.siteItemTextMetadataTableForm("siteItemTextMetadatas")) { metadata => @siteItemTextMetadataForm(metadata) }
+
+      @if(! c.siteItemTextMetadataTableForm("siteItemTextMetadatas").indexes.isEmpty) {
+        <tr>
+          <td colspan="3">
+            <input style="float: right;" type="submit" value=@Messages("update")>
+          </td>
+        </tr>
+      }
+    }
+
+    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItemTextMetadata(c.id))) {
+      <tr>
+        <td>
+          @select(
+            c.newSiteItemTextMetadataForm("siteId"), 
+            c.siteNameTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @select(
+            c.newSiteItemMetadataForm("metadataType"), 
+            ItemMaintenance.siteItemTextMetadataTable,
             '_showConstraints -> false
           )(
             helper.FieldConstructor(simpleField.f), implicitly

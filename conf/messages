@@ -157,6 +157,7 @@ createNewSiteOwnerMenu=Create new store owner
 createNewNormalUserMenu=Create normal user
 createNormalUserTitle=Create normal user
 siteItemMetadata=Store unique data
+siteItemTextMetadata=Store unique data(text)
 itemPicture=Item pictures
 file.not.found=File not found
 jpeg.needed=File should be in jpeg format

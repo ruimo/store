@@ -187,6 +187,7 @@ createNewSiteOwnerMenu=店舗管理者の追加
 createNormalUserTitle=一般ユーザの追加
 createNewNormalUserMenu=一般ユーザの追加
 siteItemMetadata=店舗固有データ
+siteItemTextMetadata=店舗固有データ(文字列)
 itemPicture=商品画像
 file.not.found=ファイルが見つかりません
 jpeg.needed=ファイルはJPEG形式である必要があります
