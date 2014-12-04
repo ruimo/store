@@ -5,10 +5,10 @@ import play.api.Play.current
 import java.sql.Connection
 
 case class ChangeSiteItemMetadataTable(
-  siteItemMetadatas: Seq[ChangeSiteItemMetadata]
+  siteItemMetadata: Seq[ChangeSiteItemMetadata]
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    siteItemMetadatas.foreach {
+    siteItemMetadata.foreach {
       _.update(itemId)
     }
   }
