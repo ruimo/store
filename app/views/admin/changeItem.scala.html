@@ -11,67 +11,67 @@
 @import helper._
 
 @fileUpload(id: Long, idx: Int) = {
-  <tr>
-    <td><img src="@routes.ItemPictures.getPicture(id, idx)"></td>
-    @form(action = helper.CSRF(routes.ItemPictures.upload(id, idx)), 'enctype -> "multipart/form-data") {
-    <td>
-      <input id="itemPictureUpload@idx" type="file" name="picture">
-    </td>
-    <td>
-      <input id="itemPictureUploadSubmit@idx" type="submit">
-    </td>
-    }
-    @form(action = helper.CSRF(routes.ItemPictures.remove(id, idx))) {
-    <td>
-      <input id="itemPictureRemove@idx" type="submit" value="@Messages("remove")">
-    </td>
-    }
-  </tr>
+  <table class="fileUploadTable">
+    <tr>
+      <td class="picture"><img src="@routes.ItemPictures.getPicture(id, idx)"></td>
+      <td class="upload">
+        @form(action = helper.CSRF(routes.ItemPictures.upload(id, idx)), 'enctype -> "multipart/form-data") {
+          <input id="itemPictureUpload@idx" type="file" name="picture">
+          <input id="itemPictureUploadSubmit@idx" type="submit">
+        }
+      </td>
+      <td class="remove">
+        @form(action = helper.CSRF(routes.ItemPictures.remove(id, idx))) {
+          <input id="itemPictureRemove@idx" type="submit" value="@Messages("remove")">
+        }
+      </td>
+    </tr>
+  </table>
 }
 
 @fileDetailUpload(id: Long) = {
-  <tr>
-    <td><img src="@routes.ItemPictures.getDetailPicture(id)"></td>
-    @form(action = helper.CSRF(routes.ItemPictures.uploadDetail(id)), 'enctype -> "multipart/form-data") {
-    <td>
-      <input type="file" name="picture">
-    </td>
-    <td>
-      <input type="submit">
-    </td>
-    }
-    @form(action = helper.CSRF(routes.ItemPictures.removeDetail(id))) {
-    <td>
-      <input type="submit" value="@Messages("remove")">
-    </td>
-    }
-  </tr>
+  <table class="fileDetailUploadTable">
+    <tr>
+      <td class="picture"><img src="@routes.ItemPictures.getDetailPicture(id)"></td>
+      <td class="upload">
+        @form(action = helper.CSRF(routes.ItemPictures.uploadDetail(id)), 'enctype -> "multipart/form-data") {
+          <input type="file" name="picture">
+          <input type="submit">
+        }
+      </td>
+      <td class="remove">
+        @form(action = helper.CSRF(routes.ItemPictures.removeDetail(id))) {
+          <input type="submit" value="@Messages("remove")">
+        }
+      </td>
+    </tr>
+  </table>
 }
 
 @attachmentUpload(id: Long, idx: Int) = {
-  <tr>
-    <td>@c.attachmentNames.get(idx).getOrElse("-")</td>
-    @form(action = helper.CSRF(routes.ItemPictures.uploadItemAttachment(id, idx)), 'enctype -> "multipart/form-data") {
-    <td>
-      <input id="itemAttachmentUpload@idx" type="file" name="attachment">
-    </td>
-    <td>
-      <input id="itemAttachmentUploadSubmit@idx" type="submit">
-    </td>
-    }
-    @c.attachmentNames.get(idx) match {
-      case Some(name) => {
-        @form(action = helper.CSRF(routes.ItemPictures.removeAttachment(id, idx, name))) {
-        <td>
-          <input id="itemAttachmentRemove@idx" type="submit" value="@Messages("remove")">
-        </td>
+  <table class="attachmentUploadTable">
+    <tr>
+      <td class="name">@c.attachmentNames.get(idx).getOrElse("-")</td>
+      <td class="upload">
+        @form(action = helper.CSRF(routes.ItemPictures.uploadItemAttachment(id, idx)), 'enctype -> "multipart/form-data") {
+          <input id="itemAttachmentUpload@idx" type="file" name="attachment">
+          <input id="itemAttachmentUploadSubmit@idx" type="submit">
+        }
+      </td>
+      @c.attachmentNames.get(idx) match {
+        case Some(name) => {
+          <td class="remove">
+            @form(action = helper.CSRF(routes.ItemPictures.removeAttachment(id, idx, name))) {
+              <input id="itemAttachmentRemove@idx" type="submit" value="@Messages("remove")">
+            }
+          </td>
+        }
+        case None => {
+          <td></td>
         }
       }
-      case None => {
-        <td></td>
-      }
-    }
-  </tr>
+    </tr>
+  </table>
 }
 
 @nameForm(field: Field) = {
@@ -190,6 +190,7 @@
     <tr>
       <td>
         <button type="button"
+                class="removeSiteItemTextMetadataButton"
                 onclick="location.href='@routes.ItemMaintenance.removeSiteItemTextMetadata(c.id, field("siteId").value.get.toLong, field("metadataType").value.get.toInt)';">
           @Messages("remove")
         </button>
@@ -332,8 +333,8 @@
 
   <h2 class="itemName">@Messages("itemName")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.changeItemName(c.id))) {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("language")</th>
         <th>@Messages("itemName")</th>
@@ -346,9 +347,15 @@
           <input style="float: right;" type="submit" value=@Messages("update")>
         </td>
       </tr>
-    }
+    </table>
+  }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemName(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.addItemName(c.id))) {
+    <table style="margin-left: 20px; width: 70%;">
+      <tr class="itemHeader">
+        <th>@Messages("language")</th>
+        <th>@Messages("itemName")</th>
+      </tr>
       <tr>
         <td>
           @select(
@@ -373,8 +380,8 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="siteItem">@Messages("siteItem")</h2>
 
@@ -382,7 +389,7 @@
     <tr class="itemHeader">
       <th>@Messages("site")</th>
     </tr>
-  
+
     @c.siteItemTable.map { e =>
       <tr>
         <td>
@@ -394,8 +401,13 @@
         </td>
       </tr>
     }
+  </table>
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItem(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItem(c.id))) {
+    <table class="changeHandlingSitePanel" style="margin-left: 20px; width: 70%;">
+      <tr class="itemHeader">
+        <th>@Messages("site")</th>
+      </tr>
       <tr>
         <td>
           @select(
@@ -413,8 +425,8 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="category">@Messages("category")</h2>
   
@@ -440,25 +452,33 @@
 
   <h2 class="itemMetadata">@Messages("itemMetadata")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemMetadata(c.id))) {
+  @if(! c.itemMetadataTableForm("itemMetadatas").indexes.isEmpty) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemMetadata(c.id)), 'id -> "changeItemMetadataForm") {
+      <table style="margin-left: 20px; width: 70%;">
+        <tr class="itemHeader">
+          <th>@Messages("itemMetadataType")</th>
+          <th>@Messages("itemMetadata")</th>
+        </tr>
+  
+        @repeat(c.itemMetadataTableForm("itemMetadatas")) { metadata => @itemMetadataForm(metadata) }
+  
+        @if(! c.itemMetadataTableForm("itemMetadatas").indexes.isEmpty) {
+          <tr>
+            <td colspan="3">
+              <input style="float: right;" type="submit" value=@Messages("update")>
+            </td>
+          </tr>
+        }
+      </table>
+    }
+  }
+
+  @form(action = helper.CSRF(routes.ItemMaintenance.addItemMetadata(c.id)), 'id -> "addItemMetadataForm") {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("itemMetadataType")</th>
         <th>@Messages("itemMetadata")</th>
       </tr>
-
-      @repeat(c.itemMetadataTableForm("itemMetadatas")) { metadata => @itemMetadataForm(metadata) }
-
-      @if(! c.itemMetadataTableForm("itemMetadatas").indexes.isEmpty) {
-        <tr>
-          <td colspan="2">
-            <input style="float: right;" type="submit" value=@Messages("update")>
-          </td>
-        </tr>
-      }
-    }
-
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemMetadata(c.id))) {
       <tr>
         <td>
           @select(
@@ -483,30 +503,38 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="itemTextMetadata">@Messages("itemTextMetadata")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemTextMetadata(c.id))) {
+  @if(! c.itemTextMetadataTableForm("itemMetadatas").indexes.isEmpty) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemTextMetadata(c.id)), 'id -> "changeItemTextMetadataForm") {
+      <table style="margin-left: 20px; width: 70%;">
+        <tr class="itemHeader">
+          <th>@Messages("itemMetadataType")</th>
+          <th>@Messages("itemMetadata")</th>
+        </tr>
+  
+        @repeat(c.itemTextMetadataTableForm("itemMetadatas")) { metadata => @itemTextMetadataForm(metadata) }
+  
+        @if(! c.itemTextMetadataTableForm("itemMetadatas").indexes.isEmpty) {
+          <tr>
+            <td colspan="2">
+              <input style="float: right;" type="submit" value=@Messages("update")>
+            </td>
+          </tr>
+        }
+      </table>
+    }
+  }
+
+  @form(action = helper.CSRF(routes.ItemMaintenance.addItemTextMetadata(c.id)), 'id -> "addItemTextMetadataForm") {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("itemMetadataType")</th>
         <th>@Messages("itemMetadata")</th>
       </tr>
-
-      @repeat(c.itemTextMetadataTableForm("itemMetadatas")) { metadata => @itemTextMetadataForm(metadata) }
-
-      @if(! c.itemTextMetadataTableForm("itemMetadatas").indexes.isEmpty) {
-        <tr>
-          <td colspan="2">
-            <input style="float: right;" type="submit" value=@Messages("update")>
-          </td>
-        </tr>
-      }
-    }
-
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemTextMetadata(c.id))) {
       <tr>
         <td>
           @select(
@@ -531,31 +559,40 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="siteItemMetadata">@Messages("siteItemMetadata")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeSiteItemMetadata(c.id))) {
+  @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeSiteItemMetadata(c.id)), 'id -> "changeSiteItemMetadataForm") {
+      <table style="margin-left: 20px; width: 70%;">
+        <tr class="itemHeader">
+          <th>@Messages("site")</th>
+          <th>@Messages("itemMetadataType")</th>
+          <th>@Messages("itemMetadata")</th>
+        </tr>
+  
+        @repeat(c.siteItemMetadataTableForm("siteItemMetadatas")) { metadata => @siteItemMetadataForm(metadata) }
+  
+        @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
+          <tr>
+            <td colspan="3">
+              <input style="float: right;" type="submit" value=@Messages("update")>
+            </td>
+          </tr>
+        }
+      </table>
+    }
+  }       
+
+  @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItemMetadata(c.id)), 'id -> "addSiteItemMetadataForm") {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("itemMetadataType")</th>
         <th>@Messages("itemMetadata")</th>
       </tr>
-
-      @repeat(c.siteItemMetadataTableForm("siteItemMetadatas")) { metadata => @siteItemMetadataForm(metadata) }
-
-      @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
-        <tr>
-          <td colspan="3">
-            <input style="float: right;" type="submit" value=@Messages("update")>
-          </td>
-        </tr>
-      }
-    }
-
-    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItemMetadata(c.id))) {
       <tr>
         <td>
           @select(
@@ -589,31 +626,42 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="siteItemTextMetadata">@Messages("siteItemTextMetadata")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeSiteItemTextMetadata(c.id))) {
+  @if(! c.siteItemTextMetadataTableForm("siteItemTextMetadatas").indexes.isEmpty) {
+    @form(action = helper.CSRF(routes.ItemMaintenance.changeSiteItemTextMetadata(c.id)), 'id -> "changeSiteItemTextMetadataForm") {
+      <table style="margin-left: 20px; width: 70%;">
+        <tr class="itemHeader">
+          <th>@Messages("site")</th>
+          <th>@Messages("itemMetadataType")</th>
+          <th>@Messages("itemMetadata")</th>
+        </tr>
+  
+        @repeat(c.siteItemTextMetadataTableForm("siteItemTextMetadatas")) { metadata =>
+          @siteItemTextMetadataForm(metadata)
+        }
+  
+        @if(! c.siteItemTextMetadataTableForm("siteItemTextMetadatas").indexes.isEmpty) {
+          <tr>
+            <td colspan="3">
+              <input style="float: right;" type="submit" value=@Messages("update")>
+            </td>
+          </tr>
+        }
+      </table>
+    }
+  }
+
+  @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItemTextMetadata(c.id)), 'id -> "addSiteItemTextMetadataForm") {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("itemMetadataType")</th>
         <th>@Messages("itemMetadata")</th>
       </tr>
-
-      @repeat(c.siteItemTextMetadataTableForm("siteItemTextMetadatas")) { metadata => @siteItemTextMetadataForm(metadata) }
-
-      @if(! c.siteItemTextMetadataTableForm("siteItemTextMetadatas").indexes.isEmpty) {
-        <tr>
-          <td colspan="3">
-            <input style="float: right;" type="submit" value=@Messages("update")>
-          </td>
-        </tr>
-      }
-    }
-
-    @form(action = helper.CSRF(routes.ItemMaintenance.addSiteItemTextMetadata(c.id))) {
       <tr>
         <td>
           @select(
@@ -647,13 +695,13 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="itemPriceTitle">@Messages("itemPrice")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemPrice(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.changeItemPrice(c.id))) {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("tax")</th>
@@ -668,13 +716,24 @@
         @repeat(c.itemPriceTableForm("itemPrices")) { price => @priceForm(price) }
       }
       <tr>
-        <td colspan="5">
+        <td colspan="7">
           <input id="changeItemPriceButton" style="float: right;" type="submit" value=@Messages("update")>
         </td>
       </tr>
-    }
+    </table>
+  }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemPrice(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.addItemPrice(c.id))) {
+    <table style="margin-left: 20px; width: 70%;">
+      <tr class="itemHeader">
+        <th>@Messages("site")</th>
+        <th>@Messages("tax")</th>
+        <th>@Messages("currency")</th>
+        <th>@Messages("price")</th>
+        <th>@Messages("listPrice")</th>
+        <th>@Messages("costPrice")</th>
+        <th>@Messages("validUntil")</th>
+      </tr>
       <tr>
         <td>
           <div style="display: none;">
@@ -742,17 +801,17 @@
       </tr>
 
       <tr>
-        <td colspan="5">
+        <td colspan="7">
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="itemDescription">@Messages("itemDescription")</h2>
 
-  <table style="margin-left: 20px; width: 70%;">
-    @form(action = helper.CSRF(routes.ItemMaintenance.changeItemDescription(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.changeItemDescription(c.id))) {
+    <table style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("site")</th>
         <th>@Messages("language")</th>
@@ -766,9 +825,16 @@
           <input style="float: right;" type="submit" value=@Messages("update")>
         </td>
       </tr>
-    }
+    </table>
+  }
 
-    @form(action = helper.CSRF(routes.ItemMaintenance.addItemDescription(c.id))) {
+  @form(action = helper.CSRF(routes.ItemMaintenance.addItemDescription(c.id))) {
+    <table style="margin-left: 20px; width: 70%;">
+      <tr class="itemHeader">
+        <th>@Messages("site")</th>
+        <th>@Messages("language")</th>
+        <th>@Messages("itemDescription")</th>
+      </tr>
       <tr>
         <td>
           @select(
@@ -803,26 +869,20 @@
           <input style="float: right;" type="submit" value=@Messages("add")>
         </td>
       </tr>
-    }
-  </table>
+    </table>
+  }
 
   <h2 class="itemPicture">@Messages("itemPicture")</h2>
 
-  <table>
-    @{(0 until 5) map { idx => fileUpload(c.id, idx)}}
-  </table>
+  @{(0 until 5) map { idx => fileUpload(c.id, idx)}}
 
   <h2 class="itemDetailPictureTitle">@Messages("itemDetailPicture")</h2>
 
-  <table>
-    @fileDetailUpload(c.id)
-  </table>
+  @fileDetailUpload(c.id)
 
   <h2 class="itemAttachment">@Messages("itemAttachment")</h2>
 
-  <table>
-    @{(0 until 5) map { idx => attachmentUpload(c.id, idx)}}
-  </table>
+  @{(0 until 5) map { idx => attachmentUpload(c.id, idx)}}
 
   <div class="menuPanel">
     <br>

@@ -176,6 +176,71 @@ class ItemMaintenanceSpec extends Specification {
       }}
     }
 
+    "Create new item with price memo." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#siteId").find("option").getText() === "Store01"
+        browser.find("#categoryId").find("option").getText() === "Cat01"
+        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.fill("#description").`with`("Description01")
+
+        browser.fill("#itemName").`with`("ItemName01")
+        browser.fill("#price").`with`("1234")
+        browser.fill("#costPrice").`with`("2345")
+        browser.find("#createNewItemForm").find("input[type='submit']").click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".message").getText() === Messages("itemIsCreated")
+
+        val itemList = Item.list(None, LocaleInfo.Ja, QueryString()).records
+        itemList.size === 1
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(itemList.head._1.id.get.id).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#itemNames_0__itemName").getAttribute("value") === "ItemName01"
+        browser.find("#categoryId option").getText === "Cat01"
+        browser.find("#itemPrices_0__taxId option").getText === "tax01"
+        browser.find("#itemPrices_0__itemPrice").getAttribute("value") === "1234.00"
+        browser.find("#itemPrices_0__listPrice").getAttribute("value") === ""
+        browser.find("#itemPrices_0__costPrice").getAttribute("value") === "2345.00"
+        browser.find("#itemPrices_0__validUntil").getAttribute("value") === "9999-12-31 23:59:59"
+
+        doWith(browser.find("#addSiteItemTextMetadataForm")) { form =>
+          form.find(
+            "option[value=\"" + SiteItemTextMetadataType.PRICE_MEMO.ordinal + "\"]"
+          ).click()
+
+          browser.fill("#addSiteItemTextMetadataForm #metadata").`with`("Price memo")
+
+          form.find("input[type='submit']").click()
+        }
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find("#siteItemTextMetadatas_0__metadata").getAttribute("value") === "Price memo"
+
+        browser.find(".removeSiteItemTextMetadataButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".removeSiteItemTextMetadataButton").getTexts.size === 0
+      }}
+    }
+
     "Create new coupon item." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
