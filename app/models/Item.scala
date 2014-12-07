@@ -235,7 +235,8 @@ object Item {
     Item, ItemName, ItemDescription, Site, ItemPriceHistory,
     Map[ItemNumericMetadataType, ItemNumericMetadata],
     Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
-    Map[ItemTextMetadataType, ItemTextMetadata]
+    Map[ItemTextMetadataType, ItemTextMetadata],
+    Map[SiteItemTextMetadataType, SiteItemTextMetadata]
   )] = {
     val sqlBody = """
       inner join item_name on item.item_id = item_name.item_id
@@ -289,8 +290,9 @@ object Item {
         val metadata = ItemNumericMetadata.allById(itemId)
         val textMetadata = ItemTextMetadata.allById(itemId)
         val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
+        val siteItemTextMetadata = SiteItemTextMetadata.all(e._5.id.get, itemId)
 
-        (e._1, e._2, e._3, e._5, e._4, metadata, siteMetadata, textMetadata)
+        (e._1, e._2, e._3, e._5, e._4, metadata, siteMetadata, textMetadata, siteItemTextMetadata)
       }}
 
     val countSql = SQL(
@@ -345,7 +347,13 @@ object Item {
     now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): Seq[(Item, ItemName, ItemDescription, ItemPrice, ItemPriceHistory, Map[ItemNumericMetadataType, ItemNumericMetadata])] =
+  ): Seq[
+    (Item, ItemName, 
+     ItemDescription,
+     ItemPrice,
+     ItemPriceHistory,
+     Map[ItemNumericMetadataType, ItemNumericMetadata])
+  ] =
     listBySiteId(site.id.get, locale, queryString, page, pageSize, now)
 
   def listBySiteId(
