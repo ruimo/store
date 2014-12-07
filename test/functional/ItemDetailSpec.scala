@@ -54,6 +54,7 @@ class ItemDetailSpec extends Specification {
           "http://localhost:3333"
           + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
         )
+        1 === 1
       }}
     }
   }
