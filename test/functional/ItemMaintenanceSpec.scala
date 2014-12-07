@@ -28,7 +28,7 @@ import helpers.{ViewHelpers, QueryString}
 import com.ruimo.scoins.Scoping._
 
 class ItemMaintenanceSpec extends Specification {
-  "Item maintenance should" should {
+  "Item maintenance" should {
     "Create new item." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>

@@ -18,6 +18,7 @@ case class ItemDetail(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata],
   price: BigDecimal,
   listPrice: Option[BigDecimal],
   siteName: String
@@ -60,6 +61,7 @@ object ItemDetail {
       ItemNumericMetadata.allById(ItemId(itemId)),
       ItemTextMetadata.allById(ItemId(itemId)),
       SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
+      SiteItemTextMetadata.all(siteId, ItemId(itemId)),
       priceHistory.unitPrice,
       priceHistory.listPrice,
       Site(siteId).name

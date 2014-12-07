@@ -35,13 +35,23 @@
         @detail.listPrice.map { lp =>
           <tr class="itemDetailListPrice">
             <td class="label">@Messages("listPrice")</td>
-            <td class="value">@amount(lp)</td>
+            <td class="value">
+              <span class="amount">@amount(lp)</span>
+              @detail.siteItemTextMetadata.get(SiteItemTextMetadataType.LIST_PRICE_MEMO).map { md =>
+                <span class="memo">@md.metadata</span>
+              }.getOrElse("")
+            </td>
           </tr>
         }
 
         <tr class="itemDetailItemPrice">
           <td class="label">@Messages("price")</td>
-          <td class="value">@amount(detail.price)</td>
+          <td class="value">
+            <span class="amount">@amount(detail.price)</span>
+            @detail.siteItemTextMetadata.get(SiteItemTextMetadataType.PRICE_MEMO).map { md =>
+              <span class="memo">@md.metadata</span>
+            }.getOrElse("")
+          </td>
         </tr>
 
         <tr class="itemDetailSiteName">
