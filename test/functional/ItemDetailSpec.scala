@@ -31,7 +31,7 @@ class ItemDetailSpec extends Specification {
   "Item detail" should {
     "Can show list price with memo" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -54,7 +54,69 @@ class ItemDetailSpec extends Specification {
           "http://localhost:3333"
           + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
         )
-        1 === 1
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".memo").getTexts.size === 0
+
+        // add price memo
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get.id).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        doWith(browser.find("#addSiteItemTextMetadataForm")) { form =>
+          form.find(
+            "option[value=\"" + SiteItemTextMetadataType.PRICE_MEMO.ordinal + "\"]"
+          ).click()
+
+          browser.fill("#addSiteItemTextMetadataForm #metadata").`with`("Price memo")
+
+          form.find("input[type='submit']").click()
+        }
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.goTo(
+          "http://localhost:3333"
+          + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".itemDetailItemPrice .value .memo").getText === "Price memo"
+
+        // add list price
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get.id).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.fill("#itemPrices_0__listPrice").`with`("3000")
+        browser.find("#changeItemPriceButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        // add list price memo
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get.id).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        doWith(browser.find("#addSiteItemTextMetadataForm")) { form =>
+          form.find(
+            "option[value=\"" + SiteItemTextMetadataType.LIST_PRICE_MEMO.ordinal + "\"]"
+          ).click()
+
+          browser.fill("#addSiteItemTextMetadataForm #metadata").`with`("List price memo")
+
+          form.find("input[type='submit']").click()
+        }
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.goTo(
+          "http://localhost:3333"
+          + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".itemDetailListPrice .value .memo").getText === "List price memo"
       }}
     }
   }
