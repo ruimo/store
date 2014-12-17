@@ -1,9 +1,11 @@
-@(page: Page[(Category, CategoryName)])(
+@(page: PagedRecords[(Category, Option[CategoryName])])(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
 )
+
+@implicitLoginSessionOpt = @{Some(loginSession)}
 
 @main(Messages("editCategoryTitle"), Some(loginSession), contentCssClass = "adminContents") {
   <script src="@routes.Assets.at("javascripts/jquery.cookie.js")" type="text/javascript"></script>
@@ -53,19 +55,36 @@
 
   <table class="categoryTable">
     <tr>
-      <th class="categoryTableHeaderId categoryHeader">id</th>
-      <th class="categoryTableHeaderPath categoryHeader">path</th>
-      <th class="categoryTableHeaderName categoryHeader">name</th>
+      <th class="categoryTableHeaderId categoryHeader">
+        @orderMark(
+          "id",
+          routes.CategoryMaintenance.editCategory,
+          "category.category_id", page
+        )
+      </th>
+      <th class="categoryTableHeaderName categoryHeader">
+        @orderMark(
+          "name",
+          routes.CategoryMaintenance.editCategory,
+          "category_name.category_name", page
+        )
+      </th>
     </tr>
 
-    @page.list.map {c =>
+    @page.records.map { rec =>
       <tr class="categoryTableBody">
-        <td class="categoryTableId">@c._1.id</td>
-        <td class="categoryTablePath"></td>
-        <td class="categoryTableName">@c._2.name</td>
+        <td class="categoryTableId">@rec._1.id</td>
+        <td class="categoryTableName">@rec._2.map(_.name).getOrElse("-")</td>
       </tr>
     }
   </table>
+
+  <br>
+  @pagingPanel(
+    page,
+    routes.CategoryMaintenance.editCategory,
+    10, 25, 50
+  )
 
   <div id="catTree">  </div>
 

@@ -5,7 +5,7 @@ import play.api.data.validation.Constraints._
 import play.api.mvc.Controller
 import controllers.I18n.I18nAware
 import play.api.data.Form
-import models.{ LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName }
+import models.{ LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName, OrderBy }
 import play.api.i18n.Messages
 import play.api.db.DB
 import play.api.Play.current
@@ -48,12 +48,16 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
     }
   }
 
-  def editCategory(start: Int = 0, size: Int = 10) = isAuthenticated { implicit login =>
+  def editCategory(
+    start: Int, size: Int, orderBySpec: String
+  ) = isAuthenticated { implicit login =>
     forSuperUser { implicit request =>
       DB.withConnection { implicit conn =>
         {
-          val p = Category.list(page = start, pageSize = size, locale = LocaleInfo.byLang(lang))
-          Ok(views.html.admin.editCategory(p))
+          val categories = Category.listWithName(
+            page = start, pageSize = size, locale = LocaleInfo.byLang(lang), OrderBy(orderBySpec)
+          )
+          Ok(views.html.admin.editCategory(categories))
         }
       }
     }

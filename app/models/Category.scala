@@ -90,6 +90,40 @@ object Category {
     case cat~name => (cat, name)
   }
 
+  val withNameOpt = Category.simple ~ (CategoryName.simple ?) map {
+    case cat~nameOpt => (cat, nameOpt)
+  }
+
+  def listWithName(
+    page: Int = 0, pageSize: Int = 10, locale: LocaleInfo, orderBy: OrderBy
+  )(
+    implicit conn: Connection
+  ): PagedRecords[(Category, Option[CategoryName])] = {
+    val offset: Int = pageSize * page
+    val records: Seq[(Category, Option[CategoryName])] = SQL(
+      s"""
+      select * from category
+      left join category_name
+        on category.category_id = category_name.category_id
+        and category_name.locale_id = {localeId}
+      order by $orderBy nulls last
+      limit {pageSize} offset {offset}
+      """
+    ).on(
+      'localeId -> locale.id,
+      'pageSize -> pageSize,
+      'offset -> offset
+    ).as(
+      withNameOpt *
+    )
+
+    val count = SQL(
+      "select count(*) from category"
+    ).as(SqlParser.scalar[Long].single)
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, records)
+  }
+
   def list(
     page: Int = 0, pageSize: Int = 10, locale: LocaleInfo
   )(implicit conn: Connection): Page[(Category, CategoryName)] = {
