@@ -7,6 +7,7 @@ import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.Lang
 import java.sql.Connection
+import scala.collection.immutable
 
 case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) extends NotNull {
   assert(pathLength >= 0 && pathLength <= Short.MaxValue, "length(= " + pathLength + ") is invalid.")
@@ -332,6 +333,40 @@ object CategoryName {
     }
   }
 
+  def createNew(categoryId: Long, localeId: Long, name: String)(implicit conn: Connection) {
+    SQL(
+      """
+      insert into category_name
+      (category_id, locale_id, category_name) values ({categoryId}, {localeId}, {name})
+      """
+    ).on(
+      'categoryId -> categoryId,
+      'localeId -> localeId,
+      'name -> name
+    ).executeUpdate()
+  }
+
+  def update(categoryId: Long, localeId: Long, name: String)(implicit conn: Connection): Int = SQL(
+      """
+      update category_name set category_name = {name}
+      where category_id = {categoryId} and locale_id = {localeId}
+      """
+    ).on(
+      'categoryId -> categoryId,
+      'localeId -> localeId,
+      'name -> name
+    ).executeUpdate()
+
+  def remove(categoryId: Long, localeId: Long)(implicit conn: Connection): Int = SQL(
+    """
+    delete from category_name
+    where category_id = {categoryId} and locale_id = {localeId}
+    """
+  ).on(
+    'categoryId -> categoryId,
+    'localeId -> localeId
+  ).executeUpdate()
+
   def get(locale: LocaleInfo, category: Category)(implicit conn: Connection): Option[String] = get(locale, category.id.get)
   def get(locale: LocaleInfo, categoryId: Long)(implicit conn: Connection): Option[String] = 
     SQL(
@@ -343,6 +378,19 @@ object CategoryName {
       'category_id -> categoryId,
       'locale_id -> locale.id
     ).as(SqlParser.scalar[String].singleOpt)
+
+  def all(categoryId: Long)(implicit conn: Connection): immutable.Map[LocaleInfo, CategoryName] = SQL(
+      """
+      select * from category_name
+      where category_id = {id}
+      """
+    ).on(
+      'id -> categoryId
+    ).as(
+      simple *
+    ).map {
+      rec => (rec.locale, rec)
+    }.toMap
 }
 
 object CategoryPath {

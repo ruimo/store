@@ -444,5 +444,31 @@ class CategorySpec extends Specification {
         }}        
       }
     }
+
+    "Be able to list category names." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木1")
+          )
+          val cat2 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木2", LocaleInfo.En -> "Plant2")
+          )
+          val cat3 = Category.createNew(Map())
+
+          doWith(CategoryName.all(cat1.id.get)) { map =>
+            map.size === 1
+            map(LocaleInfo.Ja) === CategoryName(LocaleInfo.Ja, cat1.id.get, "植木1")
+          }
+          doWith(CategoryName.all(cat2.id.get)) { map =>
+            map.size === 2
+            map(LocaleInfo.Ja) === CategoryName(LocaleInfo.Ja, cat2.id.get, "植木2")
+            map(LocaleInfo.En) === CategoryName(LocaleInfo.En, cat2.id.get, "Plant2")
+          }
+          CategoryName.all(cat3.id.get).size === 0
+        }}
+      }
+    }
   }
 }

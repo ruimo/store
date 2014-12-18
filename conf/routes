@@ -53,9 +53,13 @@ GET     /admin/removeItemPrice           controllers.ItemMaintenance.removeItemP
 GET     /admin/categoryMaintenance       controllers.CategoryMaintenance.index
 GET     /admin/startCreateNewCategory    controllers.CategoryMaintenance.startCreateNewCategory
 POST    /admin/createNewCategory         controllers.CategoryMaintenance.createNewCategory
-GET     /admin/editCategory              controllers.CategoryMaintenance.editCategory(start: Int ?= 0, size: Int ?= 10, orderBySpec ?= "category.category_id")
+GET     /admin/editCategory              controllers.CategoryMaintenance.editCategory(langSpec: Option[Long], start: Int ?= 0, size: Int ?= 10, orderBySpec ?= "category.category_id")
 GET     /admin/categoryPathTree          controllers.CategoryMaintenance.categoryPathTree
 POST    /admin/categoryMove              controllers.CategoryMaintenance.moveCategory
+GET     /admin/editCategoryName          controllers.CategoryMaintenance.editCategoryName(categoryId: Long)
+POST    /admin/updateCategoryName        controllers.CategoryMaintenance.updateCategoryName(categoryId: Long)
+POST    /admin/createCategoryName        controllers.CategoryMaintenance.createCategoryName(categoryId: Long)
+POST    /admin/removeCategoryName        controllers.CategoryMaintenance.removeCategoryName(categoryId: Long)
 
 GET     /admin/siteMaintenance           controllers.SiteMaintenance.index
 GET     /admin/startCreateNewSite        controllers.SiteMaintenance.startCreateNewSite

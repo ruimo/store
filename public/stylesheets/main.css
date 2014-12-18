@@ -708,3 +708,28 @@ tr.recommendationByAdminTable.body {
 #forgetPasword {
   line-height:3em;
 }
+
+.updateCategoryName.language {
+    width: 6em;
+}
+
+.updateCategoryName.categoryName {
+    width: 60%;
+}
+
+.updateCategoryName.categoryName input {
+    width: 98%;
+}
+
+.createCategoryName.language {
+    width: 6em;
+}
+
+.createCategoryName.categoryName {
+    width: 60%;
+}
+
+.createCategoryName.categoryName input {
+    width: 98%;
+}
+
