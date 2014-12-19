@@ -43,7 +43,7 @@ object LocaleInfo {
     immutable.TreeMap(
       SQL("select * from locale")
         .as(LocaleInfo.simple *)
-        .map(r => r.id -> r).toList
+        .map(r => r.id -> r): _*
     )
   }
 
