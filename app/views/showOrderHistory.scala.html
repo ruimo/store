@@ -3,7 +3,8 @@
   detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
   boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
   siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
-  addresses: Map[Long, Address]
+  addresses: Map[Long, Address],
+  tranId: Option[Long]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -18,7 +19,9 @@
 @implicitLoginSessionOpt = @{Some(loginSession)}
 
 @main(Messages("order.history.title"), Some(loginSession)) {
+  @shoppingCartDialogDeclaration()
 } {
+  @shoppingCartDialogImplementation()
   <h1 class="title">@Messages("order.history.title")</h1>
 
   @tran.records.map { e =>
@@ -30,35 +33,48 @@
               <td>@yyyymmddhhmm(e.transactionTime)</td>
             </tr>
             <tr class="transactionId">
-              <td>@Messages("transaction.id"): @e.transactionId</td>
+              <td>@Messages("transaction.id"): <span class="tranNo">@e.transactionId</span></td>
             </tr>
             <tr class="buyer">
-              <td>@Messages("buyer"): @name(e.buyer)
+              <td>@Messages("buyer"): <span class="buyerName">@name(e.buyer)</span></td>
             </tr>
             <tr class="totalAmount">
-              <td>@Messages("subtotal"): @amount(e.totalAmount)</td>
+              <td>@Messages("subtotal"): <span class="subtotal">@amount(e.totalAmount)</span></td>
             </tr>
-            <tr class="totalAmount">
-              <td>@Messages("outer.tax.amount"): @amount(e.totalTax)</td>
+            <tr class="outerTax">
+              <td>@Messages("outer.tax.amount"): <span class="outerTaxAmount">@amount(e.totalTax)</span></td>
             </tr>
             <tr class="totalAmountWithTax">
-              <td>@Messages("transaction.amount"): @amount(e.totalWithTax)</td>
+              <td>@Messages("transaction.amount"): <span class="total">@amount(e.totalWithTax)</span></td>
+            </tr>
+            <tr class="siteName">
+              <td>@Messages("site"): <span class="siteName">@e.siteName</span></td>
             </tr>
           </table>
         </td>
-
-        <td>
+        <td class="address zip">
+          @if(e.shippingDate.isDefined) {
+            <table class="shippingAddressTable">
+              @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
+            </table>
+          }
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
           <table class="orderHistoryInnerTable2">
-            <tr>
-              <td colspan="2">
-                <span class="status">
-                  @Messages("transaction.status." + e.status)
-                </span>
-                <span class="shippingDate">
-                  @shippingDate(e.shippingDate)
-                </span>
-              </td>
-            </tr>
+            @if(e.shippingDate.isDefined) {
+              <tr>
+                <td colspan="2">
+                  <span class="status">
+                    @Messages("transaction.status." + e.status)
+                  </span>
+                  <span class="shippingDate">
+                    @shippingDate(e.shippingDate.get)
+                  </span>
+                </td>
+              </tr>
+            }
             <tr>
               <td>
                 <table class="orderHistoryInnerTable3">
@@ -80,9 +96,15 @@
                   @detailByTranSiteId(e.transactionSiteId).map { t =>
                     <tr>
                       <td class="orderHistoryInnerTable3Body itemName">@t.itemName</td>
-                      <td class="orderHistoryInnerTable3Body price">@amount(t.unitPrice)</td>
+                      <td class="orderHistoryInnerTable3Body unitPrice">@amount(t.unitPrice)</td>
                       <td class="orderHistoryInnerTable3Body quantity">@t.quantity</td>
-                      <td class="orderHistoryInnerTable3Body price">@amount(t.price)</td>
+                      <td class="orderHistoryInnerTable3Body price">
+                        <span class="body">@amount(t.price)</span>
+                        <button type="button"
+                                onclick="shoppingCartDialog.putIntoCart(@t.siteId, @t.itemId, @t.quantity);">
+                          @Messages("addItemIntoShoppingCart")
+                        </button>
+                      </td>
                     </tr>
                   }
                   <tr>
@@ -90,41 +112,42 @@
                     <td></td>
                     <td class="orderHistoryInnerTable3Body subtotalHeader">@Messages("subtotal")</td>
                     <td class="orderHistoryInnerTable3Body subtotalBody">
-                      @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
+                      <span class="body">
+                        @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
+                      </span>
+                      <button type="button"
+                              onclick="shoppingCartDialog.putOrderHistory(@e.siteId, @e.transactionSiteId);">
+                        @Messages("addAllItemsIntoShoppingCart")
+                      </button>
                     </td>
                   </tr>
                 </table>
               </td>
               <td>
-                <table class="orderHistoryInnerTable4">
-                  <tr>
-                    <th class="orderHistoryInnerTable3Header boxName">@Messages("shippingBoxName")</th>
-                    <th class="orderHistoryInnerTable3Header boxPrice">@Messages("price")</th>
-                  </tr>
-                  @boxBySiteAndItemSize.get(
-                    e.transactionSiteId
-                  ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+                @if(e.shippingDate.isDefined) {
+                  <table class="orderHistoryInnerTable4">
                     <tr>
-                      <td class="orderHistoryInnerTable4Body boxName">@box.boxName</td>
-                      <td class="orderHistoryInnerTable4Body boxPrice">@amount(box.amount)</td>
+                      <th class="orderHistoryInnerTable3Header boxName">@Messages("shippingBoxName")</th>
+                      <th class="orderHistoryInnerTable3Header boxPrice">@Messages("price")</th>
                     </tr>
-                  }
-                  <tr>
-                    <td class="orderHistoryInnerTable4Body subtotalHeader">@Messages("subtotal")</td>
-                    <td class="orderHistoryInnerTable4Body subtotalBody">
-                      @amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))
-                    </td>
-                  </tr>
-                </table>
+                    @boxBySiteAndItemSize.get(
+                      e.transactionSiteId
+                    ).getOrElse(LongMap[TransactionLogShipping]()).values.map { box =>
+                      <tr>
+                        <td class="orderHistoryInnerTable4Body boxName">@box.boxName</td>
+                        <td class="orderHistoryInnerTable4Body boxPrice">@amount(box.amount)</td>
+                      </tr>
+                    }
+                    <tr>
+                      <td class="orderHistoryInnerTable4Body subtotalHeader">@Messages("subtotal")</td>
+                      <td class="orderHistoryInnerTable4Body subtotalBody">
+                        @amount(siteTranByTranId(e.transactionId).boxTotal(e.siteId))
+                      </td>
+                    </tr>
+                  </table>
+                }
               </td>
             </tr>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td class="address zip" colspan="2">
-          <table>
-            @addressBody(addresses(siteTranByTranId(e.transactionId).shippingTable(e.siteId).head.addressId))
           </table>
         </td>
       </tr>
@@ -133,7 +156,7 @@
   <br>
   @pagingPanel(
     tran,
-    routes.OrderHistory.showOrderHistory(_: Int, _: Int, _: String),
+    routes.OrderHistory.showOrderHistory(_: Int, _: Int, _: String, tranId),
     10, 25, 50
   )
 

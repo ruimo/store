@@ -14,6 +14,8 @@ import controllers.I18n.I18nAware
 import play.api.Play.current
 
 object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
+  import NeedLogin._
+
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
   def createUserForm[T <: CreateUser](

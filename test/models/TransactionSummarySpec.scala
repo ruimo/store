@@ -7,6 +7,7 @@ import play.api.test._
 import java.sql.Date.{valueOf => date}
 import play.api.test.Helpers._
 import play.api.Play.current
+import com.ruimo.scoins.Scoping._
 
 class TransactionSummarySpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -47,13 +48,17 @@ class TransactionSummarySpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
-          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)
-          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get, 1)
+          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
+          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
 
-          ShoppingCartItem.addItem(user2.id.get, site1.id.get, item1.id.get, 2)
+          ShoppingCartItem.addItem(user2.id.get, site1.id.get, item1.id.get.id, 2)
 
           val itemClass1 = 1L
 
@@ -112,99 +117,139 @@ class TransactionSummarySpec extends Specification {
           )
           val persister = new TransactionPersister
           val tranNo1 = persister.persist(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart1, addr1,
+            Transaction(user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
                         controllers.Shipping.shippingFee(addr1, cart1), shippingDate1)
           )
 
           val ptran1 = persister.load(tranNo1, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
-          val summary1 = TransactionSummary.list(Some(siteUser1.id.get)).records
+          val summary1 = TransactionSummary.list(Some(siteUser1.siteId)).records
           summary1.size === 1
           val entry1 = summary1.head
           entry1.transactionId === tranNo1
           entry1.transactionTime === ptran1.header.transactionTime
           entry1.totalAmount === BigDecimal(119 + 1234)
-          entry1.address === addr1
+          entry1.address === Some(addr1)
           entry1.siteName === "商店1"
           entry1.shippingFee === BigDecimal(1234)
           entry1.status === TransactionStatus.ORDERED
 
-          val sum1 = TransactionSummary.get(Some(siteUser1.id.get), entry1.transactionSiteId)
+          val sum1 = TransactionSummary.get(Some(siteUser1.siteId), entry1.transactionSiteId)
           sum1.isDefined === true
 
           val tranNo2 = persister.persist(
-            Transaction(user2.id.get, CurrencyInfo.Jpy, cart2, addr2,
+            Transaction(user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
                         controllers.Shipping.shippingFee(addr2, cart2), shippingDate2)
           )
 
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          helpers.Helper.doWith(TransactionSummary.list(Some(siteUser1.id.get)).records) { s =>
+          doWith(TransactionSummary.list(Some(siteUser1.siteId)).records) { s =>
             s.size === 2
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
-              e.address === addr2
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
             }
 
-            helpers.Helper.doWith(s(1)) { e =>
+            doWith(s(1)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
-              e.address === addr1
+              e.address === Some(addr1)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(Some(siteUser2.id.get)).records) { s =>
+          doWith(TransactionSummary.list(Some(siteUser2.siteId)).records) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(59 + 2345)
-              e.address === addr1
+              e.address === Some(addr1)
               e.siteName === "商店2"
               e.shippingFee === BigDecimal(2345)
               e.status === TransactionStatus.ORDERED
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(storeUserId = Some(user1.id.get)).records) { s =>
+          doWith(TransactionSummary.list(storeUserId = Some(user1.id.get)).records) { s =>
             s.size === 2
-            helpers.Helper.doWith(s(0)) { e =>
-              e.transactionId === tranNo1
-              e.transactionTime === ptran1.header.transactionTime
-              e.totalAmount === BigDecimal(119 + 1234)
-              e.address === addr1
+            doWith(s.map { ele => (ele.siteName, ele) }.toMap) { map =>
+              doWith(map("商店1")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(119 + 1234)
+                e.address === Some(addr1)
+                e.siteName === "商店1"
+                e.shippingFee === BigDecimal(1234)
+                e.status === TransactionStatus.ORDERED
+              }
+
+              doWith(map("商店2")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(59 + 2345)
+                e.address === Some(addr1)
+                e.siteName === "商店2"
+                e.shippingFee === BigDecimal(2345)
+                e.status === TransactionStatus.ORDERED
+              }
+            }
+          }
+
+          doWith(TransactionSummary.list(storeUserId = Some(user2.id.get)).records) { s =>
+            s.size === 1
+            doWith(s(0)) { e =>
+              e.transactionId === tranNo2
+              e.transactionTime === ptran2.header.transactionTime
+              e.totalAmount === BigDecimal(119 * 2 + 1234)
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
             }
+          }
 
-            helpers.Helper.doWith(s(1)) { e =>
-              e.transactionId === tranNo1
-              e.transactionTime === ptran1.header.transactionTime
-              e.totalAmount === BigDecimal(59 + 2345)
-              e.address === addr1
-              e.siteName === "商店2"
-              e.shippingFee === BigDecimal(2345)
-              e.status === TransactionStatus.ORDERED
+          doWith(TransactionSummary.list(tranId = Some(tranNo1)).records) { s =>
+            s.size === 2
+            doWith(s.map { ele => (ele.siteName, ele) }.toMap) { map =>
+              doWith(map("商店1")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(119 + 1234)
+                e.address === Some(addr1)
+                e.siteName === "商店1"
+                e.shippingFee === BigDecimal(1234)
+                e.status === TransactionStatus.ORDERED
+              }
+
+              doWith(map("商店2")) { e =>
+                e.transactionId === tranNo1
+                e.transactionTime === ptran1.header.transactionTime
+                e.totalAmount === BigDecimal(59 + 2345)
+                e.address === Some(addr1)
+                e.siteName === "商店2"
+                e.shippingFee === BigDecimal(2345)
+                e.status === TransactionStatus.ORDERED
+              }
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.list(storeUserId = Some(user2.id.get)).records) { s =>
+          doWith(TransactionSummary.list(tranId = Some(tranNo2)).records) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
-              e.address === addr2
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
@@ -249,13 +294,17 @@ class TransactionSummarySpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
-          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)
-          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get, 1)
+          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
+          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
 
-          ShoppingCartItem.addItem(user2.id.get, site1.id.get, item1.id.get, 2)
+          ShoppingCartItem.addItem(user2.id.get, site1.id.get, item1.id.get.id, 2)
 
           val itemClass1 = 1L
 
@@ -315,7 +364,7 @@ class TransactionSummarySpec extends Specification {
           val persister = new TransactionPersister
           val tranNo1 = persister.persist(
             Transaction(
-              user1.id.get, CurrencyInfo.Jpy, cart1, addr1,
+              user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
               controllers.Shipping.shippingFee(addr1, cart1), shippingDate1,
               now = date("2013-01-31")
             )
@@ -323,7 +372,7 @@ class TransactionSummarySpec extends Specification {
 
           val tranNo2 = persister.persist(
             Transaction(
-              user2.id.get, CurrencyInfo.Jpy, cart2, addr2,
+              user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
               controllers.Shipping.shippingFee(addr2, cart2), shippingDate2,
               now = date("2013-03-01")
             )
@@ -333,26 +382,26 @@ class TransactionSummarySpec extends Specification {
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          helpers.Helper.doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 1))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 1))) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo1
               e.transactionTime === ptran1.header.transactionTime
               e.totalAmount === BigDecimal(119 + 1234)
-              e.address === addr1
+              e.address === Some(addr1)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED
             }
           }
 
-          helpers.Helper.doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.id.get), yearMonth = YearMonth(2013, 3))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 3))) { s =>
             s.size === 1
-            helpers.Helper.doWith(s(0)) { e =>
+            doWith(s(0)) { e =>
               e.transactionId === tranNo2
               e.transactionTime === ptran2.header.transactionTime
               e.totalAmount === BigDecimal(119 * 2 + 1234)
-              e.address === addr2
+              e.address === Some(addr2)
               e.siteName === "商店1"
               e.shippingFee === BigDecimal(1234)
               e.status === TransactionStatus.ORDERED

@@ -1,13 +1,13 @@
 @(
   queryString: helpers.QueryString,
   list: PagedRecords[(
-    models.Item,
-    models.ItemName,
-    models.ItemDescription,
-    models.Site,
-    models.ItemPriceHistory,
+    Item,
+    Option[ItemName],
+    Option[ItemDescription],
+    Option[Site],
+    Option[ItemPriceHistory],
     Map[ItemNumericMetadataType, ItemNumericMetadata],
-    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Option[Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
     Map[ItemTextMetadataType, ItemTextMetadata]
   )]
 )(
@@ -63,10 +63,10 @@
 
     @list.records.map { e =>
     <tr class="itemTableBody">
-      <td class="itemTableItemId"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get)">@e._1.id</a></td>
-      <td class="itemTableItemName">@e._2.name</td>
-      <td class="itemTableSiteName">@e._4.name</td>
-      <td class="itemTablePrice">@amount(e._5.unitPrice)</td>
+      <td class="itemTableItemId"><a href="@routes.ItemMaintenance.startChangeItem(e._1.id.get.id)">@e._1.id.get.id</a></td>
+      <td class="itemTableItemName">@e._2.map(_.name).getOrElse("-")</td>
+      <td class="itemTableSiteName">@e._4.map(_.name).getOrElse("-")</td>
+      <td class="itemTablePrice">@e._5.map {p => @amount(p.unitPrice)}.getOrElse("-")</td>
     </tr>
     }
   </table>

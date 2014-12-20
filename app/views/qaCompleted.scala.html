@@ -1,0 +1,14 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@main(Messages("qaCompleted"), loginSession) {
+} {
+  <h1 class="title">@Messages("qaCompleted")</h1>
+
+  <span id="qaCompletedMessage">
+    @Messages("qaCompletedMessage")
+  </span>
+}

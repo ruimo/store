@@ -37,9 +37,12 @@ class ChangeItem(
   val newItemMetadataForm: Form[ChangeItemMetadata],
   val siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
   val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata],
+  val siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable],
+  val newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata],
   val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
   val newItemTextMetadataForm: Form[ChangeItemTextMetadata],
-  val attachmentNames: Map[Int, String]
+  val attachmentNames: Map[Int, String],
+  val couponForm: Form[ChangeCoupon]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -52,8 +55,10 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "price" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
-      "description" -> text.verifying(maxLength(2048))
+      "description" -> text.verifying(maxLength(2048)),
+      "isCoupon" ->boolean
     ) (CreateItem.apply)(CreateItem.unapply)
   )
 
@@ -110,16 +115,17 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         case Buyer => throw new Error("Logic error.")
 
         case SuperUser =>
-          val list = Item.list(
+          val list = Item.listForMaintenance(
             siteUser = None, locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
-            pageSize = pgSize, showHidden = true, orderBy = OrderBy(orderBySpec)
+            pageSize = pgSize, orderBy = OrderBy(orderBySpec)
           )
+
           Ok(views.html.admin.editItem(queryStr, list))
 
         case SiteOwner(siteOwner) =>
-          val list = Item.list(
+          val list = Item.listForMaintenance(
             siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
-            pageSize = pgSize, showHidden = true, orderBy = OrderBy(orderBySpec)
+            pageSize = pgSize, orderBy = OrderBy(orderBySpec)
           )
           Ok(views.html.admin.editItem(queryStr, list))
       }
@@ -152,6 +158,10 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     e => (e.ordinal.toString, Messages("siteItemMetadata" + e.toString))
   }
 
+  def siteItemTextMetadataTable(implicit lang: Lang): Seq[(String, String)] = SiteItemTextMetadataType.all.map {
+    e => (e.ordinal.toString, Messages("siteItemTextMetadata" + e.toString))
+  }
+
   def startChangeItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     Ok(views.html.admin.changeItem(
       new ChangeItem(
@@ -176,9 +186,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         addItemMetadataForm,
         createSiteItemMetadataTable(id),
         addSiteItemMetadataForm,
+        createSiteItemTextMetadataTable(id),
+        addSiteItemTextMetadataForm,
         createItemTextMetadataTable(id),
         addItemTextMetadataForm,
-        ItemPictures.retrieveAttachmentNames(id)
+        ItemPictures.retrieveAttachmentNames(id),
+        createCouponForm(ItemId(id))
       )
     ))
   }}
@@ -228,6 +241,18 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeSiteItemMetadataTable.apply)(ChangeSiteItemMetadataTable.unapply)
   )
 
+  val changeSiteItemTextMetadataForm = Form(
+    mapping(
+      "siteItemTextMetadatas" -> seq(
+        mapping(
+          "siteId" -> longNumber,
+          "metadataType" -> number,
+          "metadata" -> text
+        ) (ChangeSiteItemTextMetadata.apply)(ChangeSiteItemTextMetadata.unapply)
+      )
+    ) (ChangeSiteItemTextMetadataTable.apply)(ChangeSiteItemTextMetadataTable.unapply)
+  )
+
   val addItemNameForm = Form(
     mapping(
       "localeId" -> longNumber,
@@ -257,9 +282,23 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeSiteItemMetadata.apply)(ChangeSiteItemMetadata.unapply)
   )
 
+  val addSiteItemTextMetadataForm = Form(
+    mapping(
+      "siteId" -> longNumber,
+      "metadataType" -> number,
+      "metadata" -> text
+    ) (ChangeSiteItemTextMetadata.apply)(ChangeSiteItemTextMetadata.unapply)
+  )
+
+  val couponForm = Form(
+    mapping(
+      "isCoupon" ->boolean
+    ) (ChangeCoupon.apply)(ChangeCoupon.unapply)
+  )
+
   def createItemNameTable(id: Long): Form[ChangeItemNameTable] = {
     DB.withConnection { implicit conn => {
-      val itemNames = ItemName.list(id).values.map {
+      val itemNames = ItemName.list(ItemId(id)).values.map {
         n => ChangeItemName(n.localeId, n.name)
       }.toSeq
 
@@ -269,7 +308,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemMetadataTable(id: Long): Form[ChangeItemMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadatas = ItemNumericMetadata.allById(id).values.map {
+      val itemMetadatas = ItemNumericMetadata.allById(ItemId(id)).values.map {
         n => ChangeItemMetadata(n.metadataType.ordinal, n.metadata)
       }.toSeq
 
@@ -279,7 +318,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemTextMetadataTable(id: Long): Form[ChangeItemTextMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadatas = ItemTextMetadata.allById(id).values.map {
+      val itemMetadatas = ItemTextMetadata.allById(ItemId(id)).values.map {
         n => ChangeItemTextMetadata(n.metadataType.ordinal, n.metadata)
       }.toSeq
 
@@ -289,11 +328,21 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createSiteItemMetadataTable(id: Long): Form[ChangeSiteItemMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadatas = SiteItemNumericMetadata.allById(id).values.map {
+      val itemMetadata = SiteItemNumericMetadata.allById(ItemId(id)).values.map {
         n => ChangeSiteItemMetadata(n.siteId, n.metadataType.ordinal, n.metadata)
       }.toSeq
 
-      changeSiteItemMetadataForm.fill(ChangeSiteItemMetadataTable(itemMetadatas))
+      changeSiteItemMetadataForm.fill(ChangeSiteItemMetadataTable(itemMetadata))
+    }}
+  }
+
+  def createSiteItemTextMetadataTable(id: Long): Form[ChangeSiteItemTextMetadataTable] = {
+    DB.withConnection { implicit conn => {
+      val itemMetadata = SiteItemTextMetadata.allById(ItemId(id)).values.map {
+        n => ChangeSiteItemTextMetadata(n.siteId, n.metadataType.ordinal, n.metadata)
+      }.toSeq
+
+      changeSiteItemTextMetadataForm.fill(ChangeSiteItemTextMetadataTable(itemMetadata))
     }}
   }
 
@@ -325,9 +374,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -371,9 +423,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -412,9 +467,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -426,7 +484,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemName(itemId: Long, localeId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemName.remove(itemId, localeId)
+      ItemName.remove(ItemId(itemId), localeId)
     }
 
     Redirect(
@@ -436,7 +494,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemNumericMetadata.remove(itemId, metadataType)
+      ItemNumericMetadata.remove(ItemId(itemId), metadataType)
     }
 
     Redirect(
@@ -446,7 +504,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemTextMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemTextMetadata.remove(itemId, metadataType)
+      ItemTextMetadata.remove(ItemId(itemId), metadataType)
     }
 
     Redirect(
@@ -454,9 +512,23 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     )
   }}
 
-  def removeSiteItemMetadata(itemId: Long, siteId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
+  def removeSiteItemMetadata(
+    itemId: Long, siteId: Long, metadataType: Int
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      SiteItemNumericMetadata.remove(itemId, siteId, metadataType)
+      SiteItemNumericMetadata.remove(ItemId(itemId), siteId, metadataType)
+    }
+
+    Redirect(
+      routes.ItemMaintenance.startChangeItem(itemId)
+    )
+  }}
+
+  def removeSiteItemTextMetadata(
+    itemId: Long, siteId: Long, metadataType: Int
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    DB.withConnection { implicit conn =>
+      SiteItemTextMetadata.remove(ItemId(itemId), siteId, metadataType)
     }
 
     Redirect(
@@ -484,7 +556,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createSiteItemTable(itemId: Long): Seq[(Site, SiteItem)] = {
     DB.withConnection { implicit conn => {
-      SiteItem.list(itemId)
+      SiteItem.list(ItemId(itemId))
     }}
   }
 
@@ -516,9 +588,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -559,9 +634,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -573,7 +651,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeSiteItem(itemId: Long, siteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      SiteItem.remove(itemId, siteId)
+      SiteItem.remove(ItemId(itemId), siteId)
+      ItemPrice.remove(ItemId(itemId), siteId)
     }
 
     Redirect(
@@ -594,11 +673,66 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
+  def createCouponForm(id: ItemId): Form[ChangeCoupon] = {
+    DB.withConnection { implicit conn => {
+      couponForm.fill(ChangeCoupon(Coupon.isCoupon(id)))
+    }}
+  }
+
   def createCategoryTable(implicit lang: Lang): Seq[(String, String)] = {
     DB.withConnection { implicit conn => {
       Category.tableForDropDown
     }}
   }
+
+  def updateItemAsCoupon(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    couponForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.updateItemAsItem." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            new ChangeItem(
+              id,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(id),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(id),
+              addSiteItemForm,
+              createItemCategoryForm(id),
+              createCategoryTable,
+              createItemDescriptionTable(id),
+              addItemDescriptionForm,
+              createItemPriceTable(id),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(id),
+              createItemMetadataTable(id),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id),
+              formWithErrors
+            )
+          )
+        )
+      },
+      newIsCoupon => {
+        DB.withConnection { implicit conn =>
+          newIsCoupon.update(ItemId(id))
+        }
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(id)
+        ).flashing("message" -> Messages("itemIsUpdated"))
+      }
+    )
+  }}
 
   def updateItemCategory(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     updateCategoryForm.bindFromRequest.fold(
@@ -628,9 +762,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -668,7 +805,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemDescriptionTable(id: Long): Form[ChangeItemDescriptionTable] = {
     DB.withConnection { implicit conn => {
-      val itemDescriptions = ItemDescription.list(id).map {
+      val itemDescriptions = ItemDescription.list(ItemId(id)).map {
         n => ChangeItemDescription(n._1, n._2.id, n._3.description)
       }.toSeq
 
@@ -704,9 +841,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -750,9 +890,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -794,9 +937,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -810,7 +956,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     siteId: Long, itemId: Long, localeId: Long
   ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemDescription.remove(siteId, itemId, localeId)
+      ItemDescription.remove(siteId, ItemId(itemId), localeId)
     }
 
     Redirect(
@@ -828,6 +974,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           "taxId" -> longNumber,
           "currencyId" -> longNumber,
           "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+          "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
           "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
           "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
         ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
@@ -843,6 +990,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "taxId" -> longNumber,
       "currencyId" -> longNumber,
       "itemPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
       "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
     ) (ChangeItemPrice.apply)(ChangeItemPrice.unapply)
@@ -850,10 +998,10 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createItemPriceTable(itemId: Long): Form[ChangeItemPriceTable] = {
     DB.withConnection { implicit conn => {
-      val histories = ItemPriceHistory.listByItemId(itemId).map {
+      val histories = ItemPriceHistory.listByItemId(ItemId(itemId)).map {
         e => ChangeItemPrice(
           e._1.siteId, e._2.itemPriceId, e._2.id.get, e._2.taxId, 
-          e._2.currency.id, e._2.unitPrice, e._2.costPrice, new DateTime(e._2.validUntil)
+          e._2.currency.id, e._2.unitPrice, e._2.listPrice, e._2.costPrice, new DateTime(e._2.validUntil)
         )
       }.toSeq
 
@@ -889,9 +1037,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -935,9 +1086,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -980,9 +1134,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -996,7 +1153,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     itemId: Long, siteId: Long, itemPriceHistoryId: Long
   ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      ItemPriceHistory.remove(itemId, siteId, itemPriceHistoryId)
+      ItemPriceHistory.remove(ItemId(itemId), siteId, itemPriceHistoryId)
     }
 
     Redirect(
@@ -1032,9 +1189,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(itemId),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(itemId),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(itemId),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId)
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
             )
           )
         )
@@ -1078,9 +1238,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(itemId),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(itemId),
+              addSiteItemTextMetadataForm,
               formWithErrors,
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId)
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
             )
           )
         )
@@ -1124,9 +1287,61 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               formWithErrors,
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(itemId),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(itemId),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId)
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
+            )
+          )
+        )
+      },
+      newMetadata => {
+        DB.withConnection { implicit conn =>
+          newMetadata.update(itemId)
+        }
+        Redirect(
+          routes.ItemMaintenance.startChangeItem(itemId)
+        ).flashing("message" -> Messages("itemIsUpdated"))
+      }
+    )
+  }}
+
+  def changeSiteItemTextMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    changeSiteItemTextMetadataForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.changeSiteItemTextMetadata." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            new ChangeItem(
+              itemId,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(itemId),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(itemId),
+              addSiteItemForm,
+              createItemCategoryForm(itemId),
+              createCategoryTable,
+              createItemDescriptionTable(itemId),
+              addItemDescriptionForm,
+              createItemPriceTable(itemId),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(itemId),
+              createItemMetadataTable(itemId),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(itemId),
+              addSiteItemMetadataForm,
+              formWithErrors,
+              addSiteItemTextMetadataForm,
+              createItemTextMetadataTable(itemId),
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(itemId),
+              createCouponForm(ItemId(itemId))
             )
           )
         )
@@ -1170,9 +1385,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               formWithErrors,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -1213,9 +1431,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                     .withError("metadataType", "unique.constraint.violation"),
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -1253,9 +1474,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               formWithErrors,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -1294,11 +1518,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addItemMetadataForm,
                   createSiteItemMetadataTable(id),
                   addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm
                     .fill(newMetadata)
                     .withError("metadataType", "unique.constraint.violation"),
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )
@@ -1336,9 +1563,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
               addItemMetadataForm,
               createSiteItemMetadataTable(id),
               formWithErrors,
+              createSiteItemTextMetadataTable(id),
+              addSiteItemTextMetadataForm,
               createItemTextMetadataTable(id),
               addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id)
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
             )
           )
         )
@@ -1381,9 +1611,103 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                   addSiteItemMetadataForm
                     .fill(newMetadata)
                     .withError("metadataType", "unique.constraint.violation"),
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm,
                   createItemTextMetadataTable(id),
                   addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id)
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
+                )
+              )
+            )
+          }
+        }
+      }
+    )
+  }}
+
+  def addSiteItemTextMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
+    addSiteItemTextMetadataForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in ItemMaintenance.addSiteItemTextMetadata." + formWithErrors + ".")
+        BadRequest(
+          views.html.admin.changeItem(
+            new ChangeItem(
+              id,
+              siteListAsMap,
+              LocaleInfo.localeTable,
+              createItemNameTable(id),
+              addItemNameForm,
+              createSiteTable,
+              createSiteItemTable(id),
+              addSiteItemForm,
+              createItemCategoryForm(id),
+              createCategoryTable,
+              createItemDescriptionTable(id),
+              addItemDescriptionForm,
+              createItemPriceTable(id),
+              addItemPriceForm,
+              taxTable,
+              currencyTable,
+              createSiteTable(id),
+              createItemMetadataTable(id),
+              addItemMetadataForm,
+              createSiteItemMetadataTable(id),
+              addSiteItemMetadataForm,
+              createSiteItemTextMetadataTable(id),
+              formWithErrors,
+              createItemTextMetadataTable(id),
+              addItemTextMetadataForm,
+              ItemPictures.retrieveAttachmentNames(id),
+              createCouponForm(ItemId(id))
+            )
+          )
+        )
+      },
+      newMetadata => {
+        try {
+          DB.withConnection { implicit conn =>
+            newMetadata.add(id)
+          }
+
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(id)
+          ).flashing("message" -> Messages("itemIsUpdated"))
+        }
+        catch {
+          case e: UniqueConstraintException => {
+            BadRequest(
+              views.html.admin.changeItem(
+                new ChangeItem(
+                  id,
+                  siteListAsMap,
+                  LocaleInfo.localeTable,
+                  createItemNameTable(id),
+                  addItemNameForm,
+                  createSiteTable,
+                  createSiteItemTable(id),
+                  addSiteItemForm,
+                  createItemCategoryForm(id),
+                  createCategoryTable,
+                  createItemDescriptionTable(id),
+                  addItemDescriptionForm,
+                  createItemPriceTable(id),
+                  addItemPriceForm,
+                  taxTable,
+                  currencyTable,
+                  createSiteTable(id),
+                  createItemMetadataTable(id),
+                  addItemMetadataForm,
+                  createSiteItemMetadataTable(id),
+                  addSiteItemMetadataForm,
+                  createSiteItemTextMetadataTable(id),
+                  addSiteItemTextMetadataForm
+                    .fill(newMetadata)
+                    .withError("metadataType", "unique.constraint.violation"),
+                  createItemTextMetadataTable(id),
+                  addItemTextMetadataForm,
+                  ItemPictures.retrieveAttachmentNames(id),
+                  createCouponForm(ItemId(id))
                 )
               )
             )

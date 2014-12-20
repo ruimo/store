@@ -7,6 +7,18 @@
 )
 
 @main(Messages("shopping.cart"), Some(loginSession)) {
+  <script src="@routes.Assets.at("javascripts/showRecommendation.js")"></script>
+  <script type="text/javascript">
+    $(function() {
+      showRecommendation(
+        $("#recommendedContent"),
+        '@routes.Recommendation.byShoppingCartJson()',
+        '@Messages("recommendedItemTitle")',
+        '@routes.ItemDetail.show(111, 222)',
+        '@routes.ItemPictures.getPicture(111, 0)'
+      );
+    })
+  </script>
 } {
   <h2 class="shoppingCart">@Messages("shopping.cart")</h2>
 
@@ -47,6 +59,9 @@
         </tr>
       }
     </table>
+
+    <div id="recommendedContent">
+    </div>
 
     <div class="toEnterShippingAddress">
       <div class="toEnterShippingAddressInner">

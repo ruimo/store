@@ -1,0 +1,101 @@
+@(
+  list: PagedRecords[(RecommendByAdmin, Option[ItemName], Option[Site], Form[ChangeRecommendationByAdmin])]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
+  lang: Lang,
+  request: RequestHeader,
+  login: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@main(Messages("startEditRecommendationByAdminTitle"), Some(login), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("startEditRecommendationByAdminTitle")</h1>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  <table class="recommendationByAdminTable">
+    <tr class="recommendationByAdminTable header">
+      <th class="siteName">@Messages("siteName")</th>
+      <th class="itemName">@Messages("itemName")</th>
+      <th class="score">@Messages("score")</th>
+      <th class="enabled">@Messages("enabled")</th>
+      <th></th>
+    </tr>
+    @list.records.map { e =>
+      <tr class="recommendationByAdminTable body">
+        <td class="siteName">
+          <form class="removeRecommendationByAdminForm" method="POST"
+                action="@CSRF(routes.RecommendationByAdmin.removeRecommendation(e._1.id.get))">
+            <input type="submit" value="@Messages("remove")">
+          </form>
+          @e._3.map(_.name).getOrElse("-")
+        </td>
+        <td class="itemName">@e._2.map(_.name).getOrElse("-")</td>
+        @form(
+          action = helper.CSRF(
+            routes.RecommendationByAdmin.changeRecommendation(list.currentPage, list.pageSize, list.orderBy.toString)
+          ),
+          'class -> "updateForm"
+        ) {
+          <td class="score">
+            @inputText(
+              e._4("id"), 'type -> "hidden", '_showConstraints -> false,
+              'class -> "idInput"
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+            @inputText(
+              e._4("score"), '_showConstraints -> false, 'class -> "score",
+              'class -> "scoreInput"
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td class="enabled">
+            @checkbox(
+              e._4("enabled"), '_showConstraints -> false,
+              'class -> "enabledInput"
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+          <td>
+            <input class="updateButton" type="submit" value="@Messages("update")">
+          </td>
+        }
+      </tr>
+    }
+  </table>
+
+  @defining(Some(login)) { implicit loginSession =>
+    @pagingPanel(
+      list,
+      routes.RecommendationByAdmin.startUpdate(_: Int, _: Int, _: String),
+      10, 25, 50
+    )
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.RecommendationByAdmin.startEditRecommendByAdmin()">
+      @Messages("backTo", Messages("recommendationByAdminTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

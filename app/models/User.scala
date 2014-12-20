@@ -6,9 +6,12 @@ import play.api.db._
 import scala.language.postfixOps
 import helpers.PasswordHash
 import java.sql.Connection
+import scala.util.{Try, Failure, Success}
+import com.ruimo.csv.CsvRecord
+import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 
 case class StoreUser(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   userName: String,
   firstName: String,
   middleName: Option[String],
@@ -22,9 +25,10 @@ case class StoreUser(
 ) extends NotNull {
   def passwordMatch(password: String): Boolean =
     PasswordHash.generate(password, salt) == passwordHash
+  lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
 }
 
-case class SiteUser(id: Pk[Long] = NotAssigned, siteId: Long, storeUserId: Long) extends NotNull
+case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long) extends NotNull
 
 case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) extends NotNull {
   lazy val userType: UserType = storeUser.userRole match {
@@ -44,8 +48,10 @@ case class ListUserEntry(
 ) extends NotNull
 
 object StoreUser {
+  implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
+
   val simple = {
-    SqlParser.get[Pk[Long]]("store_user.store_user_id") ~
+    SqlParser.get[Option[Long]]("store_user.store_user_id") ~
     SqlParser.get[String]("store_user.user_name") ~
     SqlParser.get[String]("store_user.first_name") ~
     SqlParser.get[Option[String]]("store_user.middle_name") ~
@@ -122,11 +128,11 @@ object StoreUser {
     ).executeUpdate()
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
-    StoreUser(Id(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
+    StoreUser(Some(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
               salt, deleted = false, userRole, companyName)
   }
 
-  def withSite(userId: Long)(implicit conn: Connection): ListUserEntry =
+  def withSite(userId: Long)(implicit conn: Connection): ListUserEntry = {
     SQL(
       """
       select * from store_user
@@ -141,18 +147,23 @@ object StoreUser {
     ).as(
       withSiteUser.single
     )
+  }
 
   def listUsers(
-    page: Int = 0, pageSize: Int = 50
-  )(implicit conn: Connection): Seq[ListUserEntry] =
-    SQL(
-      """
-      select * from store_user
+    page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("store_user.user_name")
+  )(implicit conn: Connection): PagedRecords[ListUserEntry] = {
+    val list = SQL(
+      s"""
+      select 
+        *,
+        store_user.first_name || coalesce(store_user.middle_name, '') || store_user.last_name as full_name,
+        (store_user.user_role + coalesce(site_user.site_id, 0)) as store_user_role
+      from store_user
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
       where store_user.deleted = FALSE
-      order by store_user.user_name
+      order by $orderBy
       limit {pageSize} offset {offset}
       """
     ).on(
@@ -161,6 +172,11 @@ object StoreUser {
     ).as(
       withSiteUser *
     )
+
+    val count = SQL("select count(*) from store_user where deleted = FALSE").as(SqlParser.scalar[Long].single)
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
+  }
 
   def delete(userId: Long)(implicit conn: Connection) {
     SQL(
@@ -175,7 +191,7 @@ object StoreUser {
   def update(
     userId: Long,
     userName: String, firstName: String, middleName: Option[String], lastName: String,
-    email: String, passwordHash: Long, salt: Long, companyName: String
+    email: String, passwordHash: Long, salt: Long, companyName: Option[String]
   )(implicit conn: Connection): Int =
     SQL(
       """
@@ -201,11 +217,120 @@ object StoreUser {
       'companyName -> companyName,
       'userId -> userId
     ).executeUpdate()
+
+  def maintainByCsv(
+    z: Iterator[Try[CsvRecord]],
+    csvRecordFilter: CsvRecord => Boolean = _ => true,
+    deleteSqlSupplemental: Option[String] = None
+  )(
+    implicit conn: Connection
+  ): (Int, Int) = {
+    insertCsvIntoTempTable(z, csvRecordFilter)
+    val insCount = insertByCsv(conn)
+    val delCount = SQL(
+      """
+      update store_user
+      set deleted = TRUE
+      where user_role = """ + UserRole.NORMAL.ordinal +
+      """
+      and deleted = FALSE
+      and user_name not in (
+        select user_name from user_csv
+      )
+      """ + deleteSqlSupplemental.map { "and " + _ }.getOrElse("")
+    ).executeUpdate()
+
+    (insCount, delCount)
+  }
+
+  def insertCsvIntoTempTable(
+    z: Iterator[Try[CsvRecord]], csvRecordFilter: CsvRecord => Boolean
+  )(implicit conn: Connection) {
+    SQL(
+      """
+      create temp table user_csv (
+        user_name varchar(64) not null unique,
+        salt bigint not null,
+        password_hash bigint not null
+      )
+      """
+    ).executeUpdate()
+
+    val sql: BatchSql = SQL(
+      """
+      insert into user_csv (
+        user_name, salt, password_hash
+      ) values (
+        {userName}, {salt}, {passwordHash}
+      )
+      """
+    )
+
+    z.foldLeft(sql) { (sql, e) => e match {
+      case Success(cols) =>
+        if (csvRecordFilter(cols)) {
+          val companyId = cols('CompanyId)
+          val userName = (if (companyId.isEmpty) "" else companyId + "-") + cols('EmployeeNo)
+          val password = cols('Password)
+          val salt = tokenGenerator.next
+          val hash = PasswordHash.generate(password, salt)
+          sql.addBatchParams(userName, salt, hash)
+        }
+        else sql
+
+      case Failure(e) => throw e
+    }}.execute()
+  }
+
+  def insertByCsv(implicit conn: Connection): Int = {
+    val insSql: BatchSql = SQL(
+      """
+      insert into store_user (
+        store_user_id, user_name, first_name, middle_name, last_name,
+        email, password_hash, salt, deleted, user_role, company_name
+      ) values (
+        (select nextval('store_user_seq')), {userName}, '', null, '',
+        '', {passwordHash}, {salt}, FALSE, """ +
+      UserRole.NORMAL.ordinal +
+      """
+        , null
+      )
+      """
+    )
+
+    SQL(
+      """
+      select user_csv.user_name, user_csv.salt, user_csv.password_hash from user_csv
+      left join store_user
+      on user_csv.user_name = store_user.user_name
+      where store_user.user_name is null
+      """
+    ).as(
+      SqlParser.str("user_name") ~
+      SqlParser.long("password_hash") ~
+      SqlParser.long("salt") map(SqlParser.flatten) *
+    ).foldLeft(insSql) {
+      (sql, t) => sql.addBatchParams(t._1, t._2, t._3)
+    }.execute().length
+  }
+
+  def changePassword(userId: Long, passwordHash: Long, salt: Long)(implicit conn: Connection): Int = SQL(
+    """
+    update store_user set
+      password_hash = {passwordHash},
+      salt = {salt}
+    where store_user_id = {userId}
+    """
+  ).on(
+    'passwordHash -> passwordHash,
+    'salt -> salt,
+    'userId -> userId
+  ).executeUpdate()
 }
 
 object SiteUser {
   val simple = {
-    SqlParser.get[Pk[Long]]("site_user.site_user_id") ~
+    SqlParser.get[Option[Long]]("site_user.site_user_id") ~
     SqlParser.get[Long]("site_user.site_id") ~
     SqlParser.get[Long]("site_user.store_user_id") map {
       case id~siteId~storeUserId => SiteUser(id, siteId, storeUserId)
@@ -228,7 +353,7 @@ object SiteUser {
     ).executeUpdate()
 
     val id = SQL("select currval('site_user_seq')").as(SqlParser.scalar[Long].single)
-    SiteUser(Id(id), siteId, storeUserId)
+    SiteUser(Some(id), siteId, storeUserId)
   }
 
   def getByStoreUserId(storeUserId: Long)(implicit conn: Connection): Option[SiteUser] =
@@ -241,5 +366,4 @@ object SiteUser {
     ).as(
       SiteUser.simple.singleOpt
     )
-
 }

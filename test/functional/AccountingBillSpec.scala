@@ -13,6 +13,7 @@ import java.sql.Date.{valueOf => date}
 import LocaleInfo._
 import java.sql.Connection
 import scala.collection.JavaConversions._
+import com.ruimo.scoins.Scoping._
 
 class AccountingBillSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -40,6 +41,9 @@ class AccountingBillSpec extends Specification {
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+
+        // Need site for other customizations where company is selected from sites available in the application.
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
           browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
         )
@@ -50,7 +54,7 @@ class AccountingBillSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
         )
-        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id + "\"]").click()
+        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
         browser.fill("#storeYear").`with`("%tY".format(tran.tranHeader.transactionTime))
         browser.fill("#storeMonth").`with`("%tm".format(tran.tranHeader.transactionTime))
@@ -102,11 +106,14 @@ class AccountingBillSpec extends Specification {
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+
+        // Need site for other customizations where company is selected from sites available in the application.
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
-          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
+          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
         )
         createNormalUser(
-          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "company02"
+          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
         )
         val user01 = StoreUser.findByUserName("user01").get
         val user02 = StoreUser.findByUserName("user02").get
@@ -120,14 +127,18 @@ class AccountingBillSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
         )
-        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id + "\"]").click()
+        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
         browser.fill("#userYear").`with`("%tY".format(trans(0).tranHeader.transactionTime))
         browser.fill("#userMonth").`with`("%tm".format(trans(0).tranHeader.transactionTime))
         browser.find("#userSubmit").click();
 
         browser.find(".accountingBillTable").size() === 6
-        doWith(browser.find(".accountingBillTable", 0)) { tbl =>
+        val (tbl0, tbl1) = if (
+          browser.find(".accountingBillTable", 0).find(".itemName.body").size == 2
+        ) (0, 1) else (1, 0)
+
+        doWith(browser.find(".accountingBillTable", tbl0)) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
             headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(trans(2).tranHeader.transactionTime)
@@ -179,7 +190,7 @@ class AccountingBillSpec extends Specification {
         }
 
         // Should be ordered by user and transaction id.
-        doWith(browser.find(".accountingBillTable", 1)) { tbl =>
+        doWith(browser.find(".accountingBillTable", tbl1)) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
             headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
@@ -258,13 +269,13 @@ class AccountingBillSpec extends Specification {
     
     val itemPriceHistories = Vector(
       ItemPriceHistory.createNew(
-        itemPrice1, taxes(0), CurrencyInfo.Jpy, BigDecimal("100"), BigDecimal("90"), date("9999-12-31")
+        itemPrice1, taxes(0), CurrencyInfo.Jpy, BigDecimal("100"), None, BigDecimal("90"), date("9999-12-31")
       ),
       ItemPriceHistory.createNew(
-        itemPrice2, taxes(0), CurrencyInfo.Jpy, BigDecimal("200"), BigDecimal("190"), date("9999-12-31")
+        itemPrice2, taxes(0), CurrencyInfo.Jpy, BigDecimal("200"), None, BigDecimal("190"), date("9999-12-31")
       ),
       ItemPriceHistory.createNew(
-        itemPrice3, taxes(0), CurrencyInfo.Jpy, BigDecimal("300"), BigDecimal("290"), date("9999-12-31")
+        itemPrice3, taxes(0), CurrencyInfo.Jpy, BigDecimal("300"), None, BigDecimal("290"), date("9999-12-31")
       )
     )
 
@@ -302,9 +313,9 @@ class AccountingBillSpec extends Specification {
     ShoppingCartItem.removeForUser(user.id.get)
 
     val shoppingCartItems = Vector(
-      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(0).id.get, 3),
-      ShoppingCartItem.addItem(user.id.get, master.sites(1).id.get, master.items(1).id.get, 5),
-      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(2).id.get, 7)
+      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(0).id.get.id, 3),
+      ShoppingCartItem.addItem(user.id.get, master.sites(1).id.get, master.items(1).id.get.id, 5),
+      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(2).id.get.id, 7)
     )
     
     val addr1 = Address.createNew(
@@ -334,7 +345,7 @@ class AccountingBillSpec extends Specification {
 
     val cartTotal1 = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
     val tranId = (new TransactionPersister).persist(
-      Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, addr1, shippingTotal1, shippingDate1, now)
+      Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, Some(addr1), shippingTotal1, shippingDate1, now)
     )
     val tranList = TransactionLogHeader.list()
     val tranSiteList = TransactionLogSite.list()

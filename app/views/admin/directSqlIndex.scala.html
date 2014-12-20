@@ -1,0 +1,92 @@
+@(
+  updateForm: Form[DirectSqlExec],
+  result: Seq[(String, scala.util.Try[Int])],
+  queryForm: Form[DirectSqlExec],
+  queryResult: Option[scala.util.Try[QueryResult]]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: models.LoginSession
+)
+
+@import scala.util.Try
+@import scala.util.Success
+@import scala.util.Failure
+
+@main(Messages("executeDirectSqlTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("executeDirectSqlTitle")</h1>
+
+  @if(updateForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @helper.form(action = helper.CSRF(routes.DirectSql.execute()), 'id -> "directSqlForm") {
+    @helper.textarea(
+      updateForm("sql"),
+      '_label -> Messages("sqlToExecute"),
+      'rows -> 10, 'cols -> 50
+    )
+
+    <input type="submit" value=@Messages("execute")>
+  }
+
+  <table>
+    @result.map { r =>
+      <tr>
+        <td>@r._1</td>
+        <td>@{r._2 match {
+          case Success(cnt) => cnt + " rows updated"
+          case Failure(e) => e.toString
+        }}</td>
+      </tr>
+    }
+  </table>
+
+  @helper.form(action = helper.CSRF(routes.DirectSql.query()), 'id -> "directQuerySqlForm") {
+    @helper.textarea(
+      queryForm("sql"),
+      '_label -> Messages("querySqlToExecute"),
+      'rows -> 10, 'cols -> 50
+    )
+
+    <input type="submit" value=@Messages("execute")>
+  }
+
+  @queryResult.map { q =>
+    @q match {
+      case Success(results) => {
+        <table>
+          <tr>
+            @results.columnNames.map { c =>
+              <th>@c</th>
+            }
+          </tr>
+          @results.rows.map { r =>
+            <tr>
+              @r.map { c =>
+                <td>@c</td>
+              }
+            </tr>
+          }
+        </table>
+      }
+      case Failure(e) => {
+       @e.toString
+      }
+    }
+  }
+
+  <div class="menuPanel">
+    @admin.backToAdminTop()
+  </div>
+}

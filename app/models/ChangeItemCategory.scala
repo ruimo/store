@@ -8,6 +8,6 @@ case class ChangeItemCategory(
   categoryId: Long
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    Item.changeCategory(itemId, categoryId)
+    Item.changeCategory(ItemId(itemId), categoryId)
   }
 }

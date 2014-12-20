@@ -1,0 +1,7 @@
+@(date: Long)(implicit lang: Lang)
+
+@import org.joda.time.format.DateTimeFormat
+
+@{
+  DateTimeFormat.forPattern(Messages("published.date.format")).print(date)
+}

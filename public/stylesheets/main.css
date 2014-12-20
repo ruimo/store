@@ -293,6 +293,10 @@ tr.userTableBody {
   text-align: right;
 }
 
+.boxUnitPrice {
+  text-align: right;
+}
+
 .boxQuantity {
   text-align: right;
 }
@@ -327,6 +331,10 @@ tr.userTableBody {
 }
 
 .itemDetailItemPrice .value {
+  text-align: right;
+}
+
+.itemDetailListPrice .value {
   text-align: right;
 }
 
@@ -423,12 +431,26 @@ table.siteTable {
     background-color: DarkGreen;
 }
 
+table.recommendationByAdminTable {
+    width: 90%;
+    background-color: DarkGreen;
+}
+
 tr.siteTableHeader {
     background-color: DarkGreen;
     color: White;
 }
 
+tr.recommendationByAdminTable.header {
+    background-color: DarkGreen;
+    color: White;
+}
+
 tr.siteTableBody {
+    background-color: white;
+}
+
+tr.recommendationByAdminTable.body {
     background-color: white;
 }
 
@@ -550,6 +572,10 @@ tr.siteTableBody {
     text-align: right;
 }
 
+.accountingBillTable td.unitPrice {
+    text-align: right;
+}
+
 .accountingBillTable td.boxCount {
     text-align: right;
 }
@@ -566,12 +592,12 @@ tr.siteTableBody {
     text-align: right;
 }
 
-.accountingBillTable .subtotal.header {
-    text-align: left;
+.accountingBillTable td.subtotal {
+    text-align: right;
 }
 
 .accountingBillTable .tax.header {
-    text-align: left;
+    text-align: right;
 }
 
 .accountingBillHeaderTable {
@@ -586,5 +612,124 @@ tr.siteTableBody {
 
 .accountingBillTable .transactionStatus {
     padding-bottom: 20px;
+}
+
+#comment_field {
+    margin-top: 1em;
+}
+
+#cartDialogContent {
+    width: 100%;
+}
+
+#cartDialogCurrentContent, #cartDialogAddedContent {
+    width: 100%;
+}
+
+#cartDialogCurrentContent .header {
+    text-align: center;
+}
+
+#cartDialogCurrentContent .body.unitPrice {
+    text-align: right;
+}
+
+#cartDialogCurrentContent .body.quantity {
+    text-align: right;
+}
+
+#cartDialogCurrentContent .body.price {
+    text-align: right;
+}
+
+#cartDialogAddedContent .header {
+    text-align: center;
+}
+
+#cartDialogAddedContent .body.unitPrice {
+    text-align: right;
+}
+
+#cartDialogAddedContent .body.quantity {
+    text-align: right;
+}
+
+#cartDialogAddedContent .body.price {
+    text-align: right;
+}
+
+#cartDialogAddedContent {
+    background: Moccasin;
+}
+
+#cartDialogCurrentTitle {
+    vertical-align: bottom;
+    height: 3em;
+}
+
+#cartDialogCurrentTitle, #cartDialogAddedTitle, .recommendedItemTitle {
+    font-weight: bold;
+    font-size: 130%;
+}
+
+.recommendedItem {
+  display: inline-block;
+  padding: 4px;
+  margin: 2px;
+  vertical-align: top;
+}
+
+.recommendedItemImage {
+  max-width: 88px;
+  max-height: 88px;
+}
+
+.recommendedItem .itemName {
+  max-width: 200px;
+  max-height:200px;
+}
+
+.body .score {
+  text-align: right;
+}
+
+#recommendedContent {
+  margin:1em 1em 2em 1em;
+}
+
+.couponDetail {
+  vertical-align: top;
+}
+
+.couponDetail .date {
+  text-align: right;
+}
+
+#forgetPasword {
+  line-height:3em;
+}
+
+.updateCategoryName.language {
+    width: 6em;
+}
+
+.updateCategoryName.categoryName {
+    width: 60%;
+}
+
+.updateCategoryName.categoryName input {
+    width: 98%;
+}
+
+.createCategoryName.language {
+    width: 6em;
+}
+
+.createCategoryName.categoryName {
+    width: 60%;
+}
+
+.createCategoryName.categoryName input {
+    width: 98%;
 }
 

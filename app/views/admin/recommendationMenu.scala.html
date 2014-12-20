@@ -1,0 +1,19 @@
+@()(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("recommendationTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("recommendationTitle")</h1>
+
+  @if(loginSession.isSuperUser) {
+    <div class="menuItem">
+      <a href="@routes.RecommendationByAdmin.startEditRecommendByAdmin()">
+        @Messages("editRecommendByAdminTitle")
+      </a>
+    </div>
+  }
+}

@@ -1,0 +1,112 @@
+@(
+  queryString: helpers.QueryString,
+  list: PagedRecords[(
+    Item,
+    Option[ItemName],
+    Option[ItemDescription],
+    Option[Site],
+    Option[ItemPriceHistory],
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Option[Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+    Map[ItemTextMetadataType, ItemTextMetadata]
+  )]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  login: LoginSession
+)
+
+@main(Messages("createNewRecommendationByAdminTitle"), Some(login), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("createNewRecommendationByAdminTitle")</h1>
+
+  <p class="createNewRecommendation description">@Messages("createNewRecommendationByAdminDescription")</p>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @helper.form(action=routes.RecommendationByAdmin.selectItem(queryString.table.toList)) {
+    <input id="searchBox" type="search" name="q" placeholder="@Messages("search.placeholder")" value="@queryString.toString">
+    <input id="searchSubmit" type="submit" value="@Messages("search.button.title")">
+  }
+
+  <br>
+
+  <table class="itemTable">
+    <tr>
+      @defining(Some(login)) { implicit loginSession =>
+        <th class="itemTableHeaderId itemHeader">
+          @orderMark(
+            "id",
+            routes.RecommendationByAdmin.selectItem(queryString.toList, _: Int, _: Int, _: String),
+            "item_name.item_id", list
+          )
+        </th>
+        <th class="itemTableHeaderItemName itemHeader">
+          @orderMark(
+            Messages("itemName"),
+            routes.RecommendationByAdmin.selectItem(queryString.toList, _: Int, _: Int, _: String),
+            "item_name.item_name", list
+          )
+        </th>
+        <th class="itemTableHeaderSiteName itemHeader">
+          @orderMark(
+            Messages("site"),
+            routes.RecommendationByAdmin.selectItem(queryString.toList, _: Int, _: Int, _: String),
+            "site.site_name", list
+          )
+        </th>
+        <th class="itemTableHeaderPrice itemHeader">
+          @orderMark(
+            Messages("unitPrice"),
+            routes.RecommendationByAdmin.selectItem(queryString.toList, _: Int, _: Int, _: String),
+            "item_price_history.unit_price", list
+          )
+        </th>
+      }
+    </tr>
+
+    @list.records.map { e =>
+    <tr class="itemTableBody">
+      <td class="itemTableItemId">@e._1.id</td>
+      <td class="itemTableItemName">
+        <form class="addRecommendationByAdminForm" method="POST"
+              action="@helper.CSRF(routes.RecommendationByAdmin.addRecommendation(e._4.get.id.get, e._1.id.get.id))">
+          <input type="submit" value="Add">
+        </form>
+        <span class="itemName">@e._2.map(_.name).getOrElse("-")</span>
+      </td>
+      <td class="itemTableSiteName">@e._4.map(_.name).getOrElse("-")</td>
+      <td class="itemTablePrice">@e._5.map {p => @amount(p.unitPrice)}.getOrElse("-")</td>
+    </tr>
+    }
+  </table>
+  <br>
+  @defining(Some(login)) { implicit loginSession =>
+    @pagingPanel(
+      list,
+      routes.RecommendationByAdmin.selectItem(queryString.toList, _: Int, _: Int, _: String),
+      10, 25, 50
+    )
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.RecommendationByAdmin.startEditRecommendByAdmin()">
+      @Messages("backTo", Messages("recommendationByAdminTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

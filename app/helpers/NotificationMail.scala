@@ -1,6 +1,7 @@
 package helpers
 
 import models._
+import play.api.i18n.{Lang, Messages}
 import play.api.libs.concurrent.Akka
 import com.typesafe.plugin.MailerPlugin
 import play.api.libs.concurrent.Execution.Implicits._
@@ -13,13 +14,14 @@ import java.sql.Connection
 import play.api.Play
 import controllers.HasLogger
 import collection.immutable.LongMap
+import play.api.templates.Html
 
 object NotificationMail extends HasLogger {
   val disableMailer = Play.current.configuration.getBoolean("disable.mailer").getOrElse(false)
   val from = Play.current.configuration.getString("order.email.from").get
 
   def orderCompleted(
-    login: LoginSession, tran: PersistedTransaction, addr: Address
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
 
@@ -62,7 +64,7 @@ object NotificationMail extends HasLogger {
           it =>
             val tranItem = it._2
             val itemId = tranItem.itemId
-            buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, tranItem.itemId))
+            buf.update(siteId -> itemId, SiteItemNumericMetadata.all(siteId, ItemId(tranItem.itemId)))
         }
     }
     val metadata = buf.toMap
@@ -70,7 +72,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendToBuyer(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   ) {
     logger.info("Sending confirmation for buyer sent to " + login.storeUser.email)
@@ -135,7 +137,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendToStoreOwner(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   )(implicit conn: Connection) {
     tran.siteTable.foreach { site =>
@@ -213,7 +215,7 @@ object NotificationMail extends HasLogger {
   }
 
   def sendToAdmin(
-    login: LoginSession, tran: PersistedTransaction, addr: Address,
+    login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   )(implicit conn: Connection) {
     OrderNotification.listAdmin.foreach { admin =>
@@ -287,4 +289,23 @@ object NotificationMail extends HasLogger {
       }
     }
   }
+
+  def sendResetPasswordConfirmation(
+    user: StoreUser, rec: ResetPassword
+  )(
+    implicit lang: Lang
+  ) {
+    logger.info("Sending reset password confirmation to " + user.email)
+    val body = views.html.mail.resetPassword(user, rec).toString
+    if (! disableMailer) {
+      Akka.system.scheduler.scheduleOnce(0.microsecond) {
+        val mail = use[MailerPlugin].email
+        mail.setSubject(Messages("resetPassword.mail.subject"))
+        mail.addRecipient(user.email)
+        mail.addFrom(from)
+        mail.send(body)
+        logger.info("Reset password confirmation sent to " + user.email)
+      }
+    }
+  }    
 }

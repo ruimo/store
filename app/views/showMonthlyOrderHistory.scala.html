@@ -19,7 +19,7 @@
 } {
   <h1 class="title">@Messages("orderHistoryTitle")</h1>
 
-  @form(action = CSRF(routes.AccountingBill.show()), 'id -> "orderHistoryForm") {
+  @form(action = CSRF(routes.OrderHistory.showMonthly()), 'id -> "orderHistoryForm") {
     <table>
       <tr valign="top">
         <td>

@@ -5,10 +5,10 @@ import play.api.Play.current
 import java.sql.Connection
 
 case class ChangeSiteItemMetadataTable(
-  siteItemMetadatas: Seq[ChangeSiteItemMetadata]
+  siteItemMetadata: Seq[ChangeSiteItemMetadata]
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    siteItemMetadatas.foreach {
+    siteItemMetadata.foreach {
       _.update(itemId)
     }
   }
@@ -18,12 +18,12 @@ case class ChangeSiteItemMetadata(
   siteId: Long, metadataType: Int, metadata: Long
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    SiteItemNumericMetadata.update(itemId, siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
+    SiteItemNumericMetadata.update(ItemId(itemId), siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
   }
 
   def add(itemId: Long)(implicit conn: Connection) {
     ExceptionMapper.mapException {
-      SiteItemNumericMetadata.add(itemId, siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
+      SiteItemNumericMetadata.add(ItemId(itemId), siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
     }
   }
 }

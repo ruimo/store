@@ -3,7 +3,6 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
@@ -48,7 +47,7 @@ class AddressSpec extends Specification {
           for (i <- 0 until ShippingAddressHistory.HistoryMaxCount) {
             ShippingAddressHistory.createNew(
               user.id.get, Address(
-                NotAssigned,
+                None,
                 CountryCode.JPN,
                 "firstName" + i,
                 "middleName" + i,
@@ -75,7 +74,7 @@ class AddressSpec extends Specification {
 
           ShippingAddressHistory.createNew(
             user.id.get, Address(
-              NotAssigned,
+              None,
               CountryCode.JPN,
               "firstName" + ShippingAddressHistory.HistoryMaxCount,
               "middleName",
@@ -120,7 +119,7 @@ class AddressSpec extends Specification {
           
           ShippingAddressHistory.createNew(
             user.id.get, Address(
-              NotAssigned,
+              None,
               CountryCode.JPN,
               "firstName",
               "middleName",
@@ -143,7 +142,7 @@ class AddressSpec extends Specification {
 
           ShippingAddressHistory.createNew(
             user.id.get, Address(
-              NotAssigned,
+              None,
               CountryCode.JPN,
               "firstName",
               "middleName",

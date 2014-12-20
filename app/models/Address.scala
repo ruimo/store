@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
@@ -11,7 +10,7 @@ import java.sql.Connection
 import helpers.Enums
 
 case class Address(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   countryCode: CountryCode,
   firstName: String,
   middleName: String,
@@ -38,7 +37,7 @@ case class Address(
 }
 
 case class ShippingAddressHistory(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   storeUserId: Long,
   addressId: Long,
   updatedTime: Long
@@ -46,7 +45,7 @@ case class ShippingAddressHistory(
 
 object Address {
   val simple = {
-    SqlParser.get[Pk[Long]]("address.address_id") ~
+    SqlParser.get[Option[Long]]("address.address_id") ~
     SqlParser.get[Int]("address.country_code") ~
     SqlParser.get[String]("address.first_name") ~
     SqlParser.get[String]("address.middle_name") ~
@@ -149,7 +148,7 @@ object Address {
 
     val id = SQL("select currval('address_seq')").as(SqlParser.scalar[Long].single)
 
-    Address(Id(id), countryCode,
+    Address(Some(id), countryCode,
             firstName, middleName, lastName,
             firstNameKana, lastNameKana,
             zip1, zip2, zip3,
@@ -165,6 +164,55 @@ object Address {
       """
     ).on('id -> id).as(simple.single)
 
+  def update(address: Address)(implicit conn: Connection): Int = {
+    SQL(
+      """
+      update address set
+      country_code = {countryCode},
+      first_name = {firstName},
+      middle_name = {middleName},
+      last_name = {lastName},
+      first_name_kana = {firstNameKana},
+      last_name_kana = {lastNameKana},
+      zip1 = {zip1},
+      zip2 = {zip2},
+      zip3 = {zip3},
+      prefecture = {prefecture},
+      address1 = {address1},
+      address2 = {address2},
+      address3 = {address3},
+      address4 = {address4},
+      address5 = {address5},
+      tel1 = {tel1},
+      tel2 = {tel2},
+      tel3 = {tel3},
+      comment = {comment}
+      where address_id = {id}
+      """
+    ).on(
+      'id -> address.id.get,
+      'countryCode -> address.countryCode.code,
+      'firstName -> address.firstName,
+      'middleName -> address.middleName,
+      'lastName -> address.lastName,
+      'firstNameKana -> address.firstNameKana,
+      'lastNameKana -> address.lastNameKana,
+      'zip1 -> address.zip1,
+      'zip2 -> address.zip2,
+      'zip3 -> address.zip3,
+      'prefecture -> address.prefecture.code,
+      'address1 -> address.address1,
+      'address2 -> address.address2,
+      'address3 -> address.address3,
+      'address4 -> address.address4,
+      'address5 -> address.address5,
+      'tel1 -> address.tel1,
+      'tel2 -> address.tel2,
+      'tel3 -> address.tel3,
+      'comment -> address.comment
+    ).executeUpdate()
+  }
+
   lazy val JapanPrefectures: Seq[(String, String)] = Enums.toDropdownTable(JapanPrefecture.all)
   lazy val JapanPrefecturesIntSeq: Seq[(Int, String)] = Enums.toTable(JapanPrefecture.all)
 }
@@ -173,7 +221,7 @@ object ShippingAddressHistory {
   val HistoryMaxCount = 3
 
   val simple = {
-    SqlParser.get[Pk[Long]]("shipping_address_history.shipping_address_history_id") ~
+    SqlParser.get[Option[Long]]("shipping_address_history.shipping_address_history_id") ~
     SqlParser.get[Long]("shipping_address_history.store_user_id") ~
     SqlParser.get[Long]("shipping_address_history.address_id") ~
     SqlParser.get[java.util.Date]("shipping_address_history.updated_time") map {
@@ -215,7 +263,7 @@ object ShippingAddressHistory {
       )
       """
     ).on(
-      'now -> new java.sql.Date(now),
+      'now -> new java.util.Date(now),
       'userId -> userId,
       'countryCode -> address.countryCode.code,
       'firstName -> address.firstName,
@@ -273,7 +321,7 @@ object ShippingAddressHistory {
       ).on(
         'userId -> userId,
         'addressId -> newAddress.id.get,
-        'now -> new java.sql.Date(now)
+        'now -> new java.util.Date(now)
       ).executeUpdate()
 
       SQL(

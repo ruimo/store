@@ -12,7 +12,10 @@
 }
 
 @main(Messages("item.detail"), loginSession) {
+  @shoppingCartDialogDeclaration()
 } {
+  @shoppingCartDialogImplementation()
+
   <div class="itemDetailAll">
     <div class="itemDetailPicture">
       <div class="itemDetailPictureMain">
@@ -29,9 +32,26 @@
         @itemNumericMetadataRows(detail.itemNumericMetadata)
         @itemTextMetadataRows(detail.itemTextMetadata)
 
+        @detail.listPrice.map { lp =>
+          <tr class="itemDetailListPrice">
+            <td class="label">@Messages("listPrice")</td>
+            <td class="value">
+              <span class="amount">@amount(lp)</span>
+              @detail.siteItemTextMetadata.get(SiteItemTextMetadataType.LIST_PRICE_MEMO).map { md =>
+                <span class="memo">@md.metadata</span>
+              }.getOrElse("")
+            </td>
+          </tr>
+        }
+
         <tr class="itemDetailItemPrice">
           <td class="label">@Messages("price")</td>
-          <td class="value">@amount(detail.price)</td>
+          <td class="value">
+            <span class="amount">@amount(detail.price)</span>
+            @detail.siteItemTextMetadata.get(SiteItemTextMetadataType.PRICE_MEMO).map { md =>
+              <span class="memo">@md.metadata</span>
+            }.getOrElse("")
+          </td>
         </tr>
 
         <tr class="itemDetailSiteName">
@@ -44,7 +64,7 @@
 
       <div class="itemDetailCartPanel">
         <button class="purchaseButton" type="button"
-                onclick="location.href='@routes.Purchase.addToCart(detail.siteId, detail.itemId)';">
+                onclick="shoppingCartDialog.putIntoCart(@detail.siteId, @detail.itemId, 1);">
           @Messages("purchase")
         </button>
       </div>

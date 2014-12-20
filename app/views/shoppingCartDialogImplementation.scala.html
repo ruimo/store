@@ -1,0 +1,35 @@
+@(
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+<div id="cartDialog" style="display:none;">
+  <table id="cartDialogContent">
+    <tbody id="cartDialogAddedTitle">
+      <tr>
+        <td colspan="999">@Messages("addedToCart")</td>
+      </tr>
+    </tbody>
+    <tbody id="cartDialogAddedContent"></tbody>
+
+    <tbody id="recommendedContentBody">
+      <tr>
+        <td colspan="999" id="recommendedContent">
+        </td>
+      </tr>
+    </tbody>
+
+    <tbody id="cartDialogCurrentTitle">
+      <tr>
+        <td colspan="999">@Messages("currentCart")</td>
+      </tr>
+    </tbody>
+    <tbody id="cartDialogCurrentContent"></tbody>
+  </table>
+</div>
+
+<div id="errorDialog" style="display:none;">
+  @Messages("unknownError")
+</div>

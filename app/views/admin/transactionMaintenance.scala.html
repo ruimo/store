@@ -14,8 +14,6 @@
 @import helper._
 
 @main(Messages("transactionMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
-  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-  <link href="@routes.Assets.at("stylesheets/ui-lightness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet">
   <script type="text/javascript">
     $(function() {
       $("#submitDialog").dialog({
@@ -68,20 +66,34 @@
         </td>
         <td class="transactionTime">@yyyymmddhhmmss(e.transactionTime)</td>
         <td class="site">@e.siteName</td>
-        <td class="shippingDate">@shippingDate(e.shippingDate)</td>
-        <td class="transactionAmount">@amount(e.totalAmount - e.shippingFee)</td>
-        <td class="transactionShipping">@amount(e.shippingFee)</td>
+        <td class="shippingDate">
+          @if(e.address.isDefined) {
+            @shippingDate(e.shippingDate.get)
+          }
+        </td>
+        <td class="transactionAmount">
+          @amount(e.totalAmount - e.shippingFee)
+        </td>
+        <td class="transactionShipping">
+          @if(e.address.isDefined) {
+            @amount(e.shippingFee)
+          }
+        </td>
         <td class="buyer">
           @buyer(e.buyer)
         </td>
         <td class="transactionAddress">
-          <table>
-          @addressBody(e.address)
-          </table>
+          @if(e.address.isDefined) {
+            <table>
+            @addressBody(e.address.get)
+            </table>
+          }
         </td>
         <td>
-          @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters)
-          <a target="_blank" id="invoiceLink" href="@routes.Invoice.show(e.transactionSiteId)">@Messages("invoice")</a>
+          @if(e.address.isDefined) {
+            @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters)
+            <a target="_blank" id="invoiceLink" href="@routes.Invoice.show(e.transactionSiteId)">@Messages("invoice")</a>
+          }
         </td>
       </tr>
     }

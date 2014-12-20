@@ -1,15 +1,14 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import scala.language.postfixOps
-import collection.immutable.{LongMap, HashMap, IntMap}
+import collection.immutable
 import java.sql.Connection
 
 case class TransactionLogHeader(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   userId: Long,
   transactionTime: Long,
   currencyId: Long,
@@ -21,17 +20,17 @@ case class TransactionLogHeader(
 ) extends NotNull
 
 case class TransactionLogSite(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionId: Long,
   siteId: Long,
   // Item total and shipping total. Excluding outer tax, including inner tax.
   totalAmount: BigDecimal,
-  // Outer tax.
+  // Outer + Inner tax of items and shipping.
   taxAmount: BigDecimal
 ) extends NotNull
 
 case class TransactionLogShipping(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   amount: BigDecimal, // Unit price * boxCount
   addressId: Long,
@@ -44,7 +43,7 @@ case class TransactionLogShipping(
 ) extends NotNull
 
 case class TransactionLogTax(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   taxId: Long,
   taxType: TaxType,
@@ -54,7 +53,7 @@ case class TransactionLogTax(
 ) extends NotNull
 
 case class TransactionLogItem(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   itemId: Long,
   itemPriceHistoryId: Long,
@@ -64,13 +63,21 @@ case class TransactionLogItem(
   taxId: Long
 ) extends NotNull
 
+case class TransactionLogCouponId(id: Long) extends AnyVal
+
+case class TransactionLogCoupon(
+  id: Option[TransactionLogCouponId] = None,
+  transactionItemId: Long,
+  couponId: CouponId
+)
+
 case class ShippingInfo(
   transporterId: Long,
   slipCode: String
 ) extends NotNull
 
 case class TransactionShipStatus(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   transactionSiteId: Long,
   status: TransactionStatus,
   lastUpdate: Long,
@@ -84,7 +91,7 @@ case class ShippingDateEntry(
 ) extends NotNull
 
 case class ShippingDate(
-  tables: Map[Long, ShippingDateEntry] // Key is siteId
+  tables: Map[Long, ShippingDateEntry] = Map() // Key is siteId
 ) extends NotNull {
   def bySite(site: Site): ShippingDateEntry = bySiteId(site.id.get)
   def bySiteId(siteId: Long): ShippingDateEntry = tables(siteId)
@@ -94,7 +101,7 @@ case class Transaction(
   userId: Long,
   currency: CurrencyInfo,
   itemTotal: ShoppingCartTotal,
-  shippingAddress: Address,
+  shippingAddress: Option[Address],
   shippingTotal: ShippingTotal,
   shippingDate: ShippingDate,
   now: Long = System.currentTimeMillis
@@ -102,7 +109,7 @@ case class Transaction(
   lazy val total = itemTotal.total + shippingTotal.boxTotal  // Including inner tax excluding outer tax.
   lazy val taxAmount: BigDecimal = {
     val sumByTaxId = (itemTotal.sumByTaxId.toList ++ shippingTotal.sumByTaxId.toList).foldLeft(
-      LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
+      immutable.LongMap[BigDecimal]().withDefaultValue(BigDecimal(0))
     ) { (sum, e) => 
       sum.updated(e._1, sum(e._1) + e._2)
     }
@@ -114,7 +121,7 @@ case class Transaction(
   }
   lazy val bySite: Map[Site, Transaction] = {
     itemTotal.bySite.foldLeft(
-      new HashMap[Site, Transaction]()
+      new immutable.HashMap[Site, Transaction]()
     ) { (map, e) =>
       map.updated(
         e._1,
@@ -126,9 +133,19 @@ case class Transaction(
   }
 }
 
+case class CouponDetail(
+  tranHeaderId: Long,
+  tranCouponId: Long,
+  site: Site,
+  time: Long,
+  itemId: ItemId,
+  itemName: String,
+  couponId: CouponId
+)
+
 object TransactionLogHeader {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_header.transaction_id") ~
+    SqlParser.get[Option[Long]]("transaction_header.transaction_id") ~
     SqlParser.get[Long]("transaction_header.store_user_id") ~
     SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
     SqlParser.get[Long]("transaction_header.currency_id") ~
@@ -160,7 +177,7 @@ object TransactionLogHeader {
       """
     ).on(
       'userId -> userId,
-      'transactionTime -> new java.sql.Date(now),
+      'transactionTime -> new java.util.Date(now),
       'currencyId -> currencyId,
       'totalAmount -> totalAmount.bigDecimal,
       'taxAmount -> taxAmount.bigDecimal,
@@ -169,7 +186,7 @@ object TransactionLogHeader {
 
     val id = SQL("select currval('transaction_header_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogHeader(Id(id), userId, now, currencyId, totalAmount, taxAmount, transactionType)
+    TransactionLogHeader(Some(id), userId, now, currencyId, totalAmount, taxAmount, transactionType)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogHeader] =
@@ -201,7 +218,7 @@ object TransactionLogHeader {
 
 object TransactionLogSite {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_site.transaction_site_id") ~
+    SqlParser.get[Option[Long]]("transaction_site.transaction_site_id") ~
     SqlParser.get[Long]("transaction_site.transaction_id") ~
     SqlParser.get[Long]("transaction_site.site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_site.total_amount") ~
@@ -232,7 +249,7 @@ object TransactionLogSite {
 
     val id = SQL("select currval('transaction_site_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogSite(Id(id), transactionId, siteId, totalAmount, taxAmount)
+    TransactionLogSite(Some(id), transactionId, siteId, totalAmount, taxAmount)
   }
 
   def byId(id: Long)(implicit conn: Connection): TransactionLogSite =
@@ -265,7 +282,7 @@ object TransactionLogSite {
 
 object TransactionLogShipping {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_shipping.transaction_shipping_id") ~
+    SqlParser.get[Option[Long]]("transaction_shipping.transaction_shipping_id") ~
     SqlParser.get[Long]("transaction_shipping.transaction_site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_shipping.amount") ~
     SqlParser.get[Long]("transaction_shipping.address_id") ~
@@ -304,12 +321,12 @@ object TransactionLogShipping {
       'taxId -> taxId,
       'boxCount -> boxCount,
       'boxName -> boxName,
-      'shippingDate -> new java.sql.Date(shippingDate)
+      'shippingDate -> new java.util.Date(shippingDate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_shipping_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogShipping(Id(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
+    TransactionLogShipping(Some(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogShipping] =
@@ -342,7 +359,7 @@ object TransactionLogShipping {
 
 object TransactionLogTax {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_tax.transaction_tax_id") ~
+    SqlParser.get[Option[Long]]("transaction_tax.transaction_tax_id") ~
     SqlParser.get[Long]("transaction_tax.transaction_site_id") ~
     SqlParser.get[Long]("transaction_tax.tax_id") ~
     SqlParser.get[Int]("transaction_tax.tax_type") ~
@@ -379,7 +396,7 @@ object TransactionLogTax {
 
     val id = SQL("select currval('transaction_tax_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogTax(Id(id), transactionSiteId, taxId, taxType, rate, targetAmount, amount)
+    TransactionLogTax(Some(id), transactionSiteId, taxId, taxType, rate, targetAmount, amount)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogTax] =
@@ -399,7 +416,7 @@ object TransactionLogTax {
 
 object TransactionLogItem {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_item.transaction_item_id") ~
+    SqlParser.get[Option[Long]]("transaction_item.transaction_item_id") ~
     SqlParser.get[Long]("transaction_item.transaction_site_id") ~
     SqlParser.get[Long]("transaction_item.item_id") ~
     SqlParser.get[Long]("transaction_item.item_price_history_id") ~
@@ -439,7 +456,7 @@ object TransactionLogItem {
     val id = SQL("select currval('transaction_item_seq')").as(SqlParser.scalar[Long].single)
 
     TransactionLogItem(
-      Id(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice, taxId
+      Some(id), transactionSiteId, itemId, itemPriceHistoryId, quantity, amount, costPrice, taxId
     )
   }
 
@@ -456,20 +473,164 @@ object TransactionLogItem {
     ).as(
       simple *
     )
+
+  def listBySite(tranSiteId: Long)(implicit conn: Connection): Seq[TransactionLogItem] =
+    SQL(
+      """ 
+      select * from transaction_item
+      where transaction_site_id = {tranSiteId}
+      order by transaction_item_id
+      """
+    ).on(
+      'tranSiteId -> tranSiteId
+    ).as(
+      simple *
+    )
+}
+
+object TransactionLogCoupon {
+  val TransactionLogCouponDefaultOrderBy = OrderBy("h.transaction_id", Desc)
+  val DefaultOrderByMap = immutable.Map(
+    "h.transaction_id" -> OrderBy("h.transaction_id", Desc),
+    "s.site_id" -> OrderBy("s.site_id", Desc),
+    "c.coupon_id" -> OrderBy("c.coupon_id", Desc)
+  )
+
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_coupon.transaction_coupon_id") ~
+    SqlParser.get[Long]("transaction_coupon.transaction_item_id") ~
+    SqlParser.get[Long]("transaction_coupon.coupon_id") map {
+      case id~tranItemId~couponId =>
+        TransactionLogCoupon(id.map(TransactionLogCouponId.apply), tranItemId, CouponId(couponId))
+    }
+  }
+
+  def createNew(
+    transactionItemId: Long, couponId: CouponId
+  )(implicit conn: Connection): TransactionLogCoupon = {
+    SQL(
+      """
+      insert into transaction_coupon (
+        transaction_coupon_id, transaction_item_id, coupon_id
+      ) values (
+        (select nextval('transaction_coupon_seq')),
+        {transactionItemId}, {couponId}
+      )
+      """
+    ).on(
+      'transactionItemId -> transactionItemId,
+      'couponId -> couponId.id
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_coupon_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogCoupon(
+      Some(TransactionLogCouponId(id)), transactionItemId, couponId
+    )
+  }
+
+  def couponParser(implicit conn: Connection) = 
+    SqlParser.get[Long]("transaction_header.transaction_id") ~
+    SqlParser.get[Long]("transaction_coupon.transaction_coupon_id") ~
+    SqlParser.get[Long]("transaction_site.site_id") ~
+    SqlParser.get[java.util.Date]("transaction_header.transaction_time") ~
+    SqlParser.get[Long]("transaction_item.item_id") ~
+    SqlParser.get[String]("item_name.item_name") ~
+    SqlParser.get[Long]("transaction_coupon.coupon_id") map {
+      case tranId~tranCouponId~siteId~time~itemId~itemName~couponId =>
+        CouponDetail(
+          tranId, tranCouponId, Site(siteId), time.getTime, ItemId(itemId), itemName, CouponId(couponId)
+        )
+    }
+
+  def list(
+    locale: LocaleInfo, userId: Long, 
+    page: Int = 0, pageSize: Int = 10, orderBy: OrderBy = TransactionLogCouponDefaultOrderBy
+  )(implicit conn: Connection): PagedRecords[CouponDetail] = {
+
+    val orderByTable = DefaultOrderByMap + (orderBy.columnName -> orderBy)
+
+    val baseSql = 
+      """
+      from transaction_header h
+      inner join transaction_site s on h.transaction_id = s.transaction_id
+      inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
+      inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
+      inner join item it on it.item_id = i.item_id
+      inner join item_name iname on iname.item_id = i.item_id
+      where h.store_user_id = {userId}
+      and iname.locale_id = {localeId}
+    """
+
+    val count = SQL(
+      "select count(*) " + baseSql
+    ).on(
+      'userId -> userId,
+      'localeId -> locale.id
+    ).as(
+      SqlParser.scalar[Long].single
+    )
+
+    val list: Seq[CouponDetail] = SQL(
+      """
+      select
+        h.transaction_id,
+        c.transaction_coupon_id,
+        s.site_id,
+        h.transaction_time,
+        i.item_id,
+        iname.item_name,
+        c.coupon_id
+      """ +
+      baseSql +
+      " order by " +
+      orderByTable("h.transaction_id") + ", " +
+      orderByTable("s.site_id") + ", " +
+      orderByTable("c.coupon_id")
+    ).on(
+      'userId -> userId,
+      'localeId -> locale.id
+    ).as(
+      couponParser *
+    )
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
+  }
+
+  def at(locale: LocaleInfo, userId: Long, id: Long)(implicit conn: Connection): CouponDetail = SQL(
+    """
+    select * from transaction_header h
+    inner join transaction_site s on h.transaction_id = s.transaction_id
+    inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
+    inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
+    inner join item it on it.item_id = i.item_id
+    inner join item_name iname on iname.item_id = i.item_id
+    where c.transaction_coupon_id = {id}
+    and h.store_user_id = {userId}
+    and iname.locale_id = {localeId}
+    """
+  ).on(
+    'id -> id,
+    'userId -> userId,
+    'localeId -> locale.id
+  ).as(
+    couponParser.single
+  )
 }
 
 case class PersistedTransaction(
   header: TransactionLogHeader,
+  tranSiteLog: Map[Long, TransactionLogSite], // First key = siteId
   siteTable: Seq[Site],
   shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
-  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem)]] // First key = siteId
+  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]] // First key = siteId
 ) extends NotNull {
   lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
-    var result = LongMap[BigDecimal]()
+    var result = immutable.LongMap[BigDecimal]()
 
     siteTable.foreach { site =>
-      var amountByTaxId = LongMap[BigDecimal]()
+      var amountByTaxId = immutable.LongMap[BigDecimal]()
       val taxByTaxId = taxBySiteIdAndTaxId(site.id.get)
 
       itemTable(site.id.get).foreach { s =>
@@ -497,23 +658,23 @@ case class PersistedTransaction(
   // Key: siteId, taxId
   lazy val taxBySiteIdAndTaxId: Map[Long, Map[Long, TransactionLogTax]] = taxTable.mapValues {
     seq => seq.foldLeft(
-      LongMap[TransactionLogTax]()
+      immutable.LongMap[TransactionLogTax]()
     ) {
       (map, e) => map.updated(e.taxId, e)
     }
   }
   lazy val sites: Map[Long, Site] = siteTable.foldLeft(
-    LongMap[Site]()
+    immutable.LongMap[Site]()
   ) {
     (map, e) => map.updated(e.id.get, e)
   }
   lazy val itemTotal: Map[Long, BigDecimal] = itemTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_._2.amount).foldLeft(BigDecimal(0))(_ + _))
   }
   lazy val costPriceTotal: Map[Long, BigDecimal] = itemTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(
       e._1,
@@ -524,25 +685,30 @@ case class PersistedTransaction(
   }
   lazy val itemGrandTotal: BigDecimal = itemTotal.values.fold(BigDecimal(0))(_ + _)
   lazy val itemQuantity: Map[Long, Long] = itemTable.foldLeft(
-    LongMap[Long]()
+    immutable.LongMap[Long]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_._2.quantity).foldLeft(0L)(_ + _))
   }
   lazy val itemGrandQuantity: Long = itemQuantity.values.fold(0L)(_ + _)
   lazy val boxTotal: Map[Long, BigDecimal] = shippingTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.amount).foldLeft(BigDecimal(0))(_ + _))
-  }
+  }.withDefaultValue(BigDecimal(0))
   lazy val boxGrandTotal: BigDecimal = boxTotal.values.fold(BigDecimal(0))(_ + _)
   lazy val boxQuantity: Map[Long, Int] = shippingTable.foldLeft(
-    LongMap[Int]()
+    immutable.LongMap[Int]()
   ) {
     (map, e) => map.updated(e._1, e._2.map(_.boxCount).foldLeft(0)(_ + _))
-  }
+  }.withDefaultValue(0)
   lazy val boxGrandQuantity: Int = boxQuantity.values.fold(0)(_ + _)
+  lazy val boxNameBySiteIdAndItemClass: Map[Long, Map[Long, String]] = shippingTable.foldLeft(
+    immutable.LongMap[Map[Long, String]]().withDefaultValue(immutable.LongMap[String]())
+  ) {
+    (map, e) => map.updated(e._1, e._2.map {e => (e.itemClass -> e.boxName)}.toMap)
+  }
   lazy val outerTaxTotal: Map[Long, BigDecimal] = taxTable.foldLeft(
-    LongMap[BigDecimal]()
+    immutable.LongMap[BigDecimal]()
   ) {
     (map, e) => map.updated(
       e._1, e._2.filter(_.taxType == TaxType.OUTER_TAX).map(_.amount).foldLeft(BigDecimal(0))(_ + _)
@@ -553,7 +719,7 @@ case class PersistedTransaction(
 
 object TransactionShipStatus {
   val simple = {
-    SqlParser.get[Pk[Long]]("transaction_status.transaction_status_id") ~
+    SqlParser.get[Option[Long]]("transaction_status.transaction_status_id") ~
     SqlParser.get[Long]("transaction_status.transaction_site_id") ~
     SqlParser.get[Int]("transaction_status.status") ~
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
@@ -603,12 +769,12 @@ object TransactionShipStatus {
       'status -> status.ordinal,
       'transporterId -> shippingInfo.map(_.transporterId),
       'slipCode -> shippingInfo.map(_.slipCode),
-      'lastUpdate -> new java.sql.Date(lastUpdate)
+      'lastUpdate -> new java.util.Date(lastUpdate)
     ).executeUpdate()
 
     val id = SQL("select currval('transaction_status_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionShipStatus(Id(id), transactionSiteId, status, lastUpdate, shippingInfo, false)
+    TransactionShipStatus(Some(id), transactionSiteId, status, lastUpdate, shippingInfo, false)
   }
 
   def update(
@@ -691,6 +857,8 @@ object TransactionShipStatus {
 }
 
 case class TransactionDetail(
+  itemId: Long,
+  siteId: Long,
   itemName: String,
   unitPrice: BigDecimal,
   costUnitPrice: BigDecimal,
@@ -740,10 +908,10 @@ object TransactionDetail {
     ).as(
       parser *
     ).map { e =>
-      val metadata = ItemNumericMetadata.allById(e._5)
-      val textMetadata = ItemTextMetadata.allById(e._5)
-      val siteMetadata = SiteItemNumericMetadata.all(e._6, e._5)
-      TransactionDetail(e._1, e._2, e._3, e._4, metadata, siteMetadata, textMetadata)
+      val metadata = ItemNumericMetadata.allById(ItemId(e._5))
+      val textMetadata = ItemTextMetadata.allById(ItemId(e._5))
+      val siteMetadata = SiteItemNumericMetadata.all(e._6, ItemId(e._5))
+      TransactionDetail(e._5, e._6, e._1, e._2, e._3, e._4, metadata, siteMetadata, textMetadata)
     }
   }
 }
@@ -785,10 +953,12 @@ class TransactionPersister {
     siteLog: TransactionLogSite, tran: Transaction
   )(implicit conn: Connection) {
     tran.shippingTotal.table.foreach { e =>
-      TransactionLogShipping.createNew(
-        siteLog.id.get, e.boxTotal, tran.shippingAddress.id.get, e.itemClass, e.shippingBox.boxSize,
-        e.boxTaxInfo.taxId, e.boxQuantity, e.shippingBox.boxName, tran.shippingDate.tables(e.site.id.get).shippingDate
-      )
+      tran.shippingAddress.foreach { addr =>
+        TransactionLogShipping.createNew(
+          siteLog.id.get, e.boxTotal, addr.id.get, e.itemClass, e.shippingBox.boxSize,
+          e.boxTaxInfo.taxId, e.boxQuantity, e.shippingBox.boxName, tran.shippingDate.tables(e.site.id.get).shippingDate
+        )
+      }
     }
   }
 
@@ -815,10 +985,16 @@ class TransactionPersister {
     siteLog: TransactionLogSite, tran: Transaction
   )(implicit conn: Connection) {
     tran.itemTotal.table.foreach { e =>
-      TransactionLogItem.createNew(
+      val tranItem = TransactionLogItem.createNew(
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
         e.quantity, e.itemPrice, e.costUnitPrice, e.itemPriceHistory.taxId
       )
+
+      Coupon.getByItem(ItemId(e.shoppingCartItem.itemId)).foreach { coupon =>
+        TransactionLogCoupon.createNew(
+          tranItem.id.get, coupon.id.get
+        )
+      }
     }
   }
 
@@ -830,14 +1006,18 @@ class TransactionPersister {
     case site~tax => (site, tax)
   }
 
-  val siteWithItem = ItemName.simple ~ TransactionLogSite.simple ~ TransactionLogItem.simple map {
-    case name~site~item => (name, site, item)
+  val siteWithItem = 
+    ItemName.simple ~ 
+    TransactionLogSite.simple ~ 
+    TransactionLogItem.simple ~
+    (TransactionLogCoupon.simple ?) map {
+    case name~site~item~coupon => (name, site, item, coupon)
   }
 
   def load(tranId: Long, localeInfo: LocaleInfo)(implicit conn: Connection): PersistedTransaction = {
     val header = TransactionLogHeader(tranId)
 
-    val siteLog = SQL(
+    val (tranSiteLog, siteLog) = SQL(
       """
       select * from transaction_site
       inner join site on site.site_id = transaction_site.site_id
@@ -847,10 +1027,12 @@ class TransactionPersister {
     ).on(
       'id -> tranId
     ).as(
-      Site.simple *
-    )
+      (TransactionLogSite.simple ~ Site.simple) *
+    ).map {
+      e => (e._1 -> e._2)
+    }.unzip
 
-    var shippingLog = SQL(
+    val shippingLog = SQL(
       """
       select * from transaction_site
       inner join transaction_shipping
@@ -863,7 +1045,7 @@ class TransactionPersister {
     ).as(
       siteWithShipping *
     ).foldLeft(
-      LongMap[List[TransactionLogShipping]]().withDefaultValue(List())
+      immutable.LongMap[List[TransactionLogShipping]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._1.siteId
       map.updated(siteId, e._2 :: map(siteId))
@@ -882,7 +1064,7 @@ class TransactionPersister {
     ).as(
       siteWithTax *
     ).foldLeft(
-      LongMap[List[TransactionLogTax]]().withDefaultValue(List())
+      immutable.LongMap[List[TransactionLogTax]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._1.siteId
       map.updated(siteId, e._2 :: map(siteId))
@@ -894,6 +1076,7 @@ class TransactionPersister {
       inner join transaction_item
         on transaction_site.transaction_site_id = transaction_item.transaction_site_id
       inner join item_name on transaction_item.item_id = item_name.item_id
+      left join transaction_coupon c on c.transaction_item_id = transaction_item.transaction_item_id
       where transaction_site.transaction_id = {id}
       and item_name.locale_id = {locale}
       order by transaction_item.transaction_item_id
@@ -904,14 +1087,14 @@ class TransactionPersister {
     ).as(
       siteWithItem *
     ).foldLeft(
-      LongMap[List[(ItemName, TransactionLogItem)]]().withDefaultValue(List())
+      immutable.LongMap[List[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]]().withDefaultValue(List())
     ) { (map, e) =>
       val siteId = e._2.siteId
-      map.updated(siteId, ((e._1, e._3)) :: map(siteId))
+      map.updated(siteId, ((e._1, e._3, e._4)) :: map(siteId))
     }.mapValues(_.reverse)
 
     PersistedTransaction(
-      header, siteLog, shippingLog, taxLog, itemLog
+      header, tranSiteLog.map {e => (e.siteId -> e)}.toMap, siteLog, shippingLog, taxLog, itemLog
     )
   }
 }

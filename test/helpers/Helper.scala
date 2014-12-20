@@ -30,6 +30,17 @@ object Helper {
     user
   }
 
+  def login(browser: TestBrowser, userName: String, password: String) {
+    browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url)
+    browser.fill("#userName").`with`(userName)
+    browser.fill("#password").`with`(password)
+    browser.click("#doLoginButton")
+  }
+
+  def logoff(browser: TestBrowser) {
+    browser.goTo("http://localhost:3333" + controllers.routes.Admin.logoff("/").url)
+  }
+
   def createNormalUser(
     browser: TestBrowser,
     userName: String,
@@ -54,10 +65,6 @@ object Helper {
     val stack = (new Throwable()).getStackTrace()(1)
     val fname = "screenShots/" + stack.getFileName() + "_" + stack.getLineNumber() + ".png"
     browser.takeScreenShot(fname)
-  }
-
-  def doWith[T](arg: T)(func: T => Unit) {
-    func(arg)
   }
 
   def downloadString(urlString: String): (Int, String) = downloadString(None, urlString)
@@ -115,5 +122,28 @@ object Helper {
     }
 
     readFully(new ListBuffer[String])
+  }
+
+  // Trim consecutive more than one space char to single space character.
+  def justOneSpace(s: String): String = {
+    var buf = new StringBuilder
+    var spaceFound = false
+
+    s.foreach { c =>
+      if (spaceFound) {
+        if (c != ' ') {
+          spaceFound = false
+          buf.append(c)
+        }
+      }
+      else {
+        if (c == ' ') {
+          spaceFound = true
+        }
+        buf.append(c)
+      }
+    }
+
+    buf.toString
   }
 }

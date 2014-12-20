@@ -1,0 +1,59 @@
+@(
+  tran: PagedRecords[TransactionSummaryEntry],
+  detailByTranSiteId: scala.collection.immutable.LongMap[Seq[TransactionDetail]],
+  boxBySiteAndItemSize: scala.collection.immutable.LongMap[scala.collection.immutable.LongMap[TransactionLogShipping]],
+  siteTranByTranId: scala.collection.immutable.LongMap[PersistedTransaction],
+  addresses: Map[Long, Address],
+  tranId: Option[Long]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import scala.collection.immutable.LongMap
+
+@implicitLoginSessionOpt = @{Some(loginSession)}
+
+@main(Messages("order.history.list.title"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("order.history.list.title")</h1>
+
+  <table class="orderHistoryTable">
+    <tr>
+      <th>@Messages("transaction.id")</th>
+      <th>@Messages("date")</th>
+      <th>@Messages("site")</th>
+      <th>@Messages("buyer")</th>
+      <th>@Messages("transaction.amount")</th>
+    </tr>
+    @tran.records.map { e =>
+      <tr>
+        <td class="transactionId">
+          <a href="@routes.OrderHistory.showOrderHistory(tranId = Some(e.transactionId))">
+            @e.transactionId
+          </a>
+        </td>
+        <td class="transactionDate">@yyyymmddhhmm(e.transactionTime)</td>
+        <td class="siteName">@e.siteName</td>
+        <td class="buyerName">@name(e.buyer)</td>
+        <td class="price">@amount(e.totalWithTax)</td>
+      </tr>
+    }
+  </table>
+  <br>
+  @pagingPanel(
+    tran,
+    routes.OrderHistory.showOrderHistoryList(_: Int, _: Int, _: String, tranId),
+    10, 25, 50
+  )
+
+  <div class="menuPanel">
+    <a class="backLink" href="@routes.OrderHistory.index()">
+      @Messages("backTo", Messages("order.history.title"))
+    </a>
+  </div>
+}

@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import model.Until
 import play.api.Play.current
@@ -11,6 +10,8 @@ import collection.immutable.{LongMap, HashSet, HashMap, IntMap}
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
+import collection.immutable
+import com.ruimo.recoeng.json.SalesItem
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -27,10 +28,25 @@ case class ShoppingCartTotalEntry(
   lazy val quantity: Int = shoppingCartItem.quantity
   lazy val itemPrice: BigDecimal = unitPrice * quantity
   lazy val costUnitPrice: BigDecimal = itemPriceHistory.costPrice
+  lazy val itemId: Long = shoppingCartItem.itemId
+
+  def withNewQuantity(quantity: Int): ShoppingCartTotalEntry = ShoppingCartTotalEntry(
+    shoppingCartItem = shoppingCartItem.copy(
+      quantity = quantity
+    ),
+    itemName,
+    itemDescription,
+    site,
+    itemPriceHistory,
+    taxHistory,
+    itemNumericMetadata,
+    siteItemNumericMetadata,
+    itemTextMetadata
+  )
 }
 
 case class ShoppingCartTotal(
-  table: Seq[ShoppingCartTotalEntry] = List()
+  table: immutable.Seq[ShoppingCartTotalEntry] = List()
 ) extends NotNull {
   def +(e: ShoppingCartTotalEntry) = ShoppingCartTotal(table :+ e)
   lazy val size: Int = table.size
@@ -74,12 +90,32 @@ case class ShoppingCart(
 ) extends NotNull
 
 case class ShoppingCartItem(
-  id: Pk[Long] = NotAssigned, storeUserId: Long, sequenceNumber: Int,
-  siteId: Long, itemId: Long, quantity: Int
-) extends NotNull
+  id: Option[Long] = None,
+  storeUserId: Long,
+  sequenceNumber: Int,
+  siteId: Long,
+  itemId: Long,
+  quantity: Int
+) extends NotNull {
+  def copy(
+    id: Option[Long] = id,
+    storeUserId: Long = storeUserId,
+    sequenceNumber: Int = sequenceNumber,
+    siteId: Long = siteId,
+    itemId: Long = itemId,
+    quantity: Int = quantity
+  ) = ShoppingCartItem(
+      id: Option[Long],
+      storeUserId: Long,
+      sequenceNumber: Int,
+      siteId: Long,
+      itemId: Long,
+      quantity: Int
+  )
+}
 
 case class ShoppingCartShipping(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   storeUserId: Long,
   siteId: Long,
   shippingDate: Long
@@ -87,7 +123,7 @@ case class ShoppingCartShipping(
 
 object ShoppingCartItem {
   val simple = {
-    SqlParser.get[Pk[Long]]("shopping_cart_item.shopping_cart_item_id") ~
+    SqlParser.get[Option[Long]]("shopping_cart_item.shopping_cart_item_id") ~
     SqlParser.get[Long]("shopping_cart_item.store_user_id") ~
     SqlParser.get[Int]("shopping_cart_item.seq") ~
     SqlParser.get[Long]("shopping_cart_item.site_id") ~
@@ -173,7 +209,7 @@ object ShoppingCartItem {
         "select seq from shopping_cart_item where shopping_cart_item_id = {id}"
       ).on('id -> id).as(SqlParser.scalar[Int].single)
 
-      ShoppingCartItem(Id(id), userId, seq, siteId, itemId, quantity)
+      ShoppingCartItem(Some(id), userId, seq, siteId, itemId, quantity)
     }
   }
 
@@ -202,6 +238,19 @@ object ShoppingCartItem {
     )
   }
 
+  def listAllItemsForUser(userId: Long)(implicit conn: Connection): Seq[SalesItem] = SQL(
+      """
+      select * from shopping_cart_item
+      where shopping_cart_item.store_user_id = {userId}
+      """
+    ).on(
+      'userId -> userId
+    ).as(
+      simple *
+    ).map { e =>
+      SalesItem(e.siteId.toString, e.itemId.toString, e.quantity)
+    }
+
   def listItemsForUser(
     locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 100, now: Long = System.currentTimeMillis
   )(
@@ -229,7 +278,7 @@ object ShoppingCartItem {
     ).as(
       listParser *
     ).map { e =>
-      val itemId = e._1.itemId
+      val itemId = ItemId(e._1.itemId)
       val itemPriceId = e._4.id.get
       val priceHistory = ItemPriceHistory.at(itemPriceId, now)
       val taxHistory = TaxHistory.at(priceHistory.taxId, now)
@@ -254,17 +303,31 @@ object ShoppingCartItem {
     ).executeUpdate()
   }
 
-  def apply(id: Long)(implicit conn: Connection): ShoppingCartItem =
-    SQL(
-      "select * from shopping_cart_item where shopping_cart_item_id = {id}"
-    ).on(
-      'id -> id
-    ).as(simple.single)
+  def apply(id: Long)(implicit conn: Connection): ShoppingCartItem = SQL(
+    "select * from shopping_cart_item where shopping_cart_item_id = {id}"
+  ).on(
+    'id -> id
+  ).as(simple.single)
+
+  def isAllCoupon(userId: Long)(implicit conn: Connection): Boolean = SQL(
+    """
+    select case when exists(
+      select * from shopping_cart_item si
+      left join coupon_item ci on si.item_id = ci.item_id
+      left join coupon c on ci.coupon_id = c.coupon_id
+      where si.store_user_id = {id} and coalesce(c.deleted, true) = true
+    ) then 1 else 0 end
+    """
+  ).on(
+    'id -> userId
+  ).as(
+    SqlParser.scalar[Int].single
+  ) == 0
 }
 
 object ShoppingCartShipping {
   val simple = {
-    SqlParser.get[Pk[Long]]("shopping_cart_shipping.shopping_cart_shipping_id") ~
+    SqlParser.get[Option[Long]]("shopping_cart_shipping.shopping_cart_shipping_id") ~
     SqlParser.get[Long]("shopping_cart_shipping.store_user_id") ~
     SqlParser.get[Long]("shopping_cart_shipping.site_id") ~
     SqlParser.get[java.util.Date]("shopping_cart_shipping.shipping_date") map {

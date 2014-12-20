@@ -1,0 +1,36 @@
+@(
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+<script src="@routes.Assets.at("javascripts/showRecommendation.js")"></script>
+<script src="@routes.Assets.at("javascripts/shoppingCartDialog.js")"></script>
+<script>
+  $(function() {
+    shoppingCartDialog.init({
+      cartDialog: {
+        title: '@Messages("shopping.cart")',
+        closeButtonTitle: '@Messages("close")',
+        shoppingCartButtonTitle: '@Messages("shopping.cart")',
+        showShoppingCartUrl: "@routes.Purchase.showShoppingCart",
+        itemNameHeader: '@Messages("itemName")',
+        siteNameHeader: '@Messages("site")',
+        unitPriceHeader: '@Messages("unitPrice")',
+        quantityHeader: '@Messages("quantity")',
+        subtotalHeader: '@Messages("subtotal")'
+      },
+      errorDialog: {
+        closeButtonTitle: '@Messages("close")'
+      },
+      addToShoppingCardJsonUrl: '@helper.CSRF(routes.ShoppingCart.addToCartJson)',
+      addToShoppingCartUrl: escape('@routes.Purchase.addToCart(111, 222, 333)'),
+      addOrderHistoryJsonUrl: '@helper.CSRF(routes.ShoppingCart.addOrderHistoryJson)',
+      recommendByShoppingCartJsonUrl: '@routes.Recommendation.byShoppingCartJson()',
+      itemImageUrl: '@routes.ItemPictures.getPicture(111, 0)',
+      itemDetailUrl: '@routes.ItemDetail.show(111, 222)',
+      recommendedItemTitle: '@Messages("recommendedItemTitle")'
+    });
+  });
+</script>

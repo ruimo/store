@@ -1,11 +1,3 @@
 @(amount: BigDecimal)(implicit lang: Lang)
 
-@import java.util.Locale
-
-@{
-  lang.toLocale match {
-    case Locale.JAPANESE => String.format("%,.0f円", amount.bigDecimal)
-    case Locale.JAPAN => String.format("%,.0f円", amount.bigDecimal)
-    case _ => String.format("%.2f", amount.bigDecimal)
-  }
-}
+@helpers.ViewHelpers.toAmount(amount)

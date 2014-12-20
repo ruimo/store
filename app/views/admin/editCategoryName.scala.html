@@ -1,0 +1,153 @@
+@(
+  categoryId: Long,
+  createForm: Form[UpdateCategoryName],  
+  updateForms: Form[UpdateCategoryNameTable],
+  removeForm: Form[RemoveCategoryName],
+  localeTable: Seq[(String, String)]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
+  lang: Lang,
+  request: RequestHeader,
+  login: LoginSession
+)
+
+@import helper._
+
+@main(Messages("editCategoryNameTitle"), Some(login), contentCssClass = "adminContents") {
+  <script>
+    var removeCategoryName = function(categoryId, localeId) {
+      $("#removeCategoryId").val(categoryId);
+      $("#removeLocaleId").val(localeId);
+      $("#removeCategoryNameForm").submit();
+    }
+  </script>
+} {
+  <h1 class="title">@Messages("editCategoryNameTitle")</h1>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <div>
+    @form(action = CSRF(routes.CategoryMaintenance.removeCategoryName(categoryId)), 'id -> "removeCategoryNameForm") {
+      @inputText(
+        removeForm("categoryId"), 'type -> "hidden", '_showConstraints -> false, 'id -> "removeCategoryId"
+      )(FieldConstructor(simpleField.f), implicitly)
+      @inputText(
+        removeForm("localeId"), 'type -> "hidden", '_showConstraints -> false, 'id -> "removeLocaleId"
+      )(FieldConstructor(simpleField.f), implicitly)
+    }
+  </div>
+
+  @if(! updateForms("categoryNames").indexes.isEmpty) {
+    @form(action = CSRF(routes.CategoryMaintenance.updateCategoryName(categoryId))) {
+      <table class="updateCategoryName">
+        @repeat(updateForms("categoryNames")) { f =>
+          <tr>
+            <th class="updateCategoryName remove header">
+            </th>
+            <th class="updateCategoryName language header">
+              @Messages("language")
+            </th>
+            <th class="updateCategoryName categoryName header">
+              @Messages("categoryName")
+            </th>
+          <tr>
+            <td class="updateCategoryName remove body">
+              <button onclick='removeCategoryName(@f("categoryId").value.get, @f("localeId").value.get); return false;'>
+                @Messages("remove")
+              </button>
+            </td>
+            <td class="updateCategoryName language body">
+              @inputText(
+                f("categoryId"), 'type -> "hidden", '_showConstraints -> false
+              )(FieldConstructor(simpleField.f), implicitly)
+  
+              @inputText(
+                f("localeId"), 'type -> "hidden", '_showConstraints -> false
+              )(FieldConstructor(simpleField.f), implicitly)
+  
+              <span class="langName">@Messages("lang." + LocaleInfo(f("localeId").value.get.toLong).lang)</span>
+            </td>
+            <td class="updateCategoryName categoryName body">
+              @inputText(
+                f("name"),
+                '_showConstraints -> false
+              )(FieldConstructor(simpleField.f), implicitly)
+            </td>
+          </tr>
+        }
+  
+        <tr>
+          <td class="updateCategoryName language body"></td>
+          <td class="updateCategoryName update body">
+            <input type="submit" id="submitCategoryNameUpdate" value='@Messages("update")'>
+          </td>
+        </tr>
+      </table>
+    }
+  }
+
+  @form(action = CSRF(routes.CategoryMaintenance.createCategoryName(categoryId)), 'id -> "createCategoryNameForm") {
+    <table class="createCategoryName">
+      <tr>
+        <th class="updateCategoryName language header">
+          @Messages("language")
+        </th>
+        <th class="updateCategoryName categoryName header">
+          @Messages("categoryName")
+        </th>
+      </tr>
+      <tr>
+        <td class="createCategoryName language body">
+          @inputText(
+            createForm("categoryId"), 'type -> "hidden", '_showConstraints -> false
+          )(FieldConstructor(simpleField.f), implicitly)
+          @select(
+            createForm("localeId"),
+            localeTable,
+            '_showConstraints -> false
+          )(
+            helper.FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td class="createCategoryName categoryName body">
+          @inputText(
+            createForm("name"),
+            '_showConstraints -> false
+          )(FieldConstructor(simpleField.f), implicitly)
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="createCategoryName update body">
+          <input type="submit" id="submitCategoryNameCreate" value='@Messages("add")'>
+        </td>
+      </tr>
+    </table>
+  }
+
+  <div class="menuPanel" >
+    <br>
+    <a class="backLink" href="@routes.CategoryMaintenance.editCategory(None)">
+      @Messages("backTo", Messages("editCategoryTitle"))
+    </a>
+
+    <br>
+    <a class="backLink" href="@routes.CategoryMaintenance.index()">
+      @Messages("backTo", Messages("categoryMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

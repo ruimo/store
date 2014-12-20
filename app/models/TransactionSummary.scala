@@ -10,7 +10,7 @@ case class TransactionSummaryEntry(
   transactionTime: Long,
   totalAmount: BigDecimal,
   totalTax: BigDecimal,
-  address: Address,
+  address: Option[Address],
   siteId: Long,
   siteName: String,
   shippingFee: BigDecimal,
@@ -18,7 +18,7 @@ case class TransactionSummaryEntry(
   statusLastUpdate: Long,
   shipStatus: Option[ShippingInfo],
   buyer: StoreUser,
-  shippingDate: Long,
+  shippingDate: Option[Long],
   mailSent: Boolean
 ) extends NotNull {
   lazy val totalWithTax = totalAmount + totalTax
@@ -32,13 +32,13 @@ object TransactionSummary {
     SqlParser.get[java.util.Date]("transaction_time") ~
     SqlParser.get[java.math.BigDecimal]("total_amount") ~
     SqlParser.get[java.math.BigDecimal]("tax_amount") ~
-    Address.simple ~
+    (Address.simple ?) ~
     SqlParser.get[Long]("site_id") ~
     SqlParser.get[String]("site_name") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
     SqlParser.get[Int]("status") ~
     StoreUser.simple ~
-    SqlParser.get[java.util.Date]("shipping_date") ~
+    SqlParser.get[Option[java.util.Date]]("shipping_date") ~
     SqlParser.get[java.util.Date]("transaction_status.last_update") ~ 
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
@@ -48,7 +48,7 @@ object TransactionSummary {
           id, tranSiteId, time.getTime, amount, tax, address, siteId, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
-          user, shippingDate.getTime, mailSent
+          user, shippingDate.map(_.getTime), mailSent
         )
     }
   }
@@ -76,6 +76,7 @@ object TransactionSummary {
     siteId: Option[Long],
     withLimit: Boolean,
     storeUserId: Option[Long] = None,
+    tranId: Option[Long] = None,
     additionalWhere: String = "",
     orderByOpt: Seq[OrderBy] = List(ListDefaultOrderBy),
     forCount: Boolean = false,
@@ -95,13 +96,13 @@ object TransactionSummary {
         transaction_site.transaction_site_id,
         transaction_header.store_user_id,
         max(transaction_shipping.shipping_date) shipping_date,
-        min(transaction_shipping.address_id) address_id,
-        sum(transaction_shipping.amount) shipping,
+        min(coalesce(transaction_shipping.address_id, 0)) address_id,
+        sum(coalesce(transaction_shipping.amount, 0)) shipping,
         sum(coalesce(transaction_tax.amount, 0)) tax_amount
       from transaction_header
       inner join transaction_site on
         transaction_header.transaction_id = transaction_site.transaction_id
-      inner join transaction_shipping on
+      left join transaction_shipping on
         transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
       left join transaction_tax on
         transaction_tax.transaction_site_id = transaction_site.transaction_site_id and
@@ -109,6 +110,7 @@ object TransactionSummary {
     " where 1 = 1" +
     siteId.map {id => " and transaction_site.site_id = " + id}.getOrElse("") +
     storeUserId.map {uid => " and transaction_header.store_user_id = " + uid}.getOrElse("") +
+    tranId.map {id => " and transaction_header.transaction_id = " + id}.getOrElse("") +
     """
       group by
         transaction_header.transaction_id,
@@ -119,7 +121,7 @@ object TransactionSummary {
         transaction_site.transaction_site_id,
         transaction_header.store_user_id
     ) base
-    inner join address on address.address_id = base.address_id
+    left join address on address.address_id = base.address_id
     inner join site on site.site_id = base.site_id
     inner join store_user on base.store_user_id = store_user.store_user_id
     left join transaction_status
@@ -127,15 +129,16 @@ object TransactionSummary {
     """ +
     additionalWhere +
     (if (forCount) ""
-     else " order by " + orderByOpt.map {o => s"$o, "}.mkString("") + "base.transaction_site_id asc ") +
+     else " order by " + orderByOpt.map {o => s"$o, "}.mkString("") + "base.site_id asc ") +
     (if (withLimit) "limit {limit} offset {offset}" else "")
 
   def list(
     siteId: Option[Long] = None, storeUserId: Option[Long] = None,
+    tranId: Option[Long] = None,
     page: Int = 0, pageSize: Int = 25, orderBy: OrderBy = ListDefaultOrderBy
   )(implicit conn: Connection): PagedRecords[TransactionSummaryEntry] = {
     val count = SQL(
-      baseSql(columns = "count(*)", siteId = siteId, storeUserId = storeUserId,
+      baseSql(columns = "count(*)", siteId = siteId, storeUserId = storeUserId, tranId = tranId,
               additionalWhere = "", withLimit = false, orderByOpt = List(), forCount = true)
     ).as(
       SqlParser.scalar[Long].single
@@ -147,7 +150,10 @@ object TransactionSummary {
       (count + pageSize - 1) / pageSize,
       orderBy,
       SQL(
-        baseSql(siteId = siteId, storeUserId = storeUserId, additionalWhere = "", withLimit = true, orderByOpt = List(orderBy))
+        baseSql(
+          siteId = siteId, storeUserId = storeUserId, tranId = tranId,
+          additionalWhere = "", withLimit = true, orderByOpt = List(orderBy)
+        )
       ).on(
         'limit -> pageSize,
         'offset -> page * pageSize

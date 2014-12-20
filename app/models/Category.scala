@@ -1,13 +1,13 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.Lang
 import java.sql.Connection
+import scala.collection.immutable
 
 case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) extends NotNull {
   assert(pathLength >= 0 && pathLength <= Short.MaxValue, "length(= " + pathLength + ") is invalid.")
@@ -17,11 +17,11 @@ case class CategoryName(locale: LocaleInfo, categoryId: Long, name: String) exte
   assert(name != null && name.length <= 32, "length(= " + name + ") is invalid.")
 }
 
-case class Category(id: Pk[Long] = NotAssigned) extends NotNull
+case class Category(id: Option[Long] = None) extends NotNull
 
 object Category {
   val simple = {
-    SqlParser.get[Pk[Long]]("category.category_id") map {
+    SqlParser.get[Option[Long]]("category.category_id") map {
       case id => Category(id)
     }
   }
@@ -89,6 +89,40 @@ object Category {
 
   val withName = Category.simple ~ CategoryName.simple map {
     case cat~name => (cat, name)
+  }
+
+  val withNameOpt = Category.simple ~ (CategoryName.simple ?) map {
+    case cat~nameOpt => (cat, nameOpt)
+  }
+
+  def listWithName(
+    page: Int = 0, pageSize: Int = 10, locale: LocaleInfo, orderBy: OrderBy
+  )(
+    implicit conn: Connection
+  ): PagedRecords[(Category, Option[CategoryName])] = {
+    val offset: Int = pageSize * page
+    val records: Seq[(Category, Option[CategoryName])] = SQL(
+      s"""
+      select * from category
+      left join category_name
+        on category.category_id = category_name.category_id
+        and category_name.locale_id = {localeId}
+      order by $orderBy nulls last
+      limit {pageSize} offset {offset}
+      """
+    ).on(
+      'localeId -> locale.id,
+      'pageSize -> pageSize,
+      'offset -> offset
+    ).as(
+      withNameOpt *
+    )
+
+    val count = SQL(
+      "select count(*) from category"
+    ).as(SqlParser.scalar[Long].single)
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, records)
   }
 
   def list(
@@ -204,14 +238,14 @@ object Category {
       ).executeUpdate()
     }}
 
-    Category(Id(categoryId))
+    Category(Some(categoryId))
   }
 
   def get(id: Long)(implicit conn: Connection) : Option[Category] = SQL(
       """
       select category_id from category where category_id = {category_id}
       """
-    ).on('category_id -> id).as(SqlParser.scalar[Pk[Long]].singleOpt).map(Category(_))
+    ).on('category_id -> id).as(SqlParser.scalar[Option[Long]].singleOpt).map(Category(_))
 
   def rename(category: Category, newNames: Map[LocaleInfo, String])(implicit conn: Connection) : Unit =
     rename(category.id.get, newNames)
@@ -299,6 +333,40 @@ object CategoryName {
     }
   }
 
+  def createNew(categoryId: Long, localeId: Long, name: String)(implicit conn: Connection) {
+    SQL(
+      """
+      insert into category_name
+      (category_id, locale_id, category_name) values ({categoryId}, {localeId}, {name})
+      """
+    ).on(
+      'categoryId -> categoryId,
+      'localeId -> localeId,
+      'name -> name
+    ).executeUpdate()
+  }
+
+  def update(categoryId: Long, localeId: Long, name: String)(implicit conn: Connection): Int = SQL(
+      """
+      update category_name set category_name = {name}
+      where category_id = {categoryId} and locale_id = {localeId}
+      """
+    ).on(
+      'categoryId -> categoryId,
+      'localeId -> localeId,
+      'name -> name
+    ).executeUpdate()
+
+  def remove(categoryId: Long, localeId: Long)(implicit conn: Connection): Int = SQL(
+    """
+    delete from category_name
+    where category_id = {categoryId} and locale_id = {localeId}
+    """
+  ).on(
+    'categoryId -> categoryId,
+    'localeId -> localeId
+  ).executeUpdate()
+
   def get(locale: LocaleInfo, category: Category)(implicit conn: Connection): Option[String] = get(locale, category.id.get)
   def get(locale: LocaleInfo, categoryId: Long)(implicit conn: Connection): Option[String] = 
     SQL(
@@ -310,6 +378,19 @@ object CategoryName {
       'category_id -> categoryId,
       'locale_id -> locale.id
     ).as(SqlParser.scalar[String].singleOpt)
+
+  def all(categoryId: Long)(implicit conn: Connection): immutable.Map[LocaleInfo, CategoryName] = SQL(
+      """
+      select * from category_name
+      where category_id = {id}
+      """
+    ).on(
+      'id -> categoryId
+    ).as(
+      simple *
+    ).map {
+      rec => (rec.locale, rec)
+    }.toMap
 }
 
 object CategoryPath {
@@ -323,7 +404,7 @@ object CategoryPath {
   }
 
   val child = {
-    SqlParser.get[Pk[Long]]("category_path.descendant") map {
+    SqlParser.get[Option[Long]]("category_path.descendant") map {
       case descendant => Category(descendant)
     }
   }
@@ -344,7 +425,7 @@ object CategoryPath {
     ).on(
       'category_id -> categoryId
     ).as(
-      SqlParser.scalar[Pk[Long]].singleOpt
+      SqlParser.scalar[Option[Long]].singleOpt
     ).map(Category(_))
 
   def children(
@@ -405,7 +486,7 @@ object CategoryPath {
             or n.locale_id = {locale_id})
       """ replaceAll(" +"," ")
     ).on('locale_id -> locale.id).as(
-      SqlParser.get[Pk[Long]]("category_path.ancestor") ~ 
+      SqlParser.get[Option[Long]]("category_path.ancestor") ~ 
       SqlParser.get[Long]("category_name.locale_id") ~
       SqlParser.get[Long]("category_name.category_id") ~
       SqlParser.get[String]("category_name.category_name") map {

@@ -6,9 +6,11 @@ import java.util.Locale
 import play.api.Play.current
 import play.api.db._
 import play.api.i18n.{Messages, Lang}
-import scala.collection.mutable.{HashMap => MutableMap}
+import scala.collection.mutable
+import scala.collection.immutable
 import scala.language.postfixOps
 import java.sql.Connection
+
 
 case class LocaleInfo(id: Long, lang: String, country: Option[String] = None) extends NotNull {
   def toLocale: Locale = country match {
@@ -37,15 +39,16 @@ object LocaleInfo {
     }
   }
 
-  lazy val registry: Map[Long, LocaleInfo] = DB.withConnection { implicit conn =>
-    SQL("select * from locale")
-      .as(LocaleInfo.simple *)
-      .map(r => r.id -> r)
-      .toMap
+  lazy val registry: immutable.SortedMap[Long, LocaleInfo] = DB.withConnection { implicit conn =>
+    immutable.TreeMap(
+      SQL("select * from locale")
+        .as(LocaleInfo.simple *)
+        .map(r => r.id -> r): _*
+    )
   }
 
   lazy val byLang: Map[Lang, LocaleInfo] =
-    registry.values.foldLeft(new MutableMap[Lang, LocaleInfo]) {
+    registry.values.foldLeft(new mutable.HashMap[Lang, LocaleInfo]) {
       (map, e) => {map.put(new Lang(e.lang, e.country.getOrElse("")), e); map}
     }.toMap
 

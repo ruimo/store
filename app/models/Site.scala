@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
@@ -11,7 +10,7 @@ import java.sql.Connection
 import play.api.i18n.Lang
 
 case class Site(
-  id: Pk[Long] = NotAssigned, localeId: Long, name: String
+  id: Option[Long] = None, localeId: Long, name: String
 ) extends NotNull with Ordered[Site] {
   def compare(that: Site) = {
     this.name.compare(that.name)
@@ -20,7 +19,7 @@ case class Site(
 
 object Site {
   val simple = {
-    SqlParser.get[Pk[Long]]("site.site_id") ~
+    SqlParser.get[Option[Long]]("site.site_id") ~
     SqlParser.get[Long]("site.locale_id") ~
     SqlParser.get[String]("site.site_name") map {
       case id~localeId~siteName => Site(id, localeId, siteName)
@@ -29,14 +28,14 @@ object Site {
 
   def apply(siteId: Long)(implicit conn: Connection): Site =
     SQL(
-      "select * from site where site_id = {id}"
+      "select * from site where site_id = {id} and site.deleted = FALSE"
     ).on(
       'id -> siteId
     ).as(simple.single)
 
   def get(siteId: Long)(implicit conn: Connection): Option[Site] =
     SQL(
-      "select * from site where site_id = {id}"
+      "select * from site where site_id = {id} and site.deleted = FALSE"
     ).on(
       'id -> siteId
     ).as(simple.singleOpt)
@@ -54,7 +53,7 @@ object Site {
 
     val siteId = SQL("select currval('site_seq')").as(SqlParser.scalar[Long].single)
 
-    Site(Id(siteId), locale.id, name)
+    Site(Some(siteId), locale.id, name)
   }
 
   def listByName(page: Int = 0, pageSize: Int = 20)(implicit conn: Connection): Seq[Site] = SQL(
@@ -71,13 +70,14 @@ object Site {
     SQL(
       """
       select * from site
+      where site.deleted = FALSE
       """ +
-      login.siteUser.map("where site_id = " + _.siteId).getOrElse("") +
+      login.siteUser.map("and site_id = " + _.siteId).getOrElse("") +
       """
       order by site_name
       """
     ).as(simple *).map {
-      e => e.id.toString -> e.name
+      e => e.id.get.toString -> e.name
     }
 
   def tableForDropDown(itemId: Long)(implicit login: LoginSession,  conn: Connection): Seq[(String, String)] =
@@ -85,7 +85,7 @@ object Site {
       """
       select * from site
       inner join site_item on site.site_id = site_item.site_id
-      where site_item.item_id = {itemId}
+      where site_item.item_id = {itemId} and site.deleted = FALSE
       """ +
       login.siteUser.map("and site.site_id = " + _.siteId).getOrElse("") +
       """
@@ -94,12 +94,12 @@ object Site {
     ).on(
       'itemId -> itemId
     ).as(simple *).map {
-      e => e.id.toString -> e.name
+      e => e.id.get.toString -> e.name
     }
 
   def listAsMap(implicit conn: Connection): Map[Long, Site] =
     SQL(
-      "select * from site order by site_name"
+      "select * from site where site.deleted = FALSE order by site_name"
     ).as(simple *).map {
       e => e.id.get -> e
     }.toMap
@@ -114,4 +114,16 @@ object Site {
     ).executeUpdate()
   }
 
+  def update(id: Long, locale: LocaleInfo, name: String)(implicit conn: Connection): Long = SQL(
+    """
+    update site set
+    locale_id = {localeId},
+    site_name = {siteName}
+    where site_id = {id}
+    """
+  ).on(
+    'localeId -> locale.id,
+    'siteName -> name,
+    'id -> id
+  ).executeUpdate()
 }

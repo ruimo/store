@@ -3,14 +3,13 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
-import anorm.Id
 import java.util.Locale
+import com.ruimo.scoins.Scoping._
 
 class CategorySpec extends Specification {
   "Category" should {
@@ -313,6 +312,164 @@ class CategorySpec extends Specification {
           CategoryPath.children(parent).size === 2
 
         }
+      }
+    }
+
+    "Be able to list categories when empty." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          doWith(
+            Category.listWithName(
+              locale = LocaleInfo.Ja,
+              orderBy = OrderBy("category.category_id", Asc)
+            )
+          ) { records =>
+            records.pageSize === 10
+            records.pageCount === 0
+            records.orderBy === OrderBy("category.category_id", Asc)
+            records.records.size === 0
+          }
+        }}        
+      }
+    }
+
+    "Be able to list categories." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木1")
+          )
+          val cat2 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木2", LocaleInfo.En -> "Plant2")
+          )
+          val cat3 = Category.createNew(
+            Map(LocaleInfo.En -> "Plant3")
+          )
+
+          doWith(
+            Category.listWithName(
+              locale = LocaleInfo.Ja,
+              orderBy = OrderBy("category.category_id", Asc)
+            )
+          ) { records =>
+            records.pageSize === 10
+            records.pageCount === 1
+            records.orderBy === OrderBy("category.category_id", Asc)
+
+            doWith(records.records) { list =>
+              list.size === 3
+
+              list(0)._1 === cat1
+              list(0)._2.get.name === "植木1"
+
+              list(1)._1 === cat2
+              list(1)._2.get.name === "植木2"
+
+              list(2)._1 === cat3
+              list(2)._2 === None
+            }
+          }
+
+          doWith(
+            Category.listWithName(
+              locale = LocaleInfo.Ja,
+              orderBy = OrderBy("category_name.category_name", Asc)
+            )
+          ) { records =>
+            records.pageSize === 10
+            records.pageCount === 1
+            records.orderBy === OrderBy("category_name.category_name", Asc)
+
+            doWith(records.records) { list =>
+              list.size === 3
+
+              list(0)._1 === cat1
+              list(0)._2.get.name === "植木1"
+
+              list(1)._1 === cat2
+              list(1)._2.get.name === "植木2"
+
+              list(2)._1 === cat3
+              list(2)._2 === None
+            }
+          }
+
+          doWith(
+            Category.listWithName(
+              locale = LocaleInfo.En,
+              orderBy = OrderBy("category.category_id", Desc)
+            )
+          ) { records =>
+            records.pageSize === 10
+            records.pageCount === 1
+            records.orderBy === OrderBy("category.category_id", Desc)
+
+            doWith(records.records) { list =>
+              list.size === 3
+
+              list(0)._1 === cat3
+              list(0)._2.get.name === "Plant3"
+
+              list(1)._1 === cat2
+              list(1)._2.get.name === "Plant2"
+
+              list(2)._1 === cat1
+              list(2)._2 === None
+            }
+          }
+
+          doWith(
+            Category.listWithName(
+              locale = LocaleInfo.En,
+              orderBy = OrderBy("category_name.category_name", Desc)
+            )
+          ) { records =>
+            records.pageSize === 10
+            records.pageCount === 1
+            records.orderBy === OrderBy("category_name.category_name", Desc)
+
+            doWith(records.records) { list =>
+              list.size === 3
+
+              list(0)._1 === cat3
+              list(0)._2.get.name === "Plant3"
+
+              list(1)._1 === cat2
+              list(1)._2.get.name === "Plant2"
+
+              list(2)._1 === cat1
+              list(2)._2 === None
+            }
+          }
+        }}        
+      }
+    }
+
+    "Be able to list category names." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木1")
+          )
+          val cat2 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木2", LocaleInfo.En -> "Plant2")
+          )
+          val cat3 = Category.createNew(Map())
+
+          doWith(CategoryName.all(cat1.id.get)) { map =>
+            map.size === 1
+            map(LocaleInfo.Ja) === CategoryName(LocaleInfo.Ja, cat1.id.get, "植木1")
+          }
+          doWith(CategoryName.all(cat2.id.get)) { map =>
+            map.size === 2
+            map(LocaleInfo.Ja) === CategoryName(LocaleInfo.Ja, cat2.id.get, "植木2")
+            map(LocaleInfo.En) === CategoryName(LocaleInfo.En, cat2.id.get, "Plant2")
+          }
+          CategoryName.all(cat3.id.get).size === 0
+        }}
       }
     }
   }

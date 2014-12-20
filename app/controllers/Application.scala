@@ -7,10 +7,7 @@ import controllers.I18n.I18nAware
 import play.api.Play.current
 
 object Application extends Controller with I18nAware with NeedLogin {
-  def index = Action { implicit request =>
-    implicit val login = DB.withConnection { conn =>
-      loginSession(request, conn)
-    }
+  def index = optIsAuthenticated { implicit optLogin => implicit request =>
     Ok(views.html.index())
   }
 }

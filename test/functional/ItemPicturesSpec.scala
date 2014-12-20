@@ -35,10 +35,13 @@ class ItemPicturesSpec extends Specification {
     "item.picture.path" -> testDir.toFile.getAbsolutePath,
     "item.picture.fortest" -> true
   )
+  lazy val avoidLogin = Map(
+    "need.authentication.entirely" -> false
+  )
 
   "ItemPicture" should {
     "If specified picture is not found, 'notfound.jpg' will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("notfound.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
@@ -52,7 +55,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified detail picture is not found, 'detailnotfound.jpg' will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("detailnotfound.jpg")
         Files.deleteIfExists(file)
@@ -67,11 +70,12 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified picture is found and modified, it will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+
         downloadString(
           Some(file.toFile.lastModified - 1000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(2, 1).url
@@ -82,11 +86,12 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified detail picture is found and modified, it will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+
         downloadString(
           Some(file.toFile.lastModified - 1000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(2).url
@@ -97,7 +102,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified picture is found but not modified, 304 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
@@ -118,7 +123,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified detail picture is found but not modified, 304 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
@@ -139,7 +144,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "Upload item picture." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
@@ -156,7 +161,7 @@ class ItemPicturesSpec extends Specification {
 
         val itemPrice = ItemPrice.createNew(item, site)
         val itemPriceHis = ItemPriceHistory.createNew(
-          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal("123"), BigDecimal("234"), date("9999-12-31")
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal("123"), None, BigDecimal("234"), date("9999-12-31")
         )
 
         val file = testDir.resolve("notfound.jpg")
@@ -165,7 +170,7 @@ class ItemPicturesSpec extends Specification {
 
         // Since no item pictures found, notfound.jpg will be obtained.
         downloadString(
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._2 === "Hello"
 
         // Set timestamp of 'notfound.jpg' to very old.
@@ -174,43 +179,43 @@ class ItemPicturesSpec extends Specification {
         // Of course, the file is not modified.
         downloadString(
           Some(date("2013-01-01")),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._1 === Status.NOT_MODIFIED
 
         // Now upload new file.
-        val now = System.currentTimeMillis
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get).url +
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(item.id.get.id).url +
           "&lang=" + lang.code
         )
         browser.webDriver
           .findElement(By.id("itemPictureUpload0"))
           .sendKeys(Paths.get("testdata/kinseimaruIdx.jpg").toFile.getAbsolutePath)
+        val now = System.currentTimeMillis
         browser.click("#itemPictureUploadSubmit0")
 
-        testDir.resolve(item.id.get + "_0.jpg").toFile.exists === true
+        testDir.resolve(item.id.get.id + "_0.jpg").toFile.exists === true
 
         // Download file.
         downloadBytes(
           Some(now - 1000),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._1 === Status.OK
         
         downloadBytes(
-          Some(now + 1000),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          Some(now + 5000),
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )._1 === Status.NOT_MODIFIED
 
         // Delete file.
         browser.click("#itemPictureRemove0")
 
-        testDir.resolve(item.id.get + "_0.jpg").toFile.exists === false
+        testDir.resolve(item.id.get.id + "_0.jpg").toFile.exists === false
         
         // Download file. 'notfound.jpg' should be obtained.
         // 200 should be returned. Otherwise, browser cache will not be refreshed!
         val str = downloadString(
           Some(now - 1000),
-          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get, 0).url
+          "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(item.id.get.id, 0).url
         )
         str._1 === Status.OK
         str._2 === "Hello"
@@ -218,7 +223,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified attachment is not found, 404 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "foo").url
@@ -227,7 +232,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified attachment is found and modified, it will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         Files.createDirectories(testDir.resolve("attachments"))
         val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
@@ -242,7 +247,7 @@ class ItemPicturesSpec extends Specification {
     }
 
     "If specified attachment is found but not modified, 304 will be returned." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         Files.createDirectories(testDir.resolve("attachments"))
         val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
@@ -284,7 +289,6 @@ class ItemPicturesSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val attachmentDir = testDir.resolve("attachments")
         Files.createDirectories(attachmentDir)
-
         Files.write(
           attachmentDir.resolve("1_2_file1.jpg"), util.Arrays.asList("000"), Charset.forName("US-ASCII")
         )

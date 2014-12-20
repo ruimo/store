@@ -1,0 +1,50 @@
+@(
+  list: PagedRecords[CouponDetail]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  login: LoginSession
+)
+
+@import helper._
+@implicitLoginSessionOpt = @{Some(login)}
+
+@main(Messages("coupon.history.title"), Some(login)) {
+} {
+  <h1 class="title">@Messages("coupon.history.title")</h1>
+
+  <table id="purchasedCouponHistory">
+    <tr class="header">
+      <th>@Messages("tranid")</th>
+      <th>@Messages("siteName")</th>
+      <th>@Messages("publishedDate")</th>
+      <th>@Messages("itemName")</th>
+    </tr>
+    @list.records.map { e =>
+      <tr class="body">
+        <td class="tranId">@e.tranHeaderId</td>
+        <td class="siteName">@e.site.name</td>
+        <td class="tranDate">@publishedDate(e.time)</td>
+        <td class="itemName">
+          <span class="itemNameBody">@e.itemName</span>
+          <input type="button"
+                 onclick="window.open('@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)')"
+                 value="@Messages("show.coupon")">
+        </td>
+      </tr>
+    }
+  </table>
+
+  <br>
+  @pagingPanel(
+    list,
+    routes.CouponHistory.showPurchasedCouponList(_: Int, _: Int, _: String),
+    10, 25, 50
+  )
+
+  <div class="menuPanel">
+    <a class="backLink" href="@routes.Application.index()">
+      @Messages("backTo", Messages("top"))
+    </a>
+  </div>
+}

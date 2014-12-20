@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
@@ -10,10 +9,10 @@ import play.api.i18n.Lang
 import java.sql.Connection
 import collection.immutable.LongMap
 
-case class Transporter(id: Pk[Long] = NotAssigned) extends NotNull
+case class Transporter(id: Option[Long] = None) extends NotNull
 
 case class TransporterName(
-  id: Pk[Long] = NotAssigned,
+  id: Option[Long] = None,
   localeId: Long,
   transporterId: Long,
   transporterName: String
@@ -21,7 +20,7 @@ case class TransporterName(
 
 object Transporter {
   val simple = {
-    SqlParser.get[Pk[Long]]("transporter.transporter_id") map {
+    SqlParser.get[Option[Long]]("transporter.transporter_id") map {
       case id => Transporter(id)
     }
   }
@@ -104,13 +103,13 @@ object Transporter {
     ).executeUpdate()
 
     val id = SQL("select currval('transporter_seq')").as(SqlParser.scalar[Long].single)
-    Transporter(Id(id))
+    Transporter(Some(id))
   }
 }
 
 object TransporterName {
   val simple = {
-    SqlParser.get[Pk[Long]]("transporter_name.transporter_name_id") ~
+    SqlParser.get[Option[Long]]("transporter_name.transporter_name_id") ~
     SqlParser.get[Long]("transporter_name.locale_id") ~
     SqlParser.get[Long]("transporter_name.transporter_id") ~
     SqlParser.get[String]("transporter_name.transporter_name") map {
@@ -146,7 +145,7 @@ object TransporterName {
     ).executeUpdate()
 
     val id = SQL("select currval('transporter_name_seq')").as(SqlParser.scalar[Long].single)
-    TransporterName(Id(id), locale.id, transporterId, name)
+    TransporterName(Some(id), locale.id, transporterId, name)
   }
 
   def list(transporterId: Long)(implicit conn: Connection): Map[LocaleInfo, TransporterName] =

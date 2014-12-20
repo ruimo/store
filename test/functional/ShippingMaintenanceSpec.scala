@@ -17,6 +17,7 @@ import org.openqa.selenium.By
 import java.util.concurrent.TimeUnit
 import play.api.test.TestServer
 import play.api.test.FakeApplication
+import com.ruimo.scoins.Scoping._
 
 class ShippingMaintenanceSpec extends Specification {
   "Shipping fee maintenance" should {
@@ -373,7 +374,6 @@ class ShippingMaintenanceSpec extends Specification {
     }
 
     "Can add, edit, delete fee" in {
-println("*** Can add, edit, delete fee start")
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
@@ -455,8 +455,6 @@ println("*** Can add, edit, delete fee start")
         browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
         browser.find("button.removeHistoryButton").getTexts.size === 0
       }}
-
-println("*** Can add, edit, delete fee start")
     }
   }
 }

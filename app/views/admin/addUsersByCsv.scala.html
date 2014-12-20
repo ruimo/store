@@ -1,0 +1,43 @@
+@(
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: models.LoginSession
+)
+
+@import helper._
+
+@main(Messages("addUsersByCsv"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("addUsersByCsv")</h1>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <p>@Messages("csvUserUpdateMemo")</p>
+
+  @form(action = helper.CSRF(routes.UserMaintenance.addUsersByCsv()), 'enctype -> "multipart/form-data") {
+    <input id="usersCsv" type="file" name="attachment">
+    <input id="submitUserScsv" type="submit">
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.UserMaintenance.index()">
+      @Messages("backTo", Messages("userMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

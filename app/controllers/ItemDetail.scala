@@ -10,8 +10,7 @@ import play.api.Play.current
 import controllers.I18n.I18nAware
 
 object ItemDetail extends Controller with I18nAware with NeedLogin {
-  def show(itemId: Long, siteId: Long) = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  def show(itemId: Long, siteId: Long) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     val itemDetail = models.ItemDetail.show(siteId, itemId, LocaleInfo.byLang(lang))
     itemDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.ITEM_DETAIL_TEMPLATE) match {
       case None => Ok(views.html.itemDetail(itemDetail))
@@ -21,8 +20,7 @@ object ItemDetail extends Controller with I18nAware with NeedLogin {
     }
   }}}
 
-  def showAsJson(itemId: Long, siteId: Long) = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  def showAsJson(itemId: Long, siteId: Long) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     Ok(asJson(models.ItemDetail.show(siteId, itemId, LocaleInfo.byLang(lang))))
   }}}
 

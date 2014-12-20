@@ -3,15 +3,13 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
-import anorm.Id
 import java.sql.Date.{valueOf => date}
-import collection.immutable.LongMap
+import collection.immutable
 
 class TransactionSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -149,13 +147,13 @@ class TransactionSpec extends Specification {
           val item = Item.createNew(cat)
 
           val itemLog = TransactionLogItem.createNew(
-            tranSite.id.get, item.id.get, 1234L, 234L, BigDecimal(456), BigDecimal(400), 123L
+            tranSite.id.get, item.id.get.id, 1234L, 234L, BigDecimal(456), BigDecimal(400), 123L
           )
 
           val list = TransactionLogItem.list()
           list.size === 1
           list(0) === itemLog
-          list(0).itemId === item.id.get
+          list(0).itemId === item.id.get.id
           list(0).taxId === 123L
         }
       }
@@ -193,11 +191,15 @@ class TransactionSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site2)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
-          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get, 1)
-          val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get, 1)
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
 
           val itemClass1 = 1L
 
@@ -239,7 +241,7 @@ class TransactionSpec extends Specification {
           )
           val persister = new TransactionPersister
           val tranNo = persister.persist(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, addr, 
+            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr), 
                         controllers.Shipping.shippingFee(addr, cart), shippingDate)
           )
 
@@ -276,7 +278,7 @@ class TransactionSpec extends Specification {
           tranShipping2.shippingDate === date("2013-05-03").getTime
 
           ptran.taxTable.size === 2
-          val taxTable1 = ptran.taxTable(site1.id.get).foldLeft(LongMap[TransactionLogTax]()) {
+          val taxTable1 = ptran.taxTable(site1.id.get).foldLeft(immutable.LongMap[TransactionLogTax]()) {
             (map, e) => map.updated(e.taxId, e)
           }
           taxTable1.size === 2
@@ -290,7 +292,7 @@ class TransactionSpec extends Specification {
           taxTable1(tax2.id.get).targetAmount === BigDecimal(1234)
           taxTable1(tax2.id.get).amount === BigDecimal(1234 * 5 / 105)
 
-          val taxTable2 = ptran.taxTable(site2.id.get).foldLeft(LongMap[TransactionLogTax]()) {
+          val taxTable2 = ptran.taxTable(site2.id.get).foldLeft(immutable.LongMap[TransactionLogTax]()) {
             (map, e) => map.updated(e.taxId, e)
           }
           taxTable2.size === 2
@@ -305,20 +307,26 @@ class TransactionSpec extends Specification {
           taxTable2(tax2.id.get).amount === BigDecimal(2345 * 5 / 105)
 
           ptran.itemTable.size === 2
-          val itemTable1 = ptran.itemTable(site1.id.get).foldLeft(LongMap[(ItemName, TransactionLogItem)]()) {
-            (map, e) => map.updated(e._1.itemId, e)
-          }
+          val itemTable1 = ptran.itemTable(site1.id.get)
+            .foldLeft(
+              immutable.HashMap[ItemId, (ItemName, TransactionLogItem, Option[TransactionLogCoupon])]()
+            ) {
+              (map, e) => map.updated(e._1.itemId, e)
+            }
           itemTable1(item1.id.get)._1.name === "杉"
-          itemTable1(item1.id.get)._2.itemId === item1.id.get
+          itemTable1(item1.id.get)._2.itemId === item1.id.get.id
           itemTable1(item1.id.get)._2.itemPriceHistoryId === ph1.id.get
           itemTable1(item1.id.get)._2.quantity === 1
           itemTable1(item1.id.get)._2.amount === BigDecimal(119)
           
-          val itemTable2 = ptran.itemTable(site2.id.get).foldLeft(LongMap[(ItemName, TransactionLogItem)]()) {
-            (map, e) => map.updated(e._1.itemId, e)
-          }
+          val itemTable2 = ptran.itemTable(site2.id.get)
+            .foldLeft(
+              immutable.HashMap[ItemId, (ItemName, TransactionLogItem, Option[TransactionLogCoupon])]()
+            ) {
+              (map, e) => map.updated(e._1.itemId, e)
+            }
           itemTable2(item2.id.get)._1.name === "梅"
-          itemTable2(item2.id.get)._2.itemId === item2.id.get
+          itemTable2(item2.id.get)._2.itemId === item2.id.get.id
           itemTable2(item2.id.get)._2.itemPriceHistoryId === ph2.id.get
           itemTable2(item2.id.get)._2.quantity === 1
           itemTable2(item2.id.get)._2.amount === BigDecimal(59)
@@ -437,14 +445,18 @@ class TransactionSpec extends Specification {
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site1)
 
-          val ph1 = ItemPriceHistory.createNew(price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), BigDecimal(100), date("9999-12-31"))
-          val ph2 = ItemPriceHistory.createNew(price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), BigDecimal(50), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
 
           val tranItem1 = TransactionLogItem.createNew(
-            tranSite1.id.get, item1.id.get, price1.id.get, 3, BigDecimal(400 * 3), BigDecimal(300), 123L
+            tranSite1.id.get, item1.id.get.id, price1.id.get, 3, BigDecimal(400 * 3), BigDecimal(300), 123L
           )
           val tranItem2 = TransactionLogItem.createNew(
-            tranSite1.id.get, item2.id.get, price2.id.get, 5, BigDecimal(700 * 5), BigDecimal(400), 234L
+            tranSite1.id.get, item2.id.get.id, price2.id.get, 5, BigDecimal(700 * 5), BigDecimal(400), 234L
           )
 
           val detail = TransactionDetail.show(tranSite1.id.get, Ja, Some(siteUser1))

@@ -9,9 +9,11 @@
     models.ItemPriceHistory,
     Map[ItemNumericMetadataType, ItemNumericMetadata],
     Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
-    Map[ItemTextMetadataType, ItemTextMetadata]
+    Map[ItemTextMetadataType, ItemTextMetadata],
+    Map[SiteItemTextMetadataType, SiteItemTextMetadata]
   )],
-  templateNo: Int
+  templateNo: Int,
+  query: (Int, Int, Int, String) => Call
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -44,21 +46,21 @@
       <th id="itemNameHeader">
         @orderMark(
           Messages("itemName"),
-          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
+          query(_: Int, _: Int, templateNo, _: String),
           "item_name.item_name", list
         )
       </th>
       <th id="siteHeader">
         @orderMark(
           Messages("site"),
-          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
+          query(_: Int, _: Int, templateNo, _: String),
           "site.site_name", list
         )
       </th>
       <th id="unitPriceHeader">
         @orderMark(
           Messages("unitPrice"),
-          routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
+          query(_: Int, _: Int, templateNo, _: String),
           "item_price_history.unit_price", list
         )
       </th>
@@ -68,10 +70,10 @@
     @list.records.map { e =>
       <tr class="queryItemTableBody">
         <td class="queryItemPhoto">
-          <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get, 0)">
+          <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get.id, 0)">
         </td>
         <td class="queryItemItemName">
-          <a href="@routes.ItemDetail.show(e._1.id.get, e._4.id.get)">
+          <a href="@routes.ItemDetail.show(e._1.id.get.id, e._4.id.get)">
             @e._2.name
           </a>
         </td>
@@ -80,7 +82,7 @@
         <td>
           <button type="button"
                   class="addToCartButton"
-                  onclick="location.href='@routes.Purchase.addToCart(e._4.id.get, e._1.id.get)';">
+                  onclick="shoppingCartDialog.putIntoCart(@e._4.id.get, @e._1.id.get.id, 1);">
             @Messages("purchase")
           </button>
         </td>
@@ -88,9 +90,5 @@
     }
   </table>
   <br>
-  @pagingPanel(
-    list,
-    routes.ItemQuery.query(queryString.toList, _: Int, _: Int, _: String, templateNo),
-    10, 25, 50
-  )
+  @pagingPanel(list, query(_, _, templateNo, _), 10, 25, 50)
 }

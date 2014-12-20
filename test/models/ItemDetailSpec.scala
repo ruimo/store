@@ -3,13 +3,11 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
-import anorm.Id
 import java.util.Locale
 
 import java.sql.Date.{valueOf => date}
@@ -35,13 +33,13 @@ class ItemDetailSpec extends Specification {
           val tax = Tax.createNew
 
           ItemPriceHistory.createNew(
-            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), BigDecimal(90), date("2013-01-02")
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90), date("2013-01-02")
           )
           ItemPriceHistory.createNew(
-            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), BigDecimal(190), date("9999-12-31")
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), None, BigDecimal(190), date("9999-12-31")
           )
 
-          val detail = ItemDetail.show(site1.id.get, item1.id.get, LocaleInfo.Ja, date("2013-01-01"))
+          val detail = ItemDetail.show(site1.id.get, item1.id.get.id, LocaleInfo.Ja, date("2013-01-01"))
           detail.name === "杉"
           detail.description === "杉説明"
           detail.itemNumericMetadata.isEmpty === true
@@ -49,7 +47,7 @@ class ItemDetailSpec extends Specification {
           detail.price === BigDecimal(100)
           detail.siteName === "商店1"
 
-          val detail2 = ItemDetail.show(site1.id.get, item1.id.get, LocaleInfo.Ja, date("2013-01-02"))
+          val detail2 = ItemDetail.show(site1.id.get, item1.id.get.id, LocaleInfo.Ja, date("2013-01-02"))
           detail2.name === "杉"
           detail2.description === "杉説明"
           detail2.itemNumericMetadata.isEmpty === true
@@ -60,7 +58,7 @@ class ItemDetailSpec extends Specification {
           ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 100)
           SiteItemNumericMetadata.createNew(site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 123L)          
 
-          val detail3 = ItemDetail.show(site1.id.get, item1.id.get, LocaleInfo.Ja, date("2013-01-02"))
+          val detail3 = ItemDetail.show(site1.id.get, item1.id.get.id, LocaleInfo.Ja, date("2013-01-02"))
           detail3.name === "杉"
           detail3.description === "杉説明"
           detail3.itemNumericMetadata.size === 1

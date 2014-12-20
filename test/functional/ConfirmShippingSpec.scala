@@ -19,59 +19,6 @@ class ConfirmShippingSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
 
   "ConfirmShipping" should {
-    "No item." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-        implicit val lang = Lang("ja")
-        val user = loginWithTestUser(browser)
-        val address = createAddress
-        val addressHistory = ShippingAddressHistory.createNew(
-          user.id.get, address
-        )
-
-        browser.goTo(
-          "http://localhost:3333" + controllers.routes.Shipping.confirmShippingAddressJa().url + "?lang=" + lang.code
-        )
-        browser.title === Messages("confirm.shipping.address")
-        browser.find("table.itemTable").size === 0
-        browser.find("table.shipping").size === 0
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody")
-          .find("td", 1)
-          .getText === "firstName lastName"
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 1)
-          .find("td", 1)
-          .getText === "firstNameKana lastNameKana"
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 2)
-          .find("td", 1)
-          .getText === "zip1 - zip2"
-
-        val addressLine = browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 3)
-          .find("td", 1)
-          .getText
-
-          addressLine.contains(JapanPrefecture.三重県.toString) === true
-          addressLine.contains("address1")
-          addressLine.contains("address2")
-
-        browser
-          .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 4)
-          .find("td", 1)
-          .getText === "123-2345"
-      }}
-    }
-
     "More than one site and more than item classes." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
@@ -138,13 +85,13 @@ class ConfirmShippingSpec extends Specification {
         val price2 = ItemPrice.createNew(item2, site2)
         val price3 = ItemPrice.createNew(item3, site2)
 
-        val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), BigDecimal(90), date("9999-12-31"))
-        val ph2 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), BigDecimal(200), date("9999-12-31"))
-        val ph3 = ItemPriceHistory.createNew(price3, tax, CurrencyInfo.Jpy, BigDecimal(401), BigDecimal(390), date("9999-12-31"))
+        val ph1 = ItemPriceHistory.createNew(price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(90), date("9999-12-31"))
+        val ph2 = ItemPriceHistory.createNew(price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(200), date("9999-12-31"))
+        val ph3 = ItemPriceHistory.createNew(price3, tax, CurrencyInfo.Jpy, BigDecimal(401), None, BigDecimal(390), date("9999-12-31"))
 
-        val cart1 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item1.id.get, 15)
-        val cart2 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item2.id.get, 28)
-        val cart3 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item3.id.get, 40)
+        val cart1 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item1.id.get.id, 15)
+        val cart2 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item2.id.get.id, 28)
+        val cart3 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item3.id.get.id, 40)
 
         val cartShipping1 = ShoppingCartShipping.updateOrInsert(user.id.get, site1.id.get, date("2013-12-01"))
         val cartShipping2 = ShoppingCartShipping.updateOrInsert(user.id.get, site2.id.get, date("2013-12-02"))

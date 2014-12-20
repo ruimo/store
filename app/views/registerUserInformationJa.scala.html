@@ -1,0 +1,120 @@
+@(
+  myForm: Form[RegisterUserInfo], prefectureTable: Seq[(String, String)]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@zipError(f: Form[_]) = @{
+  f("zip1").error.isDefined || f("zip2").error.isDefined
+}
+
+@main(Messages("registerUserInformation"), Some(loginSession)) {
+  <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
+} {
+  <h2 class="title">@Messages("registerUserInformation")</h2>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @form(action = CSRF(routes.UserEntry.submitUserInfo()), 'id -> "submitUserForm") {
+    @helper.inputPassword(
+      myForm("currentPassword"),
+      '_label -> Messages("currentPassword"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.main"),
+      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.confirm"),
+      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
+      '_error -> myForm.error("password")
+    )
+
+    @helper.inputText(
+      myForm("firstName"),
+      '_label -> Messages("firstName"), 'size -> 32, 'maxlength -> 32
+    )
+
+    @helper.inputText(
+      myForm("lastName"),
+      '_label -> Messages("lastName"), 'size -> 32, 'maxlength -> 32
+    )
+
+    @helper.inputText(
+      myForm("firstNameKana"),
+      '_label -> Messages("firstNameKana"), 'size -> 24, 'maxlength -> 64
+    )
+
+    @helper.inputText(
+      myForm("lastNameKana"),
+      '_label -> Messages("lastNameKana"), 'size -> 24, 'maxlength -> 64
+    )
+
+    @helper.inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
+    )
+
+    <input type="hidden" name="country" value="@CountryCode.JPN.ordinal">
+
+    <div class="@{if (zipError(myForm)) {"error"} else {""}}">
+      <label for="zip1">郵便番号</label>
+      <div class="input" id="zip_field">
+        <span>
+          <input type="text" size="3" name="zip1" value="@myForm("zip1").value.getOrElse("")" maxlength="3">
+          -
+          <input type="text" size="4" name="zip2" value="@myForm("zip2").value.getOrElse("")" maxlength="4"
+                 onKeyUp="AjaxZip3.zip2addr('zip1', 'zip2', 'prefecture', 'address1', 'address2');">
+        </span>
+        @{ if (zipError(myForm)) { <span class="help-inline">3桁-4桁の数値で指定してください。</span> } }
+      </div>
+    </div>
+
+    @select(
+      myForm("prefecture"), 
+      prefectureTable, 
+      '_label -> Messages("prefecture"),
+      '_showConstraints -> false
+    )
+
+    @helper.inputText(
+      myForm("address1"),
+      '_label -> Messages("address1"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @helper.inputText(
+      myForm("address2"),
+      '_label -> Messages("address2"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @helper.inputText(
+      myForm("address3"),
+      '_label -> Messages("address3"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @helper.inputText(
+      myForm("tel1"),
+      '_label -> Messages("tel1"), 'size -> 16, 'maxlength -> 16
+    )
+
+    <input type="submit" class="submitButton" value="@Messages("register")">
+  }
+}

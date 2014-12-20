@@ -36,6 +36,10 @@
     <input type="hidden" name="uri" value="@uri">
 
     <input type="submit" id="doLoginButton" value='@Messages("login")'>
+
+    <a id="forgetPasword" href="@routes.UserEntry.resetPasswordStart()">
+      @Messages("forgetPassword")
+    </a>
   }
 }
 

@@ -10,3 +10,5 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 addSbtPlugin("play" % "sbt-plugin" % "2.1.3")
 
 resolvers += Classpaths.typesafeResolver
+
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")

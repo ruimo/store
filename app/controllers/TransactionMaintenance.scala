@@ -42,7 +42,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     page: Int, pageSize: Int, orderBySpec: String
   ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      val pagedRecords = TransactionSummary.list(login.siteUser.map(_.id.get))
+      val pagedRecords = TransactionSummary.list(
+        login.siteUser.map(_.siteId)
+      )
       Ok(
         views.html.admin.transactionMaintenance(
           pagedRecords,
@@ -65,7 +67,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
         logger.error("Validation error in TransactionMaintenance.setStatus. " + formWithErrors)
         DB.withConnection { implicit conn =>
           val pagedRecords = TransactionSummary.list(
-            if (login.isAdmin) None else login.siteUser.map(_.id.get)
+            login.siteUser.map(_.siteId)
           )
 
           BadRequest(
@@ -94,7 +96,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
 
   def detail(tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      val entry = TransactionSummary.get(login.siteUser.map(_.id.get), tranSiteId).get
+      val entry = TransactionSummary.get(login.siteUser.map(_.siteId), tranSiteId).get
       val boxNameByItemSize = TransactionLogShipping.listBySite(tranSiteId).foldLeft(LongMap.empty[String]) {
         (sum, e) => (sum + (e.itemClass -> e.boxName))
       }
@@ -120,7 +122,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
         logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
         DB.withTransaction { implicit conn =>
           val pagedRecords = TransactionSummary.list(
-            if (login.isAdmin) None else login.siteUser.map(_.id.get)
+            login.siteUser.map(_.siteId)
           )
 
           BadRequest(
@@ -211,7 +213,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   ): String = {
     val (entry, details, shipping) = DB.withConnection { implicit conn =>
       (
-        TransactionSummary.get(loginSession.siteUser.map(_.id.get), tranSiteId).get,
+        TransactionSummary.get(loginSession.siteUser.map(_.siteId), tranSiteId).get,
         TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), loginSession.siteUser),
         TransactionLogShipping.listBySite(tranSiteId)
       )

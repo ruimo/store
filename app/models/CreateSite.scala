@@ -9,4 +9,3 @@ case class CreateSite(localeId: Long, siteName: String) {
     Site.createNew(LocaleInfo(localeId), siteName)
   }
 }
-

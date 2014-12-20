@@ -3,13 +3,11 @@ package models
 import org.specs2.mutable._
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
-import anorm.Id
 import java.util.Locale
 import play.api.i18n.Lang
 import java.sql.Date.{valueOf => date}
@@ -81,7 +79,7 @@ class TaxSpec extends Specification {
     }
 
     "Outer tax amount is calculated." in {
-      val his = TaxHistory(NotAssigned, 0, TaxType.OUTER_TAX, BigDecimal(5), 0)
+      val his = TaxHistory(None, 0, TaxType.OUTER_TAX, BigDecimal(5), 0)
       his.taxAmount(BigDecimal(100)) === BigDecimal(5)
       his.taxAmount(BigDecimal(99)) === BigDecimal(4)
       his.taxAmount(BigDecimal(80)) === BigDecimal(4)
@@ -89,14 +87,14 @@ class TaxSpec extends Specification {
     }
 
     "Innter tax amount is calculated." in {
-      val his = TaxHistory(NotAssigned, 0, TaxType.INNER_TAX, BigDecimal(5), 0)
+      val his = TaxHistory(None, 0, TaxType.INNER_TAX, BigDecimal(5), 0)
       his.taxAmount(BigDecimal(100)) === BigDecimal(4)
       his.taxAmount(BigDecimal(84)) === BigDecimal(4)
       his.taxAmount(BigDecimal(83)) === BigDecimal(3)
     }
 
     "Non tax amount is calculated." in {
-      val his = TaxHistory(NotAssigned, 0, TaxType.NON_TAX, BigDecimal(5), 0)
+      val his = TaxHistory(None, 0, TaxType.NON_TAX, BigDecimal(5), 0)
       his.taxAmount(BigDecimal(100)) === BigDecimal(0)
       his.taxAmount(BigDecimal(84)) === BigDecimal(0)
       his.taxAmount(BigDecimal(83)) === BigDecimal(0)

@@ -1,4 +1,4 @@
-@(users: Seq[ListUserEntry])(
+@(users: PagedRecords[ListUserEntry])(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
   request: RequestHeader,
@@ -7,21 +7,59 @@
 
 @import helper._
 
+@implicitLoginSessionOpt = @{Some(loginSession)}
+
 @main(Messages("editUserTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
 <h1 class="title">@Messages("editUserTitle")</h1>
 
 <table class="userTable">
   <tr class="userTableHeader">
-    <th class="id">id</th>
-    <th class="name">@Messages("userName")</th>
-    <th class="fullName">@Messages("name")</th>
-    <th class="company">@Messages("companyName")</th>
-    <th class="email">@Messages("email")</th>
-    <th class="role">@Messages("role")</th>
+    <th class="id">
+      @orderMark(
+        "id",
+        routes.UserMaintenance.editUser,
+        "store_user.store_user_id", users
+      )
+    </th>
+    <th class="name">
+      @orderMark(
+        Messages("userName"),
+        routes.UserMaintenance.editUser,
+        "store_user.user_name", users
+      )
+    </th>
+    <th class="fullName">
+      @orderMark(
+        Messages("name"),
+        routes.UserMaintenance.editUser,
+        "full_name", users
+      )
+    </th>
+    <th class="company">
+      @orderMark(
+        Messages("companyName"),
+        routes.UserMaintenance.editUser,
+        "store_user.company_name", users
+      )
+    </th>
+    <th class="email">
+      @orderMark(
+        Messages("email"),
+        routes.UserMaintenance.editUser,
+        "store_user.email", users
+      )
+    </th>
+    <th class="role">
+      @orderMark(
+        Messages("role"),
+        routes.UserMaintenance.editUser,
+        "store_user_role", users
+      )
+    </th>
     <th class="action"></th>
   </tr>
-  @users.map { user =>
+  @users.records.map { user =>
     <tr class="userTableBody">
       <td class="id">
         <a href="@routes.UserMaintenance.modifyUserStart(user.user.id.get)">
@@ -52,6 +90,13 @@
     </tr>
   }
 </table>
+
+<br>
+@pagingPanel(
+  users,
+  routes.UserMaintenance.editUser,
+  10, 25, 50
+)
 
 <div class="menuPanel">
   <br>

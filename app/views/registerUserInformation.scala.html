@@ -1,0 +1,20 @@
+@(
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@zipError(f: Form[_]) = @{
+  f("zip1").error.isDefined || f("zip2").error.isDefined
+}
+
+@main(Messages("registerUserInformation"), loginSession) {
+  <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
+} {
+  <h2 class="title">@Messages("registerUserInformation")</h2>
+
+}

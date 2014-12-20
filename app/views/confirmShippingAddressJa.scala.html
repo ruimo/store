@@ -53,29 +53,31 @@
     </table>
   }
 
-  <h1 class="shippingTitle">送料</h1>
-  @tran.shippingTotal.bySite.map { e =>
-    <h2 class="shippingSiteName">@e._1.name</h2>
-    <table class="shipping">
-      <tr class="itemTableHeader">
-        <th class="boxNameHeader">箱</th>
-        <th class="boxUnitPriceHeader">箱単価</th>
-        <th class="boxQuantityHeader">@Messages("quantity")</th>
-        <th class="boxPriceHeader">金額</th>
-      </tr>
-
-      @e._2.byItemClass.values.map { e2 =>
-        @e2.table.map { e3 =>
-          <tr class="shippingTableBody">
-            <td class="boxName">@e3.shippingBox.boxName</td>
-            <td class="boxUnitPrice">@amount(e3.boxUnitPrice)</td>
-            <td class="boxQuantity">@e3.boxQuantity 箱</td>
-            <td class="boxPrice">@amount(e3.boxTotal)</td>
-          </tr>
+  @if(tran.shippingAddress.isDefined) {
+    <h1 class="shippingTitle">送料</h1>
+    @tran.shippingTotal.bySite.map { e =>
+      <h2 class="shippingSiteName">@e._1.name</h2>
+      <table class="shipping">
+        <tr class="itemTableHeader">
+          <th class="boxNameHeader">箱</th>
+          <th class="boxUnitPriceHeader">箱単価</th>
+          <th class="boxQuantityHeader">@Messages("quantity")</th>
+          <th class="boxPriceHeader">金額</th>
+        </tr>
+  
+        @e._2.byItemClass.values.map { e2 =>
+          @e2.table.map { e3 =>
+            <tr class="shippingTableBody">
+              <td class="boxName">@e3.shippingBox.boxName</td>
+              <td class="boxUnitPrice">@amount(e3.boxUnitPrice)</td>
+              <td class="boxQuantity">@e3.boxQuantity 箱</td>
+              <td class="boxPrice">@amount(e3.boxTotal)</td>
+            </tr>
+          }
         }
-      }
-    </table>
-    <h3 class="shippingDate">配送希望日: @shippingDate(tran.shippingDate.bySite(e._1).shippingDate)</h3>
+      </table>
+      <h3 class="shippingDate">配送希望日: @shippingDate(tran.shippingDate.bySite(e._1).shippingDate)</h3>
+    }
   }
 
   <h1 class="totalTitle">合計</h1>
@@ -90,24 +92,31 @@
       <td class="itemQuantity">@tran.itemTotal.quantity</td>
       <td class="itemPrice">@amount(tran.itemTotal.total + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
-    <tr class="salesTotalBody">
-      <td class="shippingTotal">送料計</td>
-      <td class="itemQuantity" style="text-align: right;">@tran.shippingTotal.boxQuantity 箱</td>
-      <td class="itemPrice" style="text-align: right;">@amount(tran.shippingTotal.boxTotal)</td>
-    </tr>
+    @if(tran.shippingAddress.isDefined) {
+      <tr class="salesTotalBody">
+        <td class="shippingTotal">送料計</td>
+        <td class="itemQuantity" style="text-align: right;">@tran.shippingTotal.boxQuantity 箱</td>
+        <td class="itemPrice" style="text-align: right;">@amount(tran.shippingTotal.boxTotal)</td>
+      </tr>
+    }
     <tr class="salesTotalBody">
       <td class="total" colspan="2">合計</td>
       <td class="itemPrice" style="text-align: right;">@amount(tran.itemTotal.total + tran.shippingTotal.boxTotal + tran.itemTotal.taxByType(TaxType.OUTER_TAX))</td>
     </tr>
   </table>
 
-  <h1 class="shippngAddress">送付先</h1>
-  @address(tran.shippingAddress)
+  @tran.shippingAddress.map { addr =>
+    <h1 class="shippngAddress">送付先</h1>
+    @address(addr)
+  }
 
   <br>
   <div class="menuPanel">
     <a class="backToShoppingLink" href="@routes.Purchase.showShoppingCart()">@Messages("shopping.cart")へ戻る</a>
-    <a class="backToShippingLink" href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+
+    @if(tran.shippingAddress.isDefined) {
+      <a class="backToShippingLink" href="@routes.Shipping.startEnterShippingAddress()">@Messages("enter.shipping.address")へ戻る</a>
+    }
   </div>
 
   <br>

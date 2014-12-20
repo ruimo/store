@@ -1,0 +1,115 @@
+@(
+  myForm: Form[UserRegistration], prefectureTable: Seq[(String, String)]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@zipError(f: Form[_]) = @{
+  f("zip1").error.isDefined || f("zip2").error.isDefined
+}
+
+@main(Messages("userEntryTitle"), loginSession) {
+  <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
+} {
+  <h1 class="title">@Messages("userEntryTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @form(action = CSRF(routes.UserEntry.submitUserJa()), 'id -> "enterShippingAddressForm") {
+    @inputText(
+      myForm("companyName"),
+      '_label -> Messages("companyName"), 'size -> 24, 'maxlength -> 64
+    )
+
+    <div id="zipPanel" class="@{if (zipError(myForm)) {"error"} else {""}}">
+      <label for="zip1">郵便番号</label>
+      <div class="input">
+        <span>
+          <input type="text" size="3" name="zip1" value="@myForm("zip1").value.getOrElse("")" maxlength="3">
+          -
+          <input type="text" size="4" name="zip2" value="@myForm("zip2").value.getOrElse("")" maxlength="4"
+                 onKeyUp="AjaxZip3.zip2addr('zip1', 'zip2', 'prefecture', 'address1', 'address2');">
+        </span>
+        @if(zipError(myForm)) { <span class="zipError">@Messages("zipError")</span> }
+      </div>
+    </div>
+
+    @select(
+      myForm("prefecture"), 
+      prefectureTable, 
+      '_label -> Messages("prefecture"),
+      '_showConstraints -> false
+    )
+
+    @inputText(
+      myForm("address1"),
+      '_label -> Messages("address1"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @inputText(
+      myForm("address2"),
+      '_label -> Messages("address2"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @inputText(
+      myForm("address3"),
+      '_label -> Messages("address3"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @inputText(
+      myForm("tel"),
+      '_label -> Messages("courtesyTelNo"), 'size -> 16, 'maxlength -> 16
+    )
+
+    @inputText(
+      myForm("fax"),
+      '_label -> Messages("fax"), 'size -> 16, 'maxlength -> 16
+    )
+
+    @inputText(
+      myForm("title"),
+      '_label -> Messages("title"), 'size -> 16, 'maxlength -> 256
+    )
+
+    @Messages("entryName")      
+    <table>
+      <tr>
+        <td>
+          @inputText(
+            myForm("firstName"),
+            '_label -> Messages("firstName"), 'size -> 16, 'maxlength -> 64
+          )
+        </td>
+        <td>
+          @inputText(
+            myForm("lastName"),
+            '_label -> Messages("lastName"), 'size -> 16, 'maxlength -> 64
+          )
+        </td>
+      </tr>
+    </table>
+
+    @inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 16, 'maxlength -> 128
+    )
+
+    <input type="submit" value="@Messages("register")" id="submitUserEntry">
+  }
+}

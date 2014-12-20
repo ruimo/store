@@ -8,6 +8,7 @@ import models.{UserRole, StoreUser}
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
+import controllers.NeedLogin.passwordMinLength
 
 class FirstSetupSpec extends Specification {
   "FirstSetup" should {
@@ -73,7 +74,7 @@ class FirstSetupSpec extends Specification {
         browser.$("#companyName_field dd.error").getText === Messages("error.required")
         browser.$("#firstName_field dd.error").getText === Messages("error.required")
         browser.$("#email_field dd.error").getText === Messages("error.email")
-        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", 6)
+        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", passwordMinLength)
       }
     }
 

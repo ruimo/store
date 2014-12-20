@@ -1,7 +1,6 @@
 package models
 
 import anorm._
-import anorm.{NotAssigned, Pk}
 import anorm.SqlParser
 import model.Until
 import play.api.Play.current
@@ -9,7 +8,6 @@ import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{HashMap, IntMap}
 import java.sql.Connection
-import play.api.data.Form
 import org.joda.time.DateTime
 
 case class ItemDetail(
@@ -20,7 +18,9 @@ case class ItemDetail(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata],
   price: BigDecimal,
+  listPrice: Option[BigDecimal],
   siteName: String
 ) extends NotNull
 
@@ -53,15 +53,17 @@ object ItemDetail {
       nameDesc.single
     )
 
-    val priceHistory = ItemPriceHistory.atBySiteAndItem(siteId, itemId, now)
+    val priceHistory = ItemPriceHistory.atBySiteAndItem(siteId, ItemId(itemId), now)
 
     ItemDetail(
       siteId, itemId,
       name, description,
-      ItemNumericMetadata.allById(itemId),
-      ItemTextMetadata.allById(itemId),
-      SiteItemNumericMetadata.all(siteId, itemId),
+      ItemNumericMetadata.allById(ItemId(itemId)),
+      ItemTextMetadata.allById(ItemId(itemId)),
+      SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
+      SiteItemTextMetadata.all(siteId, ItemId(itemId)),
       priceHistory.unitPrice,
+      priceHistory.listPrice,
       Site(siteId).name
     )
   }
