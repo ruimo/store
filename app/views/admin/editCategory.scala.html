@@ -38,7 +38,7 @@
                   sourceNode.move(node, hitMode);
                   $.post("@{helper.CSRF(routes.CategoryMaintenance.moveCategory)}", {
                     "categoryId" : sourceNode.data.key,
-                    "parentCategoryId" : node.data.key
+                    "parentCategoryId" : (hitMode === 'child' || hitMode == 'over') ? node.data.key : node.parent.data.key
                   }).done(function(data) {
                     console.log("ajax returned %o", data);
                     $("#catTree").dynatree("getTree").reload();
