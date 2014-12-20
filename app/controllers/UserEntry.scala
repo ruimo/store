@@ -153,7 +153,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     )(RegisterUserInfo.apply4Japan)(RegisterUserInfo.unapply4Japan)
   )
 
-  def registerUserInformation(userId: Long) = optIsAuthenticated { implicit login => implicit request =>
+  def registerUserInformation(userId: Long) = Action { implicit request =>
     Ok(
       lang.toLocale match {
         case Locale.JAPANESE =>
@@ -167,7 +167,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     )
   }
 
-  def submitUserInfo(userId: Long) = optIsAuthenticated { implicit login => implicit request =>
+  def submitUserInfo(userId: Long) = Action { implicit request =>
     createRegistrationForm.bindFromRequest.fold(
       formWithErrors =>
         BadRequest(registerUserInformationView(userId, formWithErrors)),
@@ -234,8 +234,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
   )(
     implicit lang: Lang,
     flash: play.api.mvc.Flash,
-    request: RequestHeader,
-    optLoginSession: Option[LoginSession]
+    request: RequestHeader
   ): Html = lang.toLocale match {
     case Locale.JAPANESE =>
       views.html.registerUserInformationJa(userId, form, Address.JapanPrefectures)

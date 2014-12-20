@@ -3,8 +3,7 @@
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
-  request: RequestHeader,
-  loginSession: Option[LoginSession]
+  request: RequestHeader
 )
 
 @import helper._
@@ -14,7 +13,7 @@
   f("zip1").error.isDefined || f("zip2").error.isDefined
 }
 
-@main(Messages("registerUserInformation"), loginSession) {
+@main(Messages("registerUserInformation"), None) {
   <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
 } {
   <h2 class="title">@Messages("registerUserInformation")</h2>
