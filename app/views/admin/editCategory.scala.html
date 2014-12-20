@@ -108,7 +108,7 @@
     @page.records.map { rec =>
       <tr class="categoryTableBody">
         <td class="categoryTableId">
-          <a href="@routes.CategoryMaintenance.editCategoryName(rec._1.id.get)">
+          <a class="editCategoryNameLink" href="@routes.CategoryMaintenance.editCategoryName(rec._1.id.get)">
             @rec._1.id.get
           </a>
         </td>

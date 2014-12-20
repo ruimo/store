@@ -48,54 +48,56 @@
     }
   </div>
 
-  @form(action = CSRF(routes.CategoryMaintenance.updateCategoryName(categoryId))) {
-    <table class="updateCategoryName">
-      @repeat(updateForms("categoryNames")) { f =>
+  @if(! updateForms("categoryNames").indexes.isEmpty) {
+    @form(action = CSRF(routes.CategoryMaintenance.updateCategoryName(categoryId))) {
+      <table class="updateCategoryName">
+        @repeat(updateForms("categoryNames")) { f =>
+          <tr>
+            <th class="updateCategoryName remove header">
+            </th>
+            <th class="updateCategoryName language header">
+              @Messages("language")
+            </th>
+            <th class="updateCategoryName categoryName header">
+              @Messages("categoryName")
+            </th>
+          <tr>
+            <td class="updateCategoryName remove body">
+              <button onclick='removeCategoryName(@f("categoryId").value.get, @f("localeId").value.get); return false;'>
+                @Messages("remove")
+              </button>
+            </td>
+            <td class="updateCategoryName language body">
+              @inputText(
+                f("categoryId"), 'type -> "hidden", '_showConstraints -> false
+              )(FieldConstructor(simpleField.f), implicitly)
+  
+              @inputText(
+                f("localeId"), 'type -> "hidden", '_showConstraints -> false
+              )(FieldConstructor(simpleField.f), implicitly)
+  
+              <span class="langName">@Messages("lang." + LocaleInfo(f("localeId").value.get.toLong).lang)</span>
+            </td>
+            <td class="updateCategoryName categoryName body">
+              @inputText(
+                f("name"),
+                '_showConstraints -> false
+              )(FieldConstructor(simpleField.f), implicitly)
+            </td>
+          </tr>
+        }
+  
         <tr>
-          <th class="updateCategoryName remove header">
-          </th>
-          <th class="updateCategoryName language header">
-            @Messages("language")
-          </th>
-          <th class="updateCategoryName categoryName header">
-            @Messages("categoryName")
-          </th>
-        <tr>
-          <td class="updateCategoryName remove body">
-            <button onclick='removeCategoryName(@f("categoryId").value.get, @f("localeId").value.get); return false;'>
-              @Messages("remove")
-            </button>
-          </td>
-          <td class="updateCategoryName language body">
-            @inputText(
-              f("categoryId"), 'type -> "hidden", '_showConstraints -> false
-            )(FieldConstructor(simpleField.f), implicitly)
-
-            @inputText(
-              f("localeId"), 'type -> "hidden", '_showConstraints -> false
-            )(FieldConstructor(simpleField.f), implicitly)
-
-            @Messages("lang." + LocaleInfo(f("localeId").value.get.toLong).lang)
-          </td>
-          <td class="updateCategoryName categoryName body">
-            @inputText(
-              f("name"),
-              '_showConstraints -> false
-            )(FieldConstructor(simpleField.f), implicitly)
+          <td class="updateCategoryName language body"></td>
+          <td class="updateCategoryName update body">
+            <input type="submit" id="submitCategoryNameUpdate" value='@Messages("update")'>
           </td>
         </tr>
-      }
-
-      <tr>
-        <td class="updateCategoryName language body"></td>
-        <td class="updateCategoryName update body">
-          <input type="submit" id="submitCategoryNameUpdate" value='@Messages("update")'>
-        </td>
-      </tr>
-    </table>
+      </table>
+    }
   }
 
-  @form(action = CSRF(routes.CategoryMaintenance.createCategoryName(categoryId))) {
+  @form(action = CSRF(routes.CategoryMaintenance.createCategoryName(categoryId)), 'id -> "createCategoryNameForm") {
     <table class="createCategoryName">
       <tr>
         <th class="updateCategoryName language header">

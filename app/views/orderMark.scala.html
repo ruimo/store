@@ -10,7 +10,7 @@
 )
 
 @if(list.orderBy.columnName == orderByColumn) {
-  <a href="javascript:void(0)"
+  <a class="orderColumn" href="javascript:void(0)"
      onclick="location.href='@pageLink(0, list.pageSize, list.orderBy.invert.toString)'">
     @label
     @if(list.orderBy.order == Asc) {
@@ -20,7 +20,7 @@
     }
   </a>
 } else {
-  <a href="javascript:void(0)"
+  <a class="orderColumn" href="javascript:void(0)"
      onclick="location.href='@pageLink(0, list.pageSize, orderByColumn)'">
     @label
   </a>

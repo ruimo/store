@@ -9,17 +9,17 @@
 )
 
 <div class="pagingPanel">
-  <button type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
+  <button class="prevPageButton" type="button" @{if(list.prevPageExists) "" else "disabled=disabled"}
           onclick="location.href='@pageLink(list.currentPage - 1, list.pageSize, list.orderBy.toString)'">
     &lt;
   </button>
-  Page @{list.currentPage + 1}/@list.pageCount
+  Page <span class="pageCount">@{list.currentPage + 1}/@list.pageCount</span>
   (@Html(
     pageSizeTable.map {e =>
       changePageSizeLink(list, e, pageLink)
     }.mkString(", ")
   ))
-  <button type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
+  <button class="nextPageButton" type="button" @{if(list.nextPageExists) "" else "disabled=disabled"}
           onclick="location.href='@pageLink(list.currentPage + 1, list.pageSize, list.orderBy.toString)'">
     &gt;
   </button>
