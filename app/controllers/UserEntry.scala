@@ -153,29 +153,30 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     )(RegisterUserInfo.apply4Japan)(RegisterUserInfo.unapply4Japan)
   )
 
-  def registerUserInformation() = isAuthenticated { implicit login => implicit request =>
+  def registerUserInformation(userId: Long) = optIsAuthenticated { implicit login => implicit request =>
     Ok(
       lang.toLocale match {
         case Locale.JAPANESE =>
-          registerUserInformationView(createRegistrationForm)
+          registerUserInformationView(userId, createRegistrationForm)
         case Locale.JAPAN =>
-          registerUserInformationView(createRegistrationForm)
+          registerUserInformationView(userId, createRegistrationForm)
 
         case _ =>
-          registerUserInformationView(createRegistrationForm)
+          registerUserInformationView(userId, createRegistrationForm)
       }
     )
   }
 
-  def submitUserInfo = isAuthenticated { implicit login => implicit request =>
+  def submitUserInfo(userId: Long) = optIsAuthenticated { implicit login => implicit request =>
     createRegistrationForm.bindFromRequest.fold(
       formWithErrors =>
-        BadRequest(registerUserInformationView(formWithErrors)),
+        BadRequest(registerUserInformationView(userId, formWithErrors)),
       newInfo =>
         DB.withConnection { implicit conn =>
-          if (! newInfo.currentPasswordNotMatch(login.storeUser)) {
+          if (! newInfo.currentPasswordNotMatch(userId)) {
             BadRequest(
               registerUserInformationView(
+                userId,
                 createRegistrationForm.fill(newInfo).withError("currentPassword", Messages("currentPasswordNotMatch"))
               )
             )
@@ -183,21 +184,23 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
           else if (newInfo.isNaivePassword) {
             BadRequest(
               registerUserInformationView(
+                userId,
                 createRegistrationForm.fill(newInfo).withError("password.main", Messages("naivePassword"))
               )
             )
           }
           else {
+            val u = StoreUser(userId)
             StoreUser.update(
-              login.storeUser.id.get,
-              login.storeUser.userName,
+              userId,
+              u.userName,
               newInfo.firstName,
               newInfo.middleName,
               newInfo.lastName,
               newInfo.email,
-              login.storeUser.passwordHash,
-              login.storeUser.salt,
-              login.storeUser.companyName
+              u.passwordHash,
+              u.salt,
+              u.companyName
             )
 
             val address = Address.createNew(
@@ -216,7 +219,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
               tel1 = newInfo.tel1
             )
 
-            UserAddress.createNew(login.storeUser.id.get, address.id.get)
+            UserAddress.createNew(userId, address.id.get)
             Redirect(
               routes.Application.index
             ).flashing("message" -> Messages("userInfoIsUpdated"))
@@ -226,20 +229,21 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
   }
 
   def registerUserInformationView(
+    userId: Long,
     form: Form[RegisterUserInfo]
   )(
     implicit lang: Lang,
     flash: play.api.mvc.Flash,
     request: RequestHeader,
-    loginSession: LoginSession
+    optLoginSession: Option[LoginSession]
   ): Html = lang.toLocale match {
     case Locale.JAPANESE =>
-      views.html.registerUserInformationJa(form, Address.JapanPrefectures)
+      views.html.registerUserInformationJa(userId, form, Address.JapanPrefectures)
     case Locale.JAPAN =>
-      views.html.registerUserInformationJa(form, Address.JapanPrefectures)
+      views.html.registerUserInformationJa(userId, form, Address.JapanPrefectures)
 
     case _ =>
-      views.html.registerUserInformationJa(form, Address.JapanPrefectures)
+      views.html.registerUserInformationJa(userId, form, Address.JapanPrefectures)
   }
 
   def updateUserInfoStart = isAuthenticated { implicit login => implicit request =>

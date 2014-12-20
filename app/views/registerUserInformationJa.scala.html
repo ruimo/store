@@ -1,10 +1,10 @@
 @(
-  myForm: Form[RegisterUserInfo], prefectureTable: Seq[(String, String)]
+  userId: Long, myForm: Form[RegisterUserInfo], prefectureTable: Seq[(String, String)]
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
   request: RequestHeader,
-  loginSession: LoginSession
+  loginSession: Option[LoginSession]
 )
 
 @import helper._
@@ -14,7 +14,7 @@
   f("zip1").error.isDefined || f("zip2").error.isDefined
 }
 
-@main(Messages("registerUserInformation"), Some(loginSession)) {
+@main(Messages("registerUserInformation"), loginSession) {
   <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
 } {
   <h2 class="title">@Messages("registerUserInformation")</h2>
@@ -31,7 +31,7 @@
     </div>
   }
 
-  @form(action = CSRF(routes.UserEntry.submitUserInfo()), 'id -> "submitUserForm") {
+  @form(action = CSRF(routes.UserEntry.submitUserInfo(userId)), 'id -> "submitUserForm") {
     @helper.inputPassword(
       myForm("currentPassword"),
       '_label -> Messages("currentPassword"), 'size -> 24, 'maxlength -> 24

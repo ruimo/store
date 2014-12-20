@@ -22,7 +22,7 @@ class RegisterUserInformationSpec extends Specification {
   "User information registration" should {
     "Show error message for blank input" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         // Create tentative user.
         SQL("""
@@ -35,16 +35,10 @@ class RegisterUserInformationSpec extends Specification {
             FALSE, """ + UserRole.NORMAL.ordinal + """, null
           )""").executeUpdate()
 
-        // Since we are not loged-in. The following page request should navigate to login page.
+        // Though we are not loged-in, the screen of register user information will be shown.
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.UserEntry.registerUserInformation() + "?lang=" + lang.code
+          "http://localhost:3333" + controllers.routes.UserEntry.registerUserInformation(1L) + "&lang=" + lang.code
         )
-
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("loginTitle")
-        browser.fill("#userName").`with`("002-Uno")
-        browser.fill("#password").`with`("Uno")
-        browser.find("#doLoginButton").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("registerUserInformation")

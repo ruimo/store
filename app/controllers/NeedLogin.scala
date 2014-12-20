@@ -165,10 +165,8 @@ trait NeedLogin extends Controller with HasLogger {
           if (rec.isRegistrationIncomplete) {
             logger.info("Need user registration '" + user.compoundUserName + "'")
             Redirect(
-              routes.UserEntry.registerUserInformation()
-            ).withSession {
-              (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
-            }
+              routes.UserEntry.registerUserInformation(rec.id.get)
+            )
           }
           else {
             logger.info("Login success '" + user.compoundUserName + "'")

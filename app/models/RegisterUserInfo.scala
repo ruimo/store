@@ -19,6 +19,10 @@ case class RegisterUserInfo(
   def currentPasswordNotMatch(storeUser: StoreUser)(implicit conn: Connection): Boolean =
     storeUser.passwordMatch(currentPassword)
 
+  def currentPasswordNotMatch(userId: Long)(implicit conn: Connection): Boolean = {
+    StoreUser(userId).passwordMatch(currentPassword)
+  }
+
   def isNaivePassword(implicit conn: Connection): Boolean =
     PasswordDictionary.isNaivePassword(passwords._1)
 }
