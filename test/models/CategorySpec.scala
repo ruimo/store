@@ -212,6 +212,8 @@ class CategorySpec extends Specification {
 
           Category.move(child11, None)
 
+          CategoryPath.parent(parent) === None
+
           CategoryPath.parent(child11) === None
 
           CategoryPath.children(child1).size === 0
