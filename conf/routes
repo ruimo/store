@@ -193,6 +193,8 @@ POST    /resetPassword                   controllers.UserEntry.resetPassword()
 GET     /resetPasswordConfirm            controllers.UserEntry.resetPasswordConfirm(u: Long, t: Long)
 POST    /resetWithNewPassword            controllers.UserEntry.resetWithNewPassword()
 GET     /resetPasswordCompleted          controllers.UserEntry.resetPasswordCompleted()
+GET     /changePasswordStart             controllers.UserEntry.changePasswordStart()
+POST    /changePassword                  controllers.UserEntry.changePassword()
 
 GET     /sitesAsJson                     controllers.SiteMaintenance.sitesAsJson()
 

@@ -14,6 +14,7 @@ import models.ResetWithNewPassword
 import models.Address
 import models.ResetPassword
 import models.PasswordReset
+import models.ChangePassword
 import helpers.UserEntryMail
 import controllers.Shipping.firstNameKanaConstraint
 import controllers.Shipping.lastNameKanaConstraint
@@ -65,6 +66,18 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       "companyId" -> optional(text),
       "userName" -> text.verifying(nonEmpty)
     )(PasswordReset.apply)(PasswordReset.unapply)
+  )
+
+  def changePasswordForm(implicit lang: Lang) = Form(
+    mapping(
+      "currentPassword" -> text.verifying(nonEmpty),
+      "newPassword" -> tuple(
+        "main" -> text.verifying(passwordConstraint: _*),
+        "confirm" -> text.verifying(passwordConstraint: _*)
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      )
+    )(ChangePassword.apply)(ChangePassword.unapply)
   )
 
   def resetWithNewPasswordForm(implicit lang: Lang) = Form(
@@ -479,5 +492,13 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
 
   def resetPasswordCompleted = Action { implicit request =>
     Ok(views.html.resetPasswordCompleted())
+  }
+
+  def changePasswordStart = isAuthenticated { implicit login => implicit request =>
+    Ok(views.html.changePassword(changePasswordForm))
+  }
+
+  def changePassword = isAuthenticated { implicit login => implicit request =>
+    Ok("")
   }
 }
