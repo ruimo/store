@@ -499,6 +499,13 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
   }
 
   def changePassword = isAuthenticated { implicit login => implicit request =>
-    Ok("")
+    changePasswordForm.bindFromRequest.fold(
+      formWithErrors => {
+        BadRequest(views.html.changePassword(formWithErrors))
+      },
+      newInfo => {
+        Ok("")
+      }
+    )
   }
 }
