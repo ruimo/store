@@ -19,7 +19,7 @@ class ChangePasswordSpec extends Specification {
   "Change password" should {
     "Be able to do validation." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
 
@@ -27,12 +27,38 @@ class ChangePasswordSpec extends Specification {
           "http://localhost:3333" + controllers.routes.UserEntry.changePasswordStart() + "?lang=" + lang.code
         )
         
+        // Empty
         browser.find("#doResetPasswordButton").click()
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#currentPassword_field .error").getText === Messages("error.required")
 
-Thread.sleep(20000)
-        1 === 1
+        browser.find("#newPassword_main_field .error").getText === Messages("error.minLength", 6)
+        browser.find("#newPassword_confirm_field .error").getText === Messages("error.minLength", 6)
+
+        // Current password is wrong.
+        browser.fill("#currentPassword_field input[type='password']").`with`("password0")
+        browser.fill("#newPassword_main_field input[type='password']").`with`("password2")
+        browser.fill("#newPassword_confirm_field input[type='password']").`with`("password2")
+        browser.find("#doResetPasswordButton").click()
+        browser.find("#currentPassword_field .error").getText === Messages("currentPasswordNotMatch")
+
+        // Confirmation password does not match.
+        browser.fill("#currentPassword_field input[type='password']").`with`("password")
+        browser.fill("#newPassword_main_field input[type='password']").`with`("password2")
+        browser.fill("#newPassword_confirm_field input[type='password']").`with`("password3")
+        browser.find("#doResetPasswordButton").click()
+        browser.find("#newPassword_confirm_field .error").getText === Messages("confirmPasswordDoesNotMatch")
+
+        val newPassword = "gH'(1hgf6"
+        browser.fill("#currentPassword_field input[type='password']").`with`("password")
+        browser.fill("#newPassword_main_field input[type='password']").`with`(newPassword)
+        browser.fill("#newPassword_confirm_field input[type='password']").`with`(newPassword)
+        browser.find("#doResetPasswordButton").click()
+
+        browser.find(".message").getText === Messages("passwordIsUpdated")
+        
+        // Check if new password is saved.
+        StoreUser(adminUser.id.get).passwordMatch(newPassword) === true
       }}
     }
   }

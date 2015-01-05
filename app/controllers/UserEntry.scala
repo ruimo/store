@@ -501,10 +501,33 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
   def changePassword = isAuthenticated { implicit login => implicit request =>
     changePasswordForm.bindFromRequest.fold(
       formWithErrors => {
+        logger.error("Validation error in changing password. '" + login.storeUser.userName + "'")
         BadRequest(views.html.changePassword(formWithErrors))
       },
       newInfo => {
-        Ok("")
+        if (! login.storeUser.passwordMatch(newInfo.currentPassword)) {
+          logger.error("Current password does not match. '" + login.storeUser.userName + "'")
+          BadRequest(
+            views.html.changePassword(
+              changePasswordForm.withError("currentPassword", Messages("currentPasswordNotMatch"))
+            )
+          )
+        }
+        else {
+          DB.withConnection { implicit conn =>
+            if (newInfo.changePassword(login.storeUser.id.get)) {
+              Redirect(routes.Application.index)
+                .flashing("message" -> Messages("passwordIsUpdated"))
+            }
+            else {
+              BadRequest(
+                views.html.changePassword(
+                  changePasswordForm.withGlobalError("general.error")
+                )
+              )
+            }
+          }
+        }
       }
     )
   }
