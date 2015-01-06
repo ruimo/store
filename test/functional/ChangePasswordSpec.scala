@@ -32,8 +32,9 @@ class ChangePasswordSpec extends Specification {
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#currentPassword_field .error").getText === Messages("error.required")
 
-        browser.find("#newPassword_main_field .error").getText === Messages("error.minLength", 6)
-        browser.find("#newPassword_confirm_field .error").getText === Messages("error.minLength", 6)
+        val passwordMinLength = cfg.getInt("password.min.length").getOrElse(6)
+        browser.find("#newPassword_main_field .error").getText === Messages("error.minLength", passwordMinLength)
+        browser.find("#newPassword_confirm_field .error").getText === Messages("error.minLength", passwordMinLength)
 
         // Current password is wrong.
         browser.fill("#currentPassword_field input[type='password']").`with`("password0")
