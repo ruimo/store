@@ -20,7 +20,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
       "companyName" -> text.verifying(nonEmpty, maxLength(64)),
       "firstName" -> text.verifying(nonEmpty, maxLength(64)),
       "lastName" -> text.verifying(nonEmpty, maxLength(64)),
-      "tel" -> text.verifying(Messages("error.number"), z => Shipping.TelPattern.matcher(z).matches),
+      "tel" -> text.verifying(nonEmpty).verifying(Messages("error.number"), z => Shipping.TelPattern.matcher(z).matches),
       "email" -> text.verifying(nonEmpty, maxLength(128))
     )(QaEntry.apply4Japan)(QaEntry.unapply4Japan)
   )
