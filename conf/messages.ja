@@ -12,21 +12,22 @@ format.numeric=数値で指定してください
 format.real=Real
 
 # --- Errors
-error.invalid=値が不適切です。
-error.required=入力必須です。
-error.number=数値を入力してください。
-error.real=数値を入力してください。
+# 句点を最後に入れないこと。複数のエラーがある時、カンマ区切りで表示されるので不自然になる。
+error.invalid=値が不適切です
+error.required=入力必須です
+error.number=数値を入力してください
+error.real=数値を入力してください
 error.real.precision=Real number value with no more than {0} digit(s) including {1} decimal(s) expected
-error.min={0} 以上の値を入力してください。
-error.min.strict={0} より大きな値を入力してください。
-error.max={0} 以下の値を入力してください。
-error.max.strict={0} より小さな値を入力してください。
-error.minLength=最小長さは {0} です。
-error.maxLength=最大長さは {0} です。
-error.email=正しいメールアドレスを入力してください。
+error.min={0} 以上の値を入力してください
+error.min.strict={0} より大きな値を入力してください
+error.max={0} 以下の値を入力してください
+error.max.strict={0} より小さな値を入力してください
+error.minLength=最小長さは {0} です
+error.maxLength=最大長さは {0} です
+error.email=正しいメールアドレスを入力してください
 error.pattern=次のパターンに従う必要があります {0}
-error.invalid.yyyymmdd=YYYYMMDDの形式で入力してください。
-error.value=値が不適切です。
+error.invalid.yyyymmdd=YYYYMMDDの形式で入力してください
+error.value=値が不適切です
 
 adminTitle=管理サイト
 loginTitle=ログイン

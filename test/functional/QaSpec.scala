@@ -34,7 +34,8 @@ class QaSpec extends Specification {
         browser.find("#companyName_field").find(".help-inline").getText === Messages("error.required")
         browser.find("#firstName_field").find(".help-inline").getText === Messages("error.required")
         browser.find("#lastName_field").find(".help-inline").getText === Messages("error.required")
-        browser.find("#tel_field").find(".help-inline").getText === Messages("error.number")
+        browser.find("#tel_field").find(".help-inline").getText ===
+          Messages("error.required") + ", " + Messages("error.number")
         browser.find("#email_field").find(".help-inline").getText === Messages("error.required")
       }}
     }
