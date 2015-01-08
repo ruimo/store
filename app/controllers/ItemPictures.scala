@@ -273,11 +273,15 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     fileName match {
       case None =>
         Ok(byteArray).as(contentType).withHeaders(
+          CACHE_CONTROL -> "max-age=0",
+          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
           LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
         )
 
       case Some(fname) =>
         Ok(byteArray).as(contentType).withHeaders(
+          CACHE_CONTROL -> "max-age=0",
+          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
           LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis)),
           CONTENT_DISPOSITION -> ("attachment; filename=" + fname)
         )
