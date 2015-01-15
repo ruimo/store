@@ -1,5 +1,6 @@
 package controllers
 
+import constraints.FormConstraints._
 import java.util.Locale
 import play.api.i18n.{Lang, Messages}
 import play.api.Play.current

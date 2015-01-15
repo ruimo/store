@@ -5,6 +5,7 @@ constraint.max=最大値は {0} です
 constraint.minLength=最小の長さは {0} です。
 constraint.maxLength=最大の長さは {0} です。
 constraint.validatewith=
+constraint.password.char=パスワードは、アルファベット、数字、記号で指定してください
 
 # --- Formats
 format.date=Date (''{0}'')
@@ -13,6 +14,7 @@ format.real=Real
 
 # --- Errors
 # 句点を最後に入れないこと。複数のエラーがある時、カンマ区切りで表示されるので不自然になる。
+error.pasword.char=アルファベット、数字、記号以外の文字は使用できません
 error.invalid=値が不適切です
 error.required=入力必須です
 error.number=数値を入力してください

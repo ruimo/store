@@ -1,3 +1,5 @@
+constraint.password.char=Password should contain only alphabets, numbers, and symbols.
+error.pasword.char=Cannot use characters other than alphabets, numbers, and symbols.
 constraint.email=xxx@yyy.zzz
 error.value=Invalid value
 

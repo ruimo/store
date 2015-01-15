@@ -9,6 +9,7 @@ import play.api.mvc._
 import play.filters.csrf.CSRF.Token._
 import helpers.{RandomTokenGenerator, TokenGenerator}
 import play.api.data.validation.Constraints._
+import constraints.FormConstraints._
 import models.{CreateUser, FirstSetup}
 import controllers.I18n.I18nAware
 import play.api.Play.current
