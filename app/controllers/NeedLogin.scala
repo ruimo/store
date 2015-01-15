@@ -211,7 +211,7 @@ trait NeedLogin extends Controller with HasLogger {
 }
 
 object NeedLogin {
-  val cfg = play.api.Play.maybeApplication.map(_.configuration).get
+  lazy val cfg = play.api.Play.maybeApplication.map(_.configuration).get
   def needAuthenticationEntirely = cfg.getBoolean("need.authentication.entirely").getOrElse(false)
   lazy val loginTimeoutInMinute = cfg.getString("login.timeout.minute").map {
     _.toInt
