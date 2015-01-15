@@ -3,6 +3,7 @@
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
+  flash: play.api.mvc.Flash,
   request: RequestHeader,
   loginSession: LoginSession
 )
@@ -14,6 +15,12 @@
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">
       @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
     </div>
   }
 

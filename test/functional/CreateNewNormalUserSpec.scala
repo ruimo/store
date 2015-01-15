@@ -1,5 +1,6 @@
 package functional
 
+import helpers.PasswordHash
 import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable._
@@ -13,7 +14,47 @@ import java.util.concurrent.TimeUnit
 
 class CreateNewNormalUserSpec extends Specification {
   "CreateNewNormalUser" should {
-    "Can create new user" in {
+    "Can create record" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+
+        browser.goTo("http://localhost:3333" +
+                     controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
+        
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("createNormalUserTitle")
+        browser.fill("#userName").`with`("username")
+        browser.fill("#firstName").`with`("firstname")
+        browser.fill("#lastName").`with`("lastname")
+        browser.fill("#companyName").`with`("site01")
+        browser.fill("#email").`with`("ruimo@ruimo.com")
+        browser.fill("#password_main").`with`("12345678")
+        browser.fill("#lastName").`with`("lastName")
+        browser.fill("#password_main").`with`("password")
+        browser.fill("#password_confirm").`with`("password")
+
+        browser.submit("#registerNormalUser")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        // Waiting next normal user to create.
+        browser.title === Messages("createNormalUserTitle")
+        browser.find(".message").getText === Messages("userIsCreated")
+        
+        val newUser = StoreUser.findByUserName("username").get
+        newUser.userName === "username"
+        newUser.firstName === "firstname"
+        newUser.middleName === None
+        newUser.lastName === "lastName"
+        newUser.email === "ruimo@ruimo.com"
+        newUser.passwordHash === PasswordHash.generate("password", newUser.salt)
+        newUser.deleted === false
+        newUser.userRole === UserRole.NORMAL
+        newUser.companyName === Some("site01")
+      }}
+    }
+
+    "Email error" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
