@@ -9,7 +9,7 @@ import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
 import helpers.Helper._
-import controllers.NeedLogin.passwordMinLength
+import constraints.FormConstraints.passwordMinLength
 
 class CreateNewSuperUserSpec extends Specification {
   "CreateNewSuperUser" should {

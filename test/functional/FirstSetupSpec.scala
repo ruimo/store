@@ -8,7 +8,7 @@ import models.{UserRole, StoreUser}
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
-import controllers.NeedLogin.passwordMinLength
+import constraints.FormConstraints.passwordMinLength
 
 class FirstSetupSpec extends Specification {
   "FirstSetup" should {

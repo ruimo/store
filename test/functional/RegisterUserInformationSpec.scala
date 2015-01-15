@@ -16,7 +16,7 @@ import LocaleInfo._
 import java.sql.Connection
 import scala.collection.JavaConversions._
 import com.ruimo.scoins.Scoping._
-import controllers.NeedLogin.passwordMinLength
+import constraints.FormConstraints.passwordMinLength
 
 class RegisterUserInformationSpec extends Specification {
   "User information registration" should {
