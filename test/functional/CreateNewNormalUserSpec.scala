@@ -20,6 +20,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
         
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("createNormalUserTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
@@ -33,6 +34,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.fill("#password_confirm").`with`("password")
 
         browser.submit("#registerNormalUser")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         // Waiting next normal user to create.
         browser.title === Messages("createNormalUserTitle")
 
@@ -49,6 +51,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
 
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("createNormalUserTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
@@ -59,6 +62,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345679")
         browser.submit("#registerNormalUser")
 
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         // Waiting next normal user to create.
         browser.title === Messages("createNormalUserTitle")
 
