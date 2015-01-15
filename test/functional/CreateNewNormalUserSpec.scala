@@ -9,6 +9,7 @@ import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
 import helpers.Helper._
+import java.util.concurrent.TimeUnit
 
 class CreateNewNormalUserSpec extends Specification {
   "CreateNewNormalUser" should {
