@@ -43,6 +43,13 @@ class ChangePasswordSpec extends Specification {
         browser.find("#doResetPasswordButton").click()
         browser.find("#currentPassword_field .error").getText === Messages("currentPasswordNotMatch")
 
+        // Password is not ASCII char.
+        browser.fill("#currentPassword_field input[type='password']").`with`("password")
+        browser.fill("#newPassword_main_field input[type='password']").`with`("あいうえおかきくけこ")
+        browser.fill("#newPassword_confirm_field input[type='password']").`with`("あいうえおかきくけこ")
+        browser.find("#doResetPasswordButton").click()
+        browser.find("#newPassword_main_field .error").getText === Messages("error.pasword.char")
+
         // Confirmation password does not match.
         browser.fill("#currentPassword_field input[type='password']").`with`("password")
         browser.fill("#newPassword_main_field input[type='password']").`with`("password2")
