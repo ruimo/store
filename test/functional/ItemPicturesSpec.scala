@@ -46,6 +46,9 @@ class ItemPicturesSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         val file = testDir.resolve("notfound.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getPicture(1, 0).url
