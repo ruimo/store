@@ -5,6 +5,7 @@ import play.api.test.Helpers._
 import play.api.Play.current
 import java.sql.Connection
 
+import controllers.NeedLogin.needAuthenticationEntirely
 import helpers.Helper._
 
 import org.specs2.mutable.Specification
@@ -60,6 +61,9 @@ class ItemPicturesSpec extends Specification {
         val file = testDir.resolve("detailnotfound.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getDetailPicture(1).url
@@ -75,6 +79,9 @@ class ItemPicturesSpec extends Specification {
         val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           Some(file.toFile.lastModified - 1000),
@@ -91,6 +98,9 @@ class ItemPicturesSpec extends Specification {
         val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           Some(file.toFile.lastModified - 1000),
@@ -107,6 +117,9 @@ class ItemPicturesSpec extends Specification {
         val file = testDir.resolve("2_1.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           Some(file.toFile.lastModified),
@@ -128,6 +141,9 @@ class ItemPicturesSpec extends Specification {
         val file = testDir.resolve("detail2.jpg")
         Files.deleteIfExists(file)
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           Some(file.toFile.lastModified),
@@ -225,6 +241,9 @@ class ItemPicturesSpec extends Specification {
     "If specified attachment is not found, 404 will be returned." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
         downloadString(
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "foo").url
         ) must throwA[FileNotFoundException]
@@ -237,6 +256,9 @@ class ItemPicturesSpec extends Specification {
         Files.createDirectories(testDir.resolve("attachments"))
         val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
         downloadString(
           Some(file.toFile.lastModified - 1000),
           "http://localhost:3333" + controllers.routes.ItemPictures.getItemAttachment(1, 2, "file.jpg").url
@@ -252,6 +274,9 @@ class ItemPicturesSpec extends Specification {
         Files.createDirectories(testDir.resolve("attachments"))
         val file = testDir.resolve("attachments").resolve("1_2_file.jpg")
         Files.write(file, util.Arrays.asList("Hello"), Charset.forName("US-ASCII"))
+        if (needAuthenticationEntirely) {
+          loginWithTestUser(browser)
+        }
 
         downloadString(
           Some(file.toFile.lastModified),
