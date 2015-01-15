@@ -56,7 +56,7 @@ class RegisterUserInformationSpec extends Specification {
         browser.find("#address1_field .help-inline").getText === Messages("error.required")
         browser.find("#address2_field .help-inline").getText === Messages("error.required")
         browser.find("#address3_field .help-inline").getText === ""
-        browser.find("#tel1_field .help-inline").getText === Messages("error.number")
+        browser.find("#tel1_field .help-inline").getText === Messages("error.required") + ", " + Messages("error.number")
 
         val password = "1" * (passwordMinLength - 1)
         browser.fill("#password_main").`with`(password)
