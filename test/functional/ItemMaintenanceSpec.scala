@@ -38,7 +38,7 @@ class ItemMaintenanceSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         browser.goTo(
@@ -47,7 +47,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
-        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.find("#taxId").find("option").getText() === "外税"
         browser.fill("#description").`with`("Description01")
 
         browser.fill("#itemName").`with`("ItemName01")
@@ -81,7 +81,7 @@ class ItemMaintenanceSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         browser.goTo(
@@ -91,7 +91,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
-        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.find("#taxId").find("option").getText() === "外税"
         browser.fill("#description").`with`("Description01")
 
         browser.fill("#itemName").`with`("ItemName01")
@@ -112,7 +112,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#itemNames_0__itemName").getAttribute("value") === "ItemName01"
         browser.find("#categoryId option").getText === "Cat01"
-        browser.find("#itemPrices_0__taxId option").getText === "tax01"
+        browser.find("#itemPrices_0__taxId option").getText === "外税"
         browser.find("#itemPrices_0__itemPrice").getAttribute("value") === "1234.00"
         browser.find("#itemPrices_0__listPrice").getAttribute("value") === ""
         browser.find("#itemPrices_0__costPrice").getAttribute("value") === "2345.00"
@@ -141,7 +141,7 @@ class ItemMaintenanceSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         browser.goTo(
@@ -150,7 +150,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
-        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.find("#taxId").find("option").getText() === "外税"
         browser.fill("#description").`with`("Description01")
 
         browser.fill("#itemName").`with`("ItemName01")
@@ -185,7 +185,7 @@ class ItemMaintenanceSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         browser.goTo(
@@ -195,7 +195,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
-        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.find("#taxId").find("option").getText() === "外税"
         browser.fill("#description").`with`("Description01")
 
         browser.fill("#itemName").`with`("ItemName01")
@@ -216,7 +216,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#itemNames_0__itemName").getAttribute("value") === "ItemName01"
         browser.find("#categoryId option").getText === "Cat01"
-        browser.find("#itemPrices_0__taxId option").getText === "tax01"
+        browser.find("#itemPrices_0__taxId option").getText === "外税"
         browser.find("#itemPrices_0__itemPrice").getAttribute("value") === "1234.00"
         browser.find("#itemPrices_0__listPrice").getAttribute("value") === ""
         browser.find("#itemPrices_0__costPrice").getAttribute("value") === "2345.00"
@@ -250,7 +250,7 @@ class ItemMaintenanceSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         browser.goTo(
@@ -260,7 +260,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.find("#isCoupon").click()
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
-        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.find("#taxId").find("option").getText() === "外税"
         browser.fill("#description").`with`("Description01")
 
         browser.fill("#itemName").`with`("ItemName01")
@@ -293,7 +293,7 @@ class ItemMaintenanceSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         browser.goTo(
@@ -302,7 +302,7 @@ class ItemMaintenanceSpec extends Specification {
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
-        browser.find("#taxId").find("option").getText() === "tax01"
+        browser.find("#taxId").find("option").getText() === "外税"
         browser.fill("#description").`with`("Description01")
 
         browser.fill("#itemName").`with`("ItemName01")
