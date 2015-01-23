@@ -23,12 +23,15 @@
 @import helper._
 
 @main(Messages("item.list"), loginSession) {
-<script>
-  $(function() {
-    $("#queryTemplateBody").load("/static/templates/itemQueries/" + @templateNo + ".html");
-  });
-</script>
+  @shoppingCartDialogDeclaration()
+  <script>
+    $(function() {
+      $("#queryTemplateBody").load("/static/templates/itemQueries/" + @templateNo + ".html");
+    });
+  </script>
 } {
+  @shoppingCartDialogImplementation()
+
   @helper.form(action=routes.ItemQuery.query(queryString.table.toList)) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")"
            value="@queryString.toString">
