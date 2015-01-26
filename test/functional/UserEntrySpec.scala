@@ -37,7 +37,7 @@ class UserEntrySpec extends Specification {
 
     "Enter invalid zip should result in error" in {
       val app = FakeApplication(additionalConfiguration = conf)
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         browser.goTo(
           "http://localhost:3333" + controllers.routes.UserEntry.index() + "?lang=" + lang.code
