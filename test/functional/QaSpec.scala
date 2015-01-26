@@ -112,6 +112,14 @@ class QaSpec extends Specification {
         browser.title === Messages("qaTitle")
         browser.find("#submitQa").click()
 
+        if (NeedLogin.needAuthenticationEntirely) {
+          browser.fill("#companyName").`with`("")
+          browser.fill("#firstName").`with`("")
+          browser.fill("#lastName").`with`("")
+          browser.fill("#tel").`with`("")
+          browser.fill("#email").`with`("")
+        }
+
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#qaType_field").find(".help-inline").getText === Messages("error.required")
         browser.find("#comment_field").find(".help-inline").getText === Messages("error.required")
