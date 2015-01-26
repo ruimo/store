@@ -9,7 +9,7 @@ import play.api.mvc.{Action, Controller, RequestHeader}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import models.QaEntry
+import models.{QaEntry, UserAddress, Address}
 import helpers.QaMail
 
 object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
@@ -26,14 +26,33 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
   )
 
   def index() = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
+    val form = optLogin.map { login =>
+      val optAddr: Option[Address] = UserAddress.getByUserId(login.storeUser.id.get).map { ua =>
+        Address.byId(ua.id.get)
+      }
+
+      jaForm.fill(
+        QaEntry(
+          qaType = "",
+          comment = "",
+          companyName = login.storeUser.companyName.getOrElse(""),
+          firstName = login.storeUser.firstName,
+          middleName = login.storeUser.middleName.getOrElse(""),
+          lastName = login.storeUser.lastName,
+          tel = optAddr.map(_.tel1).getOrElse(""),
+          email = login.storeUser.email
+        )
+      ).discardingErrors
+    }.getOrElse(jaForm)
+
     lang.toLocale match {
       case Locale.JAPANESE =>
-        Ok(views.html.qaJa(jaForm))
+        Ok(views.html.qaJa(form))
       case Locale.JAPAN =>
-        Ok(views.html.qaJa(jaForm))
+        Ok(views.html.qaJa(form))
         
       case _ =>
-        Ok(views.html.qaJa(jaForm))
+        Ok(views.html.qaJa(form))
     }
   }}}
 
