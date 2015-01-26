@@ -110,7 +110,6 @@ class QaSpec extends Specification {
           "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
         )
         browser.title === Messages("qaTitle")
-        browser.find("#submitQa").click()
 
         if (NeedLogin.needAuthenticationEntirely) {
           browser.fill("#companyName").`with`("")
@@ -120,6 +119,7 @@ class QaSpec extends Specification {
           browser.fill("#email").`with`("")
         }
 
+        browser.find("#submitQa").click()
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#qaType_field").find(".help-inline").getText === Messages("error.required")
         browser.find("#comment_field").find(".help-inline").getText === Messages("error.required")
