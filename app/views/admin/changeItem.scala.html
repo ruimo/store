@@ -17,7 +17,7 @@
       <td class="upload">
         @form(action = helper.CSRF(routes.ItemPictures.upload(id, idx)), 'enctype -> "multipart/form-data") {
           <input id="itemPictureUpload@idx" type="file" name="picture">
-          <input id="itemPictureUploadSubmit@idx" type="submit">
+          <input id="itemPictureUploadSubmit@idx" type="submit" value='@Messages("register")'>
         }
       </td>
       <td class="remove">
@@ -36,7 +36,7 @@
       <td class="upload">
         @form(action = helper.CSRF(routes.ItemPictures.uploadDetail(id)), 'enctype -> "multipart/form-data") {
           <input type="file" name="picture">
-          <input type="submit">
+          <input type="submit" value='@Messages("register")'>
         }
       </td>
       <td class="remove">
@@ -55,7 +55,7 @@
       <td class="upload">
         @form(action = helper.CSRF(routes.ItemPictures.uploadItemAttachment(id, idx)), 'enctype -> "multipart/form-data") {
           <input id="itemAttachmentUpload@idx" type="file" name="attachment">
-          <input id="itemAttachmentUploadSubmit@idx" type="submit">
+          <input id="itemAttachmentUploadSubmit@idx" type="submit" value='@Messages("register")'>
         }
       </td>
       @c.attachmentNames.get(idx) match {
@@ -377,7 +377,7 @@
 
       <tr>
         <td colspan="2">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -422,7 +422,7 @@
 
       <tr>
         <td colspan="2">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -438,7 +438,7 @@
       '_showConstraints -> false
     )
 
-    <input type="submit" value=@Messages("update")>
+    <input type="submit" value='@Messages("update")'>
   }
 
   <h2 class="coupon">@Messages("coupon")</h2>
@@ -447,7 +447,7 @@
       c.couponForm("isCoupon"), '_showConstraints -> false, '_label -> Messages("coupon")
     )
 
-    <input type="submit" value=@Messages("update")>
+    <input type="submit" value='@Messages("update")'>
   }
 
   <h2 class="itemMetadata">@Messages("itemMetadata")</h2>
@@ -465,7 +465,7 @@
         @if(! c.itemMetadataTableForm("itemMetadatas").indexes.isEmpty) {
           <tr>
             <td colspan="3">
-              <input style="float: right;" type="submit" value=@Messages("update")>
+              <input style="float: right;" type="submit" value='@Messages("update")'>
             </td>
           </tr>
         }
@@ -500,7 +500,7 @@
 
       <tr>
         <td colspan="2">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -521,7 +521,7 @@
         @if(! c.itemTextMetadataTableForm("itemMetadatas").indexes.isEmpty) {
           <tr>
             <td colspan="2">
-              <input style="float: right;" type="submit" value=@Messages("update")>
+              <input style="float: right;" type="submit" value='@Messages("update")'>
             </td>
           </tr>
         }
@@ -556,7 +556,7 @@
 
       <tr>
         <td colspan="2">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -578,7 +578,7 @@
         @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
           <tr>
             <td colspan="3">
-              <input style="float: right;" type="submit" value=@Messages("update")>
+              <input style="float: right;" type="submit" value='@Messages("update")'>
             </td>
           </tr>
         }
@@ -623,7 +623,7 @@
 
       <tr>
         <td colspan="3">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -647,7 +647,7 @@
         @if(! c.siteItemTextMetadataTableForm("siteItemTextMetadatas").indexes.isEmpty) {
           <tr>
             <td colspan="3">
-              <input style="float: right;" type="submit" value=@Messages("update")>
+              <input style="float: right;" type="submit" value='@Messages("update")'>
             </td>
           </tr>
         }
@@ -692,7 +692,7 @@
 
       <tr>
         <td colspan="3">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -717,7 +717,7 @@
       }
       <tr>
         <td colspan="7">
-          <input id="changeItemPriceButton" style="float: right;" type="submit" value=@Messages("update")>
+          <input id="changeItemPriceButton" style="float: right;" type="submit" value='@Messages("update")'>
         </td>
       </tr>
     </table>
@@ -802,7 +802,7 @@
 
       <tr>
         <td colspan="7">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
@@ -822,7 +822,7 @@
 
       <tr>
         <td colspan="3">
-          <input style="float: right;" type="submit" value=@Messages("update")>
+          <input style="float: right;" type="submit" value='@Messages("update")'>
         </td>
       </tr>
     </table>
@@ -866,7 +866,7 @@
 
       <tr>
         <td colspan="3">
-          <input style="float: right;" type="submit" value=@Messages("add")>
+          <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>
     </table>
