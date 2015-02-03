@@ -288,6 +288,8 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
+  def detailPictureExists(itemId: Long): Boolean = Files.isReadable(toDetailPath(itemId))
+
   def getDetailPicture(itemId: Long) = optIsAuthenticated { implicit optLogin => request =>
     val path = getDetailPath(itemId)
     if (Files.isReadable(path)) {

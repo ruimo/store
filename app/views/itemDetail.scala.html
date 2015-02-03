@@ -60,7 +60,9 @@
         </tr>
       </table>
 
-      <img class="itemPictureForDetail" src="@routes.ItemPictures.getDetailPicture(detail.itemId)">
+      @if(ItemPictures.detailPictureExists(detail.itemId)) {
+        <img class="itemPictureForDetail" src="@routes.ItemPictures.getDetailPicture(detail.itemId)">
+      }
 
       <div class="itemDetailCartPanel">
         <button class="purchaseButton" type="button"
