@@ -35,7 +35,7 @@ myForm: Form[QaEntry]
         Messages("qaSugestion") -> Messages("qaSugestion"),
         Messages("qaOther") -> Messages("qaOther")
       ),
-      '_label -> Messages("qaItemTitle"), '_showConstraints -> false
+      '_label -> <span>{Messages("qaItemTitle")}</span><span class='help-block'>{Messages("constraint.required")}</span>
     )
 
     @textarea(
