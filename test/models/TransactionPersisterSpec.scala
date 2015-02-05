@@ -198,12 +198,12 @@ class TransactionPersisterSpec extends Specification {
           val couponLog = TransactionLogCoupon.at(
             LocaleInfo.Ja, user.id.get, couponLogList.records(0).tranCouponId
           )
-          couponLog.tranHeaderId === header(0).id.get
-          couponLog.site === site
-          couponLog.time === now
-          couponLog.itemId === item.id.get
-          couponLog.itemName === itemName(LocaleInfo.Ja).name
-          couponLog.couponId === coupon.id.get
+          couponLog.couponDetail.tranHeaderId === header(0).id.get
+          couponLog.couponDetail.site === site
+          couponLog.couponDetail.time === now
+          couponLog.couponDetail.itemId === item.id.get
+          couponLog.couponDetail.itemName === itemName(LocaleInfo.Ja).name
+          couponLog.couponDetail.couponId === coupon.id.get
 
           val shippingLog = TransactionLogShipping.list()
           shippingLog.size === 1

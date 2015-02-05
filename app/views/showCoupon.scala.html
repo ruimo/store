@@ -1,5 +1,5 @@
 @(
-  couponDetail: CouponDetail
+  c: CouponDetailWithMetadata
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -22,13 +22,13 @@
     <table class="showCouponTable">
       <tr>
         <td class="couponImage">
-          <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(couponDetail.itemId.id, 0)">
+          <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(c.couponDetail.itemId.id, 0)">
         </td>
         <td class="couponDetail">
           <table>
             <tr>
               <td class="date">
-                <span>@Messages("publishedDate")</span><span>@publishedDate(couponDetail.time)</span>
+                <span>@Messages("publishedDate")</span><span>@publishedDate(c.couponDetail.time)</span>
               </td>
             </tr>
             <tr>
@@ -51,7 +51,7 @@
             </tr>
             <tr>
               <td class="tranId">
-                @couponDetail.tranHeaderId
+                @c.couponDetail.tranHeaderId
               </td>
             </tr>
           </table>

@@ -135,12 +135,20 @@ case class Transaction(
 
 case class CouponDetail(
   tranHeaderId: Long,
-  tranCouponId: Long,
+  tranCouponId: TransactionLogCouponId,
   site: Site,
   time: Long,
   itemId: ItemId,
   itemName: String,
   couponId: CouponId
+)
+
+case class CouponDetailWithMetadata(
+  couponDetail: CouponDetail,
+  itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
+  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata],
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata]
 )
 
 object TransactionLogHeader {
@@ -539,7 +547,8 @@ object TransactionLogCoupon {
     SqlParser.get[Long]("transaction_coupon.coupon_id") map {
       case tranId~tranCouponId~siteId~time~itemId~itemName~couponId =>
         CouponDetail(
-          tranId, tranCouponId, Site(siteId), time.getTime, ItemId(itemId), itemName, CouponId(couponId)
+          tranId, TransactionLogCouponId(tranCouponId), Site(siteId), time.getTime,
+          ItemId(itemId), itemName, CouponId(couponId)
         )
     }
 
@@ -597,25 +606,37 @@ object TransactionLogCoupon {
     PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, list)
   }
 
-  def at(locale: LocaleInfo, userId: Long, id: Long)(implicit conn: Connection): CouponDetail = SQL(
-    """
-    select * from transaction_header h
-    inner join transaction_site s on h.transaction_id = s.transaction_id
-    inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
-    inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
-    inner join item it on it.item_id = i.item_id
-    inner join item_name iname on iname.item_id = i.item_id
-    where c.transaction_coupon_id = {id}
-    and h.store_user_id = {userId}
-    and iname.locale_id = {localeId}
-    """
-  ).on(
-    'id -> id,
-    'userId -> userId,
-    'localeId -> locale.id
-  ).as(
-    couponParser.single
-  )
+  def at(
+    locale: LocaleInfo, userId: Long, id: TransactionLogCouponId
+  )(implicit conn: Connection): CouponDetailWithMetadata = {
+    val c: CouponDetail = SQL(
+      """
+      select * from transaction_header h
+      inner join transaction_site s on h.transaction_id = s.transaction_id
+      inner join transaction_item i on s.transaction_site_id = i.transaction_site_id
+      inner join transaction_coupon c on i.transaction_item_id = c.transaction_item_id
+      inner join item it on it.item_id = i.item_id
+      inner join item_name iname on iname.item_id = i.item_id
+      where c.transaction_coupon_id = {id}
+      and h.store_user_id = {userId}
+      and iname.locale_id = {localeId}
+      """
+    ).on(
+      'id -> id,
+      'userId -> userId,
+      'localeId -> locale.id
+    ).as(
+      couponParser.single
+    )
+
+    CouponDetailWithMetadata(
+      c,
+      ItemNumericMetadata.allById(c.itemId),
+      ItemTextMetadata.allById(c.itemId),
+      SiteItemNumericMetadata.all(c.site.id.get, c.itemId),
+      SiteItemTextMetadata.all(c.site.id.get, c.itemId)
+    )
+  }
 }
 
 case class PersistedTransaction(

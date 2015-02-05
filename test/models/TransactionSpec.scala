@@ -574,6 +574,131 @@ class TransactionSpec extends Specification {
         }
       }
     }
+
+    "Can retrieve transaction coupon item." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val currency1 = CurrencyInfo.Jpy
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
+
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+
+          val tranSite1 = TransactionLogSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
+          import models.LocaleInfo.{Ja}
+          val tax1 = Tax.createNew
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+          val item3 = Item.createNew(cat1)
+
+          val itemNumericMd1 = ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 10L)
+          val itemNumericMd2 = ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 20L)
+
+          val siteItemNumricStock1 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 123L
+          )
+          val siteItemNumericStock2 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item2.id.get, SiteItemNumericMetadataType.STOCK, 234L
+          )
+          val siteItemNumericShippingSize1 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, 0L
+          )
+          val siteItemNumericPromo1 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item2.id.get, SiteItemNumericMetadataType.PROMOTION, 1L
+          )
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+          val name3 = ItemName.createNew(item3, Map(Ja -> "竹"))
+          
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+          val price3 = ItemPrice.createNew(item3, site1)
+
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
+          val ph3 = ItemPriceHistory.createNew(
+            price3, tax1, CurrencyInfo.Jpy, BigDecimal(39), None, BigDecimal(30), date("9999-12-31")
+          )
+
+          val tranItem1 = TransactionLogItem.createNew(
+            tranSite1.id.get, item1.id.get.id, price1.id.get, 3, BigDecimal(400 * 3), BigDecimal(300), 123L
+          )
+          val tranItem2 = TransactionLogItem.createNew(
+            tranSite1.id.get, item2.id.get.id, price2.id.get, 5, BigDecimal(700 * 5), BigDecimal(400), 234L
+          )
+          val tranItem3 = TransactionLogItem.createNew(
+            tranSite1.id.get, item3.id.get.id, price3.id.get, 5, BigDecimal(700 * 5), BigDecimal(400), 234L
+          )
+
+          val coupon1 = Coupon.createNew()
+          val couponItem1 = CouponItem.create(item1.id.get, coupon1.id.get)
+          val tranCoupon1 = TransactionLogCoupon.createNew(tranItem1.id.get, coupon1.id.get)
+
+          val coupon2 = Coupon.createNew()
+          val couponItem2 = CouponItem.create(item2.id.get, coupon2.id.get)
+          val tranCoupon2 = TransactionLogCoupon.createNew(tranItem2.id.get, coupon2.id.get)
+
+          val list = TransactionLogCoupon.list(LocaleInfo.Ja, user1.id.get, 0)
+          list.records.size === 2
+          list.records(0) === CouponDetail(
+            tranHeaderId = header.id.get,
+            tranCouponId = tranCoupon2.id.get,
+            site = site1,
+            time = header.transactionTime,
+            itemId = item2.id.get,
+            itemName = "梅",
+            couponId = coupon2.id.get
+          )
+          list.records(1) === CouponDetail(
+            tranHeaderId = header.id.get,
+            tranCouponId = tranCoupon1.id.get,
+            site = site1,
+            time = header.transactionTime,
+            itemId = item1.id.get,
+            itemName = "杉",
+            couponId = coupon1.id.get
+          )
+  //        val withMd = TransactionLogCoupon.at(LocaleInfo.Ja, user1.id.get, tranCoupon2.id.get)
+          // === CouponDetailWithMetadata(
+          //   CouponDetail(
+          //     tranHeaderId = header.id.get,
+          //     tranCouponId = tranCoupon2.id.get,
+          //     site = site1,
+          //     time = header.transactionTime,
+          //     itemId = item2.id.get,
+          //     itemName = "梅",
+          //     couponId = coupon2.id.get
+          //   ),
+          //   Map(ItemNumericMetadataType.HEIGHT -> itemNumericMd2)
+          //   Map().empty,
+          //   Map(
+          //     SiteItemNumericMetadataType.STOCK -> siteItemNumericStock2,
+          //     SiteItemNumericMetadataType.PROMOTION -> siteItemNumericPromo1
+          //   ),
+          //   Map.empty
+//          )
+        }
+      }
+    }
   }
 }
 

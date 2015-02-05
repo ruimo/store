@@ -28,7 +28,7 @@
         <td class="itemName">
           <span class="itemNameBody">@e.itemName</span>
           <input type="button"
-                 onclick="window.open('@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId)')"
+                 onclick="window.open('@routes.CouponHistory.showPurchasedCoupon(e.tranCouponId.id)')"
                  value="@Messages("show.coupon")">
         </td>
       </tr>
