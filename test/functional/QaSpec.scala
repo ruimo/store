@@ -31,6 +31,7 @@ class QaSpec extends Specification {
           browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
           browser.title === Messages("qaTitle")
 
+          browser.find("#qaType_field .help-block").getText === Messages("constraint.required")
           browser.find("#comment").getText === ""
           browser.find("#companyName").getText === ""
           browser.find("#firstName").getText === ""

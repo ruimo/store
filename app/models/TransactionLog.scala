@@ -622,7 +622,7 @@ object TransactionLogCoupon {
       and iname.locale_id = {localeId}
       """
     ).on(
-      'id -> id,
+      'id -> id.id,
       'userId -> userId,
       'localeId -> locale.id
     ).as(
