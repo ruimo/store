@@ -31,7 +31,12 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
       val couponDetail = TransactionLogCoupon.at(
         LocaleInfo.byLang(lang), login.userId, TransactionLogCouponId(tranCouponId)
       )
-      Ok(views.html.showCoupon(couponDetail))
+      couponDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.COUPON_TEMPLATE) match {
+        case None => Ok(views.html.showCoupon(couponDetail))
+          case Some(metadata) =>
+          if (metadata.metadata == 0) Ok(views.html.showCoupon(couponDetail))
+          else Ok(views.html.showCouponTemplate(metadata.metadata, couponDetail))
+      }
     }
   }
 }
