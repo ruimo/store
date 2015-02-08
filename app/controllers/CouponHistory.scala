@@ -6,7 +6,7 @@ import db.DB
 import play.api.mvc._
 import play.api.Play.current
 import controllers.I18n.I18nAware
-import models.{CouponDetail, TransactionLogCoupon, LocaleInfo, TransactionLogCouponId}
+import models.{CouponDetail, TransactionLogCoupon, LocaleInfo, TransactionLogCouponId, SiteItemNumericMetadataType}
 
 object CouponHistory extends Controller with I18nAware with NeedLogin {
   def showPurchasedCouponList(
