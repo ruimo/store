@@ -15,12 +15,21 @@
   <head>
     <title>Messages("coupon.title")</title>
     <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/coupon.css")">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+      $(function() {
+        $(".couponAll").load("/static/templates/coupon/" + @templateNo + ".html");
+      });
+    </script>
   </head>
   <body>
-    <button type="button" class="printButton" onclick="window.print();">@Messages("print")</button>
-    <h1 class="title">@Messages("coupon.title")</h1>
+    <div class="couponAll">
+    </div>
 
-    <table class="showCouponTable">
+    <button style="display: none;"
+            type="button" class="printButton" onclick="window.print();">@Messages("print")</button>
+
+    <table style="display: none;" class="showCouponTable">
       <tr>
         <td class="couponImage">
           <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(c.couponDetail.itemId.id, 0)">
@@ -60,6 +69,7 @@
       </tr>
     </table>
     
-    <button type="button" class="closeButton" onclick="window.close(); return false;">@Messages("close")</button>
+    <button style="display: none;"
+            type="button" class="closeButton" onclick="window.close(); return false;">@Messages("close")</button>
   </body>
 </html>
