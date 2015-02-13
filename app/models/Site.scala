@@ -56,7 +56,7 @@ object Site {
     Site(Some(siteId), locale.id, name)
   }
 
-  def listByName(page: Int = 0, pageSize: Int = 20)(implicit conn: Connection): Seq[Site] = SQL(
+  def listByName(page: Int = 0, pageSize: Int = 99)(implicit conn: Connection): Seq[Site] = SQL(
     """
     select * from site where site.deleted = FALSE order by site_name
     limit {pageSize} offset {offset}
