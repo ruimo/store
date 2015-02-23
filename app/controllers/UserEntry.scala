@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.PasswordHash
 import constraints.FormConstraints._
 import java.util.Locale
 import play.api.i18n.{Lang, Messages}
@@ -212,7 +213,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
               newInfo.middleName,
               newInfo.lastName,
               newInfo.email,
-              u.passwordHash,
+              PasswordHash.generate(newInfo.passwords._1, u.salt),
               u.salt,
               u.companyName
             )

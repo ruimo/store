@@ -1,5 +1,6 @@
 package functional
 
+import helpers.PasswordHash
 import java.util.concurrent.TimeUnit
 import play.api.test.Helpers._
 import play.api.Play.current
@@ -24,7 +25,7 @@ class RegisterUserInformationSpec extends Specification {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
-        // Create tentative user.
+        // Create tentative user(first name is blank).
         SQL("""
           insert into store_user (
             store_user_id, user_name, first_name, middle_name, last_name,
@@ -126,7 +127,7 @@ class RegisterUserInformationSpec extends Specification {
           u.middleName === None
           u.lastName === "last name"
           u.email === "null@ruimo.com"
-          u.passwordHash === 6442108903620542185L
+          u.passwordHash === PasswordHash.generate("passwor0", u.salt)
           u.salt === -3926372532362629068L
           u.deleted === false
           u.userRole === UserRole.NORMAL
