@@ -38,7 +38,7 @@ class ItemDetailSpec extends Specification {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
         val taxHis = TaxHistory.createNew(tax, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
 
         val item = Item.createNew(cat)
