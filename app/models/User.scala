@@ -265,7 +265,7 @@ object StoreUser {
       case t: Throwable => throw t
     }
     finally {
-      SQL("drop table user_csv")
+      SQL("drop table user_csv").executeUpdate()
     }
   }
 
