@@ -274,7 +274,7 @@ object StoreUser {
         user_name varchar(64) not null unique,
         salt bigint not null,
         password_hash bigint not null
-      )
+      ) on commit drop
       """
     ).executeUpdate()
 
