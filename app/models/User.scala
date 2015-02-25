@@ -1,5 +1,6 @@
 package models
 
+import play.api.Logger
 import anorm._
 import play.api.Play.current
 import play.api.db._
@@ -9,6 +10,7 @@ import java.sql.Connection
 import scala.util.{Try, Failure, Success}
 import com.ruimo.csv.CsvRecord
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
+import java.sql.SQLException
 
 case class StoreUser(
   id: Option[Long] = None,
@@ -48,6 +50,7 @@ case class ListUserEntry(
 ) extends NotNull
 
 object StoreUser {
+  val logger = Logger(getClass)
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
   val simple = {
@@ -225,8 +228,18 @@ object StoreUser {
   )(
     implicit conn: Connection
   ): (Int, Int) = {
-    insertCsvIntoTempTable(z, csvRecordFilter)
-    val insCount = insertByCsv(conn)
+    val insCount = try {
+      insertCsvIntoTempTable(z, csvRecordFilter)
+      insertByCsv(conn)
+    }
+    catch {
+      case e: SQLException => {
+        logSqlException(e)
+        throw e
+      }
+      case t: Throwable => throw t
+    }
+
     val delCount = SQL(
       """
       update store_user
@@ -241,6 +254,15 @@ object StoreUser {
     ).executeUpdate()
 
     (insCount, delCount)
+  }
+
+  def logSqlException(e: SQLException) {
+    logger.error("DB access error.", e)
+    val n = e.getNextException
+    if (n != null) {
+      logger.error("--- next exception ---")
+      logSqlException(n)
+    }
   }
 
   def insertCsvIntoTempTable(
