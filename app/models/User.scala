@@ -228,9 +228,34 @@ object StoreUser {
   )(
     implicit conn: Connection
   ): (Int, Int) = {
-    val insCount = try {
+    SQL(
+      """
+      create temp table user_csv (
+        user_name varchar(64) not null unique,
+        salt bigint not null,
+        password_hash bigint not null
+      )
+      """
+    ).executeUpdate()
+
+    try {
       insertCsvIntoTempTable(z, csvRecordFilter)
-      insertByCsv(conn)
+      val insCount = insertByCsv(conn)
+
+      val delCount = SQL(
+        """
+        update store_user
+        set deleted = TRUE
+        where user_role = """ + UserRole.NORMAL.ordinal +
+        """
+        and deleted = FALSE
+        and user_name not in (
+          select user_name from user_csv
+        )
+        """ + deleteSqlSupplemental.map { "and " + _ }.getOrElse("")
+      ).executeUpdate()
+
+      (insCount, delCount)
     }
     catch {
       case e: SQLException => {
@@ -239,21 +264,9 @@ object StoreUser {
       }
       case t: Throwable => throw t
     }
-
-    val delCount = SQL(
-      """
-      update store_user
-      set deleted = TRUE
-      where user_role = """ + UserRole.NORMAL.ordinal +
-      """
-      and deleted = FALSE
-      and user_name not in (
-        select user_name from user_csv
-      )
-      """ + deleteSqlSupplemental.map { "and " + _ }.getOrElse("")
-    ).executeUpdate()
-
-    (insCount, delCount)
+    finally {
+      SQL("drop table user_csv")
+    }
   }
 
   def logSqlException(e: SQLException) {
@@ -268,16 +281,6 @@ object StoreUser {
   def insertCsvIntoTempTable(
     z: Iterator[Try[CsvRecord]], csvRecordFilter: CsvRecord => Boolean
   )(implicit conn: Connection) {
-    SQL(
-      """
-      create temp table user_csv (
-        user_name varchar(64) not null unique,
-        salt bigint not null,
-        password_hash bigint not null
-      ) on commit drop
-      """
-    ).executeUpdate()
-
     val sql: BatchSql = SQL(
       """
       insert into user_csv (
