@@ -139,7 +139,8 @@ class RegisterUserInformationSpec extends Specification {
 
     "Login page should be shown after registration" in {
       val conf = inMemoryDatabase() + 
-        ("need.authentication.entirely" -> "true")
+        ("need.authentication.entirely" -> "true") +
+        ("auto.login.after.registration" -> "false")
       val app = FakeApplication(additionalConfiguration = conf)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
