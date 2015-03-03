@@ -149,7 +149,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "firstNameKana" -> text.verifying(firstNameKanaConstraint: _*),
       "lastNameKana" -> text.verifying(lastNameKanaConstraint: _*),
-      "email" -> email.verifying(emailConstraint: _*),
+      "email" -> email.verifying(nonEmpty).verifying(emailConstraint: _*),
       "currentPassword" -> text.verifying(nonEmpty, maxLength(24)),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
