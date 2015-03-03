@@ -5,7 +5,7 @@
   loginSession: Option[LoginSession]
 )
 
-@main("Functional Store", loginSession) {
+@main(Messages("company.name"), loginSession) {
 } {
   @helper.form(action=routes.ItemQuery.query(List())) {
     <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")">

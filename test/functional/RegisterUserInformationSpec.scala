@@ -22,7 +22,8 @@ import constraints.FormConstraints.passwordMinLength
 class RegisterUserInformationSpec extends Specification {
   "User information registration" should {
     "Show error message for blank input" in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val conf = inMemoryDatabase()
+      val app = FakeApplication(additionalConfiguration = conf)
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         // Create tentative user(first name is blank).
@@ -121,6 +122,125 @@ class RegisterUserInformationSpec extends Specification {
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
+        doWith(StoreUser.findByUserName("002-Uno").get) { u =>
+          u.userName === "002-Uno"
+          u.firstName === "first name"
+          u.middleName === None
+          u.lastName === "last name"
+          u.email === "null@ruimo.com"
+          u.passwordHash === PasswordHash.generate("passwor0", u.salt)
+          u.salt === -3926372532362629068L
+          u.deleted === false
+          u.userRole === UserRole.NORMAL
+          u.companyName === None
+        }
+      }}
+    }
+
+    "Login page should be shown after registration" in {
+      val conf = inMemoryDatabase() + 
+        ("need.authentication.entirely" -> "true") +
+        ("auto.login.after.registration" -> "false")
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        // Create tentative user(first name is blank).
+        SQL("""
+          insert into store_user (
+            store_user_id, user_name, first_name, middle_name, last_name,
+            email, password_hash, salt, deleted, user_role, company_name
+          ) values (
+            1, '002-Uno', '', null, '',
+            '', 6442108903620542185, -3926372532362629068,
+            FALSE, """ + UserRole.NORMAL.ordinal + """, null
+          )""").executeUpdate()
+
+        // Though we are not loged-in, the screen of register user information will be shown.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.UserEntry.registerUserInformation(1L) + "&lang=" + lang.code
+        )
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("registerUserInformation")
+
+        // User information should be registered.
+        browser.fill("#currentPassword").`with`("Uno")
+        browser.fill("#password_main").`with`("passwor0")
+        browser.fill("#password_confirm").`with`("passwor0")
+        browser.fill("#firstName").`with`("first name")
+        browser.fill("#lastName").`with`("last name")
+        browser.fill("#firstNameKana").`with`("first name kana")
+        browser.fill("#lastNameKana").`with`("last name kana")
+        browser.fill("#email").`with`("null@ruimo.com")
+        browser.fill("#zip_field input[name='zip1']").`with`("146")
+        browser.fill("#zip_field input[name='zip2']").`with`("0082")
+        browser.fill("#address1").`with`("address 1")
+        browser.fill("#address2").`with`("address 2")
+        browser.fill("#tel1").`with`("11111111")
+        browser.find(".submitButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("login")
+        doWith(StoreUser.findByUserName("002-Uno").get) { u =>
+          u.userName === "002-Uno"
+          u.firstName === "first name"
+          u.middleName === None
+          u.lastName === "last name"
+          u.email === "null@ruimo.com"
+          u.passwordHash === PasswordHash.generate("passwor0", u.salt)
+          u.salt === -3926372532362629068L
+          u.deleted === false
+          u.userRole === UserRole.NORMAL
+          u.companyName === None
+        }
+      }}
+    }
+
+    "Should be automatically logged in after registration" in {
+      val conf = inMemoryDatabase() + 
+        ("need.authentication.entirely" -> "true") +
+        ("auto.login.after.registration" -> "true")
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        // Create tentative user(first name is blank).
+        SQL("""
+          insert into store_user (
+            store_user_id, user_name, first_name, middle_name, last_name,
+            email, password_hash, salt, deleted, user_role, company_name
+          ) values (
+            1, '002-Uno', '', null, '',
+            '', 6442108903620542185, -3926372532362629068,
+            FALSE, """ + UserRole.NORMAL.ordinal + """, null
+          )""").executeUpdate()
+
+        // Though we are not loged-in, the screen of register user information will be shown.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.UserEntry.registerUserInformation(1L) + "&lang=" + lang.code
+        )
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("registerUserInformation")
+
+        // User information should be registered.
+        browser.fill("#currentPassword").`with`("Uno")
+        browser.fill("#password_main").`with`("passwor0")
+        browser.fill("#password_confirm").`with`("passwor0")
+        browser.fill("#firstName").`with`("first name")
+        browser.fill("#lastName").`with`("last name")
+        browser.fill("#firstNameKana").`with`("first name kana")
+        browser.fill("#lastNameKana").`with`("last name kana")
+        browser.fill("#email").`with`("null@ruimo.com")
+        browser.fill("#zip_field input[name='zip1']").`with`("146")
+        browser.fill("#zip_field input[name='zip2']").`with`("0082")
+        browser.fill("#address1").`with`("address 1")
+        browser.fill("#address2").`with`("address 2")
+        browser.fill("#tel1").`with`("11111111")
+        browser.find(".submitButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        // Should be automatically logged in.
+        browser.title !== Messages("login")
         doWith(StoreUser.findByUserName("002-Uno").get) { u =>
           u.userName === "002-Uno"
           u.firstName === "first name"
