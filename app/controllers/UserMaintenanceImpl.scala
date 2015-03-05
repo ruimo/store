@@ -19,9 +19,15 @@ import java.nio.charset.Charset
 import com.ruimo.csv.CsvParseException
 import com.ruimo.csv.CsvRecord
 import com.ruimo.csv.Parser._
+import play.api.Play
+import play.api.Mode
 
 class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with HasLogger {
   import NeedLogin._
+  val AppVal = Play.maybeApplication.get
+  def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
+  def Config = App.configuration
+  def EmployeeCsvRegistration: Boolean = Config.getBoolean("employee.csv.registration").getOrElse(false)
 
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
@@ -241,7 +247,8 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           StoreUser.maintainByCsv(
             z,
             csvRecordFilter,
-            deleteSqlSupplemental
+            deleteSqlSupplemental,
+            EmployeeCsvRegistration
           ) 
         }
     } match {
