@@ -33,7 +33,7 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
       )
       couponDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.COUPON_TEMPLATE) match {
         case None => Ok(views.html.showCoupon(couponDetail))
-          case Some(metadata) =>
+        case Some(metadata) =>
           if (metadata.metadata == 0) Ok(views.html.showCoupon(couponDetail))
           else Ok(views.html.showCouponTemplate(metadata.metadata, couponDetail))
       }
