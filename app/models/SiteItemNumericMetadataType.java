@@ -1,7 +1,14 @@
 package models;
 
 public enum SiteItemNumericMetadataType {
-    STOCK, PROMOTION, SHIPPING_SIZE, HIDE, ITEM_DETAIL_TEMPLATE, COUPON_TEMPLATE;
+    STOCK
+    ,PROMOTION
+    ,SHIPPING_SIZE
+    ,HIDE
+    ,ITEM_DETAIL_TEMPLATE
+    ,COUPON_TEMPLATE
+    ,RESERVATION_ITEM // Show reserve button instead of put into cart button.
+    ;
 
     private static final SiteItemNumericMetadataType byIndex[] = 
       SiteItemNumericMetadataType.class.getEnumConstants();
