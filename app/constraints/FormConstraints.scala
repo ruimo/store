@@ -12,7 +12,7 @@ object FormConstraints {
   val passwordConstraint = List(minLength(passwordMinLength), maxLength(24), passwordCharConstraint)
   val firstNameConstraint = List(nonEmpty, maxLength(64))
   val lastNameConstraint = List(nonEmpty, maxLength(64))
-  val emailConstraint = List(maxLength(255))
+  val emailConstraint = List(nonEmpty, maxLength(255))
   val companyNameConstraint = List(nonEmpty, maxLength(32))
   def passwordCharConstraint: Constraint[String] = Constraint[String]("constraint.password.char") { s =>
     if (s.forall(c => (0x21 <= c && c < 0x7e))) Valid else Invalid(ValidationError("error.pasword.char"))

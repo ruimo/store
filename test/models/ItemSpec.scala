@@ -595,5 +595,52 @@ class ItemSpec extends Specification {
       Item.createQueryConditionSql(QueryString(List()), None, Some(234L)) ===
         "and site.site_id = 234 "
     }
+
+    "Can get ite information from site id and item id." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          import LocaleInfo._
+          TestHelper.removePreloadedRecords()
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木", En -> "Plant"))
+          val cat2 = Category.createNew(Map(Ja -> "果樹", En -> "Fruit"))
+          
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat2)
+          
+          val name1 = ItemName.createNew(item1, Map(LocaleInfo.Ja -> "杉", LocaleInfo.En -> "Cedar"))
+          val name2 = ItemName.createNew(item2, Map(LocaleInfo.Ja -> "桃", LocaleInfo.En -> "Peach"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site1, item2)
+
+          SiteItem.createNew(site2, item1)
+
+          doWith(SiteItem.getWithSiteAndItem(site1.id.get, item1.id.get, Ja).get) { rec =>
+            rec._1 === site1
+            rec._2 === name1(Ja)
+          }
+          doWith(SiteItem.getWithSiteAndItem(site1.id.get, item1.id.get, En).get) { rec =>
+            rec._1 === site1
+            rec._2 === name1(En)
+          }
+
+          doWith(SiteItem.getWithSiteAndItem(site1.id.get, item2.id.get, Ja).get) { rec =>
+            rec._1 === site1
+            rec._2 === name2(Ja)
+          }
+
+          doWith(SiteItem.getWithSiteAndItem(site2.id.get, item1.id.get, Ja).get) { rec =>
+            rec._1 === site2
+            rec._2 === name1(Ja)
+          }
+
+          SiteItem.getWithSiteAndItem(site2.id.get, item2.id.get, Ja) === None
+        }
+      }
+    }
   }
 }

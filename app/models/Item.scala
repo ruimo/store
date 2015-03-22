@@ -1299,6 +1299,10 @@ object SiteItem {
     }
   }
 
+  val withSiteAndItemName = Site.simple ~ ItemName.simple map {
+    case site~itemName => (site, itemName)
+  }
+
   val withSite = Site.simple ~ SiteItem.simple map {
     case site~siteItem => (site, siteItem)
   }
@@ -1337,5 +1341,24 @@ object SiteItem {
       'siteId -> siteId
     ).executeUpdate()
   }
+
+  def getWithSiteAndItem(
+    siteId: Long, itemId: ItemId, locale: LocaleInfo
+  )(
+    implicit conn: Connection
+  ): Option[(Site, ItemName)] = SQL(
+    """
+    select * from site_item si
+    inner join site s on s.site_id = si.site_id and s.deleted = FALSE
+    inner join item_name in on in.item_id = si.item_id and in.locale_id = {locale}
+    where si.site_id = {siteId} and si.item_id = {itemId}
+    """
+  ).on(
+    'locale -> locale.id,
+    'siteId -> siteId,
+    'itemId -> itemId.id
+  ).as(
+    withSiteAndItemName.singleOpt
+  )
 }
 

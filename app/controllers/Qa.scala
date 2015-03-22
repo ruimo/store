@@ -11,6 +11,7 @@ import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models.{QaEntry, UserAddress, Address}
 import helpers.QaMail
+import constraints.FormConstraints._
 
 object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
   def jaForm(implicit lang: Lang) = Form(
@@ -21,7 +22,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
       "firstName" -> text.verifying(nonEmpty, maxLength(64)),
       "lastName" -> text.verifying(nonEmpty, maxLength(64)),
       "tel" -> text.verifying(nonEmpty).verifying(Messages("error.number"), z => Shipping.TelPattern.matcher(z).matches),
-      "email" -> text.verifying(nonEmpty, maxLength(128))
+      "email" -> text.verifying(emailConstraint: _*)
     )(QaEntry.apply4Japan)(QaEntry.unapply4Japan)
   )
 
