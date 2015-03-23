@@ -198,7 +198,7 @@ POST    /changePassword                  controllers.UserEntry.changePassword()
 
 GET     /sitesAsJson                     controllers.SiteMaintenance.sitesAsJson()
 GET     /startItemInquiry                controllers.ItemInquiryReserve.startItemInquiry(siteId: Long, itemId: Long)
-POST    /itemInquiry                     controllers.ItemInquiryReserve.submitItemInquiry()
+POST    /itemInquiry                     controllers.ItemInquiryReserve.submitItemInquiry(siteId: Long, itemId: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

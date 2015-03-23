@@ -13,7 +13,7 @@ import play.api.data.Forms._
 import play.api.i18n.{Lang, Messages}
 import play.api.data.validation.Constraints._
 import constraints.FormConstraints._
-import models.{CreateItemInquiry, StoreUser, CreateItemInquiryReservation}
+import models.{CreateItemInquiry, StoreUser, CreateItemInquiryReservation, ItemInquiryType, Site, ItemName, SiteItem, ItemId, LocaleInfo}
 
 class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin {
   def itemInquiryForm(implicit lang: Lang) = Form(
@@ -21,7 +21,8 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin {
       "siteId" -> longNumber,
       "itemId" -> longNumber,
       "name" -> text.verifying(nonEmpty, maxLength(128)),
-      "email" -> text.verifying(emailConstraint: _*)
+      "email" -> text.verifying(emailConstraint: _*),
+      "inquiryBody" -> text.verifying(nonEmpty, maxLength(8192))
     )(CreateItemInquiry.apply)(CreateItemInquiry.unapply)
   )
 
@@ -36,17 +37,25 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin {
       CreateItemInquiry(
         siteId, itemId,
         user.firstName + user.middleName.map(n => " " + n).getOrElse("") + " " + user.lastName,
-        user.email
+        user.email, ""
       )
     )
 
-    Ok(views.html.itemInquiry(form))
+    Ok(
+      views.html.itemInquiry(itemInfo(siteId, itemId), form)
+    )
   }
 
-  def submitItemInquiry = isAuthenticated { implicit login => implicit request =>
+  def itemInfo(siteId: Long, itemId: Long): (Site, ItemName) = DB.withConnection { implicit conn =>
+    SiteItem.getWithSiteAndItem(siteId, ItemId(itemId), LocaleInfo.getDefault)
+  }.get
+
+  def submitItemInquiry(
+    siteId: Long, itemId: Long
+  ) = isAuthenticated { implicit login => implicit request =>
     itemInquiryForm.bindFromRequest.fold(
       formWithErrors =>
-        BadRequest(views.html.itemInquiry(formWithErrors)),
+        BadRequest(views.html.itemInquiry(itemInfo(siteId, itemId), formWithErrors)),
       info =>
         Redirect(routes.Application.index).flashing("message" -> Messages("itemInquirySubmit"))
     )

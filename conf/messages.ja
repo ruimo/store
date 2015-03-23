@@ -419,5 +419,7 @@ changeSiteTitle=店舗の変更
 listPrice=定価
 editCategoryNameTitle=カテゴリ名の編集
 changePassword=パスワードの変更
+inquiryBody=お問い合わせ内容
 itemInquiry=商品お問い合わせ
 itemInquirySubmit=商品の問い合わせが送信されました
+mail.item.inquiry.owner.subject=商品お問い合わせ (#%d)

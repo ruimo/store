@@ -1350,7 +1350,7 @@ object SiteItem {
     """
     select * from site_item si
     inner join site s on s.site_id = si.site_id and s.deleted = FALSE
-    inner join item_name in on in.item_id = si.item_id and in.locale_id = {locale}
+    inner join item_name itn on itn.item_id = si.item_id and itn.locale_id = {locale}
     where si.site_id = {siteId} and si.item_id = {itemId}
     """
   ).on(

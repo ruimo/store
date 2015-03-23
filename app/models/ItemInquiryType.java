@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 // Used for inquiry_type column in item_inquiry table.
-enum ItemInquiryType {
+public enum ItemInquiryType {
     QUERY, RESERVATION;
 
     private static final ItemInquiryType byIndex[] = ItemInquiryType.class.getEnumConstants();
@@ -14,6 +14,15 @@ enum ItemInquiryType {
         for (ItemInquiryType cc: byIndex) {
             byName.put(cc.toString(), cc);
         }
+    }
+
+    public static int minIndex() {
+        return 0;
+    }
+
+    // Inclusive
+    public static int maxIndex() {
+        return byIndex.length - 1;
     }
 
     public static ItemInquiryType byIndex(int index) {

@@ -386,6 +386,7 @@ changeSiteTitle=Edit site
 listPrice=List price
 editCategoryNameTitle=Edit category name
 changePassword=Change password
+inquiryBody=Your question
 itemInquiry=Item inquiry
 itemInquirySubmit=Item inquiry is submitted
 mail.item.inquiry.owner.subject=Item inquiry (#%d)
