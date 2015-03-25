@@ -21,6 +21,7 @@ case class ItemInquiry(
   inquiryType: ItemInquiryType,
   submitUserName: String,
   email: String,
+  status: ItemInquiryStatusType,
   created: Long
 )
 
@@ -40,12 +41,13 @@ object ItemInquiry {
     SqlParser.get[Int]("item_inquiry.inquiry_type") ~
     SqlParser.get[String]("item_inquiry.submit_user_name") ~
     SqlParser.get[String]("item_inquiry.email") ~
+    SqlParser.get[Int]("item_inquiry.status") ~
     SqlParser.get[java.util.Date]("item_inquiry.created") map {
-      case id~siteId~itemId~userId~inquiryType~submitUserName~email~created =>
+      case id~siteId~itemId~userId~inquiryType~submitUserName~email~status~created =>
         ItemInquiry(
           id.map(ItemInquiryId.apply), siteId, ItemId(itemId), userId,
           ItemInquiryType.byIndex(inquiryType), 
-          submitUserName, email, created.getTime
+          submitUserName, email, ItemInquiryStatus.byIndex(status), created.getTime
         )
     }
   }
@@ -64,10 +66,12 @@ object ItemInquiry {
     SQL(
       """
       insert into item_inquiry (
-        item_inquiry_id, site_id, item_id, store_user_id, inquiry_type, submit_user_name, email, created
+        item_inquiry_id, site_id, item_id, store_user_id, inquiry_type, submit_user_name, email, status, created
       ) values (
         (select nextval('item_inquiry_seq')),
-        {siteId}, {itemId}, {userId}, {inquiryType}, {submitUserName}, {email}, {created}
+        {siteId}, {itemId}, {userId}, {inquiryType}, {submitUserName}, {email}, """ + 
+      ItemInquiryStatus.SUBMITTED.ordinal +
+      """, {created}
       )
       """
     ).on(
@@ -81,7 +85,9 @@ object ItemInquiry {
     ).executeUpdate()
 
     val id = SQL("select currval('item_inquiry_seq')").as(SqlParser.scalar[Long].single)
-    ItemInquiry(Some(ItemInquiryId(id)), siteId, itemId, userId, inquiryType, submitUserName, email, created)
+    ItemInquiry(
+      Some(ItemInquiryId(id)), siteId, itemId, userId, inquiryType, submitUserName, email, ItemInquiryStatus.SUBMITTED, created
+    )
   }
 }
 

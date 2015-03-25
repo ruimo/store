@@ -422,4 +422,7 @@ changePassword=パスワードの変更
 inquiryBody=お問い合わせ内容
 itemInquiry=商品お問い合わせ
 itemInquirySubmit=商品の問い合わせが送信されました
+itemReservationSubmit=商品の予約申し込みが送信されました
 mail.item.inquiry.owner.subject=商品お問い合わせ (#%d)
+itemReservation=商品ご予約
+reservationMessage=通信欄

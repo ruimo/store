@@ -9,6 +9,7 @@ create table item_inquiry (
   inquiry_type integer not null,
   submit_user_name varchar(255) not null,
   email varchar(255) not null,
+  status integer not null,
   created timestamp not null,
   constraint pk_item_inquiry primary key (item_inquiry_id)
 );

@@ -389,4 +389,7 @@ changePassword=Change password
 inquiryBody=Your question
 itemInquiry=Item inquiry
 itemInquirySubmit=Item inquiry is submitted
+itemReservationSubmit=Item inquiry is submitted
 mail.item.inquiry.owner.subject=Item inquiry (#%d)
+itemReservation=Item reservation
+reservationMessage=Comments
