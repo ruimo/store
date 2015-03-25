@@ -24,7 +24,7 @@ class RegisterUserInformationSpec extends Specification {
     "Show error message for blank input" in {
       val conf = inMemoryDatabase()
       val app = FakeApplication(additionalConfiguration = conf)
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         // Create tentative user(first name is blank).
         SQL("""
@@ -142,7 +142,7 @@ class RegisterUserInformationSpec extends Specification {
         ("need.authentication.entirely" -> "true") +
         ("auto.login.after.registration" -> "false")
       val app = FakeApplication(additionalConfiguration = conf)
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         // Create tentative user(first name is blank).
         SQL("""
@@ -201,7 +201,7 @@ class RegisterUserInformationSpec extends Specification {
         ("need.authentication.entirely" -> "true") +
         ("auto.login.after.registration" -> "true")
       val app = FakeApplication(additionalConfiguration = conf)
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         // Create tentative user(first name is blank).
         SQL("""
