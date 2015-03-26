@@ -28,6 +28,7 @@ case class StoreUser(
   def passwordMatch(password: String): Boolean =
     PasswordHash.generate(password, salt) == passwordHash
   lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
+  lazy val fullName = firstName + middleName.map(n => " " + n).getOrElse("") + " " + lastName
 }
 
 case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long) extends NotNull

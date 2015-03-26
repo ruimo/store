@@ -37,43 +37,45 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )(CreateItemReservation.apply)(CreateItemReservation.unapply)
   )
 
-  def fillForm[T <: CreateItemInquiryReservation](form: Form[T], model: T): Form[T] = form.fill(model)
-
   def startItemInquiry(
     siteId: Long, itemId: Long
   ) = isAuthenticated { implicit login => implicit request =>
-    val user: StoreUser = login.storeUser
-    val form = fillForm(
-      itemInquiryForm, 
-      CreateItemInquiry(
-        siteId, itemId,
-        user.firstName + user.middleName.map(n => " " + n).getOrElse("") + " " + user.lastName,
-        user.email, ""
-      )
-    )
-
     Ok(
-      views.html.itemInquiry(itemInfo(siteId, itemId), form)
+      views.html.itemInquiry(itemInfo(siteId, itemId), inquiryStartForm(siteId, itemId, login.storeUser))
     )
   }
 
   def startItemReservation(
     siteId: Long, itemId: Long
   ) = isAuthenticated { implicit login => implicit request =>
-    val user: StoreUser = login.storeUser
-    val form = fillForm(
-      itemReservationForm, 
-      CreateItemReservation(
-        siteId, itemId,
-        user.firstName + user.middleName.map(n => " " + n).getOrElse("") + " " + user.lastName,
-        user.email, ""
-      )
-    )
-
     Ok(
-      views.html.itemReservation(itemInfo(siteId, itemId), form)
+      views.html.itemReservation(itemInfo(siteId, itemId), reservationStartForm(siteId, itemId, login.storeUser))
     )
   }
+
+  def inquiryStartForm(
+    siteId: Long, itemId: Long, user: StoreUser
+  )(
+    implicit login: LoginSession
+  ): Form[_ <: CreateItemInquiryReservation] = itemInquiryForm.fill(
+    CreateItemInquiry(
+      siteId, itemId,
+      user.fullName,
+      user.email, ""
+    )
+  )
+
+  def reservationStartForm(
+    siteId: Long, itemId: Long, user: StoreUser
+  )(
+    implicit login: LoginSession
+  ): Form[_<: CreateItemInquiryReservation] = itemReservationForm.fill(
+    CreateItemReservation(
+      siteId, itemId,
+      user.fullName,
+      user.email, ""
+    )
+  )
 
   def itemInfo(siteId: Long, itemId: Long): (Site, ItemName) = DB.withConnection { implicit conn =>
     SiteItem.getWithSiteAndItem(siteId, ItemId(itemId), LocaleInfo.getDefault)
@@ -109,8 +111,8 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )
   }
 
-  def onItemInquiryError[T <: CreateItemInquiryReservation](
-    siteId: Long, itemId: Long, form: Form[T]
+  def onItemInquiryError(
+    siteId: Long, itemId: Long, form: Form[_ <: CreateItemInquiryReservation]
   )(
     implicit login: LoginSession,
     request: Request[_]
@@ -118,8 +120,8 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     BadRequest(views.html.itemInquiry(itemInfo(siteId, itemId), form.asInstanceOf[Form[CreateItemInquiryReservation]]))
   }
 
-  def onItemReservationError[T <: CreateItemInquiryReservation](
-    siteId: Long, itemId: Long, form: Form[T]
+  def onItemReservationError(
+    siteId: Long, itemId: Long, form: Form[_ <: CreateItemInquiryReservation]
   )(
     implicit login: LoginSession,
     request: Request[_]
@@ -127,8 +129,8 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     BadRequest(views.html.itemReservation(itemInfo(siteId, itemId), form.asInstanceOf[Form[CreateItemInquiryReservation]]))
   }
 
-  def onItemInquirySuccess[T <: CreateItemInquiryReservation](
-    siteId: Long, itemId: Long, info: T
+  def onItemInquirySuccess(
+    siteId: Long, itemId: Long, info: CreateItemInquiryReservation
   )(
     implicit login: LoginSession,
     request: Request[_],
@@ -137,8 +139,8 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     info.save(login.storeUser)
   }
 
-  def onItemReservationSuccess[T <: CreateItemInquiryReservation](
-    siteId: Long, itemId: Long, info: T
+  def onItemReservationSuccess(
+    siteId: Long, itemId: Long, info: CreateItemInquiryReservation
   )(
     implicit login: LoginSession,
     request: Request[_],
