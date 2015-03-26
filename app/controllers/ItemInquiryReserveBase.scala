@@ -17,7 +17,7 @@ import constraints.FormConstraints._
 import models.{CreateItemInquiry, CreateItemReservation, StoreUser, CreateItemInquiryReservation, ItemInquiryType, Site, ItemName, SiteItem, ItemId, LocaleInfo, LoginSession}
 
 class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin with HasLogger {
-  def itemInquiryForm(implicit lang: Lang) = Form(
+  def itemInquiryForm(implicit lang: Lang): Form[CreateItemInquiryReservation] = Form(
     mapping(
       "siteId" -> longNumber,
       "itemId" -> longNumber,
@@ -25,9 +25,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
       "email" -> text.verifying(emailConstraint: _*),
       "inquiryBody" -> text.verifying(nonEmpty, maxLength(8192))
     )(CreateItemInquiry.apply)(CreateItemInquiry.unapply)
-  )
+  ).asInstanceOf[Form[CreateItemInquiryReservation]]
 
-  def itemReservationForm(implicit lang: Lang) = Form(
+  def itemReservationForm(implicit lang: Lang): Form[CreateItemInquiryReservation] = Form(
     mapping(
       "siteId" -> longNumber,
       "itemId" -> longNumber,
@@ -35,7 +35,7 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
       "email" -> text.verifying(emailConstraint: _*),
       "comment" -> text.verifying(minLength(0), maxLength(8192))
     )(CreateItemReservation.apply)(CreateItemReservation.unapply)
-  )
+  ).asInstanceOf[Form[CreateItemInquiryReservation]]
 
   def startItemInquiry(
     siteId: Long, itemId: Long
@@ -69,12 +69,12 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     siteId: Long, itemId: Long, user: StoreUser
   )(
     implicit login: LoginSession
-  ): Form[_<: CreateItemInquiryReservation] = itemReservationForm.fill(
+  ): Form[_ <: CreateItemInquiryReservation] = itemReservationForm.fill(
     CreateItemReservation(
       siteId, itemId,
       user.fullName,
       user.email, ""
-    )
+    ).asInstanceOf[CreateItemInquiryReservation]
   )
 
   def itemInfo(siteId: Long, itemId: Long): (Site, ItemName) = DB.withConnection { implicit conn =>
