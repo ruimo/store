@@ -8,6 +8,7 @@ trait CreateItemInquiryReservation {
   def name: String
   def email: String
   def message: String
+  def save(user: StoreUser)(implicit conn: Connection): ItemInquiry
 }
 
 case class CreateItemInquiry(

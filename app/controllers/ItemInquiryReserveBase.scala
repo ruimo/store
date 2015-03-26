@@ -5,6 +5,7 @@ import db.DB
 import libs.json.{JsObject, Json}
 import play.api.mvc._
 
+import java.sql.Connection
 import models.{ItemInquiry}
 import play.api.Play.current
 import controllers.I18n.I18nAware
@@ -13,7 +14,7 @@ import play.api.data.Forms._
 import play.api.i18n.{Lang, Messages}
 import play.api.data.validation.Constraints._
 import constraints.FormConstraints._
-import models.{CreateItemInquiry, CreateItemReservation, StoreUser, CreateItemInquiryReservation, ItemInquiryType, Site, ItemName, SiteItem, ItemId, LocaleInfo}
+import models.{CreateItemInquiry, CreateItemReservation, StoreUser, CreateItemInquiryReservation, ItemInquiryType, Site, ItemName, SiteItem, ItemId, LocaleInfo, LoginSession}
 
 class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin with HasLogger {
   def itemInquiryForm(implicit lang: Lang) = Form(
@@ -84,10 +85,10 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     itemInquiryForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemInquiryReserveBase.submitItemInquiry." + formWithErrors + ".")
-        BadRequest(views.html.itemInquiry(itemInfo(siteId, itemId), formWithErrors))
+        onItemInquiryError(siteId, itemId, formWithErrors)
       },
       info => DB.withConnection { implicit conn =>
-        info.save(login.storeUser)
+        onItemInquirySuccess(siteId, itemId, info)
         Redirect(routes.Application.index).flashing("message" -> Messages("itemInquirySubmit"))
       }
     )
@@ -99,12 +100,50 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     itemReservationForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemInquiryReserveBase.submitItemReservation." + formWithErrors + ".")
-        BadRequest(views.html.itemReservation(itemInfo(siteId, itemId), formWithErrors))
+        onItemReservationError(siteId, itemId, formWithErrors)
       },
       info => DB.withConnection { implicit conn =>
-        info.save(login.storeUser)
+        onItemReservationSuccess(siteId, itemId, info)
         Redirect(routes.Application.index).flashing("message" -> Messages("itemReservationSubmit"))
       }
     )
+  }
+
+  def onItemInquiryError[T <: CreateItemInquiryReservation](
+    siteId: Long, itemId: Long, form: Form[T]
+  )(
+    implicit login: LoginSession,
+    request: Request[_]
+  ): Result = {
+    BadRequest(views.html.itemInquiry(itemInfo(siteId, itemId), form.asInstanceOf[Form[CreateItemInquiryReservation]]))
+  }
+
+  def onItemReservationError[T <: CreateItemInquiryReservation](
+    siteId: Long, itemId: Long, form: Form[T]
+  )(
+    implicit login: LoginSession,
+    request: Request[_]
+  ): Result = {
+    BadRequest(views.html.itemReservation(itemInfo(siteId, itemId), form.asInstanceOf[Form[CreateItemInquiryReservation]]))
+  }
+
+  def onItemInquirySuccess[T <: CreateItemInquiryReservation](
+    siteId: Long, itemId: Long, info: T
+  )(
+    implicit login: LoginSession,
+    request: Request[_],
+    conn: Connection
+  ): Unit = {
+    info.save(login.storeUser)
+  }
+
+  def onItemReservationSuccess[T <: CreateItemInquiryReservation](
+    siteId: Long, itemId: Long, info: T
+  )(
+    implicit login: LoginSession,
+    request: Request[_],
+    conn: Connection
+  ): Unit = {
+    info.save(login.storeUser)
   }
 }
