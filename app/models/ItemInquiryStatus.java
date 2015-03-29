@@ -1,7 +1,7 @@
 package models;
 
 public enum ItemInquiryStatus implements ItemInquiryStatusType {
-    SUBMITTED, DISMISSED, IN_PROGRESS, COMPLETED,
+    DRAFT, SUBMITTED, DISMISSED, IN_PROGRESS, COMPLETED,
     FOR_EXTENSION_0, // Do not use this. For future extension.
     FOR_EXTENSION_1, // Do not use this. For future extension.
     FOR_EXTENSION_2, // Do not use this. For future extension.
@@ -18,5 +18,9 @@ public enum ItemInquiryStatus implements ItemInquiryStatusType {
 
     public static ItemInquiryStatus byIndex(int index) {
         return byIndex[index];
+    }
+
+    public int code() {
+        return ordinal();
     }
 }

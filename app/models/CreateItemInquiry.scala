@@ -9,6 +9,7 @@ trait CreateItemInquiryReservation {
   def email: String
   def message: String
   def save(user: StoreUser)(implicit conn: Connection): ItemInquiry
+  def update(id: ItemInquiryId)(implicit conn: Connection): Int
 }
 
 case class CreateItemInquiry(
@@ -26,6 +27,12 @@ case class CreateItemInquiry(
     ItemInquiryField.createNew(inq.id.get, Map('Message -> message))
     inq
   }
+
+  def update(id: ItemInquiryId)(implicit conn: Connection): Int = {
+    val updateCount = ItemInquiry.update(id, name, email)
+    ItemInquiryField.update(id, Map('Message -> message))
+    updateCount
+  }
 }
 
 case class CreateItemReservation(
@@ -42,6 +49,12 @@ case class CreateItemReservation(
 
     ItemInquiryField.createNew(inq.id.get, Map('Message -> message))
     inq
+  }
+
+  def update(id: ItemInquiryId)(implicit conn: Connection): Int = {
+    val updateCount = ItemInquiry.update(id, name, email)
+    ItemInquiryField.update(id, Map('Message -> message))
+    updateCount
   }
 }
 

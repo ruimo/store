@@ -426,3 +426,6 @@ itemReservationSubmit=商品の予約申し込みが送信されました
 mail.item.inquiry.owner.subject=商品お問い合わせ (#%d)
 itemReservation=商品ご予約
 reservationMessage=通信欄
+itemInquiryConfirm=商品お問い合わせ確認
+itemReservationConfirm=商品ご予約確認
+amend=修正

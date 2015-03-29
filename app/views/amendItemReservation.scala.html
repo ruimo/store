@@ -1,4 +1,5 @@
 @(
+  id: ItemInquiryId,
   itemInfo: (Site, ItemName),
   thisForm: Form[_ <: CreateItemInquiryReservation]
 )(
@@ -25,7 +26,7 @@
   </table>
 
   @defining(thisForm.asInstanceOf[Form[CreateItemReservation]]) { myForm =>
-    @form(action = CSRF(routes.ItemInquiryReserve.confirmItemReservation(itemInfo._1.id.get, itemInfo._2.itemId.id)), 'id -> "itemReservationForm") {
+    @form(action = CSRF(routes.ItemInquiryReserve.amendItemReservation(id.id)), 'id -> "itemReservationForm") {
       @inputText(myForm("inqType"), 'type -> "hidden", '_showConstraints -> false)(
         helper.FieldConstructor(simpleField.f), implicitly
       )
@@ -50,10 +51,10 @@
 
       @textarea(
         myForm("comment"),
-        '_label -> Messages("reservationMessage"), 'rows -> 6, 'cols -> 80
+        '_label -> Messages("comment"), 'rows -> 6, 'cols -> 80
       )
 
-      <input type="submit" value="@Messages("register")" id="submitItemQuery">
+      <input type="submit" value="@Messages("register")" id="submitItemReservation">
     }
   }
 }

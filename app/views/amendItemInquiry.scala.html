@@ -1,4 +1,5 @@
 @(
+  id: ItemInquiryId,
   itemInfo: (Site, ItemName),
   thisForm: Form[_ <: CreateItemInquiryReservation]
 )(
@@ -9,11 +10,11 @@
 
 @import helper._
 
-@main(Messages("itemReservation"), Some(loginSession)) {
+@main(Messages("itemInquiry"), Some(loginSession)) {
 } {
-  <h1 class="title">@Messages("itemReservation")</h1>
+  <h1 class="title">@Messages("itemInquiry")</h1>
     
-  <table class="itemReservation siteItemContainer">
+  <table class="itemInquiry siteItemContainer">
     <tr>
       <td class="siteName header">@Messages("site")</td>
       <td class="siteName body">@itemInfo._1.name</td>
@@ -24,8 +25,8 @@
     </tr>
   </table>
 
-  @defining(thisForm.asInstanceOf[Form[CreateItemReservation]]) { myForm =>
-    @form(action = CSRF(routes.ItemInquiryReserve.confirmItemReservation(itemInfo._1.id.get, itemInfo._2.itemId.id)), 'id -> "itemReservationForm") {
+  @defining(thisForm.asInstanceOf[Form[CreateItemInquiry]]) { myForm =>
+    @form(action = CSRF(routes.ItemInquiryReserve.amendItemInquiry(id.id)), 'id -> "itemInquiryForm") {
       @inputText(myForm("inqType"), 'type -> "hidden", '_showConstraints -> false)(
         helper.FieldConstructor(simpleField.f), implicitly
       )
@@ -49,11 +50,11 @@
       )
 
       @textarea(
-        myForm("comment"),
-        '_label -> Messages("reservationMessage"), 'rows -> 6, 'cols -> 80
+        myForm("inquiryBody"),
+        '_label -> Messages("inquiryBody"), 'rows -> 6, 'cols -> 80
       )
 
-      <input type="submit" value="@Messages("register")" id="submitItemQuery">
+      <input type="submit" value="@Messages("register")" id="submitItemInquiry">
     }
   }
 }

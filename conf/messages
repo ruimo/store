@@ -393,3 +393,6 @@ itemReservationSubmit=Item inquiry is submitted
 mail.item.inquiry.owner.subject=Item inquiry (#%d)
 itemReservation=Item reservation
 reservationMessage=Comments
+itemInquiryConfirm=Item inquiry confirmation
+itemReservationConfirm=Item reservation confirmation
+amend=Amend
