@@ -88,6 +88,17 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     SiteItem.getWithSiteAndItem(siteId, ItemId(itemId), LocaleInfo.getDefault)
   }.get
 
+  def amendReservationForm(
+    rec: ItemInquiry, fields: immutable.Map[Symbol, String]
+  ): Form[_ <: CreateItemInquiryReservation] = itemReservationForm.fill(
+    CreateItemReservation(
+      rec.siteId, rec.itemId.id,
+      rec.submitUserName,
+      rec.email,
+      fields('Message)
+    )
+  )
+
   def amendItemReservationStart(inqId: Long) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val id = ItemInquiryId(inqId)
@@ -98,14 +109,7 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
         views.html.amendItemReservation(
           id,
           itemInfo(rec.siteId, rec.itemId.id),
-          itemReservationForm.fill(
-            CreateItemReservation(
-              rec.siteId, rec.itemId.id,
-              rec.submitUserName,
-              rec.email,
-              fields('Message)
-            )
-          )
+          amendReservationForm(rec, fields)
         )
       )
     }
