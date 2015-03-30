@@ -29,7 +29,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
   def index() = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     val form = optLogin.map { login =>
       val optAddr: Option[Address] = UserAddress.getByUserId(login.storeUser.id.get).map { ua =>
-        Address.byId(ua.id.get)
+        Address.byId(ua.addressId)
       }
 
       jaForm.fill(
