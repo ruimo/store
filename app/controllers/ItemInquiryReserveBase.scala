@@ -152,6 +152,17 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )
   }
 
+  def amendInquiryForm(
+    rec: ItemInquiry, fields: immutable.Map[Symbol, String]
+  ): Form[_ <: CreateItemInquiryReservation] = itemReservationForm.fill(
+    CreateItemInquiry(
+      rec.siteId, rec.itemId.id,
+      rec.submitUserName,
+      rec.email,
+      fields('Message)
+    )
+  )
+
   def amendItemInquiryStart(inqId: Long) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
       val id = ItemInquiryId(inqId)
@@ -162,14 +173,7 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
         views.html.amendItemInquiry(
           id,
           itemInfo(rec.siteId, rec.itemId.id),
-          itemInquiryForm.fill(
-            CreateItemInquiry(
-              rec.siteId, rec.itemId.id,
-              rec.submitUserName,
-              rec.email,
-              fields('Message)
-            )
-          )
+          amendInquiryForm(rec, fields)
         )
       )
     }
