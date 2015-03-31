@@ -44,6 +44,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
@@ -147,6 +148,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
@@ -256,6 +258,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find("#isCoupon").click()
         browser.find("#siteId").find("option").getText() === "Store01"
@@ -299,6 +302,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find("#siteId").find("option").getText() === "Store01"
         browser.find("#categoryId").find("option").getText() === "Cat01"
@@ -315,6 +319,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.editItem(List("")).url + "&lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         doWith(browser.find(".itemTableBody")) { tr =>
           tr.find(".itemTableItemName").getText === "ItemName01"
@@ -327,6 +332,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(itemId).url + "&lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         // Now handling site becomes zero.
         browser.find(".deleteHandlingSiteButton").click()
@@ -334,6 +340,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemMaintenance.editItem(List("")).url + "&lang=" + lang.code
         )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         doWith(browser.find(".itemTableBody")) { tr =>
           tr.find(".itemTableItemName").getText === "ItemName01"
