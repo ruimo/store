@@ -47,7 +47,7 @@
 
   <h2>@Messages("shipping.address")</h2>
 
-  @helper.form(action = helper.CSRF(routes.Prize.confirm(itemName)), 'id -> "confirmPrizeForm") {
+  @helper.form(action = helper.CSRF(routes.Prize.confirmJa(itemName)), 'id -> "confirmPrizeForm") {
     <div class="@{if (zipError(myForm)) {"error"} else {""}}">
       <label for="zip1">郵便番号</label>
       <div class="input">
@@ -106,7 +106,8 @@
       '_label -> Messages("shippingComment")
     )
 
-    <input type="submit" value="@Messages("register.shipping")">
+    <input type="hidden" name="command" value="confirm">
+    <input type="submit" value="@Messages("register")">
   }
 }
 

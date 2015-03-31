@@ -1,0 +1,108 @@
+@(
+  itemName: String,
+  user: StoreUser,
+  info: CreatePrize
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("prizeConfirm"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("prizeConfirm")</h1>
+
+  <table>
+    <tr>
+      <td>@Messages("itemName")</td><td>@itemName</td>
+    </tr>
+    <tr>
+      <td>@Messages("companyName")</td><td>@user.companyName.getOrElse("-")</td>
+    </tr>
+    <tr>
+      <td>@Messages("name")</td><td>@user.fullName</td>
+    </tr>
+  </table>
+
+  <h2>@Messages("shipping.address")</h2>
+
+  @helper.form(action = helper.CSRF(routes.Prize.submitJa(itemName)), 'id -> "submitPrizeForm") {
+    <table>
+      <tr>
+        <td>@Messages("firstName")</td>
+        <td>@info.firstName<input type="hidden" name="firstName" value="@info.firstName"></td>
+      </tr>
+
+      <tr>
+        <td>@Messages("lastName")</td>
+        <td>@info.lastName<input type="hidden" name="lastName" value="@info.lastName"></td>
+      </tr>
+
+      <tr>
+        <td>@Messages("zipMark")</td>
+        <td>
+          <span>@info.zip1</span>-<span>@info.zip2</span>
+          <input type="hidden" name="zip1" value="@info.zip1">
+          <input type="hidden" name="zip2" value="@info.zip2">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("prefecture")</td>
+        <td>
+          @info.prefecture
+          <input type="hidden" name="prefecture" value="@info.prefecture.code">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("address1")</td>
+        <td>
+          @info.address1
+          <input type="hidden" name="address1" value="@info.address1">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("address2")</td>
+        <td>
+          @info.address2
+          <input type="hidden" name="address2" value="@info.address2">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("address3")</td>
+        <td>
+          @info.address3
+          <input type="hidden" name="address3" value="@info.address3">
+        </td>
+      </tr>
+
+      <input type="hidden" name="address4" value="">
+      <input type="hidden" name="address5" value="">
+
+      <tr>
+        <td>@Messages("tel1")</td>
+        <td>
+          @info.tel
+          <input type="hidden" name="tel" value="@info.tel">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("comment")</td>
+        <td>
+          @info.comment
+          <input type="hidden" name="comment" value="@info.comment">
+        </td>
+      </tr>
+    </table>
+
+    <button type="submit" name="command" value="amend">@Messages("amend")</button>
+    <button type="submit" name="command" value="submit">@Messages("register")</button>
+  }
+}

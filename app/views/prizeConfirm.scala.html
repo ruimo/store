@@ -1,0 +1,27 @@
+@(
+  itemName: String,
+  user: StoreUser,
+  info: CreatePrize
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("prizeConfirm"), Some(loginSession)) {
+} {
+  <table>
+    <tr>
+      <td>@Messages("itemName")</td><td>@itemName</td>
+    </tr>
+    <tr>
+      <td>@Messages("companyName")</td><td>@user.companyName.getOrElse("-")</td>
+    </tr>
+    <tr>
+      <td>@Messages("name")</td><td>@user.fullName</td>
+    </tr>
+  </table>
+}

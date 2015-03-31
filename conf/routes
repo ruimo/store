@@ -212,6 +212,9 @@ POST    /itemReservation                 controllers.ItemInquiryReserve.submitIt
 
 GET     /prize                           controllers.Prize.entry(itemName: String)
 POST    /confirmPrize                    controllers.Prize.confirm(itemName: String)
+POST    /confirmPrizeJa                  controllers.Prize.confirmJa(itemName: String)
+POST    /submitPrize                     controllers.Prize.submit(itemName: String)
+POST    /submitPrizeJa                   controllers.Prize.submitJa(itemName: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
