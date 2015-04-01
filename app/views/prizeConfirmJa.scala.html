@@ -25,6 +25,9 @@
     <tr>
       <td>@Messages("name")</td><td>@user.fullName</td>
     </tr>
+    <tr>
+      <td>@Messages("email")</td><td>@user.email</td>
+    </tr>
   </table>
 
   <h2>@Messages("shipping.address")</h2>
@@ -42,11 +45,21 @@
       </tr>
 
       <tr>
+        <td>@Messages("firstNameKana")</td>
+        <td>@info.firstNameKana<input type="hidden" name="firstNameKana" value="@info.firstNameKana"></td>
+      </tr>
+
+      <tr>
+        <td>@Messages("lastNameKana")</td>
+        <td>@info.lastNameKana<input type="hidden" name="lastNameKana" value="@info.lastNameKana"></td>
+      </tr>
+
+      <tr>
         <td>@Messages("zipMark")</td>
         <td>
-          <span>@info.zip1</span>-<span>@info.zip2</span>
-          <input type="hidden" name="zip1" value="@info.zip1">
-          <input type="hidden" name="zip2" value="@info.zip2">
+          <span>@info.zip._1</span>-<span>@info.zip._2</span>
+          <input type="hidden" name="zip.zip1" value="@info.zip._1">
+          <input type="hidden" name="zip.zip2" value="@info.zip._2">
         </td>
       </tr>
 
@@ -90,6 +103,22 @@
         <td>
           @info.tel
           <input type="hidden" name="tel" value="@info.tel">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("age")</td>
+        <td>
+          @info.age
+          <input type="hidden" name="age" value="@info.age">
+        </td>
+      </tr>
+
+      <tr>
+        <td>@Messages("sex")</td>
+        <td>
+          @Messages("sex." + info.sex)
+          <input type="hidden" name="sex" value="@info.sex.ordinal">
         </td>
       </tr>
 

@@ -432,3 +432,7 @@ amend=修正
 prize=懸賞応募
 prizeConfirm=懸賞応募確認
 back=戻る
+sex=性別
+sex.MALE=男性
+sex.FEMALE=女性
+age=年齢

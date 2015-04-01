@@ -5,9 +5,9 @@ case class CreatePrize(
   firstName: String,
   middleName: String,
   lastName: String,
-  zip1: String,
-  zip2: String,
-  zip3: String,
+  firstNameKana: String,
+  lastNameKana: String,
+  zip: (String, String, String),
   prefecture: Prefecture,
   address1: String,
   address2: String,
@@ -16,15 +16,18 @@ case class CreatePrize(
   address5: String,
   tel: String,
   comment: String,
-  command: String
+  command: String,
+  age: String,
+  sex: Sex
 )
 
 object CreatePrize {
   def apply4Japan(
     firstName: String,
     lastName: String,
-    zip1: String,
-    zip2: String,
+    firstNameKana: String,
+    lastNameKana: String,
+    zip: (String, String),
     prefecture: Int,
     address1: String,
     address2: String,
@@ -33,15 +36,17 @@ object CreatePrize {
     address5: String,
     tel: String,
     comment: String,
-    command: String
+    command: String,
+    age: String,
+    sex: Int
   ) = CreatePrize(
     CountryCode.JPN,
     firstName,
     "",
     lastName,
-    zip1,
-    zip2,
-    "",
+    firstNameKana,
+    lastNameKana,
+    (zip._1, zip._2, ""),
     JapanPrefecture.byIndex(prefecture),
     address1,
     address2,
@@ -50,22 +55,28 @@ object CreatePrize {
     address5,
     tel,
     comment,
-    command
+    command,
+    age,
+    Sex.byIndex(sex)
   )
 
   def unapply4Japan(prize: CreatePrize): Option[(
     String, String,
     String, String,
+    (String, String),
     Int,
     String, String, String, String, String,
-    String, String, String
+    String, String, String,
+    String, Int
   )] = Some(
     (
       prize.firstName, prize.lastName,
-      prize.zip1, prize.zip2,
+      prize.firstNameKana, prize.lastNameKana,
+      (prize.zip._1, prize.zip._2),
       prize.prefecture.code,
       prize.address1, prize.address2, prize.address3, prize.address4, prize.address5,
-      prize.tel, prize.comment, prize.command
+      prize.tel, prize.comment, prize.command,
+      prize.age, prize.sex.ordinal
     )
   )
 }

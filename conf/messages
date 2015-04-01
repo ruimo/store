@@ -399,3 +399,7 @@ amend=Amend
 prize=Prize
 prizeConfirm=Confirm prize submittion
 back=Back
+sex=Sex
+sex.MALE=Male
+sex.FEMALE=Female
+age=Age

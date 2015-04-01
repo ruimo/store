@@ -11,14 +11,25 @@ import play.api.mvc._
 import play.api.i18n.{Lang, Messages}
 import models.{StoreUser, CreatePrize, Address, UserAddress, CountryCode, JapanPrefecture}
 import constraints.FormConstraints._
+import models.Sex
+import helpers.Enums
 
 object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
+  lazy val SexForDropdown: Seq[(String, String)] = Seq(
+    (Sex.MALE.ordinal.toString, Messages("sex." + Sex.MALE)),
+    (Sex.FEMALE.ordinal.toString, Messages("sex." + Sex.FEMALE))
+  )
+
   def prizeFormJa(implicit lang: Lang) = Form(
     mapping(
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "lastName" -> text.verifying(lastNameConstraint: _*),
-      "zip1" -> text.verifying(z => Shipping.Zip1Pattern.matcher(z).matches),
-      "zip2" -> text.verifying(z => Shipping.Zip2Pattern.matcher(z).matches),
+      "firstNameKana" -> text.verifying(firstNameConstraint: _*),
+      "lastNameKana" -> text.verifying(lastNameConstraint: _*),
+      "zip" -> tuple(
+        "zip1" -> text.verifying(z => Shipping.Zip1Pattern.matcher(z).matches),
+        "zip2" -> text.verifying(z => Shipping.Zip2Pattern.matcher(z).matches)
+      ),
       "prefecture" -> number,
       "address1" -> text.verifying(nonEmpty, maxLength(256)),
       "address2" -> text.verifying(nonEmpty, maxLength(256)),
@@ -27,7 +38,9 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
       "address5" -> text.verifying(maxLength(256)),
       "tel" -> text.verifying(Messages("error.number"), z => Shipping.TelPattern.matcher(z).matches),
       "comment" -> text.verifying(maxLength(2048)),
-      "command" -> text
+      "command" -> text,
+      "age" -> text,
+      "sex" -> number
     )(CreatePrize.apply4Japan)(CreatePrize.unapply4Japan)
   )
 
@@ -51,7 +64,8 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
     val model = CreatePrize(
       countryCode,
       user.firstName, user.middleName.getOrElse(""), user.lastName,
-      addr.map(_.zip1).getOrElse(""), addr.map(_.zip2).getOrElse(""), addr.map(_.zip3).getOrElse(""),
+      addr.map(_.firstNameKana).getOrElse(""), addr.map(_.lastNameKana).getOrElse(""),
+      (addr.map(_.zip1).getOrElse(""), addr.map(_.zip2).getOrElse(""), addr.map(_.zip3).getOrElse("")),
       lookupPref(addr.map(_.prefecture.code).getOrElse(1)),
       addr.map(_.address1).getOrElse(""),
       addr.map(_.address2).getOrElse(""),
@@ -59,17 +73,17 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
       addr.map(_.address4).getOrElse(""),
       addr.map(_.address5).getOrElse(""),
       addr.map(_.tel1).getOrElse(""),
-      "", ""
+      "", "", "", Sex.MALE
     )
 
     Ok(
       lang.toLocale match {
         case Locale.JAPANESE =>
-          views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model))
+          views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model), SexForDropdown)
         case Locale.JAPAN =>
-          views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model))
+          views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model), SexForDropdown)
         case _ =>
-          views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model))
+          views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model), SexForDropdown)
       }
     )
   }
@@ -89,7 +103,8 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
             itemName,
             user,
             Address.JapanPrefectures,
-            formWithErrors
+            formWithErrors,
+            SexForDropdown
           )
         )
       },
@@ -120,7 +135,8 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
             itemName,
             user,
             Address.JapanPrefectures,
-            formWithErrors
+            formWithErrors,
+            SexForDropdown
           )
         )
       },
@@ -131,7 +147,8 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
               itemName,
               user,
               Address.JapanPrefectures,
-              prizeFormJa.fill(info)
+              prizeFormJa.fill(info),
+              SexForDropdown
             )
           )
         }
