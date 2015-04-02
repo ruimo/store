@@ -34,18 +34,22 @@
     </div>
   }
 
-  <table>
-    <tr>
-      <td>@Messages("itemName")</td><td>@itemName</td>
+  <table class="prizeInfo">
+    <tr class="itemName">
+      <td class="header">@Messages("itemName")</td>
+      <td class="body">@itemName</td>
     </tr>
-    <tr>
-      <td>@Messages("companyName")</td><td>@user.companyName.getOrElse("-")</td>
+    <tr class="companyName">
+      <td class="header">@Messages("companyName")</td>
+      <td class="body">@user.companyName.getOrElse("-")</td>
     </tr>
-    <tr>
-      <td>@Messages("name")</td><td>@user.fullName</td>
+    <tr class="name">
+      <td class="header">@Messages("name")</td>
+      <td class="body">@user.fullName</td>
     </tr>
-    <tr>
-      <td>@Messages("email")</td><td>@user.email</td>
+    <tr class="email">
+      <td class="header">@Messages("email")</td>
+      <td class="body">@user.email</td>
     </tr>
   </table>
 
@@ -133,8 +137,9 @@
       '_label -> Messages("shippingComment")
     )
 
-    <button type="button" onClick="history.back()">@Messages("back")</button>
-    <input type="submit" value="@Messages("register.shipping")">
+    <input type="hidden" name="command" value="confirm">
+    <button class="backButton" type="button" onClick="history.back()">@Messages("back")</button>
+    <input class="submitButton" type="submit" value="@Messages("register")">
   }
 }
 
