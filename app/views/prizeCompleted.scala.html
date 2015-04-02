@@ -1,0 +1,25 @@
+@(
+  itemName: String,
+  user: StoreUser,
+  info: CreatePrize
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("prizeCompleted"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("prizeCompleted")</h1>
+
+  <table>
+    <tr>
+      <td>@Messages("itemName")</td><td>@itemName</td>
+    </tr>
+  </table>
+
+  <a href="/">@Messages("backTo", Messages("top"))</a>
+}

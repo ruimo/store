@@ -121,7 +121,7 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
   }
 
   def submit(itemName: String) = isAuthenticated { implicit login => implicit request =>
-    Ok("") // TODOkT.B.D.
+    Ok("") // T.B.D.
   }
 
   def submitJa(itemName: String) = isAuthenticated { implicit login => implicit request =>
@@ -153,7 +153,13 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
           )
         }
         else {
-          Ok("")
+          Ok(
+            views.html.prizeCompleted(
+              itemName,
+              user,
+              info
+            )
+          )
         }
       }
     )
