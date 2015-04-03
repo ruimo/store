@@ -13,6 +13,7 @@ import models.{StoreUser, CreatePrize, Address, UserAddress, CountryCode, JapanP
 import constraints.FormConstraints._
 import models.Sex
 import helpers.Enums
+import helpers.PrizeMail
 
 object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
   lazy val SexForDropdown: Seq[(String, String)] = Seq(
@@ -153,6 +154,7 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
           )
         }
         else {
+          PrizeMail.send(itemName, user, info)
           Ok(
             views.html.prizeCompleted(
               itemName,

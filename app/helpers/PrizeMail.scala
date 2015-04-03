@@ -19,7 +19,7 @@ object PrizeMail extends HasLogger {
   def send(itemName: String, user: StoreUser, prize: CreatePrize) {
     if (! disableMailer) {
       sendTo(itemName, user, prize, to, views.html.mail.prizeForAdmin(itemName, user, prize).toString)
-      sendTo(itemName, user, prize, to, views.html.mail.prize(itemName, user, prize).toString)
+      sendTo(itemName, user, prize, user.email, views.html.mail.prize(itemName, user, prize).toString)
     }
     else {
       logger.info("Prize mail is not sent since mailer is disabled.")
