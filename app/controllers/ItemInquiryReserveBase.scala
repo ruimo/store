@@ -16,6 +16,7 @@ import play.api.i18n.{Lang, Messages}
 import play.api.data.validation.Constraints._
 import constraints.FormConstraints._
 import models.{CreateItemInquiry, CreateItemReservation, StoreUser, CreateItemInquiryReservation, ItemInquiryType, Site, ItemName, SiteItem, ItemId, LocaleInfo, LoginSession, ItemInquiryId, ItemInquiryField, ItemInquiryStatus}
+import helpers.{ItemInquiryMail}
 
 class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin with HasLogger {
   val idSubmitForm: Form[Long] = Form(
@@ -130,7 +131,7 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
         info.update(id)
         Ok(
           views.html.itemReservationConfirm(
-            rec, fields, itemInfo(rec.siteId, rec.itemId.id), idSubmitForm.fill(inqId)
+            ItemInquiry(id), ItemInquiryField(id), itemInfo(rec.siteId, rec.itemId.id), idSubmitForm.fill(inqId)
           )
         )
       }
@@ -283,8 +284,14 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
           )
         )
       },
-      id => DB.withConnection { implicit conn =>
-        if (ItemInquiry.changeStatus(ItemInquiryId(id), ItemInquiryStatus.SUBMITTED) == 0) {
+      longId => DB.withConnection { implicit conn =>
+        val id: ItemInquiryId = ItemInquiryId(longId)
+        val inquiry: ItemInquiry = ItemInquiry(id)
+        val fields: immutable.Map[Symbol, String] = ItemInquiryField(id)
+
+        ItemInquiryMail.send(login.storeUser, inquiry, fields, LocaleInfo.getDefault)
+
+        if (ItemInquiry.changeStatus(id, ItemInquiryStatus.SUBMITTED) == 0) {
           throw new Error("Record update fail id = " + id)
         }
         Redirect(routes.Application.index).flashing("message" -> Messages("itemReservationSubmit"))

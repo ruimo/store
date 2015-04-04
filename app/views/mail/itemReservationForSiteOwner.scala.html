@@ -7,10 +7,10 @@
   implicit lang: Lang
 )
 
-@inq.submitUserName 様から以下の商品の問い合わせがありました。
+@inq.submitUserName 様から以下の商品の予約がありました。
 e-mail: @inq.email
 
 店舗: @itemInfo._1.name
 商品id: @itemInfo._2.itemId
 商品名: @itemInfo._2.name
-メッセージ: @fields('Message)
+@fields.get('Message).map {m =>メッセージ: @m}

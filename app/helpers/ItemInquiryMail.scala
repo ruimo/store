@@ -3,7 +3,7 @@ package helpers
 import controllers.HasLogger
 import play.api.Play
 import scala.collection.immutable
-import models.{ItemInquiry, ItemInquiryField, Site, OrderNotification, LocaleInfo, ItemName, SiteItem, StoreUser}
+import models.{ItemInquiry, ItemInquiryField, Site, OrderNotification, LocaleInfo, ItemName, SiteItem, StoreUser, ItemInquiryType}
 import java.sql.Connection
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
@@ -34,11 +34,25 @@ object ItemInquiryMail extends HasLogger {
   ) {
     OrderNotification.listBySite(inq.siteId).foreach { owner =>
       logger.info("Sending item inquiry to site owner " + itemInfo._1 + " sent to " + inq.email)
-      val body = views.html.mail.itemInquiryForSiteOwner(user, itemInfo, inq, fields).toString
+      val body = inq.inquiryType match {
+        case ItemInquiryType.QUERY =>
+          views.html.mail.itemInquiryForSiteOwner(user, itemInfo, inq, fields).toString
+        case ItemInquiryType.RESERVATION => 
+          views.html.mail.itemReservationForSiteOwner(user, itemInfo, inq, fields).toString
+        case t =>
+          throw new Error("Unknown inquiry type " + t)
+      }
       if (! disableMailer) {
         Akka.system.scheduler.scheduleOnce(0.microsecond) {
           val mail = use[MailerPlugin].email
-          mail.setSubject(Messages("mail.item.inquiry.site.owner.subject").format(inq.id.get))
+          mail.setSubject(
+            Messages(
+              inq.inquiryType match {
+                case ItemInquiryType.QUERY => "mail.item.inquiry.site.owner.subject"
+                case ItemInquiryType.RESERVATION => "mail.item.reservation.site.owner.subject"
+              }
+            ).format(inq.id.get)
+          )
           mail.addRecipient(owner.email)
           mail.addFrom(from)
           mail.send(body)
@@ -56,10 +70,24 @@ object ItemInquiryMail extends HasLogger {
     if (! disableMailer) {
       OrderNotification.listAdmin.foreach { admin =>
         logger.info("Sending item inquiry for admin to " + admin.email)
-        val body = views.html.mail.itemInquiryForAdmin(user, itemInfo, inq, fields).toString
+        val body = inq.inquiryType match {
+          case ItemInquiryType.QUERY =>
+            views.html.mail.itemInquiryForAdmin(user, itemInfo, inq, fields).toString
+          case ItemInquiryType.RESERVATION =>
+            views.html.mail.itemReservationForAdmin(user, itemInfo, inq, fields).toString
+        case t =>
+          throw new Error("Unknown inquiry type " + t)
+        }
         Akka.system.scheduler.scheduleOnce(0.microsecond) {
           val mail = use[MailerPlugin].email
-          mail.setSubject(Messages("mail.item.inquiry.site.owner.subject").format(inq.id.get))
+          mail.setSubject(
+            Messages(
+              inq.inquiryType match {
+                case ItemInquiryType.QUERY => "mail.item.inquiry.site.owner.subject"
+                case ItemInquiryType.RESERVATION => "mail.item.reservation.site.owner.subject"
+              }
+            ).format(inq.id.get)
+          )
           mail.addRecipient(admin.email)
           mail.addFrom(from)
           mail.send(body)
