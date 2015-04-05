@@ -100,10 +100,7 @@
                       <td class="orderHistoryInnerTable3Body quantity">@t.quantity</td>
                       <td class="orderHistoryInnerTable3Body price">
                         <span class="body">@amount(t.price)</span>
-                        <button type="button"
-                                onclick="shoppingCartDialog.putIntoCart(@t.siteId, @t.itemId, @t.quantity);">
-                          @Messages("addItemIntoShoppingCart")
-                        </button>
+                        @purchaseButton(t.siteId, t.itemId, t.quantity, t.siteItemNumericMetadata)
                       </td>
                     </tr>
                   }

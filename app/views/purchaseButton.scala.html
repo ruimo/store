@@ -1,0 +1,11 @@
+@(
+  siteId: Long, itemId: Long, quantity: Int,
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+)(
+  implicit lang: Lang
+)
+
+ <button type="button" class="addToCartButton"
+         onclick="shoppingCartDialog.putIntoCart(siteId, itemId, quantity);">
+   @Messages("purchase")
+ </button>

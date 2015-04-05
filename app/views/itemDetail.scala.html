@@ -65,10 +65,7 @@
       }
 
       <div class="itemDetailCartPanel">
-        <button class="purchaseButton" type="button"
-                onclick="shoppingCartDialog.putIntoCart(@detail.siteId, @detail.itemId, 1);">
-          @Messages("purchase")
-        </button>
+        @purchaseButton(detail.siteId, detail.itemId, 1, detail.siteItemNumericMetadata)
       </div>
 
       <div class="itemDetailDescription">@detail.description</div>
