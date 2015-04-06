@@ -5,7 +5,17 @@
   implicit lang: Lang
 )
 
- <button type="button" class="addToCartButton"
-         onclick="shoppingCartDialog.putIntoCart(@siteId, @itemId, @quantity);">
-   @Messages("purchase")
- </button>
+@siteItemNumericMetadata.get(SiteItemNumericMetadataType.RESERVATION_ITEM).map(_.metadata).getOrElse(0L) match {
+  case 0 => {
+    <button type="button" class="addToCartButton"
+            onclick="shoppingCartDialog.putIntoCart(@siteId, @itemId, @quantity);">
+      @Messages("purchase")
+    </button>
+  }
+  case _ => {
+    <button type="button" class="reserveButton"
+            onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
+      @Messages("itemReservation")
+    </button>
+  }
+}
