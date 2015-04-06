@@ -26,10 +26,6 @@
 
   @defining(thisForm.asInstanceOf[Form[CreateItemReservation]]) { myForm =>
     @form(action = CSRF(routes.ItemInquiryReserve.confirmItemReservation(itemInfo._1.id.get, itemInfo._2.itemId.id)), 'id -> "itemReservationForm") {
-      @inputText(myForm("inqType"), 'type -> "hidden", '_showConstraints -> false)(
-        helper.FieldConstructor(simpleField.f), implicitly
-      )
-
       @inputText(myForm("siteId"), 'type -> "hidden", '_showConstraints -> false)(
         helper.FieldConstructor(simpleField.f), implicitly
       )
@@ -53,7 +49,7 @@
         '_label -> Messages("reservationMessage"), 'rows -> 6, 'cols -> 80
       )
 
-      <input type="submit" value="@Messages("register")" id="submitItemQuery">
+      <input type="submit" value="@Messages("register")" id="submitItemReservation">
     }
   }
 }

@@ -26,10 +26,6 @@
 
   @defining(thisForm.asInstanceOf[Form[CreateItemInquiry]]) { myForm =>
     @form(action = CSRF(routes.ItemInquiryReserve.confirmItemInquiry(itemInfo._1.id.get, itemInfo._2.itemId.id)), 'id -> "itemInquiryForm") {
-      @inputText(myForm("inqType"), 'type -> "hidden", '_showConstraints -> false)(
-        helper.FieldConstructor(simpleField.f), implicitly
-      )
-
       @inputText(myForm("siteId"), 'type -> "hidden", '_showConstraints -> false)(
         helper.FieldConstructor(simpleField.f), implicitly
       )
