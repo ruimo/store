@@ -85,7 +85,11 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     ).asInstanceOf[CreateItemInquiryReservation]
   )
 
-  def itemInfo(siteId: Long, itemId: Long): (Site, ItemName) = DB.withConnection { implicit conn =>
+  def itemInfo(
+    siteId: Long, itemId: Long
+  )(
+    implicit lang: Lang
+  ): (Site, ItemName) = DB.withConnection { implicit conn =>
     SiteItem.getWithSiteAndItem(siteId, ItemId(itemId), LocaleInfo.getDefault)
   }.get
 
