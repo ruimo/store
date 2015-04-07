@@ -7,13 +7,13 @@
 
 @siteItemNumericMetadata.get(SiteItemNumericMetadataType.RESERVATION_ITEM).map(_.metadata).getOrElse(0L) match {
   case 0 => {
-    <button type="button" class="addToCartButton"
+    <button type="button" class="addToCartButton purchaseButton"
             onclick="shoppingCartDialog.putIntoCart(@siteId, @itemId, @quantity);">
       @Messages("purchase")
     </button>
   }
   case _ => {
-    <button type="button" class="reserveButton"
+    <button type="button" class="addToCartButton reserveButton"
             onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
       @Messages("itemReservation")
     </button>
