@@ -209,6 +209,7 @@ mail.cancel.admin.subject=[${company.name}] Cancel notification (#%d)
 mail.shipping.buyer.subject=[${company.name}] Shipping notification (#%d)
 mail.cancel.buyer.subject=[${company.name}] Cancel notification (#%d)
 mail.item.inquiry.site.owner.subject=[${company.name}] Item inquiry received (#%d)
+mail.item.reservation.site.owner.subject=[${company.name}] Item reservation request received (#%d)
 shippingComment=Comment
 register.shipping=Register
 itemTextMetadataABOUT_HEIGHT=Height
