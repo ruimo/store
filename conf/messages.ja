@@ -242,6 +242,7 @@ mail.cancel.buyer.subject=[${company.name}] キャンセルのお知らせ (#%d)
 mail.item.inquiry.site.owner.subject=[${company.name}] 商品についてお問い合わせがありました。 (#%d)
 mail.item.inquiry.buyer.subject=[${company.name}] 商品のお問い合わせをお受けしました (#%d)
 mail.item.reservation.buyer.subject=[${company.name}] 商品のご予約依頼を送信しました (#%d)
+mail.item.reservation.site.owner.subject=[${company.name}] 商品予約依頼がありました。 (#%d)
 shippingComment=お伝えすることがあれば、こちらにご記入ください
 register.shipping=送り先を確定する
 itemTextMetadataABOUT_HEIGHT=高さ

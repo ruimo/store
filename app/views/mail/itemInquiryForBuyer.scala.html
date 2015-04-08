@@ -1,0 +1,18 @@
+@(
+  loginUser: StoreUser,
+  itemInfo: (Site, ItemName),
+  inq: ItemInquiry,
+  fields: scala.collection.immutable.Map[Symbol, String]
+)(
+  implicit lang: Lang
+)
+
+@inq.submitUserName 様
+
+以下の商品のお問い合わせをお受けしました。
+e-mail: @inq.email
+
+店舗: @itemInfo._1.name
+商品id: @itemInfo._2.itemId.id
+商品名: @itemInfo._2.name
+メッセージ: @fields('Message)
