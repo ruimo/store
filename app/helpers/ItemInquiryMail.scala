@@ -23,8 +23,42 @@ object ItemInquiryMail extends HasLogger {
   ) {
     val itemInfo: (Site, ItemName) = SiteItem.getWithSiteAndItem(inq.siteId, inq.itemId, locale).get
 
+    sendToBuyer(user, locale, itemInfo, inq, fields)
     sendToStoreOwner(user, locale, itemInfo, inq, fields)
     sendToAdmin(user, locale, itemInfo, inq, fields)
+  }
+
+  def sendToBuyer(
+    user: StoreUser, locale: LocaleInfo, itemInfo: (Site, ItemName), inq: ItemInquiry, fields: immutable.Map[Symbol, String]
+  )(
+    implicit conn: Connection
+  ) {
+    logger.info("Sending item inquiry for buyer sent to " + inq.email)
+    val body = inq.inquiryType match {
+      case ItemInquiryType.QUERY =>
+        views.html.mail.itemInquiryForBuyer(user, itemInfo, inq, fields).toString
+      case ItemInquiryType.RESERVATION => 
+        views.html.mail.itemReservationForBuyer(user, itemInfo, inq, fields).toString
+      case t =>
+        throw new Error("Unknown inquiry type " + t)
+    }
+    if (! disableMailer) {
+      Akka.system.scheduler.scheduleOnce(0.microsecond) {
+        val mail = use[MailerPlugin].email
+        mail.setSubject(
+          Messages(
+            inq.inquiryType match {
+              case ItemInquiryType.QUERY => "mail.item.inquiry.site.buyer.subject"
+              case ItemInquiryType.RESERVATION => "mail.item.reservation.site.buyer.subject"
+            }
+          ).format(inq.id.get)
+        )
+        mail.addRecipient(inq.email)
+        mail.addFrom(from)
+        mail.send(body)
+        logger.info("Item inquiry notification for buyer sent to " + inq.email)
+      }
+    }
   }
 
   def sendToStoreOwner(
