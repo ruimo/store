@@ -39,4 +39,8 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
       }
     }
   }
+
+  def showInstantCoupon(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
+    Ok("")
+  }
 }

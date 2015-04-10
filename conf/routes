@@ -216,5 +216,7 @@ POST    /confirmPrizeJa                  controllers.Prize.confirmJa(itemName: S
 POST    /submitPrize                     controllers.Prize.submit(itemName: String)
 POST    /submitPrizeJa                   controllers.Prize.submitJa(itemName: String)
 
+GET     /showInstantCoupon               controllers.CouponHistory.showInstantCoupon(siteId: Long, itemId: Long)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
