@@ -5,17 +5,29 @@
   implicit lang: Lang
 )
 
-@siteItemNumericMetadata.get(SiteItemNumericMetadataType.RESERVATION_ITEM).map(_.metadata).getOrElse(0L) match {
+@siteItemNumericMetadata.get(SiteItemNumericMetadataType.INSTANT_COUPON).map(_.metadata).getOrElse(0L) match {
   case 0 => {
-    <button type="button" class="addToCartButton purchaseButton"
-            onclick="shoppingCartDialog.putIntoCart(@siteId, @itemId, @quantity);">
-      @Messages("purchase")
-    </button>
+    @siteItemNumericMetadata.get(SiteItemNumericMetadataType.RESERVATION_ITEM).map(_.metadata).getOrElse(0L) match {
+      case 0 => {
+        <button type="button" class="addToCartButton purchaseButton"
+                onclick="shoppingCartDialog.putIntoCart(@siteId, @itemId, @quantity);">
+          @Messages("purchase")
+        </button>
+      }
+      case _ => {
+        <button type="button" class="addToCartButton reserveButton"
+               onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
+           @Messages("itemReservation")
+        </button>
+      }
+    }
   }
   case _ => {
-    <button type="button" class="addToCartButton reserveButton"
-            onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
-      @Messages("itemReservation")
-    </button>
+      <button type="button" class="addToCartButton showInstantCouponButton"
+              onclick="location.href='@routes.CouponHistory.showInstantCoupon(siteId, itemId)';">
+        @Messages("showInstantCoupon")
+      </button>
   }
 }
+
+

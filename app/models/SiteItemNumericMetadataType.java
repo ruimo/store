@@ -8,6 +8,7 @@ public enum SiteItemNumericMetadataType {
     ,ITEM_DETAIL_TEMPLATE
     ,COUPON_TEMPLATE
     ,RESERVATION_ITEM // Show reserve button instead of put into cart button.
+    ,INSTANT_COUPON
     ;
 
     private static final SiteItemNumericMetadataType byIndex[] = 
