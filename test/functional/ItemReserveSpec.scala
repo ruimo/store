@@ -17,11 +17,12 @@ import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import com.ruimo.scoins.Scoping._
 import java.sql.Date.{valueOf => date}
+import helpers.Helper.disableMailer
 
 class ItemReserveSpec extends Specification {
   "Item reservation" should {
     "Show reserve button" in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer)
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
@@ -210,7 +211,6 @@ class ItemReserveSpec extends Specification {
             tbl.find(".message.body").getText === ""
           }
         }
-
         // amend entry
         browser.find("#amendItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
