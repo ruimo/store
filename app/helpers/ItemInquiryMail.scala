@@ -51,7 +51,7 @@ object ItemInquiryMail extends HasLogger {
               case ItemInquiryType.QUERY => "mail.item.inquiry.buyer.subject"
               case ItemInquiryType.RESERVATION => "mail.item.reservation.buyer.subject"
             }
-          ).format(inq.id.get)
+          ).format(inq.id.get.id)
         )
         mail.addRecipient(inq.email)
         mail.addFrom(from)
@@ -85,7 +85,7 @@ object ItemInquiryMail extends HasLogger {
                 case ItemInquiryType.QUERY => "mail.item.inquiry.site.owner.subject"
                 case ItemInquiryType.RESERVATION => "mail.item.reservation.site.owner.subject"
               }
-            ).format(inq.id.get)
+            ).format(inq.id.get.id)
           )
           mail.addRecipient(owner.email)
           mail.addFrom(from)
@@ -120,7 +120,7 @@ object ItemInquiryMail extends HasLogger {
                 case ItemInquiryType.QUERY => "mail.item.inquiry.site.owner.subject"
                 case ItemInquiryType.RESERVATION => "mail.item.reservation.site.owner.subject"
               }
-            ).format(inq.id.get)
+            ).format(inq.id.get.id)
           )
           mail.addRecipient(admin.email)
           mail.addFrom(from)
