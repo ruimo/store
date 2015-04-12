@@ -28,10 +28,15 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
     tranCouponId: Long
   ) = isAuthenticated { implicit login => implicit request =>
     DB.withConnection { implicit conn =>
-      val couponDetail = TransactionLogCoupon.at(
+      val c = TransactionLogCoupon.at(
         LocaleInfo.byLang(lang), login.userId, TransactionLogCouponId(tranCouponId)
       )
-      showCoupon(couponDetail)
+      showCoupon(
+        c.siteItemNumericMetadata,
+        c.couponDetail.itemId,
+        c.couponDetail.time,
+        c.couponDetail.tranHeaderId
+      )
     }
   }
 
@@ -56,16 +61,30 @@ Ok("")
   }
 
   def showCoupon(
-    couponDetail: CouponDetailWithMetadata
+    siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    itemId: ItemId,
+    time: Long,
+    tranId: Long
   )(
     implicit request: RequestHeader,
     login: LoginSession
   ): Result = {
-    couponDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.COUPON_TEMPLATE) match {
-      case None => Ok(views.html.showCoupon(couponDetail))
+    siteItemNumericMetadata.get(SiteItemNumericMetadataType.COUPON_TEMPLATE) match {
+      case None => Ok(
+        views.html.showCoupon(itemId, time, Some(tranId))
+      )
       case Some(metadata) =>
-        if (metadata.metadata == 0) Ok(views.html.showCoupon(couponDetail))
-        else Ok(views.html.showCouponTemplate(metadata.metadata, couponDetail))
+        if (metadata.metadata == 0) Ok(
+          views.html.showCoupon(itemId, time, Some(tranId))
+        )
+        else Ok(
+          views.html.showCouponTemplate(
+            metadata.metadata,
+            itemId,
+            time,
+            Some(tranId)
+          )
+        )
     }
   }
 }
