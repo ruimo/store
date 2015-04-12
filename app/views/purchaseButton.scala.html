@@ -24,7 +24,7 @@
   }
   case _ => {
       <button type="button" class="addToCartButton showInstantCouponButton"
-              onclick="location.href='@routes.CouponHistory.showInstantCoupon(siteId, itemId)';">
+              onclick="window.open('@routes.CouponHistory.showInstantCoupon(siteId, itemId)');">
         @Messages("showInstantCoupon")
       </button>
   }

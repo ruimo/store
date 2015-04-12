@@ -35,7 +35,7 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
         c.siteItemNumericMetadata,
         c.couponDetail.itemId,
         c.couponDetail.time,
-        c.couponDetail.tranHeaderId
+        Some(c.couponDetail.tranHeaderId)
       )
     }
   }
@@ -45,15 +45,7 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
       DB.withConnection { implicit conn => SiteItemNumericMetadata.all(siteId, ItemId(itemId)) }
 
     if (metaData.get(SiteItemNumericMetadataType.INSTANT_COUPON).getOrElse(0) != 0) {
-      val templateNo = metaData.get(SiteItemNumericMetadataType.COUPON_TEMPLATE).map(_.metadata).getOrElse(0)
-      if (templateNo == 0) {
-//        Ok(views.html.showCoupon(couponDetail))
-Ok("")
-      }
-      else {
-//        Ok(views.html.showCouponTemplate(templateNo, couponDetail))
-Ok("")
-      }
+      showCoupon(metaData, ItemId(itemId), System.currentTimeMillis, None)
     }
     else {
       Redirect(routes.Application.index)
@@ -64,26 +56,21 @@ Ok("")
     siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
     itemId: ItemId,
     time: Long,
-    tranId: Long
+    tranId: Option[Long]
   )(
     implicit request: RequestHeader,
     login: LoginSession
   ): Result = {
     siteItemNumericMetadata.get(SiteItemNumericMetadataType.COUPON_TEMPLATE) match {
       case None => Ok(
-        views.html.showCoupon(itemId, time, Some(tranId))
+        views.html.showCoupon(itemId, time, tranId)
       )
       case Some(metadata) =>
         if (metadata.metadata == 0) Ok(
-          views.html.showCoupon(itemId, time, Some(tranId))
+          views.html.showCoupon(itemId, time, tranId)
         )
         else Ok(
-          views.html.showCouponTemplate(
-            metadata.metadata,
-            itemId,
-            time,
-            Some(tranId)
-          )
+          views.html.showCouponTemplate(metadata.metadata, itemId, time, tranId)
         )
     }
   }
