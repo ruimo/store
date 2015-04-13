@@ -94,7 +94,7 @@ class ItemReserveSpec extends Specification {
 
         browser.goTo(
           "http://localhost:3333"
-          + controllers.routes.ItemQuery.query(q = List(), templateNo = 1).url + "&lang=" + lang.code
+          + controllers.routes.ItemQuery.query(q = List(), templateNo = 1).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("item.list")
@@ -112,7 +112,7 @@ class ItemReserveSpec extends Specification {
 
         browser.goTo(
           "http://localhost:3333"
-          + controllers.routes.ItemDetail.show(item02.id.get.id, site.id.get).url + "&lang=" + lang.code
+          + controllers.routes.ItemDetail.show(item02.id.get.id, site.id.get).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("item.detail")
@@ -134,7 +134,7 @@ class ItemReserveSpec extends Specification {
         )
         browser.goTo(
           "http://localhost:3333"
-          + controllers.routes.ItemDetail.show(item02.id.get.id, site.id.get).url + "&lang=" + lang.code
+          + controllers.routes.ItemDetail.show(item02.id.get.id, site.id.get).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("item.detail")
@@ -166,9 +166,10 @@ class ItemReserveSpec extends Specification {
           site.id.get, item01.id.get, SiteItemNumericMetadataType.RESERVATION_ITEM, 1
         )
         browser.goTo(
-          "http://localhost:3333"
-          + controllers.routes.ItemInquiryReserve.startItemReservation(site.id.get, item01.id.get.id).url
-          + "&lang=" + lang.code
+          "http://localhost:3333" +
+          controllers.routes.ItemInquiryReserve.startItemReservation(
+            site.id.get, item01.id.get.id
+          ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("itemReservation")
@@ -295,9 +296,10 @@ class ItemReserveSpec extends Specification {
           site.id.get, item01.id.get, SiteItemNumericMetadataType.RESERVATION_ITEM, 1
         )
         browser.goTo(
-          "http://localhost:3333"
-          + controllers.routes.ItemInquiryReserve.startItemReservation(site.id.get, item01.id.get.id).url
-          + "&lang=" + lang.code
+          "http://localhost:3333" + 
+          controllers.routes.ItemInquiryReserve.startItemReservation(
+            site.id.get, item01.id.get.id
+          ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("itemReservation")
