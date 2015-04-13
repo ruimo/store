@@ -1,6 +1,7 @@
 @(
   siteId: Long, itemId: Long, quantity: Int,
-  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]
+  siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+  cssClass: Option[String] = None
 )(
   implicit lang: Lang
 )
@@ -9,13 +10,13 @@
   case 0 => {
     @siteItemNumericMetadata.get(SiteItemNumericMetadataType.RESERVATION_ITEM).map(_.metadata).getOrElse(0L) match {
       case 0 => {
-        <button type="button" class="addToCartButton purchaseButton"
+        <button type="button" class='addToCartButton purchaseButton @cssClass.getOrElse("")'
                 onclick="shoppingCartDialog.putIntoCart(@siteId, @itemId, @quantity);">
           @Messages("purchase")
         </button>
       }
       case _ => {
-        <button type="button" class="addToCartButton reserveButton"
+        <button type="button" class='addToCartButton reserveButton @cssClass.getOrElse("")'
                onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
            @Messages("itemReservation")
         </button>
@@ -23,7 +24,7 @@
     }
   }
   case _ => {
-      <button type="button" class="addToCartButton showInstantCouponButton"
+      <button type="button" class='addToCartButton showInstantCouponButton @cssClass.getOrElse("")'
               onclick="window.open('@routes.CouponHistory.showInstantCoupon(siteId, itemId)');">
         @Messages("showInstantCoupon")
       </button>
