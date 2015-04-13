@@ -18,6 +18,8 @@ import java.sql.Date.{valueOf => date}
 import com.ruimo.scoins.Scoping._
 import java.sql.Date.{valueOf => date}
 import helpers.Helper.disableMailer
+import helpers.UrlHelper
+import helpers.UrlHelper.fromString
 
 class ItemReserveSpec extends Specification {
   "Item reservation" should {
@@ -55,7 +57,7 @@ class ItemReserveSpec extends Specification {
         
         browser.goTo(
           "http://localhost:3333"
-          + controllers.routes.ItemQuery.query(q = List(), templateNo = 0).url + "&lang=" + lang.code
+          + controllers.routes.ItemQuery.query(q = List(), templateNo = 0).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("item.list")
