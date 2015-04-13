@@ -218,5 +218,8 @@ POST    /submitPrizeJa                   controllers.Prize.submitJa(itemName: St
 
 GET     /showInstantCoupon               controllers.CouponHistory.showInstantCoupon(siteId: Long, itemId: Long)
 
+GET     /qaSite                          controllers.Qa.qaSiteStart(siteId: Long)
+POST    /submitQaSiteJa                  controllers.Qa.submitQaSiteJa(siteId: Long)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

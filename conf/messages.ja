@@ -445,3 +445,6 @@ prizeCompleted=応募が完了しました
 mail.prize.subject=懸賞への応募が完了しました
 prizeComment=コメント
 showInstantCoupon=クーポンの表示
+qaSiteNameTitle=お問い合わせ先店舗
+qaConfirmTitle=お問い合わせ確認
+qaCompletedTitle=以下のお問い合わせを送信しました

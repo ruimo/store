@@ -9,11 +9,22 @@ import play.api.mvc.{Action, Controller, RequestHeader}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import models.{QaEntry, UserAddress, Address}
+import models.{QaEntry, UserAddress, Address, CreateQaSite, Site}
 import helpers.QaMail
 import constraints.FormConstraints._
 
 object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
+  def qaSiteForm(implicit lang: Lang) = Form(
+    mapping(
+      "command" -> text,
+      "companyName" -> text.verifying(nonEmpty, maxLength(64)),
+      "name" -> text.verifying(nonEmpty, maxLength(128)),
+      "tel" -> text.verifying(nonEmpty).verifying(Messages("error.number"), z => Shipping.TelPattern.matcher(z).matches),
+      "email" -> text.verifying(emailConstraint: _*),
+      "inquiryBody" -> text.verifying(nonEmpty, maxLength(8192))
+    )(CreateQaSite.apply)(CreateQaSite.unapply)
+  )
+
   def jaForm(implicit lang: Lang) = Form(
     mapping(
       "qaType" -> text,
@@ -68,4 +79,60 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
       }
     )
   }}}
+
+  def qaSiteStart(siteId: Long) = isAuthenticated { implicit login => implicit request =>
+    val user = login.storeUser
+
+    DB.withConnection { implicit conn => {
+      val addr: Option[Address] = UserAddress.getByUserId(user.id.get).map {
+        ua => Address.byId(ua.addressId)
+      }
+
+      val site: Site = Site(siteId)
+      val form = qaSiteForm.fill(
+        CreateQaSite(
+          "",
+          user.companyName.getOrElse(""),
+          user.fullName,
+          addr.map(_.tel1).getOrElse(""),
+          user.email,
+          ""
+        )
+      ).discardingErrors
+
+      lang.toLocale match {
+        case Locale.JAPANESE =>
+          Ok(views.html.qaSiteJa(site, form))
+        case Locale.JAPAN =>
+          Ok(views.html.qaSiteJa(site, form))
+        
+        case _ =>
+          Ok(views.html.qaSiteJa(site, form))
+      }
+    }}
+  }
+
+  def submitQaSiteJa(siteId: Long) = isAuthenticated { implicit login => implicit request =>
+    val site: Site = DB.withConnection { implicit conn => Site(siteId) }
+
+    qaSiteForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in Qa.submitQaSiteJa " + formWithErrors)
+        DB.withConnection { implicit conn =>
+          BadRequest(views.html.qaSiteJa(site, formWithErrors))
+        }
+      },
+      info => {
+        if (info.command == "amend") {
+          Ok(views.html.qaSiteJa(site, qaSiteForm.fill(info)))
+        }
+        else if (info.command == "submit") {
+          Ok(views.html.qaSiteJaCompleted(site, info))
+        }
+        else {
+          Ok(views.html.qaSiteJaConfirm(site, info))
+        }
+      }
+    )
+  }
 }

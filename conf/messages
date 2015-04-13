@@ -413,3 +413,6 @@ prizeCompleted=Prize submission completed
 mail.prize.subject=Prize submitted
 prizeComment=Comment
 showInstantCoupon=Show Coupon
+qaSiteNameTitle=QA Site
+qaConfirmTitle=QA Site Confirmation
+qaCompletedTitle=QA submitted

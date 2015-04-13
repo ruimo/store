@@ -1,0 +1,71 @@
+@(
+  site: Site,
+  info: CreateQaSite
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@main(Messages("qaConfirmTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("qaConfirmTitle")</h1>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <div class="qaSiteName">
+    <span class="qaSiteNameTitle">@Messages("qaSiteNameTitle")</span>
+    <span class="qaSiteNameBody">@site.name</span>
+  </div>
+
+  @form(action = CSRF(routes.Qa.submitQaSiteJa(site.id.get)), 'id -> "finalizeQaSiteForm") {
+    <table>
+      <tr class="companyName">
+        <td class="header">@Messages("companyName")</td>
+        <td class="body">
+          <span class="value">@info.companyName</span>
+          <input type="hidden" name="companyName" value="@info.companyName">
+        </td>
+      </tr>
+      <tr>
+        <td class="header">@Messages("courtesyName")</td>
+        <td class="body">
+          <span class="value">@info.name</span>
+          <input type="hidden" name="name" value="@info.name">
+        </td>
+      </tr>
+      <tr>
+        <td class="header">@Messages("courtesyTelNo")</td>
+        <td class="body">
+          <span class="value">@info.tel</span>
+          <input type="hidden" name="tel" value="@info.tel">
+        </td>
+      </tr>
+      <tr>
+        <td class="header">@Messages("email")</td>
+        <td class="body">
+          <span class="value">@info.email</span>
+          <input type="hidden" name="email" value="@info.email">
+        </td>
+      </tr>
+      <tr>
+        <td class="header">@Messages("inquiryBody")</td>
+        <td class="body">
+          <span class="value">@info.inquiryBody</span>
+          <input type="hidden" name="inquiryBody" value="@info.inquiryBody">
+        </td>
+      </tr>
+    </table>
+
+    <button type="submit" name="command" value="amend">@Messages("amend")</button>
+    <button type="submit" name="command" value="submit">@Messages("register")</button>
+  }
+}
