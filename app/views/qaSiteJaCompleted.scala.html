@@ -1,6 +1,7 @@
 @(
   site: Site,
-  info: CreateQaSite
+  info: CreateQaSite,
+  backLink: String
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -33,25 +34,25 @@
         <span class="value">@info.companyName</span>
       </td>
     </tr>
-    <tr>
+    <tr class="name">
       <td class="header">@Messages("courtesyName")</td>
       <td class="body">
         <span class="value">@info.name</span>
       </td>
     </tr>
-    <tr>
+    <tr class="tel">
       <td class="header">@Messages("courtesyTelNo")</td>
       <td class="body">
         <span class="value">@info.tel</span>
       </td>
     </tr>
-    <tr>
+    <tr class="email">
       <td class="header">@Messages("email")</td>
       <td class="body">
         <span class="value">@info.email</span>
       </td>
     </tr>
-    <tr>
+    <tr class="inquiryBody">
       <td class="header">@Messages("inquiryBody")</td>
       <td class="body">
         <span class="value">@info.inquiryBody</span>
@@ -59,5 +60,5 @@
     </tr>
   </table>
 
-  <a class="backLink" href="@routes.Application.index()">@Messages("back")</a>
+  <a class="backLink" href="@backLink">@Messages("back")</a>
 }

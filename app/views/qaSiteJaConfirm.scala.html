@@ -1,6 +1,7 @@
 @(
   site: Site,
-  info: CreateQaSite
+  info: CreateQaSite,
+  backLink: String
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -26,7 +27,7 @@
     <span class="qaSiteNameBody">@site.name</span>
   </div>
 
-  @form(action = CSRF(routes.Qa.submitQaSiteJa(site.id.get)), 'id -> "finalizeQaSiteForm") {
+  @form(action = CSRF(routes.Qa.submitQaSiteJa(site.id.get, backLink)), 'id -> "finalizeQaSiteForm") {
     <table>
       <tr class="companyName">
         <td class="header">@Messages("companyName")</td>
@@ -35,28 +36,28 @@
           <input type="hidden" name="companyName" value="@info.companyName">
         </td>
       </tr>
-      <tr>
+      <tr class="name">
         <td class="header">@Messages("courtesyName")</td>
         <td class="body">
           <span class="value">@info.name</span>
           <input type="hidden" name="name" value="@info.name">
         </td>
       </tr>
-      <tr>
+      <tr class="tel">
         <td class="header">@Messages("courtesyTelNo")</td>
         <td class="body">
           <span class="value">@info.tel</span>
           <input type="hidden" name="tel" value="@info.tel">
         </td>
       </tr>
-      <tr>
+      <tr class="email">
         <td class="header">@Messages("email")</td>
         <td class="body">
           <span class="value">@info.email</span>
           <input type="hidden" name="email" value="@info.email">
         </td>
       </tr>
-      <tr>
+      <tr class="inquiryBody">
         <td class="header">@Messages("inquiryBody")</td>
         <td class="body">
           <span class="value">@info.inquiryBody</span>

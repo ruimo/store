@@ -80,7 +80,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
     )
   }}}
 
-  def qaSiteStart(siteId: Long) = isAuthenticated { implicit login => implicit request =>
+  def qaSiteStart(siteId: Long, backLink: String) = isAuthenticated { implicit login => implicit request =>
     val user = login.storeUser
 
     DB.withConnection { implicit conn => {
@@ -102,35 +102,35 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
 
       lang.toLocale match {
         case Locale.JAPANESE =>
-          Ok(views.html.qaSiteJa(site, form))
+          Ok(views.html.qaSiteJa(site, form, sanitize(backLink)))
         case Locale.JAPAN =>
-          Ok(views.html.qaSiteJa(site, form))
+          Ok(views.html.qaSiteJa(site, form, sanitize(backLink)))
         
         case _ =>
-          Ok(views.html.qaSiteJa(site, form))
+          Ok(views.html.qaSiteJa(site, form, sanitize(backLink)))
       }
     }}
   }
 
-  def submitQaSiteJa(siteId: Long) = isAuthenticated { implicit login => implicit request =>
+  def submitQaSiteJa(siteId: Long, backLink: String) = isAuthenticated { implicit login => implicit request =>
     val site: Site = DB.withConnection { implicit conn => Site(siteId) }
 
     qaSiteForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in Qa.submitQaSiteJa " + formWithErrors)
         DB.withConnection { implicit conn =>
-          BadRequest(views.html.qaSiteJa(site, formWithErrors))
+          BadRequest(views.html.qaSiteJa(site, formWithErrors, sanitize(backLink)))
         }
       },
       info => {
         if (info.command == "amend") {
-          Ok(views.html.qaSiteJa(site, qaSiteForm.fill(info)))
+          Ok(views.html.qaSiteJa(site, qaSiteForm.fill(info), sanitize(backLink)))
         }
         else if (info.command == "submit") {
-          Ok(views.html.qaSiteJaCompleted(site, info))
+          Ok(views.html.qaSiteJaCompleted(site, info, sanitize(backLink)))
         }
         else {
-          Ok(views.html.qaSiteJaConfirm(site, info))
+          Ok(views.html.qaSiteJaConfirm(site, info, sanitize(backLink)))
         }
       }
     )

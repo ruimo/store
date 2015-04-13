@@ -1,6 +1,7 @@
 @(
   site: Site,
-  myForm: Form[CreateQaSite]
+  myForm: Form[CreateQaSite],
+  backLink: String
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -32,7 +33,7 @@
     <span class="qaSiteNameBody">@site.name</span>
   </div>
 
-  @form(action = CSRF(routes.Qa.submitQaSiteJa(site.id.get)), 'id -> "enterQaSiteForm") {
+  @form(action = CSRF(routes.Qa.submitQaSiteJa(site.id.get, backLink)), 'id -> "enterQaSiteForm") {
     @inputText(
       myForm("companyName"),
       '_label -> Messages("companyName"), 'size -> 24, 'maxlength -> 64
@@ -59,7 +60,7 @@
     )
 
     <input type="hidden" name="command" value="entry">
-    <button class="backButton" type="button" onClick="history.back()">@Messages("back")</button>
+    <a class="backLink" href="@backLink">@Messages("back")</a>
     <input type="submit" value="@Messages("register")" id="submitQaSite">
   }
 }
