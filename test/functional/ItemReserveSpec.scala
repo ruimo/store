@@ -57,7 +57,9 @@ class ItemReserveSpec extends Specification {
         
         browser.goTo(
           "http://localhost:3333"
-          + controllers.routes.ItemQuery.query(q = List(), templateNo = 0).url.addParm("lang", lang.code)
+          + controllers.routes.ItemQuery.query(
+            q = List(), orderBySpec = "item_name.item_name", templateNo = 0
+          ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("item.list")
