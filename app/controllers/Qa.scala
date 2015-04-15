@@ -10,7 +10,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models.{QaEntry, UserAddress, Address, CreateQaSite, Site}
-import helpers.QaMail
+import helpers.{QaMail, QaSiteMail}
 import constraints.FormConstraints._
 
 object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
@@ -113,26 +113,27 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
   }
 
   def submitQaSiteJa(siteId: Long, backLink: String) = isAuthenticated { implicit login => implicit request =>
-    val site: Site = DB.withConnection { implicit conn => Site(siteId) }
+    DB.withConnection { implicit conn =>
+      val site: Site = Site(siteId)
 
-    qaSiteForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in Qa.submitQaSiteJa " + formWithErrors)
-        DB.withConnection { implicit conn =>
+      qaSiteForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in Qa.submitQaSiteJa " + formWithErrors)
           BadRequest(views.html.qaSiteJa(site, formWithErrors, sanitize(backLink)))
+        },
+        info => {
+          if (info.command == "amend") {
+            Ok(views.html.qaSiteJa(site, qaSiteForm.fill(info), sanitize(backLink)))
+          }
+          else if (info.command == "submit") {
+            QaSiteMail.send(info, login.storeUser, site)
+            Ok(views.html.qaSiteJaCompleted(site, info, sanitize(backLink)))
+          }
+          else {
+            Ok(views.html.qaSiteJaConfirm(site, info, sanitize(backLink)))
+          }
         }
-      },
-      info => {
-        if (info.command == "amend") {
-          Ok(views.html.qaSiteJa(site, qaSiteForm.fill(info), sanitize(backLink)))
-        }
-        else if (info.command == "submit") {
-          Ok(views.html.qaSiteJaCompleted(site, info, sanitize(backLink)))
-        }
-        else {
-          Ok(views.html.qaSiteJaConfirm(site, info, sanitize(backLink)))
-        }
-      }
-    )
+      )
+    }
   }
 }

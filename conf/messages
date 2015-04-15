@@ -416,3 +416,4 @@ showInstantCoupon=Show Coupon
 qaSiteNameTitle=QA Site
 qaConfirmTitle=QA Site Confirmation
 qaCompletedTitle=QA submitted
+mail.qa.site.subject=User Q&A
