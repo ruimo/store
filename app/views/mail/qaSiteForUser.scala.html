@@ -1,0 +1,14 @@
+@(
+  qa: CreateQaSite,
+  site: Site
+)(
+  implicit lang: Lang
+)
+
+以下のご質問を受け付けました。
+
+@qa.companyName
+@qa.name 様
+TEL: @qa.tel
+e-mail: @qa.email
+@qa.inquiryBody
