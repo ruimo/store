@@ -28,10 +28,23 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
   def Config = App.configuration
   def EmployeeCsvRegistration: Boolean = Config.getBoolean("employee.csv.registration").getOrElse(false)
+  def SiteOwnerCanEditEmployee: Boolean = Config.getBoolean("siteOwnerCanEditEmployee").getOrElse(false)
 
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
   lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
   lazy val siteOwnerCanUploadUserCsv = config.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
+
+  def createEmployeeForm(implicit lang: Lang) = Form(
+    mapping(
+      "userName" -> text.verifying(userNameConstraint: _*),
+      "password" -> tuple(
+        "main" -> text.verifying(passwordConstraint: _*),
+        "confirm" -> text
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      )
+    )(CreateEmployee.apply)(CreateEmployee.unapply)
+  )
 
   def modifyUserForm(implicit lang: Lang) = Form(
     mapping(
@@ -42,7 +55,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> email.verifying(emailConstraint: _*),
       "password" -> tuple(
-        "main" -> text.verifying(userNameConstraint: _*),
+        "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
       ).verifying(
         Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
@@ -61,7 +74,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> email.verifying(emailConstraint: _*),
       "password" -> tuple(
-        "main" -> text.verifying(userNameConstraint: _*),
+        "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
       ).verifying(
         Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
@@ -91,6 +104,14 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def startCreateNewNormalUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Ok(views.html.admin.createNewNormalUser(Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm)))
+  }}
+
+  def startCreateNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
+    Ok(views.html.admin.createNewEmployeeUser(createEmployeeForm))
+  }}
+
+  def createNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
+    Ok("")
   }}
 
   def createNewSuperUser = isAuthenticated { implicit login => forSuperUser { implicit request =>

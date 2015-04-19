@@ -221,5 +221,8 @@ GET     /showInstantCoupon               controllers.CouponHistory.showInstantCo
 GET     /qaSite                          controllers.Qa.qaSiteStart(siteId: Long, backLink: String)
 POST    /submitQaSiteJa                  controllers.Qa.submitQaSiteJa(siteId: Long, backLink: String)
 
+GET     /createNewEmployeeStart          controllers.UserMaintenance.startCreateNewEmployeeUser()
+POST    /createNewEmployee               controllers.UserMaintenance.createNewEmployeeUser()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

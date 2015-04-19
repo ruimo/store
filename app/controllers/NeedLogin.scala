@@ -203,6 +203,14 @@ trait NeedLogin extends Controller with HasLogger {
     else Redirect(routes.Application.index)
   }
 
+  def forSiteOwner(
+    f: Request[AnyContent] => Result
+  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
+println("login = " + login)
+    if (login.isSiteOwner) f(request)
+    else Redirect(routes.Application.index)
+  }
+
   def forSuperUser(
     f: Request[AnyContent] => Result
   )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
