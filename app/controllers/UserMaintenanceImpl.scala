@@ -108,7 +108,10 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def startCreateNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
     if (SiteOwnerCanEditEmployee) {
-      Ok(views.html.admin.createNewEmployeeUser(createEmployeeForm))
+      val siteId = login.siteUser.map(_.siteId).get
+      DB.withConnection { implicit conn =>
+        Ok(views.html.admin.createNewEmployeeUser(Site(siteId), createEmployeeForm))
+      }
     }
     else {
       Redirect(routes.Application.index)

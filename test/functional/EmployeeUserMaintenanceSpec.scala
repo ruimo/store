@@ -40,7 +40,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
   "Employee user" should {
     "Employee editing is disabled." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = createNormalUser()
         val site = Site.createNew(Ja, "店舗1")
@@ -74,14 +74,14 @@ class EmployeeUserMaintenanceSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        
         browser.title() === Messages("createEmployeeTitle")
+Thread.sleep(20000)
       }}
     }
-        // Since employee maintenance is disabled, redirected to top
+    // Since employee maintenance is disabled, redirected to top
     "Login with super user. Since super user cannot edit employee, page is redirected to top." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
 

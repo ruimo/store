@@ -1,4 +1,5 @@
 @(
+  site: Site,
   myForm: Form[CreateEmployee]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
@@ -25,6 +26,16 @@
       @message
     </div>
   }
+
+  <div class="siteId">
+    <span class="header">@Messages("companyId")</span>:
+    <span class="body">@site.id.get</span>
+  </div>
+
+  <div class="siteName">
+    <span class="header">@Messages("site")</span>:
+    <span class="body">@site.name</span>
+  </div>
 
   @helper.form(action = CSRF(routes.UserMaintenance.createNewEmployeeUser()), 'id -> "createNewEmployeeForm") {
     @inputText(
