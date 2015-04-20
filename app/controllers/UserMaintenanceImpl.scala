@@ -107,7 +107,12 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   }}
 
   def startCreateNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
-    Ok(views.html.admin.createNewEmployeeUser(createEmployeeForm))
+    if (SiteOwnerCanEditEmployee) {
+      Ok(views.html.admin.createNewEmployeeUser(createEmployeeForm))
+    }
+    else {
+      Redirect(routes.Application.index)
+    }
   }}
 
   def createNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>

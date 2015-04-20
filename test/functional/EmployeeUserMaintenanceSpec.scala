@@ -16,21 +16,36 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import org.openqa.selenium.By
-import models.{StoreUser, OrderNotification, Site, SiteUser, LocaleInfo}
+import models.{StoreUser, OrderNotification, Site, SiteUser, LocaleInfo, UserRole}
 import LocaleInfo._
 
 class EmployeeUserMaintenanceSpec extends Specification {
   val disableEmployeeMaintenance = Map("siteOwnerCanEditEmployee" -> false)
-  val enableEmployeeMaintenance = Map("siteOwnerCanEditEmployee" -> false)
+  val enableEmployeeMaintenance = Map("siteOwnerCanEditEmployee" -> true)
+
+  def createNormalUser(): StoreUser = DB.withConnection { implicit conn =>
+    StoreUser.create(
+      "administrator", "Admin", None, "Manager", "admin@abc.com",
+      4151208325021896473L, -1106301469931443100L, UserRole.NORMAL, Some("Company1")
+    )
+  }
+
+  def login(browser: TestBrowser) {
+    browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url)
+    browser.fill("#userName").`with`("administrator")
+    browser.fill("#password").`with`("password")
+    browser.click("#doLoginButton")
+  }
 
   "Employee user" should {
-    "Start page should be shown." in {
+    "Employee editing is disabled." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
-        val user = loginWithTestUser(browser)
+        val user = createNormalUser()
         val site = Site.createNew(Ja, "店舗1")
         val siteUser = SiteUser.createNew(user.id.get, site.id.get)
+        login(browser)
 
         browser.goTo(
           "http://localhost:3333" + 
@@ -38,10 +53,32 @@ class EmployeeUserMaintenanceSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        1 === 1
+        
+        // Since employee maintenance is disabled, redirected to top.
+        browser.title() === Messages("company.name")
       }}
     }
 
+    "Employee editing is enabled." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ enableEmployeeMaintenance)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = createNormalUser()
+        val site = Site.createNew(Ja, "店舗1")
+        val siteUser = SiteUser.createNew(user.id.get, site.id.get)
+        login(browser)
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
+          "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        
+        browser.title() === Messages("createEmployeeTitle")
+      }}
+    }
+        // Since employee maintenance is disabled, redirected to top
     "Login with super user. Since super user cannot edit employee, page is redirected to top." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
