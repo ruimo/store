@@ -201,38 +201,65 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def editUser(
     page: Int, pageSize: Int, orderBySpec: String
-  ) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
+      if (login.isSuperUser) {
+        Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
+      }
+      else { // Store owner
+        val siteId = login.siteUser.map(_.siteId).get
+        Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec), employeeSiteId = Some(siteId))))
+      }
     }
   }}
 
-  def modifyUserStart(userId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+  def modifyUserStart(userId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      Ok(views.html.admin.modifyUser(modifyUserForm.fill(ModifyUser(StoreUser.withSite(userId)))))
+      if (login.isSuperUser) {
+        Ok(views.html.admin.modifyUser(modifyUserForm.fill(ModifyUser(StoreUser.withSite(userId)))))
+      }
+      else { // Store owner
+        val siteId = login.siteUser.map(_.siteId).get
+        if (StoreUser(userId).isEmployeeOf(siteId)) {
+          Ok(views.html.admin.modifyUser(modifyUserForm.fill(ModifyUser(StoreUser.withSite(userId)))))
+        }
+        else {
+          Redirect(routes.Application.index)
+        }
+      }
     }
   }}
 
-  def modifyUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
+  def modifyUser = isAuthenticated { implicit login => forAdmin { implicit request =>
     modifyUserForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in UserMaintenance.modifyUser.")
         BadRequest(views.html.admin.modifyUser(formWithErrors))
       },
       newUser => DB.withConnection { implicit conn =>
-        newUser.update
-        Redirect(
-          routes.UserMaintenance.editUser()
-        ).flashing("message" -> Messages("userIsUpdated"))
+        if (login.isSuperUser || StoreUser(newUser.userId).isEmployeeOf(login.siteUser.map(_.siteId).get)) {
+          newUser.update
+          Redirect(
+            routes.UserMaintenance.editUser()
+          ).flashing("message" -> Messages("userIsUpdated"))
+        }
+        else {
+          Redirect(routes.Application.index)
+        }
       }
     )
   }}
 
-  def deleteUser(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
+  def deleteUser(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      StoreUser.delete(id)
+      if (login.isSuperUser || StoreUser(id).isEmployeeOf(login.siteUser.map(_.siteId).get)) {
+        StoreUser.delete(id)
+        Redirect(routes.UserMaintenance.editUser())
+      }
+      else {
+        Redirect(routes.Application.index)
+      }
     }
-    Redirect(routes.UserMaintenance.editUser())
   }}
 
   def startAddUsersByCsv = isAuthenticated { implicit login => forAdmin { implicit request =>

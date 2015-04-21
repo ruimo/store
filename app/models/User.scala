@@ -29,6 +29,7 @@ case class StoreUser(
     PasswordHash.generate(password, salt) == passwordHash
   lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
   lazy val fullName = firstName + middleName.map(n => " " + n).getOrElse("") + " " + lastName
+  def isEmployeeOf(siteId: Long) = userName.startsWith(siteId + "-")
 }
 
 case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long) extends NotNull
@@ -154,7 +155,8 @@ object StoreUser {
   }
 
   def listUsers(
-    page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("store_user.user_name")
+    page: Int = 0, pageSize: Int = 50, 
+    orderBy: OrderBy = OrderBy("store_user.user_name"), employeeSiteId: Option[Long] = None
   )(implicit conn: Connection): PagedRecords[ListUserEntry] = {
     val list = SQL(
       s"""
@@ -166,8 +168,9 @@ object StoreUser {
       left join site_user on store_user.store_user_id = site_user.store_user_id
       left join site on site_user.site_id = site.site_id
       left join order_notification on order_notification.store_user_id = store_user.store_user_id
-      where store_user.deleted = FALSE
-      order by $orderBy
+      where store_user.deleted = FALSE"""
+      + (employeeSiteId.map {siteId => " and user_name like '" + siteId + "-%'"}.getOrElse(""))
+      + s""" order by $orderBy
       limit {pageSize} offset {offset}
       """
     ).on(

@@ -78,6 +78,38 @@ class UserSpec extends Specification {
       }
     }
 
+    "Can list only employee" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          val user1 = StoreUser.create(
+            "1-userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.NORMAL, Some("companyName")
+          )
+
+          val user2 = StoreUser.create(
+            "2-userName2", "firstName2", None, "lastName2", "email2",
+            1L, 2L, UserRole.NORMAL, None
+          )
+
+          doWith(StoreUser.listUsers().records) { records =>
+            records.size === 2
+            records(0).user === user1
+            records(1).user === user2
+          }
+
+          doWith(StoreUser.listUsers(employeeSiteId = Some(1)).records) { records =>
+            records.size === 1
+            records(0).user === user1
+          }
+          
+          doWith(StoreUser.listUsers(employeeSiteId = Some(2)).records) { records =>
+            records.size === 1
+            records(0).user === user2
+          }
+        }
+      }
+    }
+
     "Notification email user" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withConnection { implicit conn =>
