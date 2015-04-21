@@ -451,3 +451,4 @@ qaCompletedTitle=以下のお問い合わせを送信しました
 mail.qa.site.subject=ユーザーからのお問い合わせ
 createEmployeeTitle=従業員の作成
 companyId=会社ID
+employeeUserName=従業員ユーザ名(店舗idは指定しないでくださいxx-yyyyyyyyのyyyyyyyyのみを入力)

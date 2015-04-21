@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import constraints.FormConstraints._
 import java.nio.file.Path
 import scala.util.{Try, Failure, Success}
@@ -119,13 +120,42 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   }}
 
   def createNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
-    Ok("")
+    createEmployeeForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in UserMaintenance.createNewEmployeeUser." + formWithErrors)
+        val siteId = login.siteUser.map(_.siteId).get
+        DB.withConnection { implicit conn =>
+          BadRequest(views.html.admin.createNewEmployeeUser(Site(siteId), formWithErrors))
+        }
+      },
+      newUser => {
+        val siteId = login.siteUser.map(_.siteId).get
+        val salt = tokenGenerator.next
+        DB.withConnection { implicit conn =>
+          StoreUser.create(
+            userName = siteId + "-" + newUser.userName,
+            firstName = "",
+            middleName = None,
+            lastName = "",
+            email = "",
+            passwordHash = PasswordHash.generate(newUser.passwords._1, salt),
+            salt = salt,
+            userRole = UserRole.NORMAL,
+            companyName = Some(Site(siteId).name)
+          )
+        }
+
+        Redirect(
+          routes.UserMaintenance.startCreateNewEmployeeUser()
+        ).flashing("message" -> Messages("userIsCreated"))
+      }
+    )
   }}
 
   def createNewSuperUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Admin.createUserForm(FirstSetup.fromForm, FirstSetup.toForm).bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewSuperUser.")
+        logger.error("Validation error in UserMaintenance.createNewSuperUser." + formWithErrors)
         BadRequest(views.html.admin.createNewSuperUser(formWithErrors))
       },
       newUser => DB.withConnection { implicit conn =>

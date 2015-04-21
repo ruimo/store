@@ -419,3 +419,4 @@ qaCompletedTitle=QA submitted
 mail.qa.site.subject=User Q&A
 createEmployeeTitle=Create employee record
 companyId=Company ID
+employeeUserName=Employee user name(Do not enter site id)

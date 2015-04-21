@@ -1,5 +1,7 @@
 package functional
 
+import helpers.PasswordHash
+import constraints.FormConstraints
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
@@ -18,6 +20,7 @@ import java.sql.Date.{valueOf => date}
 import org.openqa.selenium.By
 import models.{StoreUser, OrderNotification, Site, SiteUser, LocaleInfo, UserRole}
 import LocaleInfo._
+import com.ruimo.scoins.Scoping._
 
 class EmployeeUserMaintenanceSpec extends Specification {
   val disableEmployeeMaintenance = Map("siteOwnerCanEditEmployee" -> false)
@@ -61,7 +64,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
 
     "Employee editing is enabled." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ enableEmployeeMaintenance)
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = createNormalUser()
         val site = Site.createNew(Ja, "店舗1")
@@ -75,7 +78,38 @@ class EmployeeUserMaintenanceSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title() === Messages("createEmployeeTitle")
-Thread.sleep(20000)
+
+        // Check validation error.
+        browser.find("#registerEmployee").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find("#userName_field .error").getText === 
+          Messages("error.minLength", FormConstraints.userNameMinLength)
+        browser.find("#password_main_field .error").getText === 
+          Messages("error.minLength", FormConstraints.passwordMinLength)
+
+        // Confirm password does not match.
+        browser.fill("#userName").`with`("12345678")
+        browser.fill("#password_main").`with`("abcdefg")
+        browser.fill("#password_confirm").`with`("abcdefg1")
+        browser.find("#registerEmployee").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#password_confirm_field .error").getText === Messages("confirmPasswordDoesNotMatch")
+
+        browser.fill("#userName").`with`("12345678")
+        browser.fill("#password_main").`with`("abcdefg")
+        browser.fill("#password_confirm").`with`("abcdefg")
+        browser.find("#registerEmployee").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("createEmployeeTitle")
+        browser.find(".message").getText === Messages("userIsCreated")
+
+        doWith(StoreUser.findByUserName(site.id.get + "-12345678").get) { user =>
+          user.firstName === ""
+          user.passwordHash === PasswordHash.generate("abcdefg", user.salt)
+          user.companyName === Some(site.name)
+        }
       }}
     }
     // Since employee maintenance is disabled, redirected to top
@@ -92,6 +126,8 @@ Thread.sleep(20000)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title() === Messages("company.name")
+
+        
       }}
     }
   }

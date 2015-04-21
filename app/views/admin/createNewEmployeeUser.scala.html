@@ -40,7 +40,7 @@
   @helper.form(action = CSRF(routes.UserMaintenance.createNewEmployeeUser()), 'id -> "createNewEmployeeForm") {
     @inputText(
       myForm("userName"),
-      '_label -> Messages("userName"), 'size -> 24, 'maxlength -> 24
+      '_label -> Messages("employeeUserName"), 'size -> 24, 'maxlength -> 24
     )
 
     @inputPassword(
@@ -53,5 +53,7 @@
       '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
       '_error -> myForm.error("password")
     )
+
+    <input type="submit" id="registerEmployee" value=@Messages("register")>
   }
 }
