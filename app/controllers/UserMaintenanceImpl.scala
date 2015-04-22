@@ -170,7 +170,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def createNewSiteOwner = isAuthenticated { implicit login => forSuperUser { implicit request =>
     newSiteOwnerForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewSiteOwner.")
+        logger.error("Validation error in UserMaintenance.createNewSiteOwner." + formWithErrors)
         DB.withConnection { implicit conn =>
           BadRequest(views.html.admin.createNewSiteOwner(formWithErrors, Site.tableForDropDown))
         }
@@ -187,7 +187,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def createNewNormalUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
     Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm).bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewNormalUser.")
+        logger.error("Validation error in UserMaintenance.createNewNormalUser." + formWithErrors)
         BadRequest(views.html.admin.createNewNormalUser(formWithErrors))
       },
       newUser => DB.withConnection { implicit conn =>
@@ -215,13 +215,14 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def modifyUserStart(userId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
+      val user: ListUserEntry = StoreUser.withSite(userId)
       if (login.isSuperUser) {
-        Ok(views.html.admin.modifyUser(modifyUserForm.fill(ModifyUser(StoreUser.withSite(userId)))))
+        Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
       }
       else { // Store owner
         val siteId = login.siteUser.map(_.siteId).get
         if (StoreUser(userId).isEmployeeOf(siteId)) {
-          Ok(views.html.admin.modifyUser(modifyUserForm.fill(ModifyUser(StoreUser.withSite(userId)))))
+          Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
         }
         else {
           Redirect(routes.Application.index)
@@ -230,11 +231,14 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
     }
   }}
 
-  def modifyUser = isAuthenticated { implicit login => forAdmin { implicit request =>
+  def modifyUser(userId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     modifyUserForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in UserMaintenance.modifyUser.")
-        BadRequest(views.html.admin.modifyUser(formWithErrors))
+        logger.error("Validation error in UserMaintenance.modifyUser." + formWithErrors)
+        DB.withConnection { implicit conn =>
+          val user: ListUserEntry = StoreUser.withSite(userId)
+          BadRequest(views.html.admin.modifyUser(user, formWithErrors))
+        }
       },
       newUser => DB.withConnection { implicit conn =>
         if (login.isSuperUser || StoreUser(newUser.userId).isEmployeeOf(login.siteUser.map(_.siteId).get)) {

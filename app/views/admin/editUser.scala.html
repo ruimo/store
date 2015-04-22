@@ -1,5 +1,6 @@
 @(users: PagedRecords[ListUserEntry])(
   implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
   lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
@@ -12,6 +13,12 @@
 @main(Messages("editUserTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
 <h1 class="title">@Messages("editUserTitle")</h1>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
 
 <table class="userTable">
   <tr class="userTableHeader">

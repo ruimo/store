@@ -89,7 +89,7 @@ POST    /admin/createNewSuperUser        controllers.UserMaintenance.createNewSu
 GET     /admin/editUser                  controllers.UserMaintenance.editUser(page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "store_user.user_name")
 POST    /admin/deleteUser                controllers.UserMaintenance.deleteUser(id: Long)
 GET     /admin/modifyUserStart           controllers.UserMaintenance.modifyUserStart(id: Long)
-POST    /admin/modifyUser                controllers.UserMaintenance.modifyUser
+POST    /admin/modifyUser                controllers.UserMaintenance.modifyUser(id: Long)
 GET     /admin/startCreateNewSiteOwner   controllers.UserMaintenance.startCreateNewSiteOwner
 POST    /admin/createNewSiteOwner        controllers.UserMaintenance.createNewSiteOwner
 GET     /admin/startCreateNewNormalUser  controllers.UserMaintenance.startCreateNewNormalUser
