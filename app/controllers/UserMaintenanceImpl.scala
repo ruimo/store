@@ -1,5 +1,6 @@
 package controllers
 
+import java.sql.Connection
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import constraints.FormConstraints._
 import java.nio.file.Path
@@ -129,25 +130,30 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
         }
       },
       newUser => {
-        val siteId = login.siteUser.map(_.siteId).get
-        val salt = tokenGenerator.next
-        DB.withConnection { implicit conn =>
-          StoreUser.create(
-            userName = siteId + "-" + newUser.userName,
-            firstName = "",
-            middleName = None,
-            lastName = "",
-            email = "",
-            passwordHash = PasswordHash.generate(newUser.passwords._1, salt),
-            salt = salt,
-            userRole = UserRole.NORMAL,
-            companyName = Some(Site(siteId).name)
-          )
-        }
+        if (SiteOwnerCanEditEmployee) {
+          val siteId = login.siteUser.map(_.siteId).get
+          val salt = tokenGenerator.next
+          DB.withConnection { implicit conn =>
+            StoreUser.create(
+              userName = siteId + "-" + newUser.userName,
+              firstName = "",
+              middleName = None,
+              lastName = "",
+              email = "",
+              passwordHash = PasswordHash.generate(newUser.passwords._1, salt),
+              salt = salt,
+              userRole = UserRole.NORMAL,
+              companyName = Some(Site(siteId).name)
+            )
+          }
 
-        Redirect(
-          routes.UserMaintenance.startCreateNewEmployeeUser()
-        ).flashing("message" -> Messages("userIsCreated"))
+          Redirect(
+            routes.UserMaintenance.startCreateNewEmployeeUser()
+          ).flashing("message" -> Messages("userIsCreated"))
+        }
+        else {
+          Redirect(routes.Application.index)
+        }
       }
     )
   }}
@@ -207,8 +213,13 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
         Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
       }
       else { // Store owner
-        val siteId = login.siteUser.map(_.siteId).get
-        Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec), employeeSiteId = Some(siteId))))
+        if (SiteOwnerCanEditEmployee) {
+          val siteId = login.siteUser.map(_.siteId).get
+          Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec), employeeSiteId = Some(siteId))))
+        }
+        else {
+          Redirect(routes.Application.index)
+        }
       }
     }
   }}
@@ -220,8 +231,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
         Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
       }
       else { // Store owner
-        val siteId = login.siteUser.map(_.siteId).get
-        if (StoreUser(userId).isEmployeeOf(siteId)) {
+        if (canEditEmployee(userId, login.siteUser.map(_.siteId).get)) {
           Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
         }
         else {
@@ -241,7 +251,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
         }
       },
       newUser => DB.withConnection { implicit conn =>
-        if (login.isSuperUser || StoreUser(newUser.userId).isEmployeeOf(login.siteUser.map(_.siteId).get)) {
+        if (login.isSuperUser || canEditEmployee(newUser.userId, login.siteUser.map(_.siteId).get)) {
           newUser.update
           Redirect(
             routes.UserMaintenance.editUser()
@@ -256,7 +266,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def deleteUser(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
     DB.withConnection { implicit conn =>
-      if (login.isSuperUser || StoreUser(id).isEmployeeOf(login.siteUser.map(_.siteId).get)) {
+      if (login.isSuperUser || canEditEmployee(id, login.siteUser.map(_.siteId).get)) {
         StoreUser.delete(id)
         Redirect(routes.UserMaintenance.editUser())
       }
@@ -265,6 +275,9 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
       }
     }
   }}
+
+  def canEditEmployee(userId: Long, siteId: Long)(implicit conn: Connection): Boolean =
+    StoreUser(userId).isEmployeeOf(siteId) && SiteOwnerCanEditEmployee
 
   def startAddUsersByCsv = isAuthenticated { implicit login => forAdmin { implicit request =>
     if (siteOwnerCanUploadUserCsv || login.isSuperUser) {

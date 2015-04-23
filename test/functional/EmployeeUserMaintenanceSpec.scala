@@ -1,5 +1,7 @@
 package functional
 
+import helpers.UrlHelper
+import helpers.UrlHelper._
 import helpers.PasswordHash
 import constraints.FormConstraints
 import play.api.test._
@@ -42,97 +44,127 @@ class EmployeeUserMaintenanceSpec extends Specification {
   }
 
   "Employee user" should {
-    // "Employee editing is disabled." in {
-    //   val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
+    "Employee editing is disabled." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
 
-    //   SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
-    //     implicit val lang = Lang("ja")
-    //     val user = createNormalUser()
-    //     val site = Site.createNew(Ja, "店舗1")
-    //     val siteUser = SiteUser.createNew(user.id.get, site.id.get)
-    //     login(browser)
+      SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = createNormalUser()
+        val site = Site.createNew(Ja, "店舗1")
+        val siteUser = SiteUser.createNew(user.id.get, site.id.get)
+        login(browser)
 
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
-    //       "?lang=" + lang.code
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
+          "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         
-    //     // Since employee maintenance is disabled, redirected to top.
-    //     browser.title() === Messages("company.name")
-    //   }}
-    // }
+        // Since employee maintenance is disabled, redirected to top.
+        browser.title() === Messages("company.name")
+      }}
+    }
 
-    // "Employee editing is enabled." in {
-    //   val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ enableEmployeeMaintenance)
-    //   SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
-    //     implicit val lang = Lang("ja")
-    //     val user = createNormalUser()
-    //     val site = Site.createNew(Ja, "店舗1")
-    //     val siteUser = SiteUser.createNew(user.id.get, site.id.get)
-    //     login(browser)
+    "Employee editing is enabled." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ enableEmployeeMaintenance)
+      SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = createNormalUser()
+        val site = Site.createNew(Ja, "店舗1")
+        val siteUser = SiteUser.createNew(user.id.get, site.id.get)
+        login(browser)
 
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
-    //       "?lang=" + lang.code
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-    //     browser.title() === Messages("createEmployeeTitle")
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
+          "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title() === Messages("createEmployeeTitle")
 
-    //     // Check validation error.
-    //     browser.find("#registerEmployee").click()
-    //     browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-    //     browser.find("#userName_field .error").getText === 
-    //       Messages("error.minLength", FormConstraints.userNameMinLength)
-    //     browser.find("#password_main_field .error").getText === 
-    //       Messages("error.minLength", FormConstraints.passwordMinLength)
+        // Check validation error.
+        browser.find("#registerEmployee").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find("#userName_field .error").getText === 
+          Messages("error.minLength", FormConstraints.userNameMinLength)
+        browser.find("#password_main_field .error").getText === 
+          Messages("error.minLength", FormConstraints.passwordMinLength)
 
-    //     // Confirm password does not match.
-    //     browser.fill("#userName").`with`("12345678")
-    //     browser.fill("#password_main").`with`("abcdefg")
-    //     browser.fill("#password_confirm").`with`("abcdefg1")
-    //     browser.find("#registerEmployee").click()
-    //     browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        // Confirm password does not match.
+        browser.fill("#userName").`with`("12345678")
+        browser.fill("#password_main").`with`("abcdefg")
+        browser.fill("#password_confirm").`with`("abcdefg1")
+        browser.find("#registerEmployee").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-    //     browser.find("#password_confirm_field .error").getText === Messages("confirmPasswordDoesNotMatch")
+        browser.find("#password_confirm_field .error").getText === Messages("confirmPasswordDoesNotMatch")
 
-    //     browser.fill("#userName").`with`("12345678")
-    //     browser.fill("#password_main").`with`("abcdefg")
-    //     browser.fill("#password_confirm").`with`("abcdefg")
-    //     browser.find("#registerEmployee").click()
-    //     browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.fill("#userName").`with`("12345678")
+        browser.fill("#password_main").`with`("abcdefg")
+        browser.fill("#password_confirm").`with`("abcdefg")
+        browser.find("#registerEmployee").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-    //     browser.title() === Messages("createEmployeeTitle")
-    //     browser.find(".message").getText === Messages("userIsCreated")
+        browser.title() === Messages("createEmployeeTitle")
+        browser.find(".message").getText === Messages("userIsCreated")
 
-    //     doWith(StoreUser.findByUserName(site.id.get + "-12345678").get) { user =>
-    //       user.firstName === ""
-    //       user.passwordHash === PasswordHash.generate("abcdefg", user.salt)
-    //       user.companyName === Some(site.name)
-    //     }
-    //   }}
-    // }
-    // // Since employee maintenance is disabled, redirected to top
-    // "Login with super user. Since super user cannot edit employee, page is redirected to top." in {
-    //   val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
-    //   SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
-    //     implicit val lang = Lang("ja")
-    //     val user = loginWithTestUser(browser)
+        doWith(StoreUser.findByUserName(site.id.get + "-12345678").get) { user =>
+          user.firstName === ""
+          user.passwordHash === PasswordHash.generate("abcdefg", user.salt)
+          user.companyName === Some(site.name)
+        }
+      }}
+    }
+    // Since employee maintenance is disabled, redirected to top
+    "Login with super user. Since super user cannot edit employee, page is redirected to top." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
+      SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
 
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
-    //       "?lang=" + lang.code
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-    //     browser.title() === Messages("company.name")
-    //   }}
-    // }
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.startCreateNewEmployeeUser().url +
+          "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title() === Messages("company.name")
+      }}
+    }
+
+    // Since employee maintenance is disabled, redirected to top
+    "Login with super user. Since super user cannot edit employee, page is redirected to top." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
+      SeleniumHelpers.running(TestServer(3333, app), htmlUnit) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val site01 = Site.createNew(Ja, "店舗1")
+        val superUser = loginWithTestUser(browser)
+        val user01 = createNormalUser("user01")
+        val employee01 = createNormalUser(site01.id.get + "-employee")
+        val employee02 = createNormalUser((site01.id.get + 1) + "-employee")
+        val siteOwner = SiteUser.createNew(user01.id.get, site01.id.get)
+        logoff(browser)
+        login(browser, "user01")
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.editUser().url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title() === Messages("company.name")
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.modifyUserStart(employee01.id.get).url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title() === Messages("company.name")
+      }}
+    }
 
     "Edit employee will show only employees of the site of currently logined store owner." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableEmployeeMaintenance)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ enableEmployeeMaintenance)
       running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val site01 = Site.createNew(Ja, "店舗1")
@@ -146,8 +178,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
 
         browser.goTo(
           "http://localhost:3333" + 
-          controllers.routes.UserMaintenance.editUser().url +
-          "?lang=" + lang.code
+          controllers.routes.UserMaintenance.editUser().url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -201,6 +232,34 @@ class EmployeeUserMaintenanceSpec extends Specification {
 
         browser.title() === Messages("editUserTitle")
         browser.find(".message").getText === Messages("userIsUpdated")
+
+        doWith(StoreUser(employee01.id.get)) { newUser =>
+          newUser.userName === employee01.userName + "new"
+          newUser.firstName === "firstName2"
+          newUser.lastName === "lastName2"
+          newUser.companyName === Some("companyName2")
+          newUser.email === "xxx@xxx.xxx"
+          newUser.passwordHash === PasswordHash.generate("password2", newUser.salt)
+        }
+
+        browser.find("button[data-user-id='" + employee01.id.get + "']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-buttonset .ui-button", 1).click() // click No
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title() === Messages("editUserTitle")
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.editUser().url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find("button[data-user-id='" + employee01.id.get + "']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-buttonset .ui-button", 0).click() // click Yes
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title() === Messages("editUserTitle")
+
+        browser.find(".userTable .userTableBody").getTexts.size === 0
       }}
     }
   }

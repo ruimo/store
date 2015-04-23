@@ -452,3 +452,6 @@ mail.qa.site.subject=ユーザーからのお問い合わせ
 createEmployeeTitle=従業員の作成
 companyId=会社ID
 employeeUserName=従業員ユーザ名(店舗idは指定しないでくださいxx-yyyyyyyyのyyyyyyyyのみを入力)
+deleteConfirm=削除してよろしいですか
+yes=はい
+no=いいえ
