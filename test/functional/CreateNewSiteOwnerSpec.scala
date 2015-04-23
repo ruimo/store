@@ -77,11 +77,11 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.title === Messages("createSiteOwnerTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
-        browser.$("#userName_field dd.error").getText === Messages("error.minLength", 6)
+        browser.$("#userName_field dd.error").getText === Messages("error.minLength", FormConstraints.userNameMinLength)
         browser.$("#companyName_field dd.error").getText === Messages("error.required")
         browser.$("#firstName_field dd.error").getText === Messages("error.required")
         browser.$("#email_field dd.error").getText === Messages("error.email")
-        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", 6)
+        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", FormConstraints.passwordMinLength)
       }
     }
 
