@@ -12,6 +12,10 @@
   config.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
 }
 
+@siteOwnerCanEditEmployee = @{
+  config.getBoolean("siteOwnerCanEditEmployee").getOrElse(false)
+}
+
 @main(Messages("userMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
 } {
   <h1 class="title">@Messages("userMaintenanceTitle")</h1>
@@ -28,7 +32,9 @@
         @Messages("createNewSiteOwnerMenu")
       </a>
     </div>
+  }
 
+  @if(siteOwnerCanEditEmployee || loginSession.isSuperUser) {
     <div class="menuItem">
       <a href="@routes.UserMaintenance.startCreateNewNormalUser()">
         @Messages("createNewNormalUserMenu")
