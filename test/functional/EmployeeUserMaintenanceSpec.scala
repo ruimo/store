@@ -93,16 +93,16 @@ class EmployeeUserMaintenanceSpec extends Specification {
 
         // Confirm password does not match.
         browser.fill("#userName").`with`("12345678")
-        browser.fill("#password_main").`with`("abcdefg")
-        browser.fill("#password_confirm").`with`("abcdefg1")
+        browser.fill("#password_main").`with`("abcdefgh")
+        browser.fill("#password_confirm").`with`("abcdefgh1")
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find("#password_confirm_field .error").getText === Messages("confirmPasswordDoesNotMatch")
 
         browser.fill("#userName").`with`("12345678")
-        browser.fill("#password_main").`with`("abcdefg")
-        browser.fill("#password_confirm").`with`("abcdefg")
+        browser.fill("#password_main").`with`("abcdefgh")
+        browser.fill("#password_confirm").`with`("abcdefgh")
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -111,7 +111,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
 
         doWith(StoreUser.findByUserName(site.id.get + "-12345678").get) { user =>
           user.firstName === ""
-          user.passwordHash === PasswordHash.generate("abcdefg", user.salt)
+          user.passwordHash === PasswordHash.generate("abcdefgh", user.salt)
           user.companyName === Some(site.name)
         }
       }}
