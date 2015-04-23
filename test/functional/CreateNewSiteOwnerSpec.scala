@@ -1,5 +1,6 @@
 package functional
 
+import constraints.FormConstraints
 import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable._
