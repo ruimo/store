@@ -423,3 +423,4 @@ employeeUserName=Employee user name(Do not enter site id)
 deleteConfirm=Are you sure to delete?
 yes=Yes
 no=No
+createNewEmployeeUserMenu=Create Employee

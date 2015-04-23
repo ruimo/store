@@ -455,3 +455,4 @@ employeeUserName=従業員ユーザ名(店舗idは指定しないでください
 deleteConfirm=削除してよろしいですか
 yes=はい
 no=いいえ
+createNewEmployeeUserMenu=従業員の追加

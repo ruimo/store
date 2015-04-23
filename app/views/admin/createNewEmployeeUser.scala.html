@@ -56,4 +56,14 @@
 
     <input type="submit" id="registerEmployee" value=@Messages("register")>
   }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.UserMaintenance.index">
+      @Messages("backTo", Messages("userMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
 }
