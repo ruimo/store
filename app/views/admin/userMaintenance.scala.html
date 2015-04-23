@@ -32,15 +32,23 @@
         @Messages("createNewSiteOwnerMenu")
       </a>
     </div>
-  }
 
-  @if(siteOwnerCanEditEmployee || loginSession.isSuperUser) {
     <div class="menuItem">
       <a href="@routes.UserMaintenance.startCreateNewNormalUser()">
         @Messages("createNewNormalUserMenu")
       </a>
     </div>
+  }
 
+  @if(! loginSession.isSuperUser && siteOwnerCanEditEmployee) {
+    <div class="menuItem">
+      <a href="@routes.UserMaintenance.startCreateNewEmployeeUser()">
+        @Messages("createNewNormalUserMenu")
+      </a>
+    </div>
+  }
+
+  @if(siteOwnerCanEditEmployee || loginSession.isSuperUser) {
     <div class="menuItem">
       <a href="@routes.UserMaintenance.editUser()">
         @Messages("editUserMenu")
