@@ -20,7 +20,7 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import org.openqa.selenium.By
-import models.{StoreUser, OrderNotification, Site, SiteUser, LocaleInfo, UserRole}
+import models.{StoreUser, OrderNotification, Site, SiteUser, LocaleInfo, UserRole, Employee}
 import LocaleInfo._
 import com.ruimo.scoins.Scoping._
 import SeleniumHelpers.htmlUnit
@@ -109,10 +109,17 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.title() === Messages("createEmployeeTitle")
         browser.find(".message").getText === Messages("userIsCreated")
 
+        // store_user table should be updated.
         doWith(StoreUser.findByUserName(site.id.get + "-12345678").get) { user =>
           user.firstName === ""
           user.passwordHash === PasswordHash.generate("abcdefgh", user.salt)
           user.companyName === Some(site.name)
+
+          // employee table should be updated.
+          doWith(Employee.getBelonging(user.id.get).get) { emp =>
+            emp.userId === user.id.get
+            emp.siteId === site.id.get
+          }
         }
       }}
     }
@@ -165,7 +172,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
 
     "Edit employee will show only employees of the site of currently logined store owner." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ enableEmployeeMaintenance)
-      running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val site01 = Site.createNew(Ja, "店舗1")
         val superUser = loginWithTestUser(browser)

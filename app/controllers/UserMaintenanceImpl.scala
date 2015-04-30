@@ -134,7 +134,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           val siteId = login.siteUser.map(_.siteId).get
           val salt = tokenGenerator.next
           DB.withConnection { implicit conn =>
-            StoreUser.create(
+            val createdUser = StoreUser.create(
               userName = siteId + "-" + newUser.userName,
               firstName = "",
               middleName = None,
@@ -145,6 +145,8 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
               userRole = UserRole.NORMAL,
               companyName = Some(Site(siteId).name)
             )
+
+            Employee.createNew(siteId, createdUser.id.get)
           }
 
           Redirect(
