@@ -306,8 +306,6 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
       case Some(user) =>
         if (user.isBuyer) onUnauthorized(request)
         else {
-//          val siteId = request.body.dataParts("site").head.toLong
-
           request.body.file("attachment").map { csvFile =>
             val filename = csvFile.filename
             val contentType = csvFile.contentType
@@ -348,14 +346,12 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
     iteratorFromReader(newBufferedReader(path, Charset.forName("Windows-31j"))) {
       in: Iterator[Char] =>
         val z: Iterator[Try[CsvRecord]] = asHeaderedCsv(parseLines(in))
-        DB.withConnection { implicit conn => 
-          StoreUser.maintainByCsv(
-            z,
-            csvRecordFilter,
-            deleteSqlSupplemental,
-            EmployeeCsvRegistration
-          ) 
-        }
+        StoreUser.maintainByCsv(
+          z,
+          csvRecordFilter,
+          deleteSqlSupplemental,
+          EmployeeCsvRegistration
+        ) 
     } match {
       case Success(updatedColumnCount) =>
         Redirect(

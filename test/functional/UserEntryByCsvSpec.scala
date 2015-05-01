@@ -82,11 +82,11 @@ class UserEntryByCsvSpec extends Specification {
           csvFile, 
           Arrays.asList(
             "CompanyId,EmployeeNo,Password",
-            "1,ABC,password0",
+            site.id.get + ",ABC,password0",
             ",XYZ,password1"
           ),
           Charset.forName("Windows-31j")
-        );
+        )
         browser.goTo(
           "http://localhost:3333" + controllers.routes.UserMaintenance.startAddUsersByCsv().url + "?lang=" + lang.code
         )
@@ -106,7 +106,7 @@ class UserEntryByCsvSpec extends Specification {
           SqlParser.scalar[Long].single
         ) === 3
 
-        doWith(StoreUser.findByUserName("1-ABC").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-ABC").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""
@@ -115,6 +115,11 @@ class UserEntryByCsvSpec extends Specification {
           user.deleted === false
           user.userRole === UserRole.NORMAL
           user.companyName === None
+
+          doWith(Employee.getBelonging(user.id.get).get) { emp =>
+            emp.siteId === site.id.get
+            emp.userId === user.id.get
+          }
         }
 
         doWith(StoreUser.findByUserName("XYZ").get) { user =>
@@ -126,8 +131,103 @@ class UserEntryByCsvSpec extends Specification {
           user.deleted === false
           user.userRole === UserRole.NORMAL
           user.companyName === None
+
+          Employee.getBelonging(user.id.get) === None
         }
       }}      
+    }
+
+    "Existing users should be skipped." in {
+      val conf = inMemoryDatabase()
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Site01")
+        val csvFile: Path = Files.createTempFile(null, ".csv")
+        Files.write(
+          csvFile, 
+          Arrays.asList(
+            "CompanyId,EmployeeNo,Password",
+            site.id.get + ",111,password0",
+            site.id.get + ",222,password0"
+          ),
+          Charset.forName("Windows-31j")
+        )
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.UserMaintenance.startAddUsersByCsv().url + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.webDriver.findElement(By.id("usersCsv")).sendKeys(
+          csvFile.toAbsolutePath.toString
+        )
+        browser.click("#submitUserScsv")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("addUsersByCsv")
+        browser.find(".message").getText === Messages("usersAreUpdated", 2, 0)
+
+        SQL(
+          "select count(*) from store_user"
+        ).as(
+          SqlParser.scalar[Long].single
+        ) === 3
+        SQL(
+          "select count(*) from employee"
+        ).as(
+          SqlParser.scalar[Long].single
+        ) === 2
+
+        doWith(StoreUser.findByUserName(site.id.get + "-111").get) { user =>
+          Employee.getBelonging(user.id.get).get.siteId === site.id.get
+        }
+        doWith(StoreUser.findByUserName(site.id.get + "-222").get) { user =>
+          Employee.getBelonging(user.id.get).get.siteId === site.id.get
+        }
+
+        // 222 is deleted, 333 is added
+        Files.write(
+          csvFile, 
+          Arrays.asList(
+            "CompanyId,EmployeeNo,Password",
+            site.id.get + ",111,password0",
+            site.id.get + ",333,password0"
+          ),
+          Charset.forName("Windows-31j")
+        )
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.UserMaintenance.startAddUsersByCsv().url + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.webDriver.findElement(By.id("usersCsv")).sendKeys(
+          csvFile.toAbsolutePath.toString
+        )
+        browser.click("#submitUserScsv")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("addUsersByCsv")
+        browser.find(".message").getText === Messages("usersAreUpdated", 1, 1)
+        
+        SQL(
+          "select count(*) from store_user"
+        ).as(
+          SqlParser.scalar[Long].single
+        ) === 4
+        SQL(
+          "select count(*) from employee"
+        ).as(
+          SqlParser.scalar[Long].single
+        ) === 3
+
+        doWith(StoreUser.findByUserName(site.id.get + "-111").get) { user =>
+          Employee.getBelonging(user.id.get).get.siteId === site.id.get
+        }
+
+        StoreUser.findByUserName(site.id.get + "-222") === None
+
+        doWith(StoreUser.findByUserName(site.id.get + "-333").get) { user =>
+          Employee.getBelonging(user.id.get).get.siteId === site.id.get
+        }
+      }}
     }
 
     "Users not in csv should be removed" in {
@@ -151,7 +251,7 @@ class UserEntryByCsvSpec extends Specification {
             ",XYZ,password1"
           ),
           Charset.forName("Windows-31j")
-        );
+        )
         browser.goTo(
           "http://localhost:3333" + controllers.routes.UserMaintenance.startAddUsersByCsv().url + "?lang=" + lang.code
         )
@@ -192,6 +292,11 @@ class UserEntryByCsvSpec extends Specification {
           user.deleted === false
           user.userRole === UserRole.NORMAL
           user.companyName === None
+
+          doWith(Employee.getBelonging(user.id.get).get) { emp =>
+            emp.siteId === site.id.get
+            emp.userId === user.id.get
+          }
         }
 
         doWith(StoreUser.findByUserName("XYZ").get) { user =>
@@ -223,7 +328,7 @@ class UserEntryByCsvSpec extends Specification {
             ",XYZ,password1"
           ),
           Charset.forName("Windows-31j")
-        );
+        )
         browser.goTo(
           "http://localhost:3333" + controllers.routes.UserMaintenance.startAddUsersByCsv().url + "?lang=" + lang.code
         )
