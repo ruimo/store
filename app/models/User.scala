@@ -232,51 +232,58 @@ object StoreUser {
     employeeCsvRegistration: Boolean = false
   ): (Int, Int) = {
     DB.withConnection { implicit conn =>
-      SQL(
-        """
-        create temp table user_csv (
-          company_id bigint,
-          user_name varchar(64) not null unique,
-          salt bigint not null,
-          password_hash bigint not null
-        )
-        """
-      ).executeUpdate()
-    }
-
-    try {
-      DB.withConnection { implicit conn =>
-        insertCsvIntoTempTable(z, csvRecordFilter)
-      }
-
-      DB.withTransaction { implicit conn =>
-        val insCount = insertByCsv(employeeCsvRegistration)
-
-        val delCount = SQL(
+      try {
+        SQL(
           """
-          update store_user
-          set deleted = TRUE
-          where user_role = """ + UserRole.NORMAL.ordinal +
-          """
-          and deleted = FALSE
-          and user_name not in (
-            select user_name from user_csv
+          create temp table user_csv (
+            company_id bigint,
+            user_name varchar(64) not null unique,
+            salt bigint not null,
+            password_hash bigint not null
           )
-          """ + deleteSqlSupplemental.map { "and " + _ }.getOrElse("")
+           """
         ).executeUpdate()
 
-        (insCount, delCount)
+        insertCsvIntoTempTable(z, csvRecordFilter)
+
+        conn.setAutoCommit(false)
+        try {
+          val insCount = insertByCsv(employeeCsvRegistration)
+
+          val delCount = SQL(
+            """
+            update store_user
+            set deleted = TRUE
+            where user_role = """ + UserRole.NORMAL.ordinal +
+            """
+            and deleted = FALSE
+            and user_name not in (
+              select user_name from user_csv
+            )
+            """ + deleteSqlSupplemental.map { "and " + _ }.getOrElse("")
+          ).executeUpdate()
+          conn.commit()
+
+          (insCount, delCount)
+        }
+        catch {
+          case t: Throwable => {
+            conn.rollback()
+            throw t
+          }
+        }
+        finally {
+          conn.setAutoCommit(true)
+        }
       }
-    }
-    catch {
-      case e: SQLException => {
-        logSqlException(e)
-        throw e
+      catch {
+        case e: SQLException => {
+          logSqlException(e)
+          throw e
+        }
+        case t: Throwable => throw t
       }
-      case t: Throwable => throw t
-    }
-    finally {
-      DB.withConnection { implicit conn =>
+      finally {
         SQL("drop table user_csv").executeUpdate()
       }
     }
