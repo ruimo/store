@@ -48,7 +48,7 @@ class UserInfoUpdateSpec extends Specification {
         browser.find("#lastName_field .help-inline").getText === Messages("error.required")
         browser.find("#firstNameKana_field .help-inline").getText === Messages("error.required")
         browser.find("#lastNameKana_field .help-inline").getText === Messages("error.required")
-        browser.find("#email_field .help-inline").getText === Messages("error.email")
+        browser.find("#email_field .help-inline").getText === Messages("error.email") + ", " + Messages("error.required")
         browser.find("#zip_field .help-inline").getText === Messages("zipError")
         browser.find("#address1_field .help-inline").getText === Messages("error.required")
         browser.find("#address2_field .help-inline").getText === Messages("error.required")

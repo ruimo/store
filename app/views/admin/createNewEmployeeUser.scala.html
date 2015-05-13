@@ -1,0 +1,69 @@
+@(
+  site: Site,
+  myForm: Form[CreateEmployee]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("createEmployeeTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("createEmployeeTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <div class="siteId">
+    <span class="header">@Messages("companyId")</span>:
+    <span class="body">@site.id.get</span>
+  </div>
+
+  <div class="siteName">
+    <span class="header">@Messages("site")</span>:
+    <span class="body">@site.name</span>
+  </div>
+
+  @helper.form(action = CSRF(routes.UserMaintenance.createNewEmployeeUser()), 'id -> "createNewEmployeeForm") {
+    @inputText(
+      myForm("userName"),
+      '_label -> Messages("employeeUserName"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @inputPassword(
+      myForm("password.main"),
+      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @inputPassword(
+      myForm("password.confirm"),
+      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
+      '_error -> myForm.error("password")
+    )
+
+    <input type="submit" id="registerEmployee" value=@Messages("register")>
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.UserMaintenance.index">
+      @Messages("backTo", Messages("userMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

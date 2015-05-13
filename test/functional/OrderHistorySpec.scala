@@ -14,8 +14,8 @@ import play.api.Play.current
 import helpers.ViewHelpers
 import org.joda.time.format.DateTimeFormat
 import java.util.concurrent.TimeUnit
-import org.openqa.selenium.firefox.{FirefoxDriver, FirefoxProfile}
 import com.ruimo.scoins.Scoping._
+import SeleniumHelpers.FirefoxJa
 
 class OrderHistorySpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -230,11 +230,7 @@ class OrderHistorySpec extends Specification {
 
     "Can put an item that is bought before into shopping cart" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      val profile = new FirefoxProfile
-      profile.setPreference("general.useragent.locale", "ja")
-      profile.setPreference("intl.accept_languages", "ja, en")
-      val firefox = new FirefoxDriver(profile)
-      SeleniumHelpers.running(TestServer(3333, app), firefox) { browser => DB.withConnection { implicit conn =>
+      SeleniumHelpers.running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)

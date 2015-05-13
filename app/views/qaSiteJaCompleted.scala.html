@@ -1,0 +1,64 @@
+@(
+  site: Site,
+  info: CreateQaSite,
+  backLink: String
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@main(Messages("qaCompletedTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("qaCompletedTitle")</h1>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <div class="qaSiteName">
+    <span class="qaSiteNameTitle">@Messages("qaSiteNameTitle")</span>
+    <span class="qaSiteNameBody">@site.name</span>
+  </div>
+
+  <table>
+    <tr class="companyName">
+      <td class="header">@Messages("companyName")</td>
+      <td class="body">
+        <span class="value">@info.companyName</span>
+      </td>
+    </tr>
+    <tr class="name">
+      <td class="header">@Messages("courtesyName")</td>
+      <td class="body">
+        <span class="value">@info.name</span>
+      </td>
+    </tr>
+    <tr class="tel">
+      <td class="header">@Messages("courtesyTelNo")</td>
+      <td class="body">
+        <span class="value">@info.tel</span>
+      </td>
+    </tr>
+    <tr class="email">
+      <td class="header">@Messages("email")</td>
+      <td class="body">
+        <span class="value">@info.email</span>
+      </td>
+    </tr>
+    <tr class="inquiryBody">
+      <td class="header">@Messages("inquiryBody")</td>
+      <td class="body">
+        <span class="value">@info.inquiryBody</span>
+      </td>
+    </tr>
+  </table>
+
+  <a class="backLink" href="@backLink">@Messages("back")</a>
+}

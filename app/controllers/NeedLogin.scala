@@ -170,11 +170,12 @@ trait NeedLogin extends Controller with HasLogger {
           }
           else {
             logger.info("Login success '" + user.compoundUserName + "'")
-            Redirect(user.uri).flashing(
-              "message" -> "Welcome"
-            ).withSession {
+            val result = Redirect(user.uri).withSession {
               (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
             }
+            val welcomeMsg: String = Messages("welcome")
+            if (welcomeMsg.isEmpty) result
+            else result.flashing("message" -> welcomeMsg)
           }
         }
         else {
@@ -199,6 +200,13 @@ trait NeedLogin extends Controller with HasLogger {
     f: Request[AnyContent] => Result
   )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
     if (login.isAdmin) f(request)
+    else Redirect(routes.Application.index)
+  }
+
+  def forSiteOwner(
+    f: Request[AnyContent] => Result
+  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
+    if (login.isSiteOwner) f(request)
     else Redirect(routes.Application.index)
   }
 

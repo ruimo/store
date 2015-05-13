@@ -1,0 +1,145 @@
+@(
+  itemName: String,
+  user: StoreUser,
+  prefectureTable: Seq[(String, String)],
+  myForm: Form[CreatePrize],
+  sexTable: Seq[(String, String)]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@zipError(f: Form[_]) = @{
+  f("zip.zip1").error.isDefined || f("zip.zip2").error.isDefined
+}
+
+@main(Messages("prize"), Some(loginSession)) {
+  <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
+} {
+  <h1 class="title">@Messages("prize")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <table class="prizeInfo">
+    <tr class="itemName">
+      <td class="header">@Messages("itemName")</td>
+      <td class="body">@itemName</td>
+    </tr>
+    <tr class="companyName">
+      <td class="header">@Messages("companyName")</td>
+      <td class="body">@user.companyName.getOrElse("-")</td>
+    </tr>
+    <tr class="name">
+      <td class="header">@Messages("name")</td>
+      <td class="body">@user.fullName</td>
+    </tr>
+    <tr class="email">
+      <td class="header">@Messages("email")</td>
+      <td class="body">@user.email</td>
+    </tr>
+  </table>
+
+  <h2>@Messages("shipping.address")</h2>
+
+  @helper.form(action = CSRF(routes.Prize.confirm(itemName)), 'id -> "confirmPrizeForm") {
+    <div class="@{if (zipError(myForm)) {"error"} else {""}}">
+      <label for="zip.zip1">郵便番号</label>
+      <div class="input">
+        <span>
+          <input type="text" size="3" name="zip.zip1" value="@myForm("zip.zip1").value.getOrElse("")" maxlength="3">
+          -
+          <input type="text" size="4" name="zip.zip2" value="@myForm("zip.zip2").value.getOrElse("")" maxlength="4"
+                 onKeyUp="AjaxZip3.zip2addr('zip.zip1', 'zip.zip2', 'prefecture', 'address1', 'address2');">
+        </span>
+        @{ if (zipError(myForm)) { <span>3桁-4桁の数値で指定してください。</span> } }
+      </div>
+    </div>
+
+    @select(
+      myForm("prefecture"), 
+      prefectureTable, 
+      '_label -> Messages("prefecture"),
+      '_showConstraints -> false
+    )
+
+    @inputText(
+      myForm("address1"),
+      '_label -> Messages("address1"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @inputText(
+      myForm("address2"),
+      '_label -> Messages("address2"), 'size -> 48, 'maxlength -> 256
+    )
+
+    @inputText(
+      myForm("address3"),
+      '_label -> Messages("address3"), 'size -> 48, 'maxlength -> 256
+    )
+
+    <input type="hidden" name="address4" value="">
+    <input type="hidden" name="address5" value="">
+
+    @inputText(
+      myForm("firstName"),
+      '_label -> Messages("firstName"), 'size -> 24, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("lastName"),
+      '_label -> Messages("lastName"), 'size -> 24, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("tel"),
+      '_label -> Messages("tel1"), 'size -> 16, 'maxlength -> 16
+    )
+
+    @select(
+      myForm("age"),
+      Seq(
+        ("0-9", "0-9"),
+        ("10-19", "10-19"),
+        ("20-29", "20-29"),
+        ("30-39", "30-39"),
+        ("40-49", "40-49"),
+        ("50-59", "50-59"),
+        ("60-69", "60-69"),
+        ("70-", "70-")
+      ),
+      '_label -> Messages("age"),
+      '_showConstraints -> false
+    )
+
+    @select(
+      myForm("sex"),
+      sexTable,
+      '_label -> Messages("sex"),
+      '_showConstraints -> false
+    )
+
+    @textarea(
+      myForm("comment"),
+      '_label -> Messages("prizeComment")
+    )
+
+    <input type="hidden" name="command" value="confirm">
+    <button class="backButton" type="button" onClick="history.back()">@Messages("back")</button>
+    <input class="submitButton" type="submit" value="@Messages("register")">
+  }
+}
+

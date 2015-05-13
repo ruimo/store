@@ -80,7 +80,19 @@ class QaSpec extends Specification {
           tel1 = "tel1-1",
           comment = "comment1"
         )
-        UserAddress.createNew(user.id.get, addr1.id.get)
+        val addr2 = Address.createNew(
+          countryCode = CountryCode.JPN,
+          firstName = "firstName2",
+          lastName = "lastName2",
+          zip1 = "zip11",
+          zip2 = "zip22",
+          prefecture = JapanPrefecture.東京都,
+          address1 = "address2-1",
+          address2 = "address2-2",
+          tel1 = "tel2-1",
+          comment = "comment2"
+        )
+        UserAddress.createNew(user.id.get, addr2.id.get)
 
         implicit val lang = Lang("ja")
 
@@ -93,8 +105,9 @@ class QaSpec extends Specification {
         browser.find("#comment").getAttribute("value") === ""
         browser.find("#firstName").getAttribute("value") === "Admin"
         browser.find("#lastName").getAttribute("value") === "Manager"
-        browser.find("#tel").getAttribute("value") === "tel1-1"
+        browser.find("#tel").getAttribute("value") === "tel2-1"
         browser.find("#email").getAttribute("value") === "admin@abc.com"
+        // Company information is taken from store_user record but address record.
         browser.find("#companyName").getAttribute("value") === "Company1"
       }}
     }

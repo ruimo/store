@@ -1,0 +1,137 @@
+@(
+  itemName: String,
+  user: StoreUser,
+  info: CreatePrize
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("prizeConfirm"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("prizeConfirm")</h1>
+
+  <table class="prizePersonInfo">
+    <tr class="itemName">
+      <td class="header">@Messages("itemName")</td><td class="body">@itemName</td>
+    </tr>
+    <tr class="companyName">
+      <td class="header">@Messages("companyName")</td><td class="body">@user.companyName.getOrElse("-")</td>
+    </tr>
+    <tr class="name">
+      <td class="header">@Messages("name")</td><td class="body">@user.fullName</td>
+    </tr>
+    <tr class="email">
+      <td class="header">@Messages("email")</td><td class="body">@user.email</td>
+    </tr>
+  </table>
+
+  <h2>@Messages("shipping.address")</h2>
+
+  @helper.form(action = helper.CSRF(routes.Prize.submitJa(itemName)), 'id -> "submitPrizeForm") {
+    <table class="prizeInfo">
+      <tr class="firstName">
+        <td class="header">@Messages("firstName")</td>
+        <td class="body">@info.firstName<input type="hidden" name="firstName" value="@info.firstName"></td>
+      </tr>
+
+      <tr class="lastName">
+        <td class="header">@Messages("lastName")</td>
+        <td class="body">@info.lastName<input type="hidden" name="lastName" value="@info.lastName"></td>
+      </tr>
+
+      <tr class="firstNameKana">
+        <td class="header">@Messages("firstNameKana")</td>
+        <td class="body">@info.firstNameKana<input type="hidden" name="firstNameKana" value="@info.firstNameKana"></td>
+      </tr>
+
+      <tr class="lastNameKana">
+        <td class="header">@Messages("lastNameKana")</td>
+        <td class="body">@info.lastNameKana<input type="hidden" name="lastNameKana" value="@info.lastNameKana"></td>
+      </tr>
+
+      <tr class="zip">
+        <td class="header">@Messages("zipMark")</td>
+        <td class="body">
+          <span>@info.zip._1</span>-<span>@info.zip._2</span>
+          <input type="hidden" name="zip.zip1" value="@info.zip._1">
+          <input type="hidden" name="zip.zip2" value="@info.zip._2">
+        </td>
+      </tr>
+
+      <tr class="prefecture">
+        <td class="header">@Messages("prefecture")</td>
+        <td class="body">
+          @info.prefecture
+          <input type="hidden" name="prefecture" value="@info.prefecture.code">
+        </td>
+      </tr>
+
+      <tr class="address1">
+        <td class="header">@Messages("address1")</td>
+        <td class="body">
+          @info.address1
+          <input type="hidden" name="address1" value="@info.address1">
+        </td>
+      </tr>
+
+      <tr class="address2">
+        <td class="header">@Messages("address2")</td>
+        <td class="body">
+          @info.address2
+          <input type="hidden" name="address2" value="@info.address2">
+        </td>
+      </tr>
+
+      <tr class="address3">
+        <td class="header">@Messages("address3")</td>
+        <td class="body">
+          @info.address3
+          <input type="hidden" name="address3" value="@info.address3">
+        </td>
+      </tr>
+
+      <input type="hidden" name="address4" value="">
+      <input type="hidden" name="address5" value="">
+
+      <tr class="tel">
+        <td class="header">@Messages("tel1")</td>
+        <td class="body">
+          @info.tel
+          <input type="hidden" name="tel" value="@info.tel">
+        </td>
+      </tr>
+
+      <tr class="age">
+        <td class="header">@Messages("age")</td>
+        <td class="body">
+          @info.age
+          <input type="hidden" name="age" value="@info.age">
+        </td>
+      </tr>
+
+      <tr class="sex">
+        <td class="header">@Messages("sex")</td>
+        <td class="body">
+          @Messages("sex." + info.sex)
+          <input type="hidden" name="sex" value="@info.sex.ordinal">
+        </td>
+      </tr>
+
+      <tr class="prizeComment">
+        <td class="header">@Messages("prizeComment")</td>
+        <td class="body">
+          @info.comment
+          <input type="hidden" name="comment" value="@info.comment">
+        </td>
+      </tr>
+    </table>
+
+    <button type="submit" name="command" value="amend">@Messages("amend")</button>
+    <button type="submit" name="command" value="submit">@Messages("register")</button>
+  }
+}

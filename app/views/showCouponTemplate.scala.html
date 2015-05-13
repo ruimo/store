@@ -1,6 +1,8 @@
 @(
   templateNo: Long,
-  c: CouponDetailWithMetadata
+  itemId: ItemId,
+  time: Long,
+  tranId: Option[Long]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -13,7 +15,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Messages("coupon.title")</title>
+    <title>@Messages("coupon.title")</title>
     <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/coupon.css")">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
@@ -32,13 +34,13 @@
     <table style="display: none;" class="showCouponTable">
       <tr>
         <td class="couponImage">
-          <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(c.couponDetail.itemId.id, 0)">
+          <img class="itemDetailPhoto" src="@routes.ItemPictures.getPicture(itemId.id, 0)">
         </td>
         <td class="couponDetail">
           <table>
             <tr>
               <td class="date">
-                <span>@Messages("publishedDate")</span><span>@publishedDate(c.couponDetail.time)</span>
+                <span>@Messages("publishedDate")</span><span>@publishedDate(time)</span>
               </td>
             </tr>
             <tr>
@@ -59,11 +61,11 @@
                 )
               </td>
             </tr>
-            <tr>
-              <td class="tranId">
-                @c.couponDetail.tranHeaderId
-              </td>
-            </tr>
+            @tranId.map { id =>
+              <tr>
+                <td class="tranId">@id</td>
+              </tr>
+            }
           </table>
         </td>
       </tr>

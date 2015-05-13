@@ -1,0 +1,56 @@
+@(
+  id: ItemInquiryId,
+  itemInfo: (Site, ItemName),
+  thisForm: Form[_ <: CreateItemInquiryReservation]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("itemInquiry"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("itemInquiry")</h1>
+    
+  <table class="itemInquiry siteItemContainer">
+    <tr>
+      <td class="siteName header">@Messages("site")</td>
+      <td class="siteName body">@itemInfo._1.name</td>
+    </tr>
+    <tr>
+      <td class="itemName header">@Messages("item")</td>
+      <td class="itemName body">@itemInfo._2.name</td>
+    </tr>
+  </table>
+
+  @defining(thisForm.asInstanceOf[Form[CreateItemInquiry]]) { myForm =>
+    @form(action = CSRF(routes.ItemInquiryReserve.amendItemInquiry(id.id)), 'id -> "itemInquiryForm") {
+      @inputText(myForm("siteId"), 'type -> "hidden", '_showConstraints -> false)(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+
+      @inputText(myForm("itemId"), 'type -> "hidden", '_showConstraints -> false)(
+        helper.FieldConstructor(simpleField.f), implicitly
+      )
+
+      @inputText(
+        myForm("name"),
+        '_label -> Messages("name"), 'size -> 32, 'maxlength -> 128
+      )
+
+      @inputText(
+        myForm("email"),
+        '_label -> Messages("email"), 'size -> 16, 'maxlength -> 128
+      )
+
+      @textarea(
+        myForm("inquiryBody"),
+        '_label -> Messages("inquiryBody"), 'rows -> 6, 'cols -> 80
+      )
+
+      <input type="submit" value="@Messages("register")" id="submitItemInquiry">
+    }
+  }
+}

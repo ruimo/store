@@ -1,5 +1,6 @@
 @(users: PagedRecords[ListUserEntry])(
   implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
   lang: Lang,
   request: RequestHeader,
   loginSession: LoginSession
@@ -10,8 +11,36 @@
 @implicitLoginSessionOpt = @{Some(loginSession)}
 
 @main(Messages("editUserTitle"), Some(loginSession), contentCssClass = "adminContents") {
+  <script>
+    $(function() {
+      $(".deleteButton").each(function(idx, b) {
+        $(b).click(function(e) {
+          var formId = "deleteUser" + $(b).data("user-id");
+          var dlg = $('<div>@Messages("deleteConfirm") ' + $(b).data("user-name") + '</div>');
+          dlg.dialog({
+            modal: true,
+            buttons: {
+              '@Messages("yes")': function() {
+                $('#' + formId).submit();
+              },
+              '@Messages("no")': function() {
+                $(this).dialog('close');
+              }
+            }
+          });
+          dlg.dialog('open');
+        });
+      });
+    });
+  </script>
 } {
 <h1 class="title">@Messages("editUserTitle")</h1>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
 
 <table class="userTable">
   <tr class="userTableHeader">
@@ -83,9 +112,12 @@
        }
       </td>
       <td class="action">
-        @form(action = helper.CSRF(routes.UserMaintenance.deleteUser(user.user.id.get))) {
-          <input type="submit" style="float: left;" value=@Messages("remove")>
+        @form(action = CSRF(routes.UserMaintenance.deleteUser(user.user.id.get)), 'id -> ("deleteUser" + user.user.id.get)) {
         }
+        <button type="button" style="float: left;"
+                data-user-id="@user.user.id.get" data-user-name="@user.user.userName" class="deleteButton">
+          @Messages("remove")
+        </button>
       </td>
     </tr>
   }
@@ -108,4 +140,3 @@
   @admin.backToAdminTop()
 </div>
 }
-

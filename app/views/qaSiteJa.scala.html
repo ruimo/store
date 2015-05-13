@@ -1,0 +1,66 @@
+@(
+  site: Site,
+  myForm: Form[CreateQaSite],
+  backLink: String
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@main(Messages("qaTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("qaTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <div class="qaSiteName">
+    <span class="qaSiteNameTitle">@Messages("qaSiteNameTitle")</span>
+    <span class="qaSiteNameBody">@site.name</span>
+  </div>
+
+  @form(action = CSRF(routes.Qa.submitQaSiteJa(site.id.get, backLink)), 'id -> "enterQaSiteForm") {
+    @inputText(
+      myForm("companyName"),
+      '_label -> Messages("companyName"), 'size -> 24, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("name"),
+      '_label -> Messages("courtesyName"), 'size -> 32, 'maxlength -> 128
+    )
+
+    @inputText(
+      myForm("tel"),
+      '_label -> Messages("courtesyTelNo"), 'size -> 16, 'maxlength -> 16
+    )
+
+    @inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 16, 'maxlength -> 128
+    )
+
+    @textarea(
+      myForm("inquiryBody"),
+      '_label -> Messages("inquiryBody"), 'rows -> 6, 'cols -> 80
+    )
+
+    <input type="hidden" name="command" value="entry">
+    <a class="backLink" href="@backLink">@Messages("back")</a>
+    <input type="submit" value="@Messages("register")" id="submitQaSite">
+  }
+}

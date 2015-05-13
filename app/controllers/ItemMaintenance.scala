@@ -14,6 +14,8 @@ import org.postgresql.util.PSQLException
 import java.sql.SQLException
 import org.joda.time.DateTime
 import helpers.QueryString
+import play.api.Play
+import play.api.Mode
 
 class ChangeItem(
   val id: Long,
@@ -46,6 +48,11 @@ class ChangeItem(
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
+  val AppVal = Play.maybeApplication.get
+  def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
+  def Config = App.configuration
+  def ItemDescriptionSize: Int = Config.getInt("itemDescription.size").getOrElse(2048)
+
   val createItemForm = Form(
     mapping(
       "langId" -> longNumber,
@@ -57,7 +64,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "price" -> bigDecimal.verifying(min(BigDecimal(0))),
       "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
-      "description" -> text.verifying(maxLength(2048)),
+      "description" -> text.verifying(maxLength(ItemDescriptionSize)),
       "isCoupon" ->boolean
     ) (CreateItem.apply)(CreateItem.unapply)
   )
@@ -789,7 +796,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         mapping(
           "siteId" -> longNumber,
           "localeId" -> longNumber,
-          "itemDescription" -> text.verifying(nonEmpty, maxLength(2048))
+          "itemDescription" -> text.verifying(nonEmpty, maxLength(ItemDescriptionSize))
         ) (ChangeItemDescription.apply)(ChangeItemDescription.unapply)
       )
     ) (ChangeItemDescriptionTable.apply)(ChangeItemDescriptionTable.unapply)
@@ -799,7 +806,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "siteId" -> longNumber,
       "localeId" -> longNumber,
-      "itemDescription" -> text.verifying(nonEmpty, maxLength(2048))
+      "itemDescription" -> text.verifying(nonEmpty, maxLength(ItemDescriptionSize))
     ) (ChangeItemDescription.apply)(ChangeItemDescription.unapply)
   )
 

@@ -89,7 +89,7 @@ POST    /admin/createNewSuperUser        controllers.UserMaintenance.createNewSu
 GET     /admin/editUser                  controllers.UserMaintenance.editUser(page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "store_user.user_name")
 POST    /admin/deleteUser                controllers.UserMaintenance.deleteUser(id: Long)
 GET     /admin/modifyUserStart           controllers.UserMaintenance.modifyUserStart(id: Long)
-POST    /admin/modifyUser                controllers.UserMaintenance.modifyUser
+POST    /admin/modifyUser                controllers.UserMaintenance.modifyUser(id: Long)
 GET     /admin/startCreateNewSiteOwner   controllers.UserMaintenance.startCreateNewSiteOwner
 POST    /admin/createNewSiteOwner        controllers.UserMaintenance.createNewSiteOwner
 GET     /admin/startCreateNewNormalUser  controllers.UserMaintenance.startCreateNewNormalUser
@@ -197,6 +197,32 @@ GET     /changePasswordStart             controllers.UserEntry.changePasswordSta
 POST    /changePassword                  controllers.UserEntry.changePassword()
 
 GET     /sitesAsJson                     controllers.SiteMaintenance.sitesAsJson()
+GET     /startItemInquiry                controllers.ItemInquiryReserve.startItemInquiry(siteId: Long, itemId: Long)
+POST    /confirmItemInquiry              controllers.ItemInquiryReserve.confirmItemInquiry(siteId: Long, itemId: Long)
+GET     /amendItemInquiryStart           controllers.ItemInquiryReserve.amendItemInquiryStart(inqId: Long)
+POST    /amendItemInquiry                controllers.ItemInquiryReserve.amendItemInquiry(inqId: Long)
+GET     /submitItemInquiry               controllers.ItemInquiryReserve.submitItemInquiryStart(inqId: Long)
+POST    /itemInquiry                     controllers.ItemInquiryReserve.submitItemInquiry(inqId: Long)
+GET     /startItemReservation            controllers.ItemInquiryReserve.startItemReservation(siteId: Long, itemId: Long)
+POST    /confirmItemReservation          controllers.ItemInquiryReserve.confirmItemReservation(siteId: Long, itemId: Long)
+GET     /amendItemReservationStart       controllers.ItemInquiryReserve.amendItemReservationStart(inqId: Long)
+POST    /amendItemReservation            controllers.ItemInquiryReserve.amendItemReservation(inqId: Long)
+GET     /submitItemReservation           controllers.ItemInquiryReserve.submitItemReservationStart(inqId: Long)
+POST    /itemReservation                 controllers.ItemInquiryReserve.submitItemReservation(inqId: Long)
+
+GET     /prize                           controllers.Prize.entry(itemName: String)
+POST    /confirmPrize                    controllers.Prize.confirm(itemName: String)
+POST    /confirmPrizeJa                  controllers.Prize.confirmJa(itemName: String)
+POST    /submitPrize                     controllers.Prize.submit(itemName: String)
+POST    /submitPrizeJa                   controllers.Prize.submitJa(itemName: String)
+
+GET     /showInstantCoupon               controllers.CouponHistory.showInstantCoupon(siteId: Long, itemId: Long)
+
+GET     /qaSite                          controllers.Qa.qaSiteStart(siteId: Long, backLink: String)
+POST    /submitQaSiteJa                  controllers.Qa.submitQaSiteJa(siteId: Long, backLink: String)
+
+GET     /createNewEmployeeStart          controllers.UserMaintenance.startCreateNewEmployeeUser()
+POST    /createNewEmployee               controllers.UserMaintenance.createNewEmployeeUser()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

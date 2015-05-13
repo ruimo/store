@@ -1,5 +1,8 @@
 package controllers
 
+import play.api.Play
+import play.api.Mode
+import helpers.PasswordHash
 import constraints.FormConstraints._
 import java.util.Locale
 import play.api.i18n.{Lang, Messages}
@@ -39,10 +42,13 @@ import scala.language.postfixOps
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
 
-  val Config = play.api.Play.maybeApplication.map(_.configuration).get
-  val ResetPasswordTimeout: Long = Config.getMilliseconds("resetPassword.timeout").getOrElse {
+  val AppVal = Play.maybeApplication.get
+  def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
+  def Config = App.configuration
+  def ResetPasswordTimeout: Long = Config.getMilliseconds("resetPassword.timeout").getOrElse {
     (30 minutes).toMillis
   }
+  def AutoLoginAfterRegistration: Boolean = Config.getBoolean("auto.login.after.registration").getOrElse(false)
 
   def jaForm(implicit lang: Lang) = Form(
     mapping(
@@ -58,7 +64,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       "title" -> text.verifying(maxLength(256)),
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "lastName" -> text.verifying(lastNameConstraint: _*),
-      "email" -> text.verifying(nonEmpty, maxLength(128))
+      "email" -> text.verifying(emailConstraint: _*)
     )(UserRegistration.apply4Japan)(UserRegistration.unapply4Japan)
   )
 
@@ -212,7 +218,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
               newInfo.middleName,
               newInfo.lastName,
               newInfo.email,
-              u.passwordHash,
+              PasswordHash.generate(newInfo.passwords._1, u.salt),
               u.salt,
               u.companyName
             )
@@ -234,9 +240,18 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
             )
 
             UserAddress.createNew(userId, address.id.get)
-            Redirect(
+            val result = Redirect(
               routes.Application.index
-            ).flashing("message" -> Messages("userInfoIsUpdated"))
+            ).flashing(
+              "message" -> Messages("userInfoIsUpdated")
+            )
+
+            if (AutoLoginAfterRegistration) {
+              result.withSession {
+                (LoginUserKey, LoginSession.serialize(userId, System.currentTimeMillis + SessionTimeout))
+              }
+            }
+            else result
           }
         }
     )

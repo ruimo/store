@@ -1,4 +1,5 @@
 @(
+  user: ListUserEntry,
   myForm: Form[ModifyUser]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
@@ -19,17 +20,21 @@
     </div>
   }
 
-  @helper.form(action = helper.CSRF(routes.UserMaintenance.modifyUser()), 'id -> "modifyUserForm") {
+  @helper.form(action = helper.CSRF(routes.UserMaintenance.modifyUser(user.user.id.get)), 'id -> "modifyUserForm") {
     @inputText(myForm("userId"), 'type -> "hidden", '_showConstraints -> false)(
       helper.FieldConstructor(simpleField.f), implicitly
     )
     @userCommonFields(myForm)
 
-    @checkbox(
-      myForm("sendNoticeMail"), 
-      '_label -> Messages("sendNoticeMail"),
-      '_showConstraints -> false
-    )
+    @if(user.user.userRole == UserRole.ADMIN || user.site.isDefined) {
+      @checkbox(
+        myForm("sendNoticeMail"), 
+        '_label -> Messages("sendNoticeMail"),
+        '_showConstraints -> false
+      )
+    } else {
+      <input type="hidden" id="sendNoticeMail" name="sendNoticeMail" value="false" >
+    }
 
     <input type="submit" id="modifyUser" value=@Messages("update")>
   }

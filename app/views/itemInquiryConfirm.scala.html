@@ -1,0 +1,52 @@
+@(
+  itemInquiry: ItemInquiry,
+  fields: scala.collection.immutable.Map[Symbol, String],
+  itemInfo: (Site, ItemName),
+  myForm: Form[Long]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("itemInquiryConfirm"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("itemInquiryConfirm")</h1>
+
+  @form(action = CSRF(routes.ItemInquiryReserve.submitItemInquiry(itemInquiry.id.get.id)), 'id -> "submitItemInquiryForm") {
+    @inputText(myForm("id"), 'type -> "hidden", '_showConstraints -> false)(
+      helper.FieldConstructor(simpleField.f), implicitly
+    )
+
+    <table class="itemInquiry confirmationTable">
+      <tr>
+        <td class="siteName header">@Messages("site")</td>
+        <td class="siteName body">@itemInfo._1.name</td>
+      </tr>
+      <tr>
+        <td class="itemName header">@Messages("item")</td>
+        <td class="itemName body">@itemInfo._2.name</td>
+      </tr>
+      <tr>
+        <td class="name header">@Messages("name")</td>
+        <td class="name body">@itemInquiry.submitUserName</td>
+      </tr>
+      <tr>
+        <td class="email header">@Messages("email")</td>
+        <td class="email body">@itemInquiry.email</td>
+      </tr>
+      <tr>
+        <td class="message header">@Messages("inquiryBody")</td>
+        <td class="message body">@fields('Message)</td>
+      </tr>
+    </table>
+
+    <input type="submit" value="@Messages("register")" id="submitItemQuery">
+    <button id="amendItemInquiry" type="button" 
+            onclick="location.href='@routes.ItemInquiryReserve.amendItemInquiryStart(itemInquiry.id.get.id)';">
+      @Messages("amend")
+    </button>
+  }
+}

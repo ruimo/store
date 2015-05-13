@@ -18,7 +18,7 @@ import org.openqa.selenium.By
 import models.{StoreUser, OrderNotification}
 
 class UserMaintenanceSpec extends Specification {
-  "User maintenance should" should {
+  "User maintenance" should {
     "Show current user's info." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>

@@ -1,0 +1,16 @@
+@(
+  loginUser: StoreUser,
+  itemInfo: (Site, ItemName),
+  inq: ItemInquiry,
+  fields: scala.collection.immutable.Map[Symbol, String]
+)(
+  implicit lang: Lang
+)
+
+@inq.submitUserName 様から以下の商品の予約がありました。
+e-mail: @inq.email
+
+店舗: @itemInfo._1.name
+商品id: @itemInfo._2.itemId.id
+商品名: @itemInfo._2.name
+@fields.get('Message).map {m =>メッセージ: @m}
