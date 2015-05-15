@@ -2,7 +2,7 @@ package models
 
 import java.sql.Connection
 
-case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expireTime: Long) extends NotNull {
+case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expireTime: Long) {
   lazy val user = User(storeUser, siteUser)
   lazy val userId = storeUser.id.get
   def withExpireTime(newExpireTime: Long) = LoginSession(storeUser, siteUser, newExpireTime)

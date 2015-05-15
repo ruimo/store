@@ -1,12 +1,13 @@
 package controllers
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.i18n.{Lang, Messages}
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import models._
 import play.api.data.Form
 import controllers.I18n.I18nAware
-import play.api.mvc.{ResponseHeader, SimpleResult, Controller}
+import play.api.mvc.{ResponseHeader, Result, Controller}
 import play.api.db.DB
 import play.api.i18n.Messages
 import play.api.Play.current
@@ -40,129 +41,144 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
 
   def index(
     page: Int, pageSize: Int, orderBySpec: String
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      val pagedRecords = TransactionSummary.list(
-        login.siteUser.map(_.siteId)
-      )
-      Ok(
-        views.html.admin.transactionMaintenance(
-          pagedRecords,
-          changeStatusForm, statusDropDown,
-          pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-            (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-          },
-          Transporter.tableForDropDown,
-          Transporter.listWithName.foldLeft(LongMap[String]()) {
-            (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-          }
+  ) = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        val pagedRecords = TransactionSummary.list(
+          login.siteUser.map(_.siteId)
         )
-      )
-    }
-  }}
-
-  def setStatus = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeStatusForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in TransactionMaintenance.setStatus. " + formWithErrors)
-        DB.withConnection { implicit conn =>
-          val pagedRecords = TransactionSummary.list(
-            login.siteUser.map(_.siteId)
+        Ok(
+          views.html.admin.transactionMaintenance(
+            pagedRecords,
+            changeStatusForm, statusDropDown,
+            pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+              (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+            },
+            Transporter.tableForDropDown,
+            Transporter.listWithName.foldLeft(LongMap[String]()) {
+              (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+            }
           )
-
-          BadRequest(
-            views.html.admin.transactionMaintenance(
-              pagedRecords,
-              changeStatusForm, statusDropDown,
-              pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-                (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-              },
-              Transporter.tableForDropDown,
-              Transporter.listWithName.foldLeft(LongMap[String]()) {
-                (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-              }
-            )
-          )
-        }
-      },
-      newStatus => {
-        DB.withConnection { implicit conn =>
-          newStatus.save(login.siteUser)
-          Redirect(routes.TransactionMaintenance.index())
-        }
-      }
-    )
-  }}
-
-  def detail(tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      val entry = TransactionSummary.get(login.siteUser.map(_.siteId), tranSiteId).get
-      val boxNameByItemSize = TransactionLogShipping.listBySite(tranSiteId).foldLeft(LongMap.empty[String]) {
-        (sum, e) => (sum + (e.itemClass -> e.boxName))
-      }
-      Ok(
-        views.html.admin.transactionDetail(
-          entry,
-          TransactionDetail.show(tranSiteId, LocaleInfo.byLang(lang), login.siteUser),
-          TransactionMaintenance.changeStatusForm, TransactionMaintenance.statusDropDown,
-          LongMap[Form[ChangeShippingInfo]](entry.transactionSiteId -> TransactionMaintenance.entryShippingInfoForm),
-          Transporter.tableForDropDown,
-          Transporter.listWithName.foldLeft(LongMap[String]()) {
-            (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-          },
-          boxNameByItemSize
         )
+      }
+    }
+  }
+
+  def setStatus = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeStatusForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in TransactionMaintenance.setStatus. " + formWithErrors)
+          DB.withConnection { implicit conn =>
+            val pagedRecords = TransactionSummary.list(
+              login.siteUser.map(_.siteId)
+            )
+
+            BadRequest(
+              views.html.admin.transactionMaintenance(
+                pagedRecords,
+                changeStatusForm, statusDropDown,
+                pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+                  (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+                },
+                Transporter.tableForDropDown,
+                Transporter.listWithName.foldLeft(LongMap[String]()) {
+                  (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+                }
+              )
+            )
+          }
+        },
+        newStatus => {
+          DB.withConnection { implicit conn =>
+            newStatus.save(login.siteUser)
+            Redirect(routes.TransactionMaintenance.index())
+          }
+        }
       )
     }
-  }}
+  }
 
-  def entryShippingInfo(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    entryShippingInfoForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
-        DB.withTransaction { implicit conn =>
-          val pagedRecords = TransactionSummary.list(
-            login.siteUser.map(_.siteId)
-          )
-
-          BadRequest(
-            views.html.admin.transactionMaintenance(
-              pagedRecords,
-              changeStatusForm, statusDropDown,
-              pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-                (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-              }.updated(tranSiteId, formWithErrors),
-              Transporter.tableForDropDown,
-              Transporter.listWithName.foldLeft(LongMap[String]()) {
-                (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-              }
-            )
-          )
+  def detail(tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        val entry = TransactionSummary.get(login.siteUser.map(_.siteId), tranSiteId).get
+        val boxNameByItemSize = TransactionLogShipping.listBySite(tranSiteId).foldLeft(LongMap.empty[String]) {
+          (sum, e) => (sum + (e.itemClass -> e.boxName))
         }
-      },
-      newShippingInfo => {
-        DB.withConnection { implicit conn =>
-          newShippingInfo.save(login.siteUser, tranSiteId) {
-            val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
-            sendNotificationMail(tranId, tranSiteId, newShippingInfo, LocaleInfo.getDefault, status)
-          }
-          Redirect(routes.TransactionMaintenance.index())
-        }
+        Ok(
+          views.html.admin.transactionDetail(
+            entry,
+            TransactionDetail.show(tranSiteId, LocaleInfo.getDefault, login.siteUser),
+            TransactionMaintenance.changeStatusForm, TransactionMaintenance.statusDropDown,
+            LongMap[Form[ChangeShippingInfo]](entry.transactionSiteId -> TransactionMaintenance.entryShippingInfoForm),
+            Transporter.tableForDropDown,
+            Transporter.listWithName.foldLeft(LongMap[String]()) {
+              (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+            },
+            boxNameByItemSize
+          )
+        )
       }
-    )
-  }}
-
-  def cancelShipping(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withTransaction { implicit conn =>
-      TransactionShipStatus.update(login.siteUser, tranSiteId, TransactionStatus.CANCELED)
-      val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
-      if (! status.mailSent) {
-        TransactionShipStatus.mailSent(tranSiteId)
-        sendCancelMail(tranId, tranSiteId, LocaleInfo.getDefault, status)
-      }
-      Redirect(routes.TransactionMaintenance.index())
     }
-  }}
+  }
+
+  def entryShippingInfo(tranId: Long, tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      entryShippingInfoForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
+          DB.withTransaction { implicit conn =>
+            val pagedRecords = TransactionSummary.list(
+              login.siteUser.map(_.siteId)
+            )
+
+            BadRequest(
+              views.html.admin.transactionMaintenance(
+                pagedRecords,
+                changeStatusForm, statusDropDown,
+                pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+                  (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+                }.updated(tranSiteId, formWithErrors),
+                Transporter.tableForDropDown,
+                Transporter.listWithName.foldLeft(LongMap[String]()) {
+                  (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+                }
+              )
+            )
+          }
+        },
+        newShippingInfo => {
+          DB.withConnection { implicit conn =>
+            newShippingInfo.save(login.siteUser, tranSiteId) {
+              val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
+              sendNotificationMail(tranId, tranSiteId, newShippingInfo, LocaleInfo.getDefault, status)
+            }
+            Redirect(routes.TransactionMaintenance.index())
+          }
+        }
+      )
+    }
+  }
+
+  def cancelShipping(tranId: Long, tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withTransaction { implicit conn =>
+        TransactionShipStatus.update(login.siteUser, tranSiteId, TransactionStatus.CANCELED)
+        val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
+        if (! status.mailSent) {
+          TransactionShipStatus.mailSent(tranSiteId)
+          sendCancelMail(tranId, tranSiteId, LocaleInfo.getDefault, status)
+        }
+        Redirect(routes.TransactionMaintenance.index())
+      }
+    }
+  }
 
   def sendNotificationMail(
     tranId: Long, tranSiteId: Long, info: ChangeShippingInfo, locale: LocaleInfo, status: TransactionShipStatus
@@ -190,22 +206,25 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def downloadCsv(tranId: Long, tranSiteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    val stream = new ByteArrayInputStream(createCsv(tranId, tranSiteId).getBytes("Windows-31j"))
-    val fileName = "tranDetail" + tranId + "-" + tranSiteId + ".csv"
+  def downloadCsv(tranId: Long, tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      val stream = new ByteArrayInputStream(createCsv(tranId, tranSiteId).getBytes("Windows-31j"))
+      val fileName = "tranDetail" + tranId + "-" + tranSiteId + ".csv"
 
-    SimpleResult(
-      header = ResponseHeader(
-        OK,
-        Map(
-          CONTENT_LENGTH -> "-1",
-          CONTENT_TYPE -> MimeTypes.forFileName(fileName).getOrElse(ContentTypes.BINARY),
-          CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
-        )
-      ),
-      body = Enumerator.fromStream(stream)
-    )
-  }}
+      Result(
+        header = ResponseHeader(
+          OK,
+          Map(
+            CONTENT_LENGTH -> "-1",
+            CONTENT_TYPE -> MimeTypes.forFileName(fileName).getOrElse(ContentTypes.BINARY),
+            CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
+          )
+        ),
+        body = Enumerator.fromStream(stream)
+      )
+    }
+  }
 
   def createCsv(tranId: Long, tranSiteId: Long)(
     implicit lang: Lang,

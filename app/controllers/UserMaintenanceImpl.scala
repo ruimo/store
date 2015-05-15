@@ -85,212 +85,254 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
     )(CreateSiteOwner.fromForm)(CreateSiteOwner.toForm)
   )
 
-  def index = isAuthenticated { implicit login => forAdmin { implicit request =>
-    if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
-      Ok(views.html.admin.userMaintenance())
-    }
-    else {
-      Redirect(routes.Admin.index)
-    }
-  }}
-
-  def startCreateNewSuperUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.createNewSuperUser(Admin.createUserForm(FirstSetup.fromForm, FirstSetup.toForm)))
-  }}
-
-  def startCreateNewSiteOwner = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
-      Ok(views.html.admin.createNewSiteOwner(newSiteOwnerForm, Site.tableForDropDown))
-    }
-  }}
-
-  def startCreateNewNormalUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.createNewNormalUser(Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm)))
-  }}
-
-  def startCreateNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
-    if (SiteOwnerCanEditEmployee) {
-      val siteId = login.siteUser.map(_.siteId).get
-      DB.withConnection { implicit conn =>
-        Ok(views.html.admin.createNewEmployeeUser(Site(siteId), createEmployeeForm))
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
+        Ok(views.html.admin.userMaintenance())
+      }
+      else {
+        Redirect(routes.Admin.index)
       }
     }
-    else {
-      Redirect(routes.Application.index)
-    }
-  }}
+  }
 
-  def createNewEmployeeUser = isAuthenticated { implicit login => forSiteOwner { implicit request =>
-    createEmployeeForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewEmployeeUser." + formWithErrors)
+  def startCreateNewSuperUser = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.createNewSuperUser(Admin.createUserForm(FirstSetup.fromForm, FirstSetup.toForm)))
+    }
+  }
+
+  def startCreateNewSiteOwner = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        Ok(views.html.admin.createNewSiteOwner(newSiteOwnerForm, Site.tableForDropDown))
+      }
+    }
+  }
+
+  def startCreateNewNormalUser = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.createNewNormalUser(Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm)))
+    }
+  }
+
+  def startCreateNewEmployeeUser = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSiteOwner(login) {
+      if (SiteOwnerCanEditEmployee) {
         val siteId = login.siteUser.map(_.siteId).get
         DB.withConnection { implicit conn =>
-          BadRequest(views.html.admin.createNewEmployeeUser(Site(siteId), formWithErrors))
+          Ok(views.html.admin.createNewEmployeeUser(Site(siteId), createEmployeeForm))
         }
-      },
-      newUser => {
-        if (SiteOwnerCanEditEmployee) {
-          val siteId = login.siteUser.map(_.siteId).get
-          val salt = tokenGenerator.next
-          DB.withConnection { implicit conn =>
-            val createdUser = StoreUser.create(
-              userName = siteId + "-" + newUser.userName,
-              firstName = "",
-              middleName = None,
-              lastName = "",
-              email = "",
-              passwordHash = PasswordHash.generate(newUser.passwords._1, salt),
-              salt = salt,
-              userRole = UserRole.NORMAL,
-              companyName = Some(Site(siteId).name)
-            )
-
-            Employee.createNew(siteId, createdUser.id.get)
-          }
-
-          Redirect(
-            routes.UserMaintenance.startCreateNewEmployeeUser()
-          ).flashing("message" -> Messages("userIsCreated"))
-        }
-        else {
-          Redirect(routes.Application.index)
-        }
-      }
-    )
-  }}
-
-  def createNewSuperUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Admin.createUserForm(FirstSetup.fromForm, FirstSetup.toForm).bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewSuperUser." + formWithErrors)
-        BadRequest(views.html.admin.createNewSuperUser(formWithErrors))
-      },
-      newUser => DB.withConnection { implicit conn =>
-        newUser.save
-        Redirect(
-          routes.UserMaintenance.startCreateNewSuperUser
-        ).flashing("message" -> Messages("userIsCreated"))
-      }
-    )
-  }}
-
-  def createNewSiteOwner = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    newSiteOwnerForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewSiteOwner." + formWithErrors)
-        DB.withConnection { implicit conn =>
-          BadRequest(views.html.admin.createNewSiteOwner(formWithErrors, Site.tableForDropDown))
-        }
-      },
-      newUser => DB.withTransaction { implicit conn =>
-        newUser.save
-        Redirect(
-          routes.UserMaintenance.startCreateNewSiteOwner
-        ).flashing("message" -> Messages("userIsCreated"))
-      }
-    )
-  }}
-
-  def createNewNormalUser = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm).bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in UserMaintenance.createNewNormalUser." + formWithErrors)
-        BadRequest(views.html.admin.createNewNormalUser(formWithErrors))
-      },
-      newUser => DB.withConnection { implicit conn =>
-        newUser.save
-        Redirect(
-          routes.UserMaintenance.startCreateNewNormalUser
-        ).flashing("message" -> Messages("userIsCreated"))
-      }
-    )
-  }}
-
-  def editUser(
-    page: Int, pageSize: Int, orderBySpec: String
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      if (login.isSuperUser) {
-        Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
-      }
-      else { // Store owner
-        if (SiteOwnerCanEditEmployee) {
-          val siteId = login.siteUser.map(_.siteId).get
-          Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec), employeeSiteId = Some(siteId))))
-        }
-        else {
-          Redirect(routes.Application.index)
-        }
-      }
-    }
-  }}
-
-  def modifyUserStart(userId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      val user: ListUserEntry = StoreUser.withSite(userId)
-      if (login.isSuperUser) {
-        Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
-      }
-      else { // Store owner
-        if (canEditEmployee(userId, login.siteUser.map(_.siteId).get)) {
-          Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
-        }
-        else {
-          Redirect(routes.Application.index)
-        }
-      }
-    }
-  }}
-
-  def modifyUser(userId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    modifyUserForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in UserMaintenance.modifyUser." + formWithErrors)
-        DB.withConnection { implicit conn =>
-          val user: ListUserEntry = StoreUser.withSite(userId)
-          BadRequest(views.html.admin.modifyUser(user, formWithErrors))
-        }
-      },
-      newUser => DB.withConnection { implicit conn =>
-        if (login.isSuperUser || canEditEmployee(newUser.userId, login.siteUser.map(_.siteId).get)) {
-          newUser.update
-          Redirect(
-            routes.UserMaintenance.editUser()
-          ).flashing("message" -> Messages("userIsUpdated"))
-        }
-        else {
-          Redirect(routes.Application.index)
-        }
-      }
-    )
-  }}
-
-  def deleteUser(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      if (login.isSuperUser || canEditEmployee(id, login.siteUser.map(_.siteId).get)) {
-        StoreUser.delete(id)
-        Redirect(routes.UserMaintenance.editUser())
       }
       else {
         Redirect(routes.Application.index)
       }
     }
-  }}
+  }
+
+  def createNewEmployeeUser = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSiteOwner(login) {
+      createEmployeeForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in UserMaintenance.createNewEmployeeUser." + formWithErrors)
+          val siteId = login.siteUser.map(_.siteId).get
+          DB.withConnection { implicit conn =>
+            BadRequest(views.html.admin.createNewEmployeeUser(Site(siteId), formWithErrors))
+          }
+        },
+        newUser => {
+          if (SiteOwnerCanEditEmployee) {
+            val siteId = login.siteUser.map(_.siteId).get
+            val salt = tokenGenerator.next
+            DB.withConnection { implicit conn =>
+              val createdUser = StoreUser.create(
+                userName = siteId + "-" + newUser.userName,
+                firstName = "",
+                middleName = None,
+                lastName = "",
+                email = "",
+                passwordHash = PasswordHash.generate(newUser.passwords._1, salt),
+                salt = salt,
+                userRole = UserRole.NORMAL,
+                companyName = Some(Site(siteId).name)
+              )
+
+              Employee.createNew(siteId, createdUser.id.get)
+            }
+
+            Redirect(
+              routes.UserMaintenance.startCreateNewEmployeeUser()
+            ).flashing("message" -> Messages("userIsCreated"))
+          }
+          else {
+            Redirect(routes.Application.index)
+          }
+        }
+      )
+    }
+  }
+
+  def createNewSuperUser = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Admin.createUserForm(FirstSetup.fromForm, FirstSetup.toForm).bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in UserMaintenance.createNewSuperUser." + formWithErrors)
+          BadRequest(views.html.admin.createNewSuperUser(formWithErrors))
+        },
+        newUser => DB.withConnection { implicit conn =>
+          newUser.save
+          Redirect(
+            routes.UserMaintenance.startCreateNewSuperUser
+          ).flashing("message" -> Messages("userIsCreated"))
+        }
+      )
+    }
+  }
+
+  def createNewSiteOwner = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      newSiteOwnerForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in UserMaintenance.createNewSiteOwner." + formWithErrors)
+          DB.withConnection { implicit conn =>
+            BadRequest(views.html.admin.createNewSiteOwner(formWithErrors, Site.tableForDropDown))
+          }
+        },
+        newUser => DB.withTransaction { implicit conn =>
+          newUser.save
+          Redirect(
+            routes.UserMaintenance.startCreateNewSiteOwner
+          ).flashing("message" -> Messages("userIsCreated"))
+        }
+      )
+    }
+  }
+
+  def createNewNormalUser = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm).bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in UserMaintenance.createNewNormalUser." + formWithErrors)
+          BadRequest(views.html.admin.createNewNormalUser(formWithErrors))
+        },
+        newUser => DB.withConnection { implicit conn =>
+          newUser.save
+          Redirect(
+            routes.UserMaintenance.startCreateNewNormalUser
+          ).flashing("message" -> Messages("userIsCreated"))
+        }
+      )
+    }
+  }
+
+  def editUser(
+    page: Int, pageSize: Int, orderBySpec: String
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        if (login.isSuperUser) {
+          Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
+        }
+        else { // Store owner
+          if (SiteOwnerCanEditEmployee) {
+            val siteId = login.siteUser.map(_.siteId).get
+            Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec), employeeSiteId = Some(siteId))))
+          }
+          else {
+            Redirect(routes.Application.index)
+          }
+        }
+      }
+    }
+  }
+
+  def modifyUserStart(userId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        val user: ListUserEntry = StoreUser.withSite(userId)
+        if (login.isSuperUser) {
+          Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
+        }
+        else { // Store owner
+          if (canEditEmployee(userId, login.siteUser.map(_.siteId).get)) {
+            Ok(views.html.admin.modifyUser(user, modifyUserForm.fill(ModifyUser(user))))
+          }
+          else {
+            Redirect(routes.Application.index)
+          }
+        }
+      }
+    }
+  }
+
+  def modifyUser(userId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      modifyUserForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in UserMaintenance.modifyUser." + formWithErrors)
+          DB.withConnection { implicit conn =>
+            val user: ListUserEntry = StoreUser.withSite(userId)
+            BadRequest(views.html.admin.modifyUser(user, formWithErrors))
+          }
+        },
+        newUser => DB.withConnection { implicit conn =>
+          if (login.isSuperUser || canEditEmployee(newUser.userId, login.siteUser.map(_.siteId).get)) {
+            newUser.update
+            Redirect(
+              routes.UserMaintenance.editUser()
+            ).flashing("message" -> Messages("userIsUpdated"))
+          }
+          else {
+            Redirect(routes.Application.index)
+          }
+        }
+      )
+    }
+  }
+
+  def deleteUser(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        if (login.isSuperUser || canEditEmployee(id, login.siteUser.map(_.siteId).get)) {
+          StoreUser.delete(id)
+          Redirect(routes.UserMaintenance.editUser())
+        }
+        else {
+          Redirect(routes.Application.index)
+        }
+      }
+    }
+  }
 
   def canEditEmployee(userId: Long, siteId: Long)(implicit conn: Connection): Boolean =
     StoreUser(userId).isEmployeeOf(siteId) && SiteOwnerCanEditEmployee
 
-  def startAddUsersByCsv = isAuthenticated { implicit login => forAdmin { implicit request =>
-    if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
-      DB.withConnection { implicit conn =>
-        Ok(views.html.admin.addUsersByCsv())
+  def startAddUsersByCsv = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
+        DB.withConnection { implicit conn =>
+          Ok(views.html.admin.addUsersByCsv())
+        }
+      }
+      else {
+        Redirect(routes.Admin.index)
       }
     }
-    else {
-      Redirect(routes.Admin.index)
-    }
-  }}
+  }
 
   def addUsersByCsv = maintainUsersByCsv(
     csvRecordFilter = (_, _) => true,
@@ -339,19 +381,18 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
     path: Path,
     csvRecordFilter: CsvRecord => Boolean,
     deleteSqlSupplemental: Option[String]
-  )(implicit lang: Lang): PlainResult = {
+  )(implicit lang: Lang): Result = {
     import com.ruimo.csv.Parser.parseLines
     import Files.newBufferedReader
     
-    iteratorFromReader(newBufferedReader(path, Charset.forName("Windows-31j"))) {
-      in: Iterator[Char] =>
-        val z: Iterator[Try[CsvRecord]] = asHeaderedCsv(parseLines(in))
-        StoreUser.maintainByCsv(
-          z,
-          csvRecordFilter,
-          deleteSqlSupplemental,
-          EmployeeCsvRegistration
-        ) 
+    iteratorFromReader(newBufferedReader(path, Charset.forName("Windows-31j"))) { in: Iterator[Char] =>
+      val z: Iterator[Try[CsvRecord]] = asHeaderedCsv(parseLines(in))
+      StoreUser.maintainByCsv(
+        z,
+        csvRecordFilter,
+        deleteSqlSupplemental,
+        EmployeeCsvRegistration
+      )
     } match {
       case Success(updatedColumnCount) =>
         Redirect(

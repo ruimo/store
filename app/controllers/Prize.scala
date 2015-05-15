@@ -45,7 +45,8 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
     )(CreatePrize.apply4Japan)(CreatePrize.unapply4Japan)
   )
 
-  def entry(itemName: String) = isAuthenticated { implicit login => implicit request =>
+  def entry(itemName: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     val user: StoreUser = login.storeUser
     val addr: Option[Address] = DB.withConnection{ implicit conn =>
       UserAddress.getByUserId(user.id.get).map {
@@ -53,7 +54,7 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
       }
     }
 
-    val (countryCode, prefectures, lookupPref) = lang.toLocale match {
+    val (countryCode, prefectures, lookupPref) = request2lang.toLocale match {
       case Locale.JAPANESE =>
         (CountryCode.JPN, Address.JapanPrefectures, JapanPrefecture.byIndex _)
       case Locale.JAPAN =>
@@ -78,7 +79,7 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
     )
 
     Ok(
-      lang.toLocale match {
+      request2lang.toLocale match {
         case Locale.JAPANESE =>
           views.html.prizeJa(itemName, user, prefectures, prizeFormJa.fill(model), SexForDropdown)
         case Locale.JAPAN =>
@@ -89,11 +90,13 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
     )
   }
 
-  def confirm(itemName: String) = isAuthenticated { implicit login => implicit request =>
+  def confirm(itemName: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     Ok("") // TODOkT.B.D.
   }
 
-  def confirmJa(itemName: String) = isAuthenticated { implicit login => implicit request =>
+  def confirmJa(itemName: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     val user: StoreUser = login.storeUser
 
     prizeFormJa.bindFromRequest.fold(
@@ -121,11 +124,13 @@ object Prize extends Controller with NeedLogin with HasLogger with I18nAware {
     )
   }
 
-  def submit(itemName: String) = isAuthenticated { implicit login => implicit request =>
+  def submit(itemName: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     Ok("") // T.B.D.
   }
 
-  def submitJa(itemName: String) = isAuthenticated { implicit login => implicit request =>
+  def submitJa(itemName: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     val user: StoreUser = login.storeUser
 
     prizeFormJa.bindFromRequest.fold(

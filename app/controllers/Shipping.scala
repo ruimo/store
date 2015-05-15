@@ -56,7 +56,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 
-  def startEnterShippingAddress = isAuthenticated { implicit login => implicit request =>
+  def startEnterShippingAddress = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn =>
       if (ShoppingCartItem.isAllCoupon(login.userId)) {
         Redirect(routes.Shipping.confirmShippingAddressJa())
@@ -72,7 +73,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           case None =>
             jaForm.bind(Map("shippingDate" -> shippingDateFormat.print(shippingDate))).discardingErrors
         }
-        lang.toLocale match {
+        request2lang.toLocale match {
           case Locale.JAPANESE =>
             Ok(views.html.shippingAddressJa(form, Address.JapanPrefectures))
           case Locale.JAPAN =>
@@ -85,7 +86,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
   }
 
-  def enterShippingAddressJa = isAuthenticated { implicit login => implicit request =>
+  def enterShippingAddressJa = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     jaForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in Shipping.enterShippingAddress.")
@@ -94,15 +96,16 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         }
       },
       newShippingAddress => {
-        DB.withTransaction { implicit conn => {
+        DB.withTransaction { implicit conn =>
           newShippingAddress.save(login.userId)
           Redirect(routes.Shipping.confirmShippingAddressJa())
-        }}
+        }
       }
     )
   }
 
-  def confirmShippingAddressJa = isAuthenticated { implicit login => implicit request =>
+  def confirmShippingAddressJa = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn =>
       val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
       if (ShoppingCartItem.isAllCoupon(login.userId)) {
@@ -170,7 +173,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   }
 
-  def finalizeTransactionJa = isAuthenticated { implicit login => implicit request =>
+  def finalizeTransactionJa = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     finalizeTransaction(CurrencyInfo.Jpy)
   }
 

@@ -26,7 +26,7 @@ case class CreateAddress(
   tel3: String,
   shippingDate: DateTime,
   comment: String
-) extends NotNull {
+) {
   lazy val hasName: Boolean = !firstName.isEmpty || !lastName.isEmpty
   lazy val hasKanaName: Boolean = !firstNameKana.isEmpty || !lastNameKana.isEmpty
   lazy val hasZip: Boolean = !zip1.isEmpty || !zip2.isEmpty || !zip3.isEmpty

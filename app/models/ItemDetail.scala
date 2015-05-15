@@ -22,7 +22,7 @@ case class ItemDetail(
   price: BigDecimal,
   listPrice: Option[BigDecimal],
   siteName: String
-) extends NotNull
+)
 
 object ItemDetail {
   val nameDesc = {

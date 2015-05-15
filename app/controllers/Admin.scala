@@ -54,7 +54,11 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
     )
   }}
   
-  def index = isAuthenticated { implicit login => forAdmin { implicit request =>
-    Ok(views.html.admin.index())
-  }}
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeAdmin(login) {
+      Ok(views.html.admin.index())
+    }
+  }
 }

@@ -47,7 +47,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
 
   def startItemInquiry(
     siteId: Long, itemId: Long
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     Ok(
       views.html.itemInquiry(itemInfo(siteId, itemId), inquiryStartForm(siteId, itemId, login.storeUser))
     )
@@ -55,7 +57,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
 
   def startItemReservation(
     siteId: Long, itemId: Long
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     Ok(
       views.html.itemReservation(itemInfo(siteId, itemId), reservationStartForm(siteId, itemId, login.storeUser))
     )
@@ -104,7 +108,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )
   )
 
-  def amendItemReservationStart(inqId: Long) = isAuthenticated { implicit login => implicit request =>
+  def amendItemReservationStart(inqId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val id = ItemInquiryId(inqId)
       val rec = ItemInquiry(id)
@@ -120,7 +126,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     }
   }
 
-  def amendItemReservation(inqId: Long) = isAuthenticated { implicit login => implicit request =>
+  def amendItemReservation(inqId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     val id = ItemInquiryId(inqId)
     val (rec: ItemInquiry, fields: immutable.Map[Symbol, String]) = DB.withConnection { implicit conn =>
       (ItemInquiry(id), ItemInquiryField(id))
@@ -144,7 +152,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
 
   def confirmItemInquiry(
     siteId: Long, itemId: Long
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     itemInquiryForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemInquiryReserveBase.submitItemInquiry." + formWithErrors + ".")
@@ -168,7 +178,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )
   )
 
-  def amendItemInquiryStart(inqId: Long) = isAuthenticated { implicit login => implicit request =>
+  def amendItemInquiryStart(inqId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val id = ItemInquiryId(inqId)
       val rec = ItemInquiry(id)
@@ -184,7 +196,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     }
   }
 
-  def amendItemInquiry(inqId: Long) = isAuthenticated { implicit login => implicit request =>
+  def amendItemInquiry(inqId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     val id = ItemInquiryId(inqId)
     val (rec: ItemInquiry, fields: immutable.Map[Symbol, String]) = DB.withConnection { implicit conn =>
       (ItemInquiry(id), ItemInquiryField(id))
@@ -214,7 +228,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
 
   def confirmItemReservation(
     siteId: Long, itemId: Long
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     itemReservationForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in ItemInquiryReserveBase.confirmItemReservation." + formWithErrors + ".")
@@ -227,7 +243,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )
   }
 
-  def submitItemInquiryStart(inquiryId: Long) = isAuthenticated { implicit login => implicit request =>
+  def submitItemInquiryStart(inquiryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val id = ItemInquiryId(inquiryId)
       val rec = ItemInquiry(id)
@@ -240,7 +258,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     }
   }
 
-  def submitItemInquiry(inquiryId: Long) = isAuthenticated { implicit login => implicit request =>
+  def submitItemInquiry(inquiryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     idSubmitForm.bindFromRequest.fold(
       formWithErrors => DB.withConnection { implicit conn =>
         val id = ItemInquiryId(inquiryId)
@@ -262,7 +282,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     )
   }
 
-  def submitItemReservationStart(inquiryId: Long) = isAuthenticated { implicit login => implicit request =>
+  def submitItemReservationStart(inquiryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val id = ItemInquiryId(inquiryId)
       val rec = ItemInquiry(id)
@@ -275,7 +297,9 @@ class ItemInquiryReserveBase extends Controller with I18nAware with NeedLogin wi
     }
   }
 
-  def submitItemReservation(inquiryId: Long) = isAuthenticated { implicit login => implicit request =>
+  def submitItemReservation(inquiryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     idSubmitForm.bindFromRequest.fold(
       formWithErrors => DB.withConnection { implicit conn =>
         val id = ItemInquiryId(inquiryId)

@@ -11,7 +11,7 @@ import play.api.i18n.Lang
 
 case class Site(
   id: Option[Long] = None, localeId: Long, name: String
-) extends NotNull with Ordered[Site] {
+) extends Ordered[Site] {
   def compare(that: Site) = {
     this.name.compare(that.name)
   }

@@ -104,6 +104,7 @@ class AddressSpec extends Specification {
             list2(i).updatedTime === ShippingAddressHistory.HistoryMaxCount - i
             Address.byId(list2(i).addressId).firstName === "firstName" + (ShippingAddressHistory.HistoryMaxCount - i)
           }
+          1 === 1
         }
       }
     }

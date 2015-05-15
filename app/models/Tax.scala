@@ -9,17 +9,17 @@ import play.api.i18n.{Messages, Lang}
 import java.sql.Connection
 import math.BigDecimal.RoundingMode
 
-case class Tax(id: Option[Long] = None) extends NotNull
+case class Tax(id: Option[Long] = None)
 
 case class TaxHistory(
   id: Option[Long] = None, taxId: Long, taxType: TaxType, rate: BigDecimal, validUntil: Long
-) extends NotNull {
+) {
   lazy val realRate = rate / BigDecimal(100)
   def taxAmount(target: BigDecimal): BigDecimal = Tax.taxAmount(target, taxType, realRate)
   def outerTax(target: BigDecimal): BigDecimal = Tax.outerTax(target, taxType, realRate)
 }
 
-case class TaxName(id: Option[Long] = None, taxId: Long, locale: LocaleInfo, taxName: String) extends NotNull
+case class TaxName(id: Option[Long] = None, taxId: Long, locale: LocaleInfo, taxName: String)
 
 object Tax {
   def taxAmount(target: BigDecimal, taxType: TaxType, rate: BigDecimal): BigDecimal = (taxType match {

@@ -69,75 +69,87 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (CreateItem.apply)(CreateItem.unapply)
   )
 
-  def index = isAuthenticated { implicit login => forAdmin { implicit request =>
-    Ok(views.html.admin.itemMaintenance())
-  }}
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      Ok(views.html.admin.itemMaintenance())
+    }
+  }
 
-  def startCreateNewItem = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      Ok(
-        views.html.admin.createNewItem(
-          createItemForm, LocaleInfo.localeTable, Category.tableForDropDown,
-          if (login.isSuperUser) Site.tableForDropDown
-          else {
-            val site = Site(login.siteUser.get.siteId)
-            List((site.id.get.toString, site.name))
-          },
-          Tax.tableForDropDown, CurrencyInfo.tableForDropDown
+  def startCreateNewItem = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        Ok(
+          views.html.admin.createNewItem(
+            createItemForm, LocaleInfo.localeTable, Category.tableForDropDown,
+            if (login.isSuperUser) Site.tableForDropDown
+            else {
+              val site = Site(login.siteUser.get.siteId)
+              List((site.id.get.toString, site.name))
+            },
+            Tax.tableForDropDown, CurrencyInfo.tableForDropDown
+          )
         )
+      }
+    }
+  }
+
+  def createNewItem = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      createItemForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.createNewItem." + formWithErrors + ".")
+          BadRequest(
+            DB.withConnection { implicit conn =>
+              views.html.admin.createNewItem(
+                formWithErrors, LocaleInfo.localeTable, Category.tableForDropDown,
+                Site.tableForDropDown, Tax.tableForDropDown, CurrencyInfo.tableForDropDown
+              )
+            }
+          )
+        },
+        newItem => {
+          DB.withConnection { implicit conn =>
+            newItem.save()
+          }
+          Redirect(
+            routes.ItemMaintenance.startCreateNewItem
+          ).flashing("message" -> Messages("itemIsCreated"))
+        }
       )
     }
-  }}
-
-  def createNewItem = isAuthenticated { implicit login => forAdmin { implicit request =>
-    createItemForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.createNewItem." + formWithErrors + ".")
-        BadRequest(
-          DB.withConnection { implicit conn =>
-            views.html.admin.createNewItem(
-              formWithErrors, LocaleInfo.localeTable, Category.tableForDropDown,
-              Site.tableForDropDown, Tax.tableForDropDown, CurrencyInfo.tableForDropDown
-            )
-          }
-        )
-      },
-      newItem => {
-        DB.withConnection { implicit conn =>
-          newItem.save()
-        }
-        Redirect(
-          routes.ItemMaintenance.startCreateNewItem
-        ).flashing("message" -> Messages("itemIsCreated"))
-      }
-    )
-  }}
+  }
 
   def editItem(
     qs: List[String], pgStart: Int, pgSize: Int, orderBySpec: String
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    val queryStr = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
-    DB.withConnection { implicit conn => {
-      login.role match {
-        case Buyer => throw new Error("Logic error.")
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      val queryStr = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
+      DB.withConnection { implicit conn =>
+        login.role match {
+          case Buyer => throw new Error("Logic error.")
 
-        case SuperUser =>
-          val list = Item.listForMaintenance(
-            siteUser = None, locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
-            pageSize = pgSize, orderBy = OrderBy(orderBySpec)
-          )
+          case SuperUser =>
+            val list = Item.listForMaintenance(
+              siteUser = None, locale = LocaleInfo.getDefault, queryString = queryStr, page = pgStart,
+              pageSize = pgSize, orderBy = OrderBy(orderBySpec)
+            )
 
-          Ok(views.html.admin.editItem(queryStr, list))
+            Ok(views.html.admin.editItem(queryStr, list))
 
-        case SiteOwner(siteOwner) =>
-          val list = Item.listForMaintenance(
-            siteUser = Some(siteOwner), locale = LocaleInfo.byLang(lang), queryString = queryStr, page = pgStart,
-            pageSize = pgSize, orderBy = OrderBy(orderBySpec)
-          )
-          Ok(views.html.admin.editItem(queryStr, list))
+          case SiteOwner(siteOwner) =>
+            val list = Item.listForMaintenance(
+              siteUser = Some(siteOwner), locale = LocaleInfo.getDefault, queryString = queryStr, page = pgStart,
+              pageSize = pgSize, orderBy = OrderBy(orderBySpec)
+            )
+            Ok(views.html.admin.editItem(queryStr, list))
+        }
       }
-    }}
-  }}
+    }
+  }
 
   def siteListAsMap: Map[Long, Site] = {
     DB.withConnection { implicit conn => {
@@ -169,39 +181,42 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     e => (e.ordinal.toString, Messages("siteItemTextMetadata" + e.toString))
   }
 
-  def startChangeItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    Ok(views.html.admin.changeItem(
-      new ChangeItem(
-        id,
-        siteListAsMap,
-        LocaleInfo.localeTable,
-        createItemNameTable(id),
-        addItemNameForm,
-        createSiteTable,
-        createSiteItemTable(id),
-        addSiteItemForm,
-        createItemCategoryForm(id),
-        createCategoryTable,
-        createItemDescriptionTable(id),
-        addItemDescriptionForm,
-        createItemPriceTable(id),
-        addItemPriceForm,
-        taxTable,
-        currencyTable,
-        createSiteTable(id),
-        createItemMetadataTable(id),
-        addItemMetadataForm,
-        createSiteItemMetadataTable(id),
-        addSiteItemMetadataForm,
-        createSiteItemTextMetadataTable(id),
-        addSiteItemTextMetadataForm,
-        createItemTextMetadataTable(id),
-        addItemTextMetadataForm,
-        ItemPictures.retrieveAttachmentNames(id),
-        createCouponForm(ItemId(id))
-      )
-    ))
-  }}
+  def startChangeItem(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      Ok(views.html.admin.changeItem(
+        new ChangeItem(
+          id,
+          siteListAsMap,
+          LocaleInfo.localeTable,
+          createItemNameTable(id),
+          addItemNameForm,
+          createSiteTable,
+          createSiteItemTable(id),
+          addSiteItemForm,
+          createItemCategoryForm(id),
+          createCategoryTable,
+          createItemDescriptionTable(id),
+          addItemDescriptionForm,
+          createItemPriceTable(id),
+          addItemPriceForm,
+          taxTable,
+          currencyTable,
+          createSiteTable(id),
+          createItemMetadataTable(id),
+          addItemMetadataForm,
+          createSiteItemMetadataTable(id),
+          addSiteItemMetadataForm,
+          createSiteItemTextMetadataTable(id),
+          addSiteItemTextMetadataForm,
+          createItemTextMetadataTable(id),
+          addItemTextMetadataForm,
+          ItemPictures.retrieveAttachmentNames(id),
+          createCouponForm(ItemId(id))
+        )
+      ))
+    }
+  }
 
   val changeItemNameForm = Form(
     mapping(
@@ -353,195 +368,216 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemName(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeItemNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              formWithErrors,
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
+  def changeItemName(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeItemNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                formWithErrors,
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
             )
           )
-        )
-      },
-      newItem => {
-        DB.withConnection { implicit conn =>
-          newItem.update(id)
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(id)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def addItemName(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addItemNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              formWithErrors,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
-            )
-          )
-        )
-      },
-      newItem => {
-        try {
-          newItem.add(id)
-
+        },
+        newItem => {
+          DB.withConnection { implicit conn =>
+            newItem.update(id)
+          }
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
           ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm.fill(newItem).withError("localeId", "unique.constraint.violation"),
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+      )
+    }
+  }
+
+  def addItemName(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addItemNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                formWithErrors,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
               )
             )
+          )
+        },
+        newItem => {
+          try {
+            newItem.add(id)
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm.fill(newItem).withError("localeId", "unique.constraint.violation"),
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
           }
         }
+      )
+    }
+  }
+
+  def removeItemName(itemId: Long, localeId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        ItemName.remove(ItemId(itemId), localeId)
       }
-    )
-  }}
 
-  def removeItemName(itemId: Long, localeId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      ItemName.remove(ItemId(itemId), localeId)
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
     }
+  }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+  def removeItemMetadata(itemId: Long, metadataType: Int) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        ItemNumericMetadata.remove(ItemId(itemId), metadataType)
+      }
 
-  def removeItemMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      ItemNumericMetadata.remove(ItemId(itemId), metadataType)
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
     }
+  }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+  def removeItemTextMetadata(itemId: Long, metadataType: Int) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        ItemTextMetadata.remove(ItemId(itemId), metadataType)
+      }
 
-  def removeItemTextMetadata(itemId: Long, metadataType: Int) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      ItemTextMetadata.remove(ItemId(itemId), metadataType)
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
     }
-
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+  }
 
   def removeSiteItemMetadata(
     itemId: Long, siteId: Long, metadataType: Int
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      SiteItemNumericMetadata.remove(ItemId(itemId), siteId, metadataType)
-    }
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        SiteItemNumericMetadata.remove(ItemId(itemId), siteId, metadataType)
+      }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
+    }
+  }
 
   def removeSiteItemTextMetadata(
     itemId: Long, siteId: Long, metadataType: Int
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      SiteItemTextMetadata.remove(ItemId(itemId), siteId, metadataType)
-    }
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        SiteItemTextMetadata.remove(ItemId(itemId), siteId, metadataType)
+      }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
+    }
+  }
 
   val addSiteItemForm = Form(
     mapping(
@@ -567,105 +603,111 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def addSiteItem(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addSiteItemForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              formWithErrors,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
-            )
-          )
-        )
-      },
-      newSiteItem => {
-        try {
-          DB.withConnection { implicit conn =>
-            newSiteItem.add(id)
-          }
-
-          Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
-          ).flashing("message" -> Messages("itemIsUpdated"))
-        }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm.fill(newSiteItem).withError("siteId", "unique.constraint.violation"),
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+  def addSiteItem(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addSiteItemForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                formWithErrors,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
               )
             )
+          )
+        },
+        newSiteItem => {
+          try {
+            DB.withConnection { implicit conn =>
+              newSiteItem.add(id)
+            }
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm.fill(newSiteItem).withError("siteId", "unique.constraint.violation"),
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
           }
         }
-      }
-    )
-  }}
-
-  def removeSiteItem(itemId: Long, siteId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      SiteItem.remove(ItemId(itemId), siteId)
-      ItemPrice.remove(ItemId(itemId), siteId)
+      )
     }
+  }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+  def removeSiteItem(itemId: Long, siteId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        SiteItem.remove(ItemId(itemId), siteId)
+        ItemPrice.remove(ItemId(itemId), siteId)
+      }
+
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
+    }
+  }
 
   val updateCategoryForm = Form(
     mapping(
@@ -692,103 +734,109 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def updateItemAsCoupon(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    couponForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.updateItemAsItem." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              formWithErrors
+  def updateItemAsCoupon(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      couponForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.updateItemAsItem." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                formWithErrors
+              )
             )
           )
-        )
-      },
-      newIsCoupon => {
-        DB.withConnection { implicit conn =>
-          newIsCoupon.update(ItemId(id))
+        },
+        newIsCoupon => {
+          DB.withConnection { implicit conn =>
+            newIsCoupon.update(ItemId(id))
+          }
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(id)
+          ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(id)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
+      )
+    }
+  }
 
-  def updateItemCategory(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    updateCategoryForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              formWithErrors,
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
+  def updateItemCategory(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      updateCategoryForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                formWithErrors,
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
             )
           )
-        )
-      },
-      newItemCategory => {
-        DB.withConnection { implicit conn =>
-          newItemCategory.update(id)
+        },
+        newItemCategory => {
+          DB.withConnection { implicit conn =>
+            newItemCategory.update(id)
+          }
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(id)
+          ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(id)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
+      )
+    }
+  }
 
   val changeItemDescriptionForm = Form(
     mapping(
@@ -820,156 +868,165 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemDescription(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeItemDescriptionForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              formWithErrors,
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
+  def changeItemDescription(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeItemDescriptionForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                formWithErrors,
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
             )
           )
-        )
-      },
-      newItem => {
-        DB.withTransaction { implicit conn =>
-          newItem.update(id)
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(id)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def addItemDescription(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addItemDescriptionForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              formWithErrors,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
-            )
-          )
-        )
-      },
-      newItem => {
-        try {
-          newItem.add(id)
-
+        },
+        newItem => {
+          DB.withTransaction { implicit conn =>
+            newItem.update(id)
+          }
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
           ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm
-                    .fill(newItem)
-                    .withError("localeId", "unique.constraint.violation")
-                    .withError("siteId", "unique.constraint.violation"),
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+      )
+    }
+  }
+
+  def addItemDescription(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addItemDescriptionForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                formWithErrors,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
               )
             )
+          )
+        },
+        newItem => {
+          try {
+            newItem.add(id)
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm
+                      .fill(newItem)
+                      .withError("localeId", "unique.constraint.violation")
+                      .withError("siteId", "unique.constraint.violation"),
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
           }
         }
-      }
-    )
-  }}
+      )
+    }
+  }
 
   def removeItemDescription(
     siteId: Long, itemId: Long, localeId: Long
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      ItemDescription.remove(siteId, ItemId(itemId), localeId)
-    }
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        ItemDescription.remove(siteId, ItemId(itemId), localeId)
+      }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
+    }
+  }
 
   val changeItemPriceForm = Form(
     mapping(
@@ -1016,711 +1073,744 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }}
   }
 
-  def changeItemPrice(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeItemPriceForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              formWithErrors,
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
+  def changeItemPrice(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeItemPriceForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                formWithErrors,
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
             )
           )
-        )
-      },
-      newPrice => {
-        DB.withConnection { implicit conn =>
-          newPrice.update()
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(id)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def addItemPrice(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addItemPriceForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              formWithErrors,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
-            )
-          )
-        )
-      },
-      newHistory => {
-        try {
+        },
+        newPrice => {
           DB.withConnection { implicit conn =>
-            newHistory.add(id)
+            newPrice.update()
           }
           Redirect(
             routes.ItemMaintenance.startChangeItem(id)
           ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm
-                    .fill(newHistory)
-                    .withError("siteId", "unique.constraint.violation")
-                    .withError("validUntil", "unique.constraint.violation"),
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+      )
+    }
+  }
+
+  def addItemPrice(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addItemPriceForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                formWithErrors,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
               )
             )
+          )
+        },
+        newHistory => {
+          try {
+            DB.withConnection { implicit conn =>
+              newHistory.add(id)
+            }
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm
+                      .fill(newHistory)
+                      .withError("siteId", "unique.constraint.violation")
+                      .withError("validUntil", "unique.constraint.violation"),
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
           }
         }
-      }
-    )
-  }}
+      )
+    }
+  }
 
   def removeItemPrice(
     itemId: Long, siteId: Long, itemPriceHistoryId: Long
-  ) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      ItemPriceHistory.remove(ItemId(itemId), siteId, itemPriceHistoryId)
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        ItemPriceHistory.remove(ItemId(itemId), siteId, itemPriceHistoryId)
+      }
+
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      )
     }
+  }
 
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    )
-  }}
-
-  def changeItemMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeItemMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItemMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              itemId,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(itemId),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(itemId),
-              addSiteItemForm,
-              createItemCategoryForm(itemId),
-              createCategoryTable,
-              createItemDescriptionTable(itemId),
-              addItemDescriptionForm,
-              createItemPriceTable(itemId),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(itemId),
-              formWithErrors,
-              addItemMetadataForm,
-              createSiteItemMetadataTable(itemId),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(itemId),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(itemId),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId),
-              createCouponForm(ItemId(itemId))
-            )
-          )
-        )
-      },
-      newMetadata => {
-        DB.withTransaction { implicit conn =>
-          newMetadata.update(itemId)
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(itemId)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def changeItemTextMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeItemTextMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeItemTextMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              itemId,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(itemId),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(itemId),
-              addSiteItemForm,
-              createItemCategoryForm(itemId),
-              createCategoryTable,
-              createItemDescriptionTable(itemId),
-              addItemDescriptionForm,
-              createItemPriceTable(itemId),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(itemId),
-              createItemMetadataTable(itemId),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(itemId),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(itemId),
-              addSiteItemTextMetadataForm,
-              formWithErrors,
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId),
-              createCouponForm(ItemId(itemId))
-            )
-          )
-        )
-      },
-      newMetadata => {
-        DB.withTransaction { implicit conn =>
-          newMetadata.update(itemId)
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(itemId)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def changeSiteItemMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeSiteItemMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeSiteItemMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              itemId,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(itemId),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(itemId),
-              addSiteItemForm,
-              createItemCategoryForm(itemId),
-              createCategoryTable,
-              createItemDescriptionTable(itemId),
-              addItemDescriptionForm,
-              createItemPriceTable(itemId),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(itemId),
-              createItemMetadataTable(itemId),
-              addItemMetadataForm,
-              formWithErrors,
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(itemId),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(itemId),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId),
-              createCouponForm(ItemId(itemId))
-            )
-          )
-        )
-      },
-      newMetadata => {
-        DB.withConnection { implicit conn =>
-          newMetadata.update(itemId)
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(itemId)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def changeSiteItemTextMetadata(itemId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeSiteItemTextMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.changeSiteItemTextMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              itemId,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(itemId),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(itemId),
-              addSiteItemForm,
-              createItemCategoryForm(itemId),
-              createCategoryTable,
-              createItemDescriptionTable(itemId),
-              addItemDescriptionForm,
-              createItemPriceTable(itemId),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(itemId),
-              createItemMetadataTable(itemId),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(itemId),
-              addSiteItemMetadataForm,
-              formWithErrors,
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(itemId),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(itemId),
-              createCouponForm(ItemId(itemId))
-            )
-          )
-        )
-      },
-      newMetadata => {
-        DB.withConnection { implicit conn =>
-          newMetadata.update(itemId)
-        }
-        Redirect(
-          routes.ItemMaintenance.startChangeItem(itemId)
-        ).flashing("message" -> Messages("itemIsUpdated"))
-      }
-    )
-  }}
-
-  def addItemMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addItemMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addItemMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              formWithErrors,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
-            )
-          )
-        )
-      },
-      newMetadata => {
-        try {
-          newMetadata.add(id)
-
-          Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
-          ).flashing("message" -> Messages("itemIsUpdated"))
-        }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm
-                    .fill(newMetadata)
-                    .withError("metadataType", "unique.constraint.violation"),
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+  def changeItemMetadata(itemId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeItemMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeItemMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                itemId,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(itemId),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(itemId),
+                addSiteItemForm,
+                createItemCategoryForm(itemId),
+                createCategoryTable,
+                createItemDescriptionTable(itemId),
+                addItemDescriptionForm,
+                createItemPriceTable(itemId),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(itemId),
+                formWithErrors,
+                addItemMetadataForm,
+                createSiteItemMetadataTable(itemId),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(itemId),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(itemId),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(itemId),
+                createCouponForm(ItemId(itemId))
               )
             )
-          }
-        }
-      }
-    )
-  }}
-
-  def addItemTextMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addItemTextMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addItemTextMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              formWithErrors,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
-            )
           )
-        )
-      },
-      newMetadata => {
-        try {
-          newMetadata.add(id)
-
+        },
+        newMetadata => {
+          DB.withTransaction { implicit conn =>
+            newMetadata.update(itemId)
+          }
           Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
+            routes.ItemMaintenance.startChangeItem(itemId)
           ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm
-                    .fill(newMetadata)
-                    .withError("metadataType", "unique.constraint.violation"),
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+      )
+    }
+  }
+
+  def changeItemTextMetadata(itemId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeItemTextMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeItemTextMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                itemId,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(itemId),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(itemId),
+                addSiteItemForm,
+                createItemCategoryForm(itemId),
+                createCategoryTable,
+                createItemDescriptionTable(itemId),
+                addItemDescriptionForm,
+                createItemPriceTable(itemId),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(itemId),
+                createItemMetadataTable(itemId),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(itemId),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(itemId),
+                addSiteItemTextMetadataForm,
+                formWithErrors,
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(itemId),
+                createCouponForm(ItemId(itemId))
               )
             )
+          )
+        },
+        newMetadata => {
+          DB.withTransaction { implicit conn =>
+            newMetadata.update(itemId)
           }
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(itemId)
+          ).flashing("message" -> Messages("itemIsUpdated"))
         }
-      }
-    )
-  }}
+      )
+    }
+  }
 
-  def addSiteItemMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addSiteItemMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addSiteItemMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              formWithErrors,
-              createSiteItemTextMetadataTable(id),
-              addSiteItemTextMetadataForm,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
+  def changeSiteItemMetadata(itemId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeSiteItemMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeSiteItemMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                itemId,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(itemId),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(itemId),
+                addSiteItemForm,
+                createItemCategoryForm(itemId),
+                createCategoryTable,
+                createItemDescriptionTable(itemId),
+                addItemDescriptionForm,
+                createItemPriceTable(itemId),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(itemId),
+                createItemMetadataTable(itemId),
+                addItemMetadataForm,
+                formWithErrors,
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(itemId),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(itemId),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(itemId),
+                createCouponForm(ItemId(itemId))
+              )
             )
           )
-        )
-      },
-      newMetadata => {
-        try {
+        },
+        newMetadata => {
           DB.withConnection { implicit conn =>
-            newMetadata.add(id)
+            newMetadata.update(itemId)
           }
-
           Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
+            routes.ItemMaintenance.startChangeItem(itemId)
           ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm
-                    .fill(newMetadata)
-                    .withError("metadataType", "unique.constraint.violation"),
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm,
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
-              )
-            )
-          }
-        }
-      }
-    )
-  }}
+      )
+    }
+  }
 
-  def addSiteItemTextMetadata(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addSiteItemTextMetadataForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ItemMaintenance.addSiteItemTextMetadata." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeItem(
-            new ChangeItem(
-              id,
-              siteListAsMap,
-              LocaleInfo.localeTable,
-              createItemNameTable(id),
-              addItemNameForm,
-              createSiteTable,
-              createSiteItemTable(id),
-              addSiteItemForm,
-              createItemCategoryForm(id),
-              createCategoryTable,
-              createItemDescriptionTable(id),
-              addItemDescriptionForm,
-              createItemPriceTable(id),
-              addItemPriceForm,
-              taxTable,
-              currencyTable,
-              createSiteTable(id),
-              createItemMetadataTable(id),
-              addItemMetadataForm,
-              createSiteItemMetadataTable(id),
-              addSiteItemMetadataForm,
-              createSiteItemTextMetadataTable(id),
-              formWithErrors,
-              createItemTextMetadataTable(id),
-              addItemTextMetadataForm,
-              ItemPictures.retrieveAttachmentNames(id),
-              createCouponForm(ItemId(id))
+  def changeSiteItemTextMetadata(itemId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeSiteItemTextMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.changeSiteItemTextMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                itemId,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(itemId),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(itemId),
+                addSiteItemForm,
+                createItemCategoryForm(itemId),
+                createCategoryTable,
+                createItemDescriptionTable(itemId),
+                addItemDescriptionForm,
+                createItemPriceTable(itemId),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(itemId),
+                createItemMetadataTable(itemId),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(itemId),
+                addSiteItemMetadataForm,
+                formWithErrors,
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(itemId),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(itemId),
+                createCouponForm(ItemId(itemId))
+              )
             )
           )
-        )
-      },
-      newMetadata => {
-        try {
+        },
+        newMetadata => {
           DB.withConnection { implicit conn =>
-            newMetadata.add(id)
+            newMetadata.update(itemId)
           }
-
           Redirect(
-            routes.ItemMaintenance.startChangeItem(id)
+            routes.ItemMaintenance.startChangeItem(itemId)
           ).flashing("message" -> Messages("itemIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeItem(
-                new ChangeItem(
-                  id,
-                  siteListAsMap,
-                  LocaleInfo.localeTable,
-                  createItemNameTable(id),
-                  addItemNameForm,
-                  createSiteTable,
-                  createSiteItemTable(id),
-                  addSiteItemForm,
-                  createItemCategoryForm(id),
-                  createCategoryTable,
-                  createItemDescriptionTable(id),
-                  addItemDescriptionForm,
-                  createItemPriceTable(id),
-                  addItemPriceForm,
-                  taxTable,
-                  currencyTable,
-                  createSiteTable(id),
-                  createItemMetadataTable(id),
-                  addItemMetadataForm,
-                  createSiteItemMetadataTable(id),
-                  addSiteItemMetadataForm,
-                  createSiteItemTextMetadataTable(id),
-                  addSiteItemTextMetadataForm
-                    .fill(newMetadata)
-                    .withError("metadataType", "unique.constraint.violation"),
-                  createItemTextMetadataTable(id),
-                  addItemTextMetadataForm,
-                  ItemPictures.retrieveAttachmentNames(id),
-                  createCouponForm(ItemId(id))
-                )
+      )
+    }
+  }
+
+  def addItemMetadata(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addItemMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addItemMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                formWithErrors,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
               )
             )
+          )
+        },
+        newMetadata => {
+          try {
+            newMetadata.add(id)
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm
+                      .fill(newMetadata)
+                      .withError("metadataType", "unique.constraint.violation"),
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
           }
         }
-      }
-    )
-  }}
+      )
+    }
+  }
+
+  def addItemTextMetadata(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addItemTextMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addItemTextMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                formWithErrors,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
+            )
+          )
+        },
+        newMetadata => {
+          try {
+            newMetadata.add(id)
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm
+                      .fill(newMetadata)
+                      .withError("metadataType", "unique.constraint.violation"),
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
+          }
+        }
+      )
+    }
+  }
+
+  def addSiteItemMetadata(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addSiteItemMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addSiteItemMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                formWithErrors,
+                createSiteItemTextMetadataTable(id),
+                addSiteItemTextMetadataForm,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
+            )
+          )
+        },
+        newMetadata => {
+          try {
+            DB.withConnection { implicit conn =>
+              newMetadata.add(id)
+            }
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm
+                      .fill(newMetadata)
+                      .withError("metadataType", "unique.constraint.violation"),
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm,
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
+          }
+        }
+      )
+    }
+  }
+
+  def addSiteItemTextMetadata(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      addSiteItemTextMetadataForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addSiteItemTextMetadata." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeItem(
+              new ChangeItem(
+                id,
+                siteListAsMap,
+                LocaleInfo.localeTable,
+                createItemNameTable(id),
+                addItemNameForm,
+                createSiteTable,
+                createSiteItemTable(id),
+                addSiteItemForm,
+                createItemCategoryForm(id),
+                createCategoryTable,
+                createItemDescriptionTable(id),
+                addItemDescriptionForm,
+                createItemPriceTable(id),
+                addItemPriceForm,
+                taxTable,
+                currencyTable,
+                createSiteTable(id),
+                createItemMetadataTable(id),
+                addItemMetadataForm,
+                createSiteItemMetadataTable(id),
+                addSiteItemMetadataForm,
+                createSiteItemTextMetadataTable(id),
+                formWithErrors,
+                createItemTextMetadataTable(id),
+                addItemTextMetadataForm,
+                ItemPictures.retrieveAttachmentNames(id),
+                createCouponForm(ItemId(id))
+              )
+            )
+          )
+        },
+        newMetadata => {
+          try {
+            DB.withConnection { implicit conn =>
+              newMetadata.add(id)
+            }
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(id)
+            ).flashing("message" -> Messages("itemIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeItem(
+                  new ChangeItem(
+                    id,
+                    siteListAsMap,
+                    LocaleInfo.localeTable,
+                    createItemNameTable(id),
+                    addItemNameForm,
+                    createSiteTable,
+                    createSiteItemTable(id),
+                    addSiteItemForm,
+                    createItemCategoryForm(id),
+                    createCategoryTable,
+                    createItemDescriptionTable(id),
+                    addItemDescriptionForm,
+                    createItemPriceTable(id),
+                    addItemPriceForm,
+                    taxTable,
+                    currencyTable,
+                    createSiteTable(id),
+                    createItemMetadataTable(id),
+                    addItemMetadataForm,
+                    createSiteItemMetadataTable(id),
+                    addSiteItemMetadataForm,
+                    createSiteItemTextMetadataTable(id),
+                    addSiteItemTextMetadataForm
+                      .fill(newMetadata)
+                      .withError("metadataType", "unique.constraint.violation"),
+                    createItemTextMetadataTable(id),
+                    addItemTextMetadataForm,
+                    ItemPictures.retrieveAttachmentNames(id),
+                    createCouponForm(ItemId(id))
+                  )
+                )
+              )
+            }
+          }
+        }
+      )
+    }
+  }
 }

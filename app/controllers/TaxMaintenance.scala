@@ -20,33 +20,45 @@ object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasL
     ) (CreateTax.apply)(CreateTax.unapply)
   )
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.taxMaintenance())
-  }}
+  def index = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.taxMaintenance())
+    }
+  }
 
-  def startCreateNewTax = isAuthenticated { implicit login => forSuperUser { implicit request => {
-    Ok(views.html.admin.createNewTax(createTaxForm, Tax.taxTypeTable, LocaleInfo.localeTable))
-  }}}
+  def startCreateNewTax = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.createNewTax(createTaxForm, Tax.taxTypeTable, LocaleInfo.localeTable))
+    }
+  }
 
-  def createNewTax = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    createTaxForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in TaxMaintenance.createNewTax.")
-        BadRequest(views.html.admin.createNewTax(formWithErrors, Tax.taxTypeTable, LocaleInfo.localeTable))
-      },
-      newTax => {
-        DB.withConnection { implicit conn =>
-          newTax.save()
+  def createNewTax = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      createTaxForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in TaxMaintenance.createNewTax.")
+          BadRequest(views.html.admin.createNewTax(formWithErrors, Tax.taxTypeTable, LocaleInfo.localeTable))
+        },
+        newTax => {
+          DB.withConnection { implicit conn =>
+            newTax.save()
+          }
+          Redirect(
+            routes.TaxMaintenance.startCreateNewTax
+          ).flashing("message" -> Messages("taxIsCreated"))
         }
-        Redirect(
-          routes.TaxMaintenance.startCreateNewTax
-        ).flashing("message" -> Messages("taxIsCreated"))
-      }
-    )
-  }}
+      )
+    }
+  }
 
-  def editTax = isAuthenticated { implicit login => forSuperUser { implicit request => {
-    Ok(views.html.admin.editTax())
-  }}}
+  def editTax = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.editTax())
+    }
+  }
 }
 

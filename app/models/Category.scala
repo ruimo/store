@@ -9,15 +9,15 @@ import play.api.i18n.Lang
 import java.sql.Connection
 import scala.collection.immutable
 
-case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) extends NotNull {
+case class CategoryPath(ancestor: Long, descendant: Long, pathLength: Int) {
   assert(pathLength >= 0 && pathLength <= Short.MaxValue, "length(= " + pathLength + ") is invalid.")
 }
 
-case class CategoryName(locale: LocaleInfo, categoryId: Long, name: String) extends NotNull {
+case class CategoryName(locale: LocaleInfo, categoryId: Long, name: String) {
   assert(name != null && name.length <= 32, "length(= " + name + ") is invalid.")
 }
 
-case class Category(id: Option[Long] = None) extends NotNull
+case class Category(id: Option[Long] = None)
 
 object Category {
   val simple = {

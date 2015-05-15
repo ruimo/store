@@ -97,7 +97,6 @@ class UserEntrySpec extends Specification {
         browser.fill("#fax").`with`("A")
         browser.find("#submitUserEntry").click()
         browser.find("#fax_field").find(".help-inline").getText === Messages("error.number")
-        Thread.sleep(20000)
       }}
     }
   }

@@ -1,5 +1,8 @@
 package controllers
 
+import play.api.mvc.Security.AuthenticatedBuilder
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import play.api.mvc.Security.Authenticated
 import play.api.mvc._
 import play.api.data._
@@ -46,7 +49,7 @@ trait NeedLogin extends Controller with HasLogger {
     }
   }
 
-  def onUnauthorized(request: RequestHeader) = DB.withConnection { implicit conn => {
+  def onUnauthorized(request: RequestHeader): Result = DB.withConnection { implicit conn => {
     StoreUser.count match {
       case 0 =>  {
         logger.info("User table empty. Go to first setup page.")
@@ -54,16 +57,17 @@ trait NeedLogin extends Controller with HasLogger {
       }
       case _ => {
         logger.info("User table is not empty. Go to login page.")
-        val urlAfterLogin = if (request.method.equalsIgnoreCase("get"))
-          routes.Admin.startLogin(request.uri)
-        else
-          routes.Application.index
-        Redirect(urlAfterLogin)
+        Redirect(
+          if (request.method.equalsIgnoreCase("get"))
+            routes.Admin.startLogin(request.uri)
+          else
+            routes.Application.index
+        )
       }
     }
   }}
 
-  def onUnauthorizedJson(request: RequestHeader) = DB.withConnection { implicit conn => {
+  def onUnauthorizedJson(request: RequestHeader): Result = DB.withConnection { implicit conn => {
     StoreUser.count match {
       case 0 =>  {
         logger.info("Json: User table empty. Go to first setup page.")
@@ -108,19 +112,21 @@ trait NeedLogin extends Controller with HasLogger {
       })
     }
 
-  def isAuthenticated(f: => LoginSession => Request[AnyContent] => Result): EssentialAction =
-    Authenticated(retrieveLoginSession, onUnauthorized) { user =>
-      Action(request => f(user)(request).withSession(
-        request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-      ))
-    }
+  object NeedAuthenticated extends AuthenticatedBuilder(req => retrieveLoginSession(req), onUnauthorized)
+  def assumeSuperUser(login: LoginSession)(result: => Result): Result = {
+    if (login.isSuperUser) result
+    else Redirect(routes.Application.index)
+  }
+  def assumeAdmin(login: LoginSession)(result: => Result): Result = {
+    if (login.isAdmin) result
+    else Redirect(routes.Application.index)
+  }
+  def assumeSiteOwner(login: LoginSession)(result: => Result): Result = {
+    if (login.isSiteOwner) result
+    else Redirect(routes.Application.index)
+  }
 
-  def isAuthenticatedJson(f: => LoginSession => Request[AnyContent] => Result): EssentialAction =
-    Authenticated(retrieveLoginSession, onUnauthorizedJson) { user =>
-      Action(request => f(user)(request).withSession(
-        request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-      ))
-    }
+  object NeedAuthenticatedJson extends AuthenticatedBuilder(req => retrieveLoginSession(req), onUnauthorizedJson)
 
   def startLogin(uriOnLoginSuccess: String) = Action { implicit request =>
     if (retrieveLoginSession(request).isDefined)
@@ -144,7 +150,7 @@ trait NeedLogin extends Controller with HasLogger {
   }
 
   def logoff(uriOnLogoffSuccess: String) = Action { implicit request =>
-    Redirect(routes.Application.index).withSession(session - LoginUserKey)
+    Redirect(routes.Application.index).withSession(request.session - LoginUserKey)
   }
 
   def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
@@ -170,12 +176,11 @@ trait NeedLogin extends Controller with HasLogger {
           }
           else {
             logger.info("Login success '" + user.compoundUserName + "'")
-            val result = Redirect(user.uri).withSession {
+            Redirect(user.uri).flashing(
+              "message" -> "Welcome"
+            ).withSession {
               (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
             }
-            val welcomeMsg: String = Messages("welcome")
-            if (welcomeMsg.isEmpty) result
-            else result.flashing("message" -> welcomeMsg)
           }
         }
         else {
@@ -194,27 +199,6 @@ trait NeedLogin extends Controller with HasLogger {
       form.withGlobalError(Messages("cannotLogin")),
       form("uri").value.get
     ))
-  }
-
-  def forAdmin(
-    f: Request[AnyContent] => Result
-  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
-    if (login.isAdmin) f(request)
-    else Redirect(routes.Application.index)
-  }
-
-  def forSiteOwner(
-    f: Request[AnyContent] => Result
-  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
-    if (login.isSiteOwner) f(request)
-    else Redirect(routes.Application.index)
-  }
-
-  def forSuperUser(
-    f: Request[AnyContent] => Result
-  )(implicit login: LoginSession): Request[AnyContent] => Result = { request =>
-    if (login.isSuperUser) f(request)
-    else Redirect(routes.Application.index)
   }
 }
 

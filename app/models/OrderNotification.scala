@@ -10,7 +10,7 @@ import java.sql.Connection
 case class OrderNotification(
   id: Option[Long] = None,
   storeUserId: Long
-) extends NotNull
+)
 
 object OrderNotification {
   val simple = {

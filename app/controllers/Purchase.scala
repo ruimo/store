@@ -8,14 +8,16 @@ import play.api.Play.current
 import controllers.I18n.I18nAware
 
 object Purchase extends Controller with NeedLogin with HasLogger with I18nAware {
-  def addToCart(siteId: Long, itemId: Long, quantity: Int) = isAuthenticated { implicit login => implicit request =>
+  def addToCart(siteId: Long, itemId: Long, quantity: Int) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn => {
       val cartItem = ShoppingCartItem.addItem(login.userId, siteId, itemId, quantity)
       Redirect(routes.Purchase.showShoppingCart())
     }}
   }
 
-  def showShoppingCart = isAuthenticated { implicit login => implicit request =>
+  def showShoppingCart = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     Ok(
       views.html.shoppingCart(
         DB.withConnection { implicit conn =>
@@ -28,7 +30,8 @@ object Purchase extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   }
 
-  def changeItemQuantity(cartId: Long, quantity: Int) = isAuthenticated { implicit login => implicit request =>
+  def changeItemQuantity(cartId: Long, quantity: Int) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn => {
       val updateCount = ShoppingCartItem.changeQuantity(cartId, login.userId, quantity)
       logger.info("Purchase.changeItemQuantity() updateCount = " + updateCount)
@@ -37,7 +40,8 @@ object Purchase extends Controller with NeedLogin with HasLogger with I18nAware 
     }}
   }
 
-  def deleteItemFromCart(cartId: Long) = isAuthenticated { implicit login => implicit request =>
+  def deleteItemFromCart(cartId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn => {
       val updateCount = ShoppingCartItem.remove(cartId, login.userId)
       logger.info("Purchase.deleteItemFromCart() updateCount = " + updateCount)
@@ -46,7 +50,8 @@ object Purchase extends Controller with NeedLogin with HasLogger with I18nAware 
     }}
   }
 
-  def clear = isAuthenticated { implicit login => implicit request =>
+  def clear = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn => {
       val updateCount = ShoppingCartItem.removeForUser(login.userId)
       logger.info("Purchase.clear() updateCount = " + updateCount)

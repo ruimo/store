@@ -17,7 +17,7 @@ case class TransactionLogHeader(
   // Outer tax.
   taxAmount: BigDecimal,
   transactionType: TransactionType
-) extends NotNull
+)
 
 case class TransactionLogSite(
   id: Option[Long] = None,
@@ -27,7 +27,7 @@ case class TransactionLogSite(
   totalAmount: BigDecimal,
   // Outer + Inner tax of items and shipping.
   taxAmount: BigDecimal
-) extends NotNull
+)
 
 case class TransactionLogShipping(
   id: Option[Long] = None,
@@ -40,7 +40,7 @@ case class TransactionLogShipping(
   boxCount: Int,
   boxName: String,
   shippingDate: Long
-) extends NotNull
+)
 
 case class TransactionLogTax(
   id: Option[Long] = None,
@@ -50,7 +50,7 @@ case class TransactionLogTax(
   rate: BigDecimal,
   targetAmount: BigDecimal,
   amount: BigDecimal
-) extends NotNull
+)
 
 case class TransactionLogItem(
   id: Option[Long] = None,
@@ -61,7 +61,7 @@ case class TransactionLogItem(
   amount: BigDecimal,
   costPrice: BigDecimal,
   taxId: Long
-) extends NotNull
+)
 
 case class TransactionLogCouponId(id: Long) extends AnyVal
 
@@ -74,7 +74,7 @@ case class TransactionLogCoupon(
 case class ShippingInfo(
   transporterId: Long,
   slipCode: String
-) extends NotNull
+)
 
 case class TransactionShipStatus(
   id: Option[Long] = None,
@@ -83,16 +83,16 @@ case class TransactionShipStatus(
   lastUpdate: Long,
   shippingInfo: Option[ShippingInfo],
   mailSent: Boolean
-) extends NotNull
+)
 
 case class ShippingDateEntry(
   siteId: Long,
   shippingDate: Long
-) extends NotNull
+)
 
 case class ShippingDate(
   tables: Map[Long, ShippingDateEntry] = Map() // Key is siteId
-) extends NotNull {
+) {
   def bySite(site: Site): ShippingDateEntry = bySiteId(site.id.get)
   def bySiteId(siteId: Long): ShippingDateEntry = tables(siteId)
 }
@@ -646,7 +646,7 @@ case class PersistedTransaction(
   shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
   itemTable: Map[Long, Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]] // First key = siteId
-) extends NotNull {
+) {
   lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
     var result = immutable.LongMap[BigDecimal]()
 
@@ -887,7 +887,7 @@ case class TransactionDetail(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata],
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata]
-) extends NotNull {
+) {
   lazy val price = unitPrice * quantity
   lazy val costPrice = costUnitPrice * quantity
 }

@@ -31,75 +31,87 @@ object DirectSql extends Controller with I18nAware with NeedLogin with HasLogger
     )(DirectSqlExec.apply)(DirectSqlExec.unapply)
   )
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(
-      views.html.admin.directSqlIndex(
-        directSqlForm, List(),
-        directSqlForm, None
-      )
-    )
-  }}
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
 
-  def execute = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    directSqlForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in DirectSql.execute.")
-        BadRequest(
-          views.html.admin.directSqlIndex(
-            formWithErrors, List(),
-            directSqlForm, None
-          )
+    assumeSuperUser(login) {
+      Ok(
+        views.html.admin.directSqlIndex(
+          directSqlForm, List(),
+          directSqlForm, None
         )
-      },
-      sql => {
-        val results = executeSql(sql.sql)
-        if (errorExists(results)) {
+      )
+    }
+  }
+
+  def execute = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
+      directSqlForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in DirectSql.execute.")
           BadRequest(
             views.html.admin.directSqlIndex(
-              directSqlForm.fill(sql).withError("sql", "SQL error"), results,
+              formWithErrors, List(),
               directSqlForm, None
             )
           )
-        }
-        else {
-          Redirect(routes.DirectSql.index).flashing("message" -> "OK")
-        }
-      }
-    )
-  }}
-
-  def query = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    directSqlForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in DirectSql.query.")
-        BadRequest(
-          views.html.admin.directSqlIndex(
-            formWithErrors, List(),
-            directSqlForm, None
-          )
-        )
-      },
-      sql => {
-        val result = executeQuery(sql.sql)
-        result match {
-          case Success(r) => 
-            Ok(
-              views.html.admin.directSqlIndex(
-                directSqlForm, List(),
-                directSqlForm.fill(sql), Some(result)
-              )
-            )
-          case Failure(e) =>
+        },
+        sql => {
+          val results = executeSql(sql.sql)
+          if (errorExists(results)) {
             BadRequest(
               views.html.admin.directSqlIndex(
-                directSqlForm, List(),
-                directSqlForm.fill(sql).withError("sql", "SQL error"), Some(result)
+                directSqlForm.fill(sql).withError("sql", "SQL error"), results,
+                directSqlForm, None
               )
             )
+          }
+          else {
+            Redirect(routes.DirectSql.index).flashing("message" -> "OK")
+          }
         }
-      }
-    )
-  }}
+      )
+    }
+  }
+
+  def query = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
+      directSqlForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in DirectSql.query.")
+          BadRequest(
+            views.html.admin.directSqlIndex(
+              formWithErrors, List(),
+              directSqlForm, None
+            )
+          )
+        },
+        sql => {
+          val result = executeQuery(sql.sql)
+          result match {
+            case Success(r) =>
+              Ok(
+                views.html.admin.directSqlIndex(
+                  directSqlForm, List(),
+                  directSqlForm.fill(sql), Some(result)
+                )
+              )
+            case Failure(e) =>
+              BadRequest(
+                views.html.admin.directSqlIndex(
+                  directSqlForm, List(),
+                  directSqlForm.fill(sql).withError("sql", "SQL error"), Some(result)
+                )
+              )
+          }
+        }
+      )
+    }
+  }
 
   def executeSql(sql: String): Seq[(String, Try[Int])] = {
     val sqlTable = SqlPattern.split(sql)

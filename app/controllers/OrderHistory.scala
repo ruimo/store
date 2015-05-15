@@ -4,8 +4,8 @@ import play.api.i18n.Lang
 import play.api._
 import db.DB
 import mvc.Controller
-import mvc.SimpleResult
-import play.api.templates.Html
+import mvc.Result
+import play.twirl.api.Html
 import mvc.RequestHeader
 import play.api.Play.current
 import controllers.I18n.I18nAware
@@ -24,7 +24,8 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     )(YearMonth.apply)(YearMonth.unapply)
   )
 
-  def index() = isAuthenticated { implicit login => implicit request =>
+  def index() = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     Ok(
       views.html.orderHistory(orderHistoryForm)
     )
@@ -41,7 +42,8 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
 
   def showOrderHistoryList(
     page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn =>
       showOrderHistoryInternal(
         page: Int, pageSize: Int, orderBySpec: String, tranId,
@@ -52,7 +54,8 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
 
   def showOrderHistory(
     page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn =>
       val pagedRecords: PagedRecords[TransactionSummaryEntry] =
         TransactionSummary.list(
@@ -60,7 +63,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
         )
       val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
-        AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
+        AccountingBill.getSiteTranByTranId(pagedRecords.records)
 
       showOrderHistoryInternal(
         page: Int, pageSize: Int, orderBySpec: String, tranId,
@@ -77,18 +80,18 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     implicit login: LoginSession,
     request: RequestHeader,
     conn: Connection
-  ): SimpleResult[Html] = {
+  ): Result = {
     val pagedRecords = TransactionSummary.list(
       storeUserId = Some(login.storeUser.id.get), tranId = tranId,
       page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
     )
     val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
-      AccountingBill.getSiteTranByTranId(pagedRecords.records, lang)
+      AccountingBill.getSiteTranByTranId(pagedRecords.records)
 
     Ok(
       view(
         pagedRecords,
-        AccountingBill.getDetailByTranSiteId(pagedRecords.records, lang),
+        AccountingBill.getDetailByTranSiteId(pagedRecords.records),
         AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
         siteTranByTranId, 
         AccountingBill.getAddressTable(siteTranByTranId),
@@ -97,7 +100,8 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     )
   }
 
-  def showMonthly() = isAuthenticated { implicit login => implicit request =>
+  def showMonthly() = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     orderHistoryForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(
@@ -109,11 +113,11 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           val summaries = TransactionSummary.listByPeriod(
             storeUserId = Some(login.storeUser.id.get), yearMonth = yearMonth
           )
-          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries, lang)
+          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries)
           Ok(views.html.showMonthlyOrderHistory(
             orderHistoryForm.fill(yearMonth),
             summaries,
-            AccountingBill.getDetailByTranSiteId(summaries, lang),
+            AccountingBill.getDetailByTranSiteId(summaries),
             AccountingBill.getBoxBySiteAndItemSize(summaries),
             siteTranByTranId,
             AccountingBill.getAddressTable(siteTranByTranId)

@@ -101,14 +101,16 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
     }}
   }
 
-  def startFeeMaintenanceNow(boxId: Long) = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+  def startFeeMaintenanceNow(boxId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
       feeMaintenance(boxId, System.currentTimeMillis)
     }
   }
 
-  def startFeeMaintenance = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+  def startFeeMaintenance = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
       feeMaintenanceForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ShippingFeeMaintenance.startFeeMaintenance.")
@@ -149,133 +151,154 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def editHistory(feeId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
-      val fee = ShippingFee(feeId)
-      val box = ShippingBox(fee.shippingBoxId)
-      val form = createFeeHistoryForm(feeId)
+  def editHistory(feeId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        val fee = ShippingFee(feeId)
+        val box = ShippingBox(fee.shippingBoxId)
+        val form = createFeeHistoryForm(feeId)
 
-      Ok(
-        views.html.admin.shippingFeeHistoryMaintenance(
-          box, fee, form, addFeeHistoryForm, Tax.tableForDropDown
-        )
-      )
-    }
-  }}
-
-  def changeHistory(feeId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withTransaction { implicit conn =>
-      val fee = ShippingFee(feeId)
-
-      changeFeeHistoryForm.bindFromRequest.fold(
-        formWithErrors => {
-          logger.error("Validation error in ShippingFeeMaintenance.changeHistory." + formWithErrors + ".")
-          BadRequest(
-            views.html.admin.shippingFeeHistoryMaintenance(
-              ShippingBox(fee.shippingBoxId),
-              fee,
-              formWithErrors, addFeeHistoryForm, Tax.tableForDropDown
-            )
+        Ok(
+          views.html.admin.shippingFeeHistoryMaintenance(
+            box, fee, form, addFeeHistoryForm, Tax.tableForDropDown
           )
+        )
+      }
+    }
+  }
+
+  def changeHistory(feeId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withTransaction { implicit conn =>
+        val fee = ShippingFee(feeId)
+
+        changeFeeHistoryForm.bindFromRequest.fold(
+          formWithErrors => {
+            logger.error("Validation error in ShippingFeeMaintenance.changeHistory." + formWithErrors + ".")
+            BadRequest(
+              views.html.admin.shippingFeeHistoryMaintenance(
+                ShippingBox(fee.shippingBoxId),
+                fee,
+                formWithErrors, addFeeHistoryForm, Tax.tableForDropDown
+              )
+            )
+          },
+          newHistories => {
+            newHistories.update(feeId)
+            Redirect(
+              routes.ShippingFeeMaintenance.editHistory(feeId)
+            ).flashing("message" -> Messages("shippingFeeHistoryUpdated"))
+          }
+        )
+      }
+    }
+  }
+
+  def addHistory(feeId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      addFeeHistoryForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ShippingFeeMaintenance.addHistory." + formWithErrors + ".")
+          DB.withConnection { implicit conn =>
+            val fee = ShippingFee(feeId)
+
+            BadRequest(
+              views.html.admin.shippingFeeHistoryMaintenance(
+                ShippingBox(fee.shippingBoxId),
+                fee,
+                createFeeHistoryForm(feeId), formWithErrors, Tax.tableForDropDown
+              )
+            )
+          }
         },
-        newHistories => {
-          newHistories.update(feeId)
+        newHistory => {
+          DB.withTransaction { implicit conn =>
+            newHistory.add(feeId)
+          }
           Redirect(
             routes.ShippingFeeMaintenance.editHistory(feeId)
-          ).flashing("message" -> Messages("shippingFeeHistoryUpdated"))
-        }            
+          ).flashing("message" -> Messages("shippingFeeHistoryAdded"))
+        }
       )
     }
-  }}
+  }
 
-  def addHistory(feeId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    addFeeHistoryForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ShippingFeeMaintenance.addHistory." + formWithErrors + ".")
-        DB.withConnection { implicit conn =>
-          val fee = ShippingFee(feeId)
+  def removeHistory = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      val historyId = removeHistoryForm.bindFromRequest.get
+      DB.withConnection { implicit conn =>
+        val his = ShippingFeeHistory(historyId)
+        ShippingFeeHistory.remove(historyId)
 
-          BadRequest(
-            views.html.admin.shippingFeeHistoryMaintenance(
-              ShippingBox(fee.shippingBoxId),
-              fee,
-              createFeeHistoryForm(feeId), formWithErrors, Tax.tableForDropDown
-            )
-          )
-        }
-      },
-      newHistory => {
-        DB.withTransaction { implicit conn =>
-          newHistory.add(feeId)
-        }
         Redirect(
-          routes.ShippingFeeMaintenance.editHistory(feeId)
-        ).flashing("message" -> Messages("shippingFeeHistoryAdded"))
+          routes.ShippingFeeMaintenance.editHistory(his.shippingFeeId)
+        ).flashing("message" -> Messages("shippingFeeHistoryRemoved"))
       }
-    )
-  }}
-
-  def removeHistory = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    val historyId = removeHistoryForm.bindFromRequest.get
-    DB.withConnection { implicit conn =>
-      val his = ShippingFeeHistory(historyId)
-      ShippingFeeHistory.remove(historyId)
-
-      Redirect(
-        routes.ShippingFeeMaintenance.editHistory(his.shippingFeeId)
-      ).flashing("message" -> Messages("shippingFeeHistoryRemoved"))
     }
-  }}
+  }
 
-  def startCreateShippingFee = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    val (boxId, cc) = createFeeForm.bindFromRequest.get
-    val countryCode = CountryCode.byIndex(cc.toInt)
-    val existingLocations = DB.withConnection { implicit conn =>
-      ShippingFee.list(boxId, countryCode).map { fee =>
-        fee.locationCode
-      }.toSet
-    }
+  def startCreateShippingFee = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      val (boxId, cc) = createFeeForm.bindFromRequest.get
+      val countryCode = CountryCode.byIndex(cc.toInt)
+      val existingLocations = DB.withConnection { implicit conn =>
+        ShippingFee.list(boxId, countryCode).map { fee =>
+          fee.locationCode
+        }.toSet
+      }
     
-    Ok(
-      views.html.admin.createShippingFee(
-        boxId,
-        createShippingFeeForm.fill(
-          CreateShippingFee(
-            boxId.toLong, countryCode.code(), existingLocations.toList
-          )
-        ),
-        existingLocations,
-        LocationCodeTable(countryCode)
-      )
-    )
-  }}
-
-  def createShippingFee(boxId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    createShippingFeeForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ShippingFeeMaintenance.createShippingFeeForm." + formWithErrors + ".")
-        Redirect(
-          routes.ShippingFeeMaintenance.startFeeMaintenance()
+      Ok(
+        views.html.admin.createShippingFee(
+          boxId,
+          createShippingFeeForm.fill(
+            CreateShippingFee(
+              boxId.toLong, countryCode.code(), existingLocations.toList
+            )
+          ),
+          existingLocations,
+          LocationCodeTable(countryCode)
         )
-      },
-      newFee => {
-        DB.withConnection { implicit conn =>
-          newFee.update(boxId)
-          Redirect(
-            routes.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId)
-          ).flashing("message" -> Messages("shippingFeeIsUpdated"))
-        }
-      }
-    )
-  }}
-
-  def removeFee(boxId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    val feeId = removeFeeForm.bindFromRequest.get
-    DB.withTransaction { implicit conn =>
-      ShippingFee.removeWithHistories(feeId)
-      Redirect(
-        routes.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId)
-      ).flashing("message" -> Messages("shippingFeeIsRemoved"))
+      )
     }
-  }}
+  }
+
+  def createShippingFee(boxId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      createShippingFeeForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ShippingFeeMaintenance.createShippingFeeForm." + formWithErrors + ".")
+          Redirect(
+            routes.ShippingFeeMaintenance.startFeeMaintenance()
+          )
+        },
+        newFee => {
+          DB.withConnection { implicit conn =>
+            newFee.update(boxId)
+            Redirect(
+              routes.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId)
+            ).flashing("message" -> Messages("shippingFeeIsUpdated"))
+          }
+        }
+      )
+    }
+  }
+
+  def removeFee(boxId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      val feeId = removeFeeForm.bindFromRequest.get
+      DB.withTransaction { implicit conn =>
+        ShippingFee.removeWithHistories(feeId)
+        Redirect(
+          routes.ShippingFeeMaintenance.startFeeMaintenanceNow(boxId)
+        ).flashing("message" -> Messages("shippingFeeIsRemoved"))
+      }
+    }
+  }
 }

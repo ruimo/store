@@ -7,9 +7,9 @@ import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
-import com.typesafe.plugin._
 import play.api.i18n.Messages
 import models.{StoreUser, CreatePrize}
+import play.api.libs.mailer._
 
 object PrizeMail extends HasLogger {
   val disableMailer = Play.current.configuration.getBoolean("disable.mailer").getOrElse(false)
@@ -29,11 +29,13 @@ object PrizeMail extends HasLogger {
   def sendTo(itemName: String, user: StoreUser, prize: CreatePrize, sendTo: String, body: String) {
     logger.info("Sending Prize mail to " + sendTo)
     Akka.system.scheduler.scheduleOnce(0.microsecond) {
-      val mail = use[MailerPlugin].email
-      mail.setSubject(Messages("mail.prize.subject"))
-      mail.addRecipient(sendTo)
-      mail.addFrom(from)
-      mail.send(body)
+      val mail = Email(
+        subject = Messages("mail.prize.subject"),
+        to = Seq(sendTo),
+        from = from,
+        bodyText = Some(body)
+      )
+      MailerPlugin.send(mail)
       logger.info("Prize mail sent to " + sendTo)
     }
   }

@@ -17,7 +17,9 @@ import helpers.RecommendEngine
 import collection.immutable
 
 object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLogger {
-  def addToCartJson = isAuthenticatedJson { implicit login => implicit request =>
+  def addToCartJson = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+
     request.body.asJson.map { json =>
       val siteId = (json \ "siteId").as[Long]
       val itemId = (json \ "itemId").as[Long]
@@ -38,7 +40,9 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
     }.get
   }
 
-  def addOrderHistoryJson = isAuthenticated { implicit login => implicit request =>
+  def addOrderHistoryJson = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+
     request.body.asJson.map { json =>
       val siteId = (json \ "siteId").as[Long]
       val tranSiteId = (json \ "tranSiteId").as[Long]

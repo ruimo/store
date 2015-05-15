@@ -11,7 +11,7 @@ import controllers.I18n.I18nAware
 
 object ItemDetail extends Controller with I18nAware with NeedLogin {
   def show(itemId: Long, siteId: Long) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
-    val itemDetail = models.ItemDetail.show(siteId, itemId, LocaleInfo.byLang(lang))
+    val itemDetail = models.ItemDetail.show(siteId, itemId, LocaleInfo.getDefault)
     itemDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.ITEM_DETAIL_TEMPLATE) match {
       case None => Ok(views.html.itemDetail(itemDetail))
       case Some(metadata) => 
@@ -21,7 +21,7 @@ object ItemDetail extends Controller with I18nAware with NeedLogin {
   }}}
 
   def showAsJson(itemId: Long, siteId: Long) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
-    Ok(asJson(models.ItemDetail.show(siteId, itemId, LocaleInfo.byLang(lang))))
+    Ok(asJson(models.ItemDetail.show(siteId, itemId, LocaleInfo.getDefault)))
   }}}
 
   def asJson(detail: models.ItemDetail): JsObject = Json.obj(

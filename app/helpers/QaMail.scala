@@ -8,7 +8,7 @@ import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
-import com.typesafe.plugin._
+import play.api.libs.mailer._
 import play.api.i18n.Messages
 
 object QaMail extends HasLogger {
@@ -21,11 +21,13 @@ object QaMail extends HasLogger {
         logger.info("Sending QA mail to " + admin.email)
         val body = views.html.mail.qa(admin, qa).toString
         Akka.system.scheduler.scheduleOnce(0.microsecond) {
-          val mail = use[MailerPlugin].email
-          mail.setSubject(Messages("mail.qa.subject"))
-          mail.addRecipient(admin.email)
-          mail.addFrom(from)
-          mail.send(body)
+          val mail = Email(
+            subject = Messages("mail.qa.subject"),
+            to = Seq(admin.email),
+            from = from,
+            bodyText = Some(body)
+          )
+          MailerPlugin.send(mail)
           logger.info("QA mail sent to " + admin.email)
         }
       }

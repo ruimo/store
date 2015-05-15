@@ -26,7 +26,7 @@ import controllers.Shipping.Zip1Pattern
 import controllers.Shipping.Zip2Pattern
 import controllers.Shipping.TelPattern
 import models.RegisterUserInfo
-import play.api.templates.Html
+import play.twirl.api.Html
 import models.LoginSession
 import models.StoreUser
 import models.UserAddress
@@ -102,7 +102,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
 
   def index() = Action { implicit request => DB.withConnection { implicit conn => {
     implicit val login = loginSession(request, conn)
-    lang.toLocale match {
+    request2lang.toLocale match {
       case Locale.JAPANESE =>
         Ok(views.html.userEntryJa(jaForm, Address.JapanPrefectures))
       case Locale.JAPAN =>
@@ -175,7 +175,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
 
   def registerUserInformation(userId: Long) = Action { implicit request =>
     Ok(
-      lang.toLocale match {
+      request2lang.toLocale match {
         case Locale.JAPANESE =>
           registerUserInformationView(userId, createRegistrationForm)
         case Locale.JAPAN =>
@@ -261,10 +261,8 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     userId: Long,
     form: Form[RegisterUserInfo]
   )(
-    implicit lang: Lang,
-    flash: play.api.mvc.Flash,
-    request: RequestHeader
-  ): Html = lang.toLocale match {
+    implicit request: RequestHeader
+  ): Html = request2lang.toLocale match {
     case Locale.JAPANESE =>
       views.html.registerUserInformationJa(userId, form, Address.JapanPrefectures)
     case Locale.JAPAN =>
@@ -274,7 +272,8 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       views.html.registerUserInformationJa(userId, form, Address.JapanPrefectures)
   }
 
-  def updateUserInfoStart = isAuthenticated { implicit login => implicit request =>
+  def updateUserInfoStart = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     DB.withConnection { implicit conn =>
       val currentInfo: Option[ChangeUserInfo] = UserAddress.getByUserId(login.storeUser.id.get) map { ua =>
         val user = login.storeUser
@@ -304,7 +303,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
       }
 
       Ok(
-        lang.toLocale match {
+        request2lang.toLocale match {
           case Locale.JAPANESE =>
             views.html.updateUserInfoJa(form, Address.JapanPrefectures)
           case Locale.JAPAN =>
@@ -317,10 +316,11 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     }
   }
 
-  def updateUserInfo = isAuthenticated { implicit login => implicit request =>
+  def updateUserInfo = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     updateUserInfoForm.bindFromRequest.fold(
       formWithErrors => BadRequest(
-        lang.toLocale match {
+        request2lang.toLocale match {
           case Locale.JAPANESE =>
             views.html.updateUserInfoJa(formWithErrors, Address.JapanPrefectures)
           case Locale.JAPAN =>
@@ -331,7 +331,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
         }
       ),
       newInfo => {
-        val prefTable = lang.toLocale match {
+        val prefTable = request2lang.toLocale match {
           case Locale.JAPANESE =>
             i: Int => JapanPrefecture.byIndex(i)
           case Locale.JAPAN =>
@@ -358,7 +358,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
           else {
             val form = updateUserInfoForm.fill(newInfo).withError("currentPassword", "confirmPasswordDoesNotMatch")
             BadRequest(
-              lang.toLocale match {
+              request2lang.toLocale match {
                 case Locale.JAPANESE =>
                   views.html.updateUserInfoJa(form, Address.JapanPrefectures)
                 case Locale.JAPAN =>
@@ -510,11 +510,13 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     Ok(views.html.resetPasswordCompleted())
   }
 
-  def changePasswordStart = isAuthenticated { implicit login => implicit request =>
+  def changePasswordStart = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     Ok(views.html.changePassword(changePasswordForm))
   }
 
-  def changePassword = isAuthenticated { implicit login => implicit request =>
+  def changePassword = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     changePasswordForm.bindFromRequest.fold(
       formWithErrors => {
         logger.error("Validation error in changing password. '" + login.storeUser.userName + "'")

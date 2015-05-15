@@ -11,10 +11,12 @@ import models.{CouponDetail, TransactionLogCoupon, LocaleInfo, TransactionLogCou
 object CouponHistory extends Controller with I18nAware with NeedLogin {
   def showPurchasedCouponList(
     page: Int, pageSize: Int, orderBySpec: String
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val list: PagedRecords[CouponDetail] = TransactionLogCoupon.list(
-        locale = LocaleInfo.byLang(lang),
+        locale = LocaleInfo.getDefault,
         userId = login.userId, 
         page = page,
         pageSize = pageSize
@@ -26,10 +28,12 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
 
   def showPurchasedCoupon(
     tranCouponId: Long
-  ) = isAuthenticated { implicit login => implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val c = TransactionLogCoupon.at(
-        LocaleInfo.byLang(lang), login.userId, TransactionLogCouponId(tranCouponId)
+        LocaleInfo.getDefault, login.userId, TransactionLogCouponId(tranCouponId)
       )
       showCoupon(
         c.siteItemNumericMetadata,
@@ -40,7 +44,9 @@ object CouponHistory extends Controller with I18nAware with NeedLogin {
     }
   }
 
-  def showInstantCoupon(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
+  def showInstantCoupon(siteId: Long, itemId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     val metaData: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = 
       DB.withConnection { implicit conn => SiteItemNumericMetadata.all(siteId, ItemId(itemId)) }
 

@@ -7,7 +7,7 @@ import java.sql.Connection
 case class CreateNormalUser(
   userName: String, firstName: String, middleName: Option[String], lastName: String,
   email: String, password: String, companyName: String
-) extends CreateUser with NotNull {
+) extends CreateUser {
   val role = UserRole.NORMAL
 }
 

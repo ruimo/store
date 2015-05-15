@@ -148,7 +148,7 @@ object ItemInquiryField {
     implicit conn: Connection
   ) {
     if (! fields.isEmpty) {
-      val sql: BatchSql = SQL(
+      val sql: BatchSql = BatchSql(
         """
         insert into item_inquiry_field (
           item_inquiry_field_id, item_inquiry_id, field_name, field_value

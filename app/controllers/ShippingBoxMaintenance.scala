@@ -36,106 +36,127 @@ object ShippingBoxMaintenance extends Controller with I18nAware with NeedLogin w
     "boxId" -> longNumber
   )
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.shippingBoxMaintenance())
-  }}
-
-  def startCreateShippingBox = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
-      Ok(views.html.admin.createNewShippingBox(createShippingBoxForm, Site.tableForDropDown))
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.shippingBoxMaintenance())
     }
-  }}
+  }
 
-  def createNewShippingBox = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    val form = createShippingBoxForm.bindFromRequest
-
-    form.fold(
-      formWithErrors => {
-        logger.error("Validation error in ShippingBoxMaintenance.createNewShippingBox. " + formWithErrors)
-        DB.withConnection { implicit conn =>
-          BadRequest(views.html.admin.createNewShippingBox(formWithErrors, Site.tableForDropDown))
-        }
-      },
-      newShippingBox => DB.withConnection { implicit conn =>
-        try {
-          newShippingBox.save
-
-          Redirect(
-            routes.ShippingBoxMaintenance.startCreateShippingBox
-          ).flashing("message" -> Messages("shippingBoxIsCreated"))
-        }
-        catch {
-          case e: UniqueConstraintException =>
-            BadRequest(
-              views.html.admin.createNewShippingBox(
-                form.withError("itemClass", Messages("duplicatedItemClass")), Site.tableForDropDown
-              )
-            )
-        }
+  def startCreateShippingBox = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        Ok(views.html.admin.createNewShippingBox(createShippingBoxForm, Site.tableForDropDown))
       }
-    )
-  }}
-
-  def editShippingBox(start: Int, size: Int) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
-      Ok(views.html.admin.editShippingBox(ShippingBox.list))
     }
-  }}
+  }
 
-  def removeShippingBox = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    val boxId = removeBoxForm.bindFromRequest.get
-    DB.withTransaction { implicit conn =>
-      ShippingBox.removeWithChildren(boxId)
-    }
+  def createNewShippingBox = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      val form = createShippingBoxForm.bindFromRequest
 
-    Redirect(
-      routes.ShippingBoxMaintenance.editShippingBox()
-    ).flashing("message" -> Messages("shippingBoxIsRemoved"))
-  }}
+      form.fold(
+        formWithErrors => {
+          logger.error("Validation error in ShippingBoxMaintenance.createNewShippingBox. " + formWithErrors)
+          DB.withConnection { implicit conn =>
+            BadRequest(views.html.admin.createNewShippingBox(formWithErrors, Site.tableForDropDown))
+          }
+        },
+        newShippingBox => DB.withConnection { implicit conn =>
+          try {
+            newShippingBox.save
 
-  def startChangeShippingBox(id: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
-      val rec = ShippingBox(id)
-      Ok(
-        views.html.admin.changeShippingBox(
-          changeShippingBoxForm.fill(
-            ChangeShippingBox(
-              id, rec.siteId, rec.itemClass, rec.boxSize, rec.boxName
-            )
-          ),
-          Site.tableForDropDown
-        )
+            Redirect(
+              routes.ShippingBoxMaintenance.startCreateShippingBox
+            ).flashing("message" -> Messages("shippingBoxIsCreated"))
+          }
+          catch {
+            case e: UniqueConstraintException =>
+              BadRequest(
+                views.html.admin.createNewShippingBox(
+                  form.withError("itemClass", Messages("duplicatedItemClass")), Site.tableForDropDown
+                )
+              )
+          }
+        }
       )
     }
-  }}
+  }
 
-  def changeShippingBox = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    changeShippingBoxForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in ShippingBoxMaintenance.changeShippingBox.")
-        DB.withConnection { implicit conn =>
-          BadRequest(views.html.admin.changeShippingBox(formWithErrors, Site.tableForDropDown))
-        }
-      },
-      newShippingBox => DB.withConnection { implicit conn =>
-        try {
-          newShippingBox.save
-          Redirect(
-            routes.ShippingBoxMaintenance.editShippingBox()
-          ).flashing("message" -> Messages("shippingBoxIsUpdated"))
-        }
-        catch {
-          case e: UniqueConstraintException =>
-            BadRequest(
-              views.html.admin.changeShippingBox(
-                changeShippingBoxForm.fill(newShippingBox).withError(
-                  "itemClass", Messages("unique.constraint.violation")
-                ),
-                Site.tableForDropDown
-              )
-            )
-        }
+  def editShippingBox(start: Int, size: Int) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        Ok(views.html.admin.editShippingBox(ShippingBox.list))
       }
-    )
-  }}
+    }
+  }
+
+  def removeShippingBox = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      val boxId = removeBoxForm.bindFromRequest.get
+      DB.withTransaction { implicit conn =>
+        ShippingBox.removeWithChildren(boxId)
+      }
+
+      Redirect(
+        routes.ShippingBoxMaintenance.editShippingBox()
+      ).flashing("message" -> Messages("shippingBoxIsRemoved"))
+    }
+  }
+
+  def startChangeShippingBox(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        val rec = ShippingBox(id)
+        Ok(
+          views.html.admin.changeShippingBox(
+            changeShippingBoxForm.fill(
+              ChangeShippingBox(
+                id, rec.siteId, rec.itemClass, rec.boxSize, rec.boxName
+              )
+            ),
+            Site.tableForDropDown
+          )
+        )
+      }
+    }
+  }
+
+  def changeShippingBox = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      changeShippingBoxForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ShippingBoxMaintenance.changeShippingBox.")
+          DB.withConnection { implicit conn =>
+            BadRequest(views.html.admin.changeShippingBox(formWithErrors, Site.tableForDropDown))
+          }
+        },
+        newShippingBox => DB.withConnection { implicit conn =>
+          try {
+            newShippingBox.save
+            Redirect(
+              routes.ShippingBoxMaintenance.editShippingBox()
+            ).flashing("message" -> Messages("shippingBoxIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException =>
+              BadRequest(
+                views.html.admin.changeShippingBox(
+                  changeShippingBoxForm.fill(newShippingBox).withError(
+                    "itemClass", Messages("unique.constraint.violation")
+                  ),
+                  Site.tableForDropDown
+                )
+              )
+          }
+        }
+      )
+    }
+  }
 }

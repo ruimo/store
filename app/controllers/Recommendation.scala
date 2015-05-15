@@ -26,17 +26,15 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   def config = play.api.Play.maybeApplication.map(_.configuration).get
   def maxRecommendCount: Int = config.getInt("recommend.maxCount").getOrElse(5)
 
-  def byItemJson(siteId: Long, itemId: Long) = isAuthenticated { implicit login => implicit request =>
-    Async {
-      scala.concurrent.Future {
-        DB.withConnection { implicit conn =>
-          val items = byItems(
-            Seq(SalesItem(siteId.toString, itemId.toString, 1)),
-            LocaleInfo.byLang(lang)
-          )
+  def byItemJson(siteId: Long, itemId: Long) = NeedAuthenticated.async { implicit request =>
+    scala.concurrent.Future {
+      DB.withConnection { implicit conn =>
+        val items = byItems(
+          Seq(SalesItem(siteId.toString, itemId.toString, 1)),
+          LocaleInfo.getDefault
+        )
 
-          Ok(Json.toJson(Map("recommended" -> items)))
-        }
+        Ok(Json.toJson(Map("recommended" -> items)))
       }
     }
   }
@@ -98,22 +96,24 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def byShoppingCartJson() = isAuthenticated { implicit login => implicit request =>
-    Async {
-      scala.concurrent.Future {
-        DB.withConnection { implicit conn =>
-          val items = byItems(
-            ShoppingCartItem.listAllItemsForUser(login.storeUser.id.get),
-            LocaleInfo.byLang(lang)
-          )
+  def byShoppingCartJson() = NeedAuthenticated.async { implicit request =>
+    scala.concurrent.Future {
+      DB.withConnection { implicit conn =>
+        val items = byItems(
+          ShoppingCartItem.listAllItemsForUser(request.user.storeUser.id.get),
+          LocaleInfo.getDefault
+        )
           
-          Ok(Json.toJson(Map("recommended" -> items)))
-        }
+        Ok(Json.toJson(Map("recommended" -> items)))
       }
     }
   }
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.recommendationMenu())
-  }}
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) { 
+      Ok(views.html.admin.recommendationMenu())
+    }
+  }
 }

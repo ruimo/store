@@ -9,14 +9,14 @@ import play.api.i18n.Lang
 import java.sql.Connection
 import collection.immutable.LongMap
 
-case class Transporter(id: Option[Long] = None) extends NotNull
+case class Transporter(id: Option[Long] = None)
 
 case class TransporterName(
   id: Option[Long] = None,
   localeId: Long,
   transporterId: Long,
   transporterName: String
-) extends NotNull
+)
 
 object Transporter {
   val simple = {

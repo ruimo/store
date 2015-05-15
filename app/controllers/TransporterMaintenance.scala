@@ -44,56 +44,71 @@ object TransporterMaintenance extends Controller with I18nAware with NeedLogin w
     ) (ChangeTransporterNameTable.apply)(ChangeTransporterNameTable.unapply)
   )
 
-  def index = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    Ok(views.html.admin.transporterMaintenance())
-  }}
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.transporterMaintenance())
+    }
+  }
 
-  def startCreateNewTransporter = isAuthenticated { implicit login => forSuperUser { implicit request => {
-    Ok(views.html.admin.createNewTransporter(createTransporterForm, LocaleInfo.localeTable))
-  }}}
+  def startCreateNewTransporter = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      Ok(views.html.admin.createNewTransporter(createTransporterForm, LocaleInfo.localeTable))
+    }
+  }
 
-  def createNewTransporter = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    createTransporterForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in TransporterMaintenance.createNewTransporter.")
-        BadRequest(views.html.admin.createNewTransporter(formWithErrors, LocaleInfo.localeTable))
-      },
-      newTransporter => DB.withTransaction { implicit conn =>
-        try {
-          newTransporter.save
-          Redirect(
-            routes.TransporterMaintenance.startCreateNewTransporter
-          ).flashing("message" -> Messages("transporterIsCreated"))
-        }
-        catch {
-          case e: UniqueConstraintException =>
-            BadRequest(
-              views.html.admin.createNewTransporter(
-                createTransporterForm.fill(newTransporter).withError("transporterName", "unique.constraint.violation"),
-                LocaleInfo.localeTable
+  def createNewTransporter = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      createTransporterForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in TransporterMaintenance.createNewTransporter.")
+          BadRequest(views.html.admin.createNewTransporter(formWithErrors, LocaleInfo.localeTable))
+        },
+        newTransporter => DB.withTransaction { implicit conn =>
+          try {
+            newTransporter.save
+            Redirect(
+              routes.TransporterMaintenance.startCreateNewTransporter
+            ).flashing("message" -> Messages("transporterIsCreated"))
+          }
+          catch {
+            case e: UniqueConstraintException =>
+              BadRequest(
+                views.html.admin.createNewTransporter(
+                  createTransporterForm.fill(newTransporter).withError("transporterName", "unique.constraint.violation"),
+                  LocaleInfo.localeTable
+                )
               )
-            )
+          }
         }
-      }
-    )
-  }}
-
-  def editTransporter = isAuthenticated { implicit login => forSuperUser { implicit request => {
-    DB.withConnection { implicit conn => {
-      Ok(views.html.admin.editTransporter(Transporter.listWithName))
-    }}
-  }}}
-
-  def startChangeTransporter(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    Ok(views.html.admin.changeTransporter(
-      ChangeTransporter(
-        id, 
-        LocaleInfo.localeTable,
-        createTransporterNameTable(id),
-        addTransporterNameForm
       )
-    ))
-  }}
+    }
+  }
+
+  def editTransporter = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        Ok(views.html.admin.editTransporter(Transporter.listWithName))
+      }
+    }
+  }
+
+  def startChangeTransporter(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      Ok(views.html.admin.changeTransporter(
+        ChangeTransporter(
+          id,
+          LocaleInfo.localeTable,
+          createTransporterNameTable(id),
+          addTransporterNameForm
+        )
+      ))
+    }
+  }
 
   def createTransporterNameTable(id: Long): Form[ChangeTransporterNameTable] = {
     DB.withConnection { implicit conn => {
@@ -105,81 +120,90 @@ object TransporterMaintenance extends Controller with I18nAware with NeedLogin w
     }}
   }
 
-  def removeTransporterName(id: Long, localeId: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    DB.withConnection { implicit conn =>
-      TransporterName.remove(id, localeId)
-    }
-
-    Redirect(
-      routes.TransporterMaintenance.startChangeTransporter(id)
-    ).flashing("message" -> Messages("transporterIsUpdated"))
-  }}
-
-  def changeTransporterName(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    changeTransporterNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation errro in TransporterMaintenance.changeTransporterName." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeTransporter(
-            ChangeTransporter(
-              id,
-              LocaleInfo.localeTable,
-              formWithErrors,
-              addTransporterNameForm
-            )
-          )
-        )
-      },
-      newTransporter => {
-        DB.withTransaction { implicit conn =>
-          newTransporter.update(id)
-        }
-        Redirect(
-          routes.TransporterMaintenance.startChangeTransporter(id)
-        ).flashing("message" -> Messages("transporterIsUpdated"))
+  def removeTransporterName(id: Long, localeId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        TransporterName.remove(id, localeId)
       }
-    )
-  }}
 
-  def addTransporterName(id: Long) = isAuthenticated { implicit login => forAdmin { implicit request =>
-    addTransporterNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in TransporterMaintenance.addItemName." + formWithErrors + ".")
-        BadRequest(
-          views.html.admin.changeTransporter(
-            ChangeTransporter(
-              id,
-              LocaleInfo.localeTable,
-              createTransporterNameTable(id),
-              formWithErrors
+      Redirect(
+        routes.TransporterMaintenance.startChangeTransporter(id)
+      ).flashing("message" -> Messages("transporterIsUpdated"))
+    }
+  }
+
+  def changeTransporterName(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      changeTransporterNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation errro in TransporterMaintenance.changeTransporterName." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeTransporter(
+              ChangeTransporter(
+                id,
+                LocaleInfo.localeTable,
+                formWithErrors,
+                addTransporterNameForm
+              )
             )
           )
-        )
-      },
-      newTransporter => {
-        try {
-          DB.withConnection { implicit conn =>
-            newTransporter.add(id)
+        },
+        newTransporter => {
+          DB.withTransaction { implicit conn =>
+            newTransporter.update(id)
           }
           Redirect(
             routes.TransporterMaintenance.startChangeTransporter(id)
           ).flashing("message" -> Messages("transporterIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
-            BadRequest(
-              views.html.admin.changeTransporter(
-                ChangeTransporter(
-                  id,
-                  LocaleInfo.localeTable,
-                  createTransporterNameTable(id),
-                  addTransporterNameForm.fill(newTransporter).withError("localeId", "unique.constraint.violation")
-                )
+      )
+    }
+  }
+
+  def addTransporterName(id: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      addTransporterNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in TransporterMaintenance.addItemName." + formWithErrors + ".")
+          BadRequest(
+            views.html.admin.changeTransporter(
+              ChangeTransporter(
+                id,
+                LocaleInfo.localeTable,
+                createTransporterNameTable(id),
+                formWithErrors
               )
             )
+          )
+        },
+        newTransporter => {
+          try {
+            DB.withConnection { implicit conn =>
+              newTransporter.add(id)
+            }
+            Redirect(
+              routes.TransporterMaintenance.startChangeTransporter(id)
+            ).flashing("message" -> Messages("transporterIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.changeTransporter(
+                  ChangeTransporter(
+                    id,
+                    LocaleInfo.localeTable,
+                    createTransporterNameTable(id),
+                    addTransporterNameForm.fill(newTransporter).withError("localeId", "unique.constraint.violation")
+                  )
+                )
+              )
+            }
           }
         }
-      }
-    )
-  }}
+      )
+    }
+  }
 }

@@ -17,14 +17,14 @@ case class ShippingTotalEntry (
   boxQuantity: Int,
   boxUnitPrice: BigDecimal,
   boxTaxInfo: TaxHistory
-) extends NotNull {
+) {
   lazy val boxTotal = boxUnitPrice * boxQuantity
   lazy val outerTax = boxTaxInfo.outerTax(boxTotal)
 }
 
 case class ShippingTotal(
   table: Seq[ShippingTotalEntry] = List()
-) extends NotNull {
+) {
   lazy val size = table.size
   lazy val boxQuantity = table.foldLeft(0)(_ + _.boxQuantity)
   lazy val boxTotal = table.foldLeft(BigDecimal(0))(_ + _.boxTotal)
@@ -80,15 +80,15 @@ case class ShippingTotal(
 
 case class ShippingBox(
   id: Option[Long] = None, siteId: Long, itemClass: Long, boxSize: Int, boxName: String
-) extends NotNull
+)
 
 case class ShippingFee(
   id: Option[Long] = None, shippingBoxId: Long, countryCode: CountryCode, locationCode: Int
-) extends NotNull
+)
 
 case class ShippingFeeHistory(
   id: Option[Long] = None, shippingFeeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
-) extends NotNull
+)
 
 case class ShippingFeeEntries(
   // site, itemClass, quantity

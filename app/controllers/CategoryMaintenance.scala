@@ -51,22 +51,26 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
     )(RemoveCategoryName.apply)(RemoveCategoryName.unapply)
   )
 
-  def index = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+  def index = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
       Ok(views.html.admin.categoryMaintenance())
     }
   }
 
-  def startCreateNewCategory = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
-      {
-        Ok(views.html.admin.createNewCategory(createCategoryForm, LocaleInfo.localeTable))
-      }
+  def startCreateNewCategory = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
+      Ok(views.html.admin.createNewCategory(createCategoryForm, LocaleInfo.localeTable))
     }
   }
 
-  def createNewCategory = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+  def createNewCategory = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
       createCategoryForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in CategoryMaintenance.createNewCategory.")
@@ -82,8 +86,10 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
 
   def editCategory(
     langSpec: Option[Long], start: Int, size: Int, orderBySpec: String
-  ) = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+  ) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
       val locale: LocaleInfo = langSpec.map(LocaleInfo.apply).getOrElse(LocaleInfo.getDefault)
 
       DB.withConnection { implicit conn =>
@@ -122,11 +128,13 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
       "children" -> JsArray(ct.children.map(CategoryNodeFormat.writes))))
   }
 
-  def categoryPathTree = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+  def categoryPathTree = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
       DB.withConnection { implicit conn =>
         {
-          val locale = LocaleInfo.byLang(lang)
+          val locale = LocaleInfo.getDefault
 
           // list of parent-name pairs
           val pns: Seq[(Category, CategoryName)] = CategoryPath.listNamesWithParent(locale)
@@ -165,8 +173,11 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
   val moveCategoryForm = Form(tuple(
     "categoryId" -> longNumber,
     "parentCategoryId" -> optional(longNumber)))
-  def moveCategory = isAuthenticated { implicit login =>
-    forSuperUser { implicit request =>
+
+  def moveCategory = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
       val (categoryId, parentCategoryId) = moveCategoryForm.bindFromRequest.get;
       try {
         DB.withConnection { implicit conn =>
@@ -190,105 +201,121 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
       )
     )
 
-  def editCategoryName(categoryId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    DB.withConnection { implicit conn =>
-      Ok(
-        views.html.admin.editCategoryName(
-          categoryId,
-          createCategoryNameForm,
-          createUpdateForms(categoryId),
-          removeCategoryNameForm,
-          LocaleInfo.localeTable
-        )
-      )
-    }
-  }}
+  def editCategoryName(categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
 
-  def updateCategoryName(categoryId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    updateCategoryNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in CategoryMaintenance.updateCategoryName.")
-        BadRequest(
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        Ok(
           views.html.admin.editCategoryName(
             categoryId,
             createCategoryNameForm,
-            formWithErrors,
+            createUpdateForms(categoryId),
             removeCategoryNameForm,
             LocaleInfo.localeTable
           )
         )
-      },
-      newCategoryName => DB.withConnection { implicit conn =>
-        newCategoryName.save()
-        Redirect(
-          routes.CategoryMaintenance.editCategory(None)
-        ).flashing("message" -> Messages("categoryIsUpdated"))
       }
-    )
-  }}
+    }
+  }
 
-  def createCategoryName(categoryId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    createCategoryNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in CategoryMaintenance.createCategoryName.")
-        DB.withConnection { implicit conn =>
+  def updateCategoryName(categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
+      updateCategoryNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in CategoryMaintenance.updateCategoryName.")
           BadRequest(
             views.html.admin.editCategoryName(
               categoryId,
+              createCategoryNameForm,
               formWithErrors,
-              createUpdateForms(categoryId),
               removeCategoryNameForm,
               LocaleInfo.localeTable
             )
           )
-        }
-      },
-      newCategoryName => DB.withConnection { implicit conn =>
-        try {
-          newCategoryName.create()
+        },
+        newCategoryName => DB.withConnection { implicit conn =>
+          newCategoryName.save()
           Redirect(
-            routes.CategoryMaintenance.editCategoryName(categoryId)
+            routes.CategoryMaintenance.editCategory(None)
           ).flashing("message" -> Messages("categoryIsUpdated"))
         }
-        catch {
-          case e: UniqueConstraintException => {
+      )
+    }
+  }
+
+  def createCategoryName(categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
+      createCategoryNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in CategoryMaintenance.createCategoryName.")
+          DB.withConnection { implicit conn =>
             BadRequest(
               views.html.admin.editCategoryName(
                 categoryId,
-                createCategoryNameForm.fill(newCategoryName).withError("localeId", "unique.constraint.violation"),
+                formWithErrors,
                 createUpdateForms(categoryId),
                 removeCategoryNameForm,
                 LocaleInfo.localeTable
               )
             )
           }
+        },
+        newCategoryName => DB.withConnection { implicit conn =>
+          try {
+            newCategoryName.create()
+            Redirect(
+              routes.CategoryMaintenance.editCategoryName(categoryId)
+            ).flashing("message" -> Messages("categoryIsUpdated"))
+          }
+          catch {
+            case e: UniqueConstraintException => {
+              BadRequest(
+                views.html.admin.editCategoryName(
+                  categoryId,
+                  createCategoryNameForm.fill(newCategoryName).withError("localeId", "unique.constraint.violation"),
+                  createUpdateForms(categoryId),
+                  removeCategoryNameForm,
+                  LocaleInfo.localeTable
+                )
+              )
+            }
+          }
         }
-      }
-    )
-  }}
+      )
+    }
+  }
 
-  def removeCategoryName(categoryId: Long) = isAuthenticated { implicit login => forSuperUser { implicit request =>
-    removeCategoryNameForm.bindFromRequest.fold(
-      formWithErrors => {
-        logger.error("Validation error in CategoryMaintenance.createCategoryName.")
-        DB.withConnection { implicit conn =>
-          BadRequest(
-            views.html.admin.editCategoryName(
-              categoryId,
-              createCategoryNameForm,
-              createUpdateForms(categoryId),
-              removeCategoryNameForm,
-              LocaleInfo.localeTable
+  def removeCategoryName(categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
+    assumeSuperUser(login) {
+      removeCategoryNameForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in CategoryMaintenance.createCategoryName.")
+          DB.withConnection { implicit conn =>
+            BadRequest(
+              views.html.admin.editCategoryName(
+                categoryId,
+                createCategoryNameForm,
+                createUpdateForms(categoryId),
+                removeCategoryNameForm,
+                LocaleInfo.localeTable
+              )
             )
-          )
+          }
+        },
+        categoryName => DB.withConnection { implicit conn =>
+          categoryName.remove()
+          Redirect(
+            routes.CategoryMaintenance.editCategoryName(categoryId)
+          ).flashing("message" -> Messages("categoryIsRemoved"))
         }
-      },
-      categoryName => DB.withConnection { implicit conn =>
-        categoryName.remove()
-        Redirect(
-          routes.CategoryMaintenance.editCategoryName(categoryId)
-        ).flashing("message" -> Messages("categoryIsRemoved"))
-      }
-    )
-  }}
+      )
+    }
+  }
 }

@@ -12,7 +12,7 @@ import scala.language.postfixOps
 import java.sql.Connection
 
 
-case class LocaleInfo(id: Long, lang: String, country: Option[String] = None) extends NotNull {
+case class LocaleInfo(id: Long, lang: String, country: Option[String] = None) {
   def toLocale: Locale = country match {
     case None => new Locale(lang)
     case Some(c) => new Locale(lang, c)

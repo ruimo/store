@@ -7,7 +7,7 @@ import java.sql.Connection
 case class ModifyUser(
   userId: Long, userName: String, firstName: String, middleName: Option[String], lastName: String,
   email: String, password: String, companyName: String, sendNoticeMail: Boolean
-) extends CreateUserBase with NotNull {
+) extends CreateUserBase {
   def update(implicit tokenGenerator: TokenGenerator, conn: Connection) {
     val salt = tokenGenerator.next
     val hash = PasswordHash.generate(password, salt)

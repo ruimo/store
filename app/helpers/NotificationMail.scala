@@ -3,11 +3,10 @@ package helpers
 import models._
 import play.api.i18n.{Lang, Messages}
 import play.api.libs.concurrent.Akka
-import com.typesafe.plugin.MailerPlugin
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.duration._
 import play.api.Play.current
-import com.typesafe.plugin._
+import play.api.libs.mailer._
 import play.api.i18n.Messages
 import models.PersistedTransaction
 import java.sql.Connection
@@ -79,11 +78,13 @@ object NotificationMail extends HasLogger {
     val body = views.html.mail.forBuyer(login, tran, addr, metadata).toString
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
-        val mail = use[MailerPlugin].email
-        mail.setSubject(Messages("mail.buyer.subject").format(tran.header.id.get))
-        mail.addRecipient(login.storeUser.email)
-        mail.addFrom(from)
-        mail.send(body)
+        val mail = Email(
+          subject = Messages("mail.buyer.subject").format(tran.header.id.get),
+          to = Seq(login.storeUser.email),
+          from = from,
+          bodyText = Some(body)
+        )
+        MailerPlugin.send(mail)
         logger.info("Ordering confirmation for buyer sent to " + login.storeUser.email)
       }
     }
@@ -103,11 +104,13 @@ object NotificationMail extends HasLogger {
 
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
-        val mail = use[MailerPlugin].email
-        mail.setSubject(Messages("mail.shipping.buyer.subject").format(tran.header.id.get))
-        mail.addRecipient(buyer.email)
-        mail.addFrom(from)
-        mail.send(body)
+        val mail = Email(
+          subject = Messages("mail.shipping.buyer.subject").format(tran.header.id.get),
+          to = Seq(buyer.email),
+          from = from,
+          bodyText = Some(body)
+        )
+        MailerPlugin.send(mail)
         logger.info("Shipping notification for buyer sent to " + buyer.email)
       }
     }
@@ -126,11 +129,13 @@ object NotificationMail extends HasLogger {
 
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
-        val mail = use[MailerPlugin].email
-        mail.setSubject(Messages("mail.cancel.buyer.subject").format(tran.header.id.get))
-        mail.addRecipient(buyer.email)
-        mail.addFrom(from)
-        mail.send(body)
+        val mail = Email(
+          subject = Messages("mail.cancel.buyer.subject").format(tran.header.id.get),
+          to = Seq(buyer.email),
+          from = from,
+          bodyText = Some(body)
+        )
+        MailerPlugin.send(mail)
         logger.info("Shipping cancel notification for buyer sent to " + buyer.email)
       }
     }
@@ -146,11 +151,13 @@ object NotificationMail extends HasLogger {
         val body = views.html.mail.forSiteOwner(login, site, owner, tran, addr, metadata).toString
         if (! disableMailer) {
           Akka.system.scheduler.scheduleOnce(0.microsecond) {
-            val mail = use[MailerPlugin].email
-            mail.setSubject(Messages("mail.site.owner.subject").format(tran.header.id.get))
-            mail.addRecipient(owner.email)
-            mail.addFrom(from)
-            mail.send(body)
+            val mail = Email(
+              subject = Messages("mail.site.owner.subject").format(tran.header.id.get),
+              to = Seq(owner.email),
+              from = from,
+              bodyText = Some(body)
+            )
+            MailerPlugin.send(mail)
             logger.info("Ordering confirmation for site owner " + site + " sent to " + owner.email)
           }
         }
@@ -173,11 +180,13 @@ object NotificationMail extends HasLogger {
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
-              val mail = use[MailerPlugin].email
-              mail.setSubject(Messages("mail.shipping.site.owner.subject").format(tran.header.id.get))
-              mail.addRecipient(owner.email)
-              mail.addFrom(from)
-              mail.send(body)
+              val mail = Email(
+                subject = Messages("mail.shipping.site.owner.subject").format(tran.header.id.get),
+                to = Seq(owner.email),
+                from = from,
+                bodyText = Some(body)
+              )
+              MailerPlugin.send(mail)
               logger.info("Shipping confirmation for site owner " + site + " sent to " + owner.email)
             }
           }
@@ -201,11 +210,13 @@ object NotificationMail extends HasLogger {
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
-              val mail = use[MailerPlugin].email
-              mail.setSubject(Messages("mail.cancel.site.owner.subject").format(tran.header.id.get))
-              mail.addRecipient(owner.email)
-              mail.addFrom(from)
-              mail.send(body)
+              val mail = Email(
+                subject = Messages("mail.cancel.site.owner.subject").format(tran.header.id.get),
+                to = Seq(owner.email),
+                from = from,
+                bodyText = Some(body)
+              )
+              MailerPlugin.send(mail)
               logger.info("Shipping cancel confirmation for site owner " + site + " sent to " + owner.email)
             }
           }
@@ -223,11 +234,13 @@ object NotificationMail extends HasLogger {
       val body = views.html.mail.forAdmin(login, admin, tran, addr, metadata).toString
       if (! disableMailer) {
         Akka.system.scheduler.scheduleOnce(0.microsecond) {
-          val mail = use[MailerPlugin].email
-          mail.setSubject(Messages("mail.admin.subject").format(tran.header.id.get))
-          mail.addRecipient(admin.email)
-          mail.addFrom(from)
-          mail.send(body)
+          val mail = Email(
+            subject = Messages("mail.admin.subject").format(tran.header.id.get),
+            to = Seq(admin.email),
+            from = from,
+            bodyText = Some(body)
+          )
+          MailerPlugin.send(mail)
           logger.info("Ordering confirmation for admin sent to " + admin.email)
         }
       }
@@ -249,11 +262,13 @@ object NotificationMail extends HasLogger {
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
-              val mail = use[MailerPlugin].email
-              mail.setSubject(Messages("mail.shipping.admin.subject").format(tran.header.id.get))
-              mail.addRecipient(admin.email)
-              mail.addFrom(from)
-              mail.send(body)
+              val mail = Email(
+                subject = Messages("mail.shipping.admin.subject").format(tran.header.id.get),
+                to = Seq(admin.email),
+                from = from,
+                bodyText = Some(body)
+              )
+              MailerPlugin.send(mail)
               logger.info("Shipping notification for admin sent to " + admin.email)
             }
           }
@@ -277,11 +292,13 @@ object NotificationMail extends HasLogger {
           ).toString
           if (! disableMailer) {
             Akka.system.scheduler.scheduleOnce(0.microsecond) {
-              val mail = use[MailerPlugin].email
-              mail.setSubject(Messages("mail.cancel.admin.subject").format(tran.header.id.get))
-              mail.addRecipient(admin.email)
-              mail.addFrom(from)
-              mail.send(body)
+              val mail = Email(
+                subject = Messages("mail.cancel.admin.subject").format(tran.header.id.get),
+                to = Seq(admin.email),
+                from = from,
+                bodyText = Some(body)
+              )
+              MailerPlugin.send(mail)
               logger.info("Shipping cancel notification for admin sent to " + admin.email)
             }
           }
@@ -299,11 +316,13 @@ object NotificationMail extends HasLogger {
     val body = views.html.mail.resetPassword(user, rec).toString
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
-        val mail = use[MailerPlugin].email
-        mail.setSubject(Messages("resetPassword.mail.subject"))
-        mail.addRecipient(user.email)
-        mail.addFrom(from)
-        mail.send(body)
+        val mail = Email(
+          subject = Messages("resetPassword.mail.subject"),
+          to = Seq(user.email),
+          from = from,
+          bodyText = Some(body)
+        )
+        MailerPlugin.send(mail)
         logger.info("Reset password confirmation sent to " + user.email)
       }
     }

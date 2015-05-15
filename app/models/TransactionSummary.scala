@@ -20,7 +20,7 @@ case class TransactionSummaryEntry(
   buyer: StoreUser,
   shippingDate: Option[Long],
   mailSent: Boolean
-) extends NotNull {
+) {
   lazy val totalWithTax = totalAmount + totalTax
 }
 

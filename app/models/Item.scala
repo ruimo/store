@@ -16,13 +16,13 @@ import play.api.Play
 
 case class ItemId(id: Long) extends AnyVal
 
-case class Item(id: Option[ItemId] = None, categoryId: Long) extends NotNull
+case class Item(id: Option[ItemId] = None, categoryId: Long)
 
-case class ItemName(localeId: Long, itemId: ItemId, name: String) extends NotNull
+case class ItemName(localeId: Long, itemId: ItemId, name: String)
 
-case class ItemDescription(localeId: Long, itemId: ItemId, siteId: Long, description: String) extends NotNull
+case class ItemDescription(localeId: Long, itemId: ItemId, siteId: Long, description: String)
 
-case class ItemPrice(id: Option[Long] = None, siteId: Long, itemId: ItemId) extends NotNull
+case class ItemPrice(id: Option[Long] = None, siteId: Long, itemId: ItemId)
 
 case class ItemPriceHistory(
   id: Option[Long] = None,
@@ -33,25 +33,25 @@ case class ItemPriceHistory(
   listPrice: Option[BigDecimal],
   costPrice: BigDecimal,
   validUntil: Long
-) extends NotNull
+)
 
 case class ItemNumericMetadata(
   id: Option[Long] = None, itemId: ItemId, metadataType: ItemNumericMetadataType, metadata: Long
-) extends NotNull
+)
 
 case class ItemTextMetadata(
   id: Option[Long] = None, itemId: ItemId, metadataType: ItemTextMetadataType, metadata: String
-) extends NotNull
+)
 
-case class SiteItem(itemId: ItemId, siteId: Long) extends NotNull
+case class SiteItem(itemId: ItemId, siteId: Long)
 
 case class SiteItemNumericMetadata(
   id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
-) extends NotNull
+)
 
 case class SiteItemTextMetadata(
   id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemTextMetadataType, metadata: String
-) extends NotNull
+)
 
 object Item {
   val ItemListDefaultOrderBy = OrderBy("item_name.item_name", Asc)

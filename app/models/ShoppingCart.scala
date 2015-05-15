@@ -23,7 +23,7 @@ case class ShoppingCartTotalEntry(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata] = Map(),
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = Map(),
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata] = Map()
-) extends NotNull {
+) {
   lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
   lazy val quantity: Int = shoppingCartItem.quantity
   lazy val itemPrice: BigDecimal = unitPrice * quantity
@@ -47,7 +47,7 @@ case class ShoppingCartTotalEntry(
 
 case class ShoppingCartTotal(
   table: immutable.Seq[ShoppingCartTotalEntry] = List()
-) extends NotNull {
+) {
   def +(e: ShoppingCartTotalEntry) = ShoppingCartTotal(table :+ e)
   lazy val size: Int = table.size
   lazy val isEmpty: Boolean = table.isEmpty
@@ -87,7 +87,7 @@ case class ShoppingCartTotal(
 
 case class ShoppingCart(
   items: Seq[ShoppingCartItem]
-) extends NotNull
+)
 
 case class ShoppingCartItem(
   id: Option[Long] = None,
@@ -96,7 +96,7 @@ case class ShoppingCartItem(
   siteId: Long,
   itemId: Long,
   quantity: Int
-) extends NotNull {
+) {
   def copy(
     id: Option[Long] = id,
     storeUserId: Long = storeUserId,
@@ -119,7 +119,7 @@ case class ShoppingCartShipping(
   storeUserId: Long,
   siteId: Long,
   shippingDate: Long
-) extends NotNull
+)
 
 object ShoppingCartItem {
   val simple = {

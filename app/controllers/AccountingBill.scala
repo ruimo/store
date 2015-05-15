@@ -30,7 +30,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
   def AllUser(implicit lang: Lang) = ("0", Messages("all"))
 
-  def index() = isAuthenticated { implicit login => implicit request =>
+  def index() = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       Ok(
         views.html.accountingBill(
@@ -41,7 +43,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def show() = isAuthenticated { implicit login => implicit request =>
+  def show() = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     accountingBillForm.bindFromRequest.fold(
       formWithErrors => {
         DB.withConnection { implicit conn =>
@@ -64,12 +68,12 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             case Some(userId) => summariesForAllUser.filter(_.buyer.id.get == userId)
             case None => summariesForAllUser
           }
-          val siteTranByTranId = getSiteTranByTranId(summaries, lang)
+          val siteTranByTranId = getSiteTranByTranId(summaries)
 
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
             accountingBillForStoreForm,
-            summaries, getDetailByTranSiteId(summaries, lang),
+            summaries, getDetailByTranSiteId(summaries),
             getBoxBySiteAndItemSize(summaries),
             siteTranByTranId,
             false,
@@ -81,7 +85,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       }
     )
   }
-  def showForStore() = isAuthenticated { implicit login => implicit request =>
+  def showForStore() = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     accountingBillForStoreForm.bindFromRequest.fold(
       formWithErrors => {
         DB.withConnection { implicit conn =>
@@ -98,12 +104,12 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           val summaries = TransactionSummary.listByPeriod(
             siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite
           )
-          val siteTranByTranId = getSiteTranByTranId(summaries, lang)
+          val siteTranByTranId = getSiteTranByTranId(summaries)
 
           Ok(views.html.accountingBill(
             accountingBillForm,
             accountingBillForStoreForm.fill(yearMonthSite),
-            summaries, getDetailByTranSiteId(summaries, lang),
+            summaries, getDetailByTranSiteId(summaries),
             getBoxBySiteAndItemSize(summaries),
             siteTranByTranId,
             true, Site.tableForDropDown,
@@ -157,22 +163,22 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
   }
 
   def getDetailByTranSiteId(
-    summaries: Seq[TransactionSummaryEntry], lang: Lang
+    summaries: Seq[TransactionSummaryEntry]
   )(
-    implicit conn: Connection
+    implicit conn: Connection, lang: Lang
   ): LongMap[Seq[TransactionDetail]] = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
     (sum, e) =>
-    val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.byLang(lang))
+    val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.getDefault)
     sum.updated(e.transactionSiteId, details)
   }
 
   def getSiteTranByTranId(
-    summaries: Seq[TransactionSummaryEntry], lang: Lang
+    summaries: Seq[TransactionSummaryEntry]
   )(
     implicit conn: Connection
   ): LongMap[PersistedTransaction] = summaries.foldLeft(LongMap[PersistedTransaction]()) {
     (sum, e) =>
-    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault(lang))
+    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
     sum.updated(e.transactionId, siteTran)
   }
 

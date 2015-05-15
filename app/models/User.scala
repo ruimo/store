@@ -24,7 +24,7 @@ case class StoreUser(
   deleted: Boolean,
   userRole: UserRole,
   companyName: Option[String]
-) extends NotNull {
+) {
   def passwordMatch(password: String): Boolean =
     PasswordHash.generate(password, salt) == passwordHash
   lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
@@ -32,9 +32,9 @@ case class StoreUser(
   def isEmployeeOf(siteId: Long) = userName.startsWith(siteId + "-")
 }
 
-case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long) extends NotNull
+case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long)
 
-case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) extends NotNull {
+case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) {
   lazy val userType: UserType = storeUser.userRole match {
     case UserRole.ADMIN => SuperUser
     case UserRole.NORMAL => siteUser match {
@@ -49,7 +49,7 @@ case class ListUserEntry(
   siteUser: Option[SiteUser],
   site: Option[Site],
   sendNoticeMail: Boolean
-) extends NotNull
+)
 
 object StoreUser {
   val logger = Logger(getClass)
@@ -301,7 +301,7 @@ object StoreUser {
   def insertCsvIntoTempTable(
     z: Iterator[Try[CsvRecord]], csvRecordFilter: CsvRecord => Boolean
   )(implicit conn: Connection) {
-    val sql: BatchSql = SQL(
+    val sql: BatchSql = BatchSql(
       """
       insert into user_csv (
         company_id, user_name, salt, password_hash
@@ -329,7 +329,7 @@ object StoreUser {
   }
 
   def insertByCsv(employeeCsvRegistration: Boolean)(implicit conn: Connection): Int = {
-    val insUserSql: BatchSql = SQL(
+    val insUserSql: BatchSql = BatchSql(
       """
       insert into store_user (
         store_user_id, user_name, first_name, middle_name, last_name,
@@ -367,7 +367,7 @@ object StoreUser {
       sql.addBatchParams(t._2, t._3, t._4, companyName)
     }.execute().length
 
-    val insEmployeeSql: BatchSql = SQL(
+    val insEmployeeSql: BatchSql = BatchSql(
       """
       insert into employee (
         employee_id, site_id, store_user_id

@@ -57,7 +57,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
       ).discardingErrors
     }.getOrElse(jaForm)
 
-    lang.toLocale match {
+    request2lang.toLocale match {
       case Locale.JAPANESE =>
         Ok(views.html.qaJa(form))
       case Locale.JAPAN =>
@@ -80,7 +80,8 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
     )
   }}}
 
-  def qaSiteStart(siteId: Long, backLink: String) = isAuthenticated { implicit login => implicit request =>
+  def qaSiteStart(siteId: Long, backLink: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
     val user = login.storeUser
 
     DB.withConnection { implicit conn => {
@@ -100,7 +101,7 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
         )
       ).discardingErrors
 
-      lang.toLocale match {
+      request2lang.toLocale match {
         case Locale.JAPANESE =>
           Ok(views.html.qaSiteJa(site, form, sanitize(backLink)))
         case Locale.JAPAN =>
@@ -112,7 +113,9 @@ object Qa extends Controller with HasLogger with I18nAware with NeedLogin {
     }}
   }
 
-  def submitQaSiteJa(siteId: Long, backLink: String) = isAuthenticated { implicit login => implicit request =>
+  def submitQaSiteJa(siteId: Long, backLink: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+
     DB.withConnection { implicit conn =>
       val site: Site = Site(siteId)
 

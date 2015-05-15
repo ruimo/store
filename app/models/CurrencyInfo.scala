@@ -8,7 +8,7 @@ import play.api.db._
 import scala.language.postfixOps
 import java.sql.Connection
 
-case class CurrencyInfo(id: Long, currencyCode: String) extends NotNull {
+case class CurrencyInfo(id: Long, currencyCode: String) {
   def toCurrency: Currency = Currency.getInstance(currencyCode)
 }
 

@@ -12,6 +12,6 @@ case object SuperUser extends UserType {
   val typeCode = 1
 }
 
-case class SiteOwner(siteUser: SiteUser) extends UserType with NotNull {
+case class SiteOwner(siteUser: SiteUser) extends UserType {
   val typeCode = 2
 }

@@ -16,7 +16,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
 
     val list = Item.list(
-      locale = LocaleInfo.byLang(lang),
+      locale = LocaleInfo.getDefault,
       queryString = queryString,
       page = page,
       pageSize = pageSize,
@@ -44,7 +44,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
 
     val list = Item.list(
-      locale = LocaleInfo.byLang(lang), 
+      locale = LocaleInfo.getDefault, 
       queryString = queryString,
       category = c,
       page = page,
@@ -73,7 +73,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
 
     val list = Item.list(
-      locale = LocaleInfo.byLang(lang), 
+      locale = LocaleInfo.getDefault,
       queryString = queryString,
       siteId = sid,
       page = page,

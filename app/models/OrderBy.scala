@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 case class OrderBy(
   columnName: String,
   order: Order
-) extends NotNull {
+) {
   require(OrderBy.OrderByPattern.matcher(columnName).matches)
   require(order != null)
 
@@ -28,7 +28,7 @@ object OrderBy {
   }
 }
 
-sealed abstract class Order extends NotNull {
+sealed abstract class Order {
   def invert: Order
 }
 

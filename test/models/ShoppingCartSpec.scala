@@ -758,6 +758,14 @@ class ShoppingCartSpec extends Specification {
 
           // Clear
           ShoppingCartShipping.clear(user1.id.get)
+
+          SQL(
+            "select count(*) from shopping_cart_shipping where store_user_id = {userId}"
+          ).on(
+            'userId -> user1.id.get
+          ).as(
+            SqlParser.scalar[Long].single
+          ) === 0
         }
       }}
     }
