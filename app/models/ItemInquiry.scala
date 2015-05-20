@@ -158,11 +158,11 @@ object ItemInquiryField {
         )
         """,
         Seq[NamedParameter](
-          'itemInquiryId -> id.id, 'fieldName -> fields.head._1.toString, 'fieldValue -> fields.head._2
+          'itemInquiryId -> id.id, 'fieldName -> fields.head._1.name, 'fieldValue -> fields.head._2
         ),
         fields.tail.map { e =>
           Seq[NamedParameter](
-            'itemInquiryId -> id.id, 'fieldName -> e._1.toString, 'fieldValue -> e._2
+            'itemInquiryId -> id.id, 'fieldName -> e._1.name, 'fieldValue -> e._2
           )
         }.toSeq: _*
       ).execute()
