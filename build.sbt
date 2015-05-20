@@ -12,7 +12,7 @@ resolvers += "ruimo.com" at "http://static.ruimo.com/release"
 
 libraryDependencies ++= Seq(
   "postgresql" % "postgresql" % "9.1-901.jdbc4",
-  "com.typesafe.play" %% "play-mailer" % "2.4.0",
+  "com.typesafe.play" %% "play-mailer" % "2.4.1",
   "org.mockito" % "mockito-all" % "1.9.5" % "test",
   "com.ruimo" %% "recoengplugin4play23" % "1.0-SNAPSHOT",
   "com.ruimo" %% "csvparser" % "1.0-SNAPSHOT",
