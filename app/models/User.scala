@@ -80,8 +80,8 @@ object StoreUser {
     (SiteUser.simple ?) ~
     (Site.simple ?) ~
     SqlParser.get[Option[Long]]("order_notification.order_notification_id") map {
-    case storeUser~siteUser~site~notificationId => ListUserEntry(storeUser, siteUser, site, notificationId.isDefined)
-  }
+      case storeUser~siteUser~site~notificationId => ListUserEntry(storeUser, siteUser, site, notificationId.isDefined)
+    }
 
   def count(implicit conn: Connection) = 
     SQL("select count(*) from store_user where deleted = FALSE").as(SqlParser.scalar[Long].single)
@@ -301,50 +301,39 @@ object StoreUser {
   def insertCsvIntoTempTable(
     z: Iterator[Try[CsvRecord]], csvRecordFilter: CsvRecord => Boolean
   )(implicit conn: Connection) {
-    val sql: BatchSql = BatchSql(
-      """
-      insert into user_csv (
-        company_id, user_name, salt, password_hash
-      ) values (
-        {companyId}, {userName}, {salt}, {passwordHash}
-      )
-      """
-    )
-
-    z.foldLeft(sql) { (sql, e) => e match {
-      case Success(cols) =>
-        if (csvRecordFilter(cols)) {
-          val companyIdStr = cols('CompanyId)
-          val userName = (if (companyIdStr.isEmpty) "" else companyIdStr + "-") + cols('EmployeeNo)
-          val companyId = if (companyIdStr.isEmpty) None else Some(companyIdStr.toLong)
-          val password = cols('Password)
-          val salt = tokenGenerator.next
-          val hash = PasswordHash.generate(password, salt)
-          sql.addBatchParams(companyId, userName, salt, hash)
-        }
-        else sql
-
+    val recs: Iterator[Seq[ParameterValue]] = z.collect {
       case Failure(e) => throw e
-    }}.execute()
+      case Success(cols) if csvRecordFilter(cols) =>
+        val companyIdStr = cols('CompanyId)
+        val userName = (if (companyIdStr.isEmpty) "" else companyIdStr + "-") + cols('EmployeeNo)
+        val companyId = if (companyIdStr.isEmpty) None else Some(companyIdStr.toLong)
+        val password = cols('Password)
+        val salt = tokenGenerator.next
+        val hash = PasswordHash.generate(password, salt)
+        Seq(companyId, userName, salt, hash)
+    }
+
+    if (recs.hasNext) {
+      val firstRec: Seq[NamedParameter] = Seq(
+        "companyId", "userName", "salt", "passwordHash"
+      ).zip(recs.next()).map { t => NamedParameter(t._1, t._2)}
+
+      val sql: BatchSql = BatchSql(
+        """
+        insert into user_csv (
+          company_id, user_name, salt, password_hash
+        ) values (
+          {companyId}, {userName}, {salt}, {passwordHash}
+        )
+        """, firstRec
+      )
+
+      recs.foldLeft(sql) { (sql, e) => sql.addBatchParams(e: _*) }.execute()
+    }
   }
 
   def insertByCsv(employeeCsvRegistration: Boolean)(implicit conn: Connection): Int = {
-    val insUserSql: BatchSql = BatchSql(
-      """
-      insert into store_user (
-        store_user_id, user_name, first_name, middle_name, last_name,
-        email, password_hash, salt, deleted, user_role, company_name
-      ) values (
-        (select nextval('store_user_seq')), {userName}, '', null, '',
-        '', {passwordHash}, {salt}, FALSE, """ +
-      UserRole.NORMAL.ordinal +
-      """
-        , {companyName}
-      )
-      """
-    )
-
-    val insertCount = SQL(
+    val csvRecs: Seq[(String, Long, Long, Option[String])] = SQL(
       """
       select s.site_name, user_csv.user_name, user_csv.salt, user_csv.password_hash from user_csv
       left join store_user
@@ -358,26 +347,51 @@ object StoreUser {
       SqlParser.str("user_name") ~
       SqlParser.long("password_hash") ~
       SqlParser.long("salt") map(SqlParser.flatten) *
-    ).foldLeft(insUserSql) { (sql, t) => 
+    ).map { rec =>
       val companyName: Option[String] =
         if (employeeCsvRegistration) {
-          t._1
+          rec._1
         }
         else None
-      sql.addBatchParams(t._2, t._3, t._4, companyName)
-    }.execute().length
+      (rec._2, rec._3, rec._4, companyName)
+    }
 
-    val insEmployeeSql: BatchSql = BatchSql(
-      """
-      insert into employee (
-        employee_id, site_id, store_user_id
-      ) values (
-        (select nextval('employee_seq')), {siteId}, {userId}
+    if (csvRecs.isEmpty) {
+      0
+    }
+    else {
+      insertEmployeeByCsv
+
+      val firstRec = csvRecs.head
+      val insUserSql: BatchSql = BatchSql(
+        """
+        insert into store_user (
+          store_user_id, user_name, first_name, middle_name, last_name,
+          email, password_hash, salt, deleted, user_role, company_name
+        ) values (
+          (select nextval('store_user_seq')), {userName}, '', null, '',
+          '', {passwordHash}, {salt}, FALSE, """ +
+        UserRole.NORMAL.ordinal +
+        """
+          , {companyName}
+        )
+        """,
+        Seq(
+          NamedParameter("userName", firstRec._1),
+          NamedParameter("passwordHash", firstRec._2),
+          NamedParameter("salt", firstRec._3),
+          NamedParameter("companyName", firstRec._4)
+        )
       )
-      """
-    )
 
-    SQL(
+      csvRecs.tail.foldLeft(insUserSql) { (sql, t) =>
+        sql.addBatchParams(t._1, t._2, t._3, t._4)
+      }.execute().length
+    }
+  }
+
+  def insertEmployeeByCsv(implicit conn: Connection) {
+    val csvRecs: Seq[(Long, Long)] = SQL(
       """
       select s.site_id, store_user.store_user_id from user_csv
       inner join store_user
@@ -391,11 +405,29 @@ object StoreUser {
     ).as(
       SqlParser.long("site_id") ~
       SqlParser.long("store_user_id") map(SqlParser.flatten) *
-    ).foldLeft(insEmployeeSql) { (sql, t) =>
-      sql.addBatchParams(t._1, t._2)
-    }.execute()
+    )
 
-    insertCount
+    if (! csvRecs.isEmpty) {
+      val firstRec = csvRecs.head
+
+      val insEmployeeSql: BatchSql = BatchSql(
+        """
+        insert into employee (
+          employee_id, site_id, store_user_id
+        ) values (
+          (select nextval('employee_seq')), {siteId}, {userId}
+        )
+        """,
+        Seq(
+          NamedParameter("siteId", firstRec._1),
+          NamedParameter("userId", firstRec._2)
+        )
+      )
+
+      csvRecs.tail.foldLeft(insEmployeeSql) { (sql, t) =>
+        sql.addBatchParams(t._1, t._2)
+      }.execute()
+    }
   }
 
   def changePassword(userId: Long, passwordHash: Long, salt: Long)(implicit conn: Connection): Int = SQL(

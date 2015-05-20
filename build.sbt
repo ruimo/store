@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "com.ruimo" %% "csvparser" % "1.0-SNAPSHOT",
   "com.ruimo" %% "scoins" % "1.0-SNAPSHOT",
   jdbc,
-  anorm,
+//  anorm,
+  "com.typesafe.play" %% "anorm" % "2.4.0-RC3",
   cache,
   ws,
   filters

@@ -148,7 +148,7 @@ object ItemInquiryField {
     implicit conn: Connection
   ) {
     if (! fields.isEmpty) {
-      val sql: BatchSql = BatchSql(
+      BatchSql(
         """
         insert into item_inquiry_field (
           item_inquiry_field_id, item_inquiry_id, field_name, field_value
@@ -156,12 +156,16 @@ object ItemInquiryField {
           (select nextval('item_inquiry_field_seq')),
           {itemInquiryId}, {fieldName}, {fieldValue}
         )
-        """
-      )
-
-      fields.foldLeft(sql) { (sql, e) =>
-        sql.addBatchParams(id.id, e._1.name, e._2)
-      }.execute()
+        """,
+        Seq[NamedParameter](
+          'itemInquiryId -> id.id, 'fieldName -> fields.head._1.toString, 'fieldValue -> fields.head._2
+        ),
+        fields.tail.map { e =>
+          Seq[NamedParameter](
+            'itemInquiryId -> id.id, 'fieldName -> e._1.toString, 'fieldValue -> e._2
+          )
+        }.toSeq: _*
+      ).execute()
     }
   }
 
