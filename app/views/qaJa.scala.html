@@ -27,16 +27,18 @@ myForm: Form[QaEntry]
   }
 
   @form(action = CSRF(routes.Qa.submitQaJa()), 'id -> "enterQaForm") {
-    @inputRadioGroup(
-      myForm("qaType"),
-      options = options(
-        Messages("qaItem") -> Messages("qaItem"),
-        Messages("qaOpinion") -> Messages("qaOpinion"),
-        Messages("qaSugestion") -> Messages("qaSugestion"),
-        Messages("qaOther") -> Messages("qaOther")
-      ),
-      '_label -> <span>{Messages("qaItemTitle")}</span><span class='help-block'>{Messages("constraint.required")}</span>
-    )
+    <div id="qaTypeGroup">
+      <span>@Messages("qaItemTitle")</span><span class='help-block'>@Messages("constraint.required")</span>
+      @inputRadioGroup(
+        myForm("qaType"),
+        options = options(
+          Messages("qaItem") -> Messages("qaItem"),
+          Messages("qaOpinion") -> Messages("qaOpinion"),
+          Messages("qaSugestion") -> Messages("qaSugestion"),
+          Messages("qaOther") -> Messages("qaOther")
+        )
+      )
+    </div>
 
     @textarea(
       myForm("comment"),

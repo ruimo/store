@@ -360,8 +360,6 @@ object StoreUser {
       0
     }
     else {
-      insertEmployeeByCsv
-
       val firstRec = csvRecs.head
       val insUserSql: BatchSql = BatchSql(
         """
@@ -384,9 +382,12 @@ object StoreUser {
         )
       )
 
-      csvRecs.tail.foldLeft(insUserSql) { (sql, t) =>
+      val cnt = csvRecs.tail.foldLeft(insUserSql) { (sql, t) =>
         sql.addBatchParams(t._1, t._2, t._3, t._4)
       }.execute().length
+      insertEmployeeByCsv
+
+      cnt
     }
   }
 

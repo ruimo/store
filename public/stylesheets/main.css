@@ -733,3 +733,6 @@ tr.recommendationByAdminTable.body {
     width: 98%;
 }
 
+#qaType_field > label {
+  display: none;
+}

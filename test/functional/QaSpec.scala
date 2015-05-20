@@ -18,7 +18,7 @@ class QaSpec extends Specification {
   "QA" should {
     "All field should be blank if no one is logged in." in {
       val app = FakeApplication(additionalConfiguration = conf)
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         if (NeedLogin.needAuthenticationEntirely) {
           1 === 1
         }
@@ -31,7 +31,7 @@ class QaSpec extends Specification {
           browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
           browser.title === Messages("qaTitle")
 
-          browser.find("#qaType_field .help-block").getText === Messages("constraint.required")
+          browser.find("#qaTypeGroup .help-block").getText === Messages("constraint.required")
           browser.find("#comment").getText === ""
           browser.find("#companyName").getText === ""
           browser.find("#firstName").getText === ""
