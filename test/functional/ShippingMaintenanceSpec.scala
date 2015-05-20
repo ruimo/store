@@ -411,25 +411,25 @@ class ShippingMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
 
         browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
-        browser.webDriver.findElement(By.id("histories_0__taxId")).findElement(
+        browser.webDriver.findElement(By.id("histories_0_taxId")).findElement(
           By.cssSelector("option[value='" + tax2.id.get + "']")
         ).isSelected === true
-        browser.find("#histories_0__fee").getAttribute("value") === "123.00"
-        browser.find("#histories_0__validUntil").getAttribute("value") === "2015-01-23 11:22:33"
+        browser.find("#histories_0_fee").getAttribute("value") === "123.00"
+        browser.find("#histories_0_validUntil").getAttribute("value") === "2015-01-23 11:22:33"
 
         // Can change history.
-        browser.find("#histories_0__taxId").find("option[value='" + tax1.id.get + "']").click()
-        browser.fill("#histories_0__fee").`with`("234")
-        browser.fill("#histories_0__validUntil").`with`("2016-01-23 22:33:44")
+        browser.find("#histories_0_taxId").find("option[value='" + tax1.id.get + "']").click()
+        browser.fill("#histories_0_fee").`with`("234")
+        browser.fill("#histories_0_validUntil").`with`("2016-01-23 22:33:44")
         browser.find("#updateShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
         browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
         
-        browser.webDriver.findElement(By.id("histories_0__taxId")).findElement(
+        browser.webDriver.findElement(By.id("histories_0_taxId")).findElement(
           By.cssSelector("option[value='" + tax1.id.get + "']")
         ).isSelected === true
-        browser.find("#histories_0__fee").getAttribute("value") === "234.00"
-        browser.find("#histories_0__validUntil").getAttribute("value") === "2016-01-23 22:33:44"
+        browser.find("#histories_0_fee").getAttribute("value") === "234.00"
+        browser.find("#histories_0_validUntil").getAttribute("value") === "2016-01-23 22:33:44"
 
         // Check fee history.
         browser.goTo(

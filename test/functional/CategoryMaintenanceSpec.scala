@@ -164,9 +164,9 @@ class CategoryMaintenanceSpec extends Specification {
 
         browser.title === Messages("editCategoryNameTitle")
         browser.find(".langName").getText === Messages("lang.ja")
-        browser.find("#categoryNames_0__name").getAttribute("value") === "カテゴリ001"
+        browser.find("#categoryNames_0_name").getAttribute("value") === "カテゴリ001"
 
-        browser.fill("#categoryNames_0__name").`with`("カテゴリ999")
+        browser.fill("#categoryNames_0_name").`with`("カテゴリ999")
         browser.find("#submitCategoryNameUpdate").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -182,13 +182,13 @@ class CategoryMaintenanceSpec extends Specification {
 
         browser.title === Messages("editCategoryNameTitle")
         if (browser.find(".langName", 0).getText == Messages("lang.ja")) {
-          browser.find("#categoryNames_0__name").getAttribute("value") === "カテゴリ999"
-          browser.find("#categoryNames_1__name").getAttribute("value") === "category999"
+          browser.find("#categoryNames_0_name").getAttribute("value") === "カテゴリ999"
+          browser.find("#categoryNames_1_name").getAttribute("value") === "category999"
           browser.find(".updateCategoryName button", 0).click()
         }
         else {
-          browser.find("#categoryNames_0__name").getAttribute("value") === "category999"
-          browser.find("#categoryNames_1__name").getAttribute("value") === "カテゴリ999"
+          browser.find("#categoryNames_0_name").getAttribute("value") === "category999"
+          browser.find("#categoryNames_1_name").getAttribute("value") === "カテゴリ999"
           browser.find(".updateCategoryName button", 1).click()
         }
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()

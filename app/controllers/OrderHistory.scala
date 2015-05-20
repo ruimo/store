@@ -66,7 +66,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
         AccountingBill.getSiteTranByTranId(pagedRecords.records)
 
       showOrderHistoryInternal(
-        page: Int, pageSize: Int, orderBySpec: String, tranId,
+        page, pageSize, orderBySpec, tranId,
         views.html.showOrderHistory.apply
       )
     }

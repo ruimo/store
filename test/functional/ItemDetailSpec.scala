@@ -89,7 +89,7 @@ class ItemDetailSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.fill("#itemPrices_0__listPrice").`with`("3000")
+        browser.fill("#itemPrices_0_listPrice").`with`("3000")
         browser.find("#changeItemPriceButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 

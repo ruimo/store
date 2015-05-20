@@ -111,25 +111,25 @@ class ItemMaintenanceSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.find("#itemNames_0__itemName").getAttribute("value") === "ItemName01"
+        browser.find("#itemNames_0_itemName").getAttribute("value") === "ItemName01"
         browser.find("#categoryId option").getText === "Cat01"
-        browser.find("#itemPrices_0__taxId option").getText === "外税"
-        browser.find("#itemPrices_0__itemPrice").getAttribute("value") === "1234.00"
-        browser.find("#itemPrices_0__listPrice").getAttribute("value") === ""
-        browser.find("#itemPrices_0__costPrice").getAttribute("value") === "2345.00"
-        browser.find("#itemPrices_0__validUntil").getAttribute("value") === "9999-12-31 23:59:59"
+        browser.find("#itemPrices_0_taxId option").getText === "外税"
+        browser.find("#itemPrices_0_itemPrice").getAttribute("value") === "1234.00"
+        browser.find("#itemPrices_0_listPrice").getAttribute("value") === ""
+        browser.find("#itemPrices_0_costPrice").getAttribute("value") === "2345.00"
+        browser.find("#itemPrices_0_validUntil").getAttribute("value") === "9999-12-31 23:59:59"
 
-        browser.fill("#itemPrices_0__listPrice").`with`("3000")
+        browser.fill("#itemPrices_0_listPrice").`with`("3000")
         browser.find("#changeItemPriceButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.find("#itemPrices_0__listPrice").getAttribute("value") === "3000.00"
+        browser.find("#itemPrices_0_listPrice").getAttribute("value") === "3000.00"
 
-        browser.fill("#itemPrices_0__listPrice").`with`("")
+        browser.fill("#itemPrices_0_listPrice").`with`("")
         browser.find("#changeItemPriceButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.find("#itemPrices_0__listPrice").getAttribute("value") === ""
+        browser.find("#itemPrices_0_listPrice").getAttribute("value") === ""
       }}
     }
 
@@ -216,13 +216,13 @@ class ItemMaintenanceSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.find("#itemNames_0__itemName").getAttribute("value") === "ItemName01"
+        browser.find("#itemNames_0_itemName").getAttribute("value") === "ItemName01"
         browser.find("#categoryId option").getText === "Cat01"
-        browser.find("#itemPrices_0__taxId option").getText === "外税"
-        browser.find("#itemPrices_0__itemPrice").getAttribute("value") === "1234.00"
-        browser.find("#itemPrices_0__listPrice").getAttribute("value") === ""
-        browser.find("#itemPrices_0__costPrice").getAttribute("value") === "2345.00"
-        browser.find("#itemPrices_0__validUntil").getAttribute("value") === "9999-12-31 23:59:59"
+        browser.find("#itemPrices_0_taxId option").getText === "外税"
+        browser.find("#itemPrices_0_itemPrice").getAttribute("value") === "1234.00"
+        browser.find("#itemPrices_0_listPrice").getAttribute("value") === ""
+        browser.find("#itemPrices_0_costPrice").getAttribute("value") === "2345.00"
+        browser.find("#itemPrices_0_validUntil").getAttribute("value") === "9999-12-31 23:59:59"
 
         doWith(browser.find("#addSiteItemTextMetadataForm")) { form =>
           form.find(
@@ -234,7 +234,7 @@ class ItemMaintenanceSpec extends Specification {
           form.find("input[type='submit']").click()
         }
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.find("#siteItemTextMetadatas_0__metadata").getAttribute("value") === "Price memo"
+        browser.find("#siteItemTextMetadatas_0_metadata").getAttribute("value") === "Price memo"
 
         browser.find(".removeSiteItemTextMetadataButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
