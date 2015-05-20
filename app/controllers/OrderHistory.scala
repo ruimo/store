@@ -88,11 +88,17 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
       AccountingBill.getSiteTranByTranId(pagedRecords.records)
 
+val detailByTranSiteId = AccountingBill.getDetailByTranSiteId(pagedRecords.records)
+val boxBySiteAndItemSize = AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records)
+println("*** pagedRecords = " + pagedRecords)
+println("*** detailByTranSiteId = " + detailByTranSiteId)
+println("*** boxBySiteAndItemSize = " + boxBySiteAndItemSize)
+println("*** siteTranByTranId = " + siteTranByTranId)
     Ok(
       view(
         pagedRecords,
-        AccountingBill.getDetailByTranSiteId(pagedRecords.records),
-        AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
+        detailByTranSiteId,
+        boxBySiteAndItemSize,
         siteTranByTranId, 
         AccountingBill.getAddressTable(siteTranByTranId),
         tranId
