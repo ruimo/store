@@ -1036,6 +1036,7 @@ class TransactionPersister {
   }
 
   def load(tranId: Long, localeInfo: LocaleInfo)(implicit conn: Connection): PersistedTransaction = {
+println("*** localeInfo = " + localeInfo)
     val header = TransactionLogHeader(tranId)
 
     val (tranSiteLog, siteLog) = SQL(
