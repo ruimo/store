@@ -178,7 +178,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     implicit conn: Connection
   ): LongMap[PersistedTransaction] = summaries.foldLeft(LongMap[PersistedTransaction]()) {
     (sum, e) =>
-    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault)
+    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault(lang))
     sum.updated(e.transactionId, siteTran)
   }
 
