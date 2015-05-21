@@ -118,6 +118,7 @@
                       <span class="body">
 @{println("+++ siteTranByTranId = " + siteTranByTranId)}
 @{println("+++ e.transactionId = " + e.transactionId)}
+@{println("+++ siteTranByTranId.get(e.transactionId) = " + siteTranByTranId.get(e.transactionId))}
                         @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
                       </span>
                       <button type="button"
