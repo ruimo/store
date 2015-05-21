@@ -62,7 +62,6 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           storeUserId = Some(login.storeUser.id.get), tranId = tranId,
           page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
         )
-println("*** request2lang = " + request2lang)
       val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
         AccountingBill.getSiteTranByTranId(pagedRecords.records, request2lang)
 
