@@ -119,6 +119,8 @@
 @{println("+++ siteTranByTranId = " + siteTranByTranId)}
 @{println("+++ e.transactionId = " + e.transactionId)}
 @{println("+++ siteTranByTranId.get(e.transactionId) = " + siteTranByTranId.get(e.transactionId))}
+@{println("+++ siteTranByTranId(e.transactionId) = " + siteTranByTranId(e.transactionId))}
+@{println("+++ siteTranByTranId(e.transactionId).itemTotal = " + siteTranByTranId(e.transactionId).itemTotal)}
                         @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
                       </span>
                       <button type="button"
