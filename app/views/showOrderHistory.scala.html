@@ -116,6 +116,8 @@
                     <td class="orderHistoryInnerTable3Body subtotalHeader">@Messages("subtotal")</td>
                     <td class="orderHistoryInnerTable3Body subtotalBody">
                       <span class="body">
+@{println("+++ siteTranByTranId = " + siteTranByTranId)}
+@{println("+++ e.transactionId = " + e.transactionId)}
                         @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
                       </span>
                       <button type="button"
