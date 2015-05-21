@@ -23,11 +23,6 @@
 } {
   @shoppingCartDialogImplementation()
 
-@{println("*** tran = " + tran)}
-@{println("*** detailByTranSiteId = " + detailByTranSiteId)}
-@{println("*** boxBySiteAndItemSize = " + boxBySiteAndItemSize)}
-@{println("*** siteTranByTranId = " + siteTranByTranId)}
-
 <h1 class="title">@Messages("order.history.title")</h1>
 
   @tran.records.map { e =>
@@ -116,12 +111,6 @@
                     <td class="orderHistoryInnerTable3Body subtotalHeader">@Messages("subtotal")</td>
                     <td class="orderHistoryInnerTable3Body subtotalBody">
                       <span class="body">
-@{println("+++ siteTranByTranId = " + siteTranByTranId)}
-@{println("+++ e.transactionId = " + e.transactionId)}
-@{println("+++ siteTranByTranId.get(e.transactionId) = " + siteTranByTranId.get(e.transactionId))}
-@{println("+++ siteTranByTranId(e.transactionId) = " + siteTranByTranId(e.transactionId))}
-@{println("+++ siteTranByTranId(e.transactionId).itemTable = " + siteTranByTranId(e.transactionId).itemTable)}
-@{println("+++ siteTranByTranId(e.transactionId).itemTotal = " + siteTranByTranId(e.transactionId).itemTotal)}
                         @amount(siteTranByTranId(e.transactionId).itemTotal(e.siteId))
                       </span>
                       <button type="button"
