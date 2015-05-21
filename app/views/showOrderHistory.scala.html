@@ -22,7 +22,13 @@
   @shoppingCartDialogDeclaration()
 } {
   @shoppingCartDialogImplementation()
-  <h1 class="title">@Messages("order.history.title")</h1>
+
+<p>pagedRecords = @pagedRecords</p>
+<p>detailByTranSiteId = @detailByTranSiteId</p>
+<p>boxBySiteAndItemSize = @boxBySiteAndItemSize</p>
+<p>siteTranByTranId = @siteTranByTranId</p>
+
+<h1 class="title">@Messages("order.history.title")</h1>
 
   @tran.records.map { e =>
     <table class="orderHistoryTable">
