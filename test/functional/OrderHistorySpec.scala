@@ -197,7 +197,6 @@ class OrderHistorySpec extends Specification {
       }}
     }
 
-/*
     "Show login user's order history list" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
       running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
@@ -323,7 +322,6 @@ class OrderHistorySpec extends Specification {
       }}
     }
   }
-*/
 
   def createTransaction(lang: Lang, user: StoreUser)(implicit conn: Connection): Tran = {
     val tax = Tax.createNew
