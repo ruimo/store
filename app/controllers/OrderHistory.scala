@@ -63,7 +63,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
         )
       val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
-        AccountingBill.getSiteTranByTranId(pagedRecords.records)
+        AccountingBill.getSiteTranByTranId(pagedRecords.records, request2lang)
 
       showOrderHistoryInternal(
         page, pageSize, orderBySpec, tranId,
@@ -86,7 +86,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
       page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
     )
     val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
-      AccountingBill.getSiteTranByTranId(pagedRecords.records)
+      AccountingBill.getSiteTranByTranId(pagedRecords.records, request2lang)
 
     Ok(
       view(
@@ -113,7 +113,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           val summaries = TransactionSummary.listByPeriod(
             storeUserId = Some(login.storeUser.id.get), yearMonth = yearMonth
           )
-          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries)
+          val siteTranByTranId = AccountingBill.getSiteTranByTranId(summaries, request2lang)
           Ok(views.html.showMonthlyOrderHistory(
             orderHistoryForm.fill(yearMonth),
             summaries,
