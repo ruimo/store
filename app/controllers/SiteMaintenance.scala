@@ -28,21 +28,21 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
     ) (ChangeSite.apply)(ChangeSite.unapply)
   )
 
-  def index = NeedAuthenticatedJson { implicit request =>
+  def index = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       Ok(views.html.admin.siteMaintenance())
     }
   }
 
-  def startCreateNewSite = NeedAuthenticatedJson { implicit request =>
+  def startCreateNewSite = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       Ok(views.html.admin.createNewSite(createSiteForm, LocaleInfo.localeTable))
     }
   }
 
-  def createNewSite = NeedAuthenticatedJson { implicit request =>
+  def createNewSite = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       createSiteForm.bindFromRequest.fold(
@@ -60,7 +60,7 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }
 
-  def editSite = NeedAuthenticatedJson { implicit request =>
+  def editSite = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       DB.withConnection { implicit conn =>
@@ -69,7 +69,7 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }
 
-  def changeSiteStart(siteId: Long) = NeedAuthenticatedJson { implicit request =>
+  def changeSiteStart(siteId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       DB.withConnection { implicit conn =>
@@ -84,7 +84,7 @@ object SiteMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }
 
-  def changeSite = NeedAuthenticatedJson { implicit request =>
+  def changeSite = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       changeSiteForm.bindFromRequest.fold(

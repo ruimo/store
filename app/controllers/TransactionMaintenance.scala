@@ -41,7 +41,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
 
   def index(
     page: Int, pageSize: Int, orderBySpec: String
-  ) = NeedAuthenticatedJson { implicit request =>
+  ) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       DB.withConnection { implicit conn =>
@@ -65,7 +65,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def setStatus = NeedAuthenticatedJson { implicit request =>
+  def setStatus = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       changeStatusForm.bindFromRequest.fold(
@@ -101,7 +101,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def detail(tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+  def detail(tranSiteId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       DB.withConnection { implicit conn =>
@@ -126,7 +126,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def entryShippingInfo(tranId: Long, tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+  def entryShippingInfo(tranId: Long, tranSiteId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       entryShippingInfoForm.bindFromRequest.fold(
@@ -165,7 +165,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def cancelShipping(tranId: Long, tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+  def cancelShipping(tranId: Long, tranSiteId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       DB.withTransaction { implicit conn =>
@@ -206,7 +206,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     }
   }
 
-  def downloadCsv(tranId: Long, tranSiteId: Long) = NeedAuthenticatedJson { implicit request =>
+  def downloadCsv(tranId: Long, tranSiteId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       val stream = new ByteArrayInputStream(createCsv(tranId, tranSiteId).getBytes("Windows-31j"))

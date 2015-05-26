@@ -20,21 +20,21 @@ object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasL
     ) (CreateTax.apply)(CreateTax.unapply)
   )
 
-  def index = NeedAuthenticatedJson { implicit request =>
+  def index = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       Ok(views.html.admin.taxMaintenance())
     }
   }
 
-  def startCreateNewTax = NeedAuthenticatedJson { implicit request =>
+  def startCreateNewTax = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       Ok(views.html.admin.createNewTax(createTaxForm, Tax.taxTypeTable, LocaleInfo.localeTable))
     }
   }
 
-  def createNewTax = NeedAuthenticatedJson { implicit request =>
+  def createNewTax = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       createTaxForm.bindFromRequest.fold(
@@ -54,7 +54,7 @@ object TaxMaintenance extends Controller with I18nAware with NeedLogin with HasL
     }
   }
 
-  def editTax = NeedAuthenticatedJson { implicit request =>
+  def editTax = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
       Ok(views.html.admin.editTax())
