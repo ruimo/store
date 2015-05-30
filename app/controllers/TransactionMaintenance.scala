@@ -209,19 +209,15 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
   def downloadCsv(tranId: Long, tranSiteId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
-      val stream = new ByteArrayInputStream(createCsv(tranId, tranSiteId).getBytes("Windows-31j"))
+      implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
       val fileName = "tranDetail" + tranId + "-" + tranSiteId + ".csv"
 
-      Result(
-        header = ResponseHeader(
-          OK,
-          Map(
-            CONTENT_LENGTH -> "-1",
-            CONTENT_TYPE -> MimeTypes.forFileName(fileName).getOrElse(ContentTypes.BINARY),
-            CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
-          )
-        ),
-        body = Enumerator.fromStream(stream)
+      Ok(
+        createCsv(tranId, tranSiteId)
+      ).as(
+        "text/csv charset=Shift_JIS"
+      ).withHeaders(
+        CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
       )
     }
   }
