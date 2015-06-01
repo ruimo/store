@@ -40,8 +40,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       Paths.get(System.getProperty("user.home"), "itemPictures")
     }
 
-    logger.info("logger: Using item.picture.path = '" + ret + "'")
-    println("Using item.picture.path = '" + ret + "'")
+    logger.info("Using item.picture.path = '" + ret + "'")
     ret
   }
   def attachmentPath = {
