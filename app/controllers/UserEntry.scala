@@ -38,17 +38,19 @@ import java.sql.Connection
 import helpers.NotificationMail
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import helpers.Cache
 
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
 
-  val AppVal = Play.maybeApplication.get
-  def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
-  def Config = App.configuration
-  def ResetPasswordTimeout: Long = Config.getMilliseconds("resetPassword.timeout").getOrElse {
-    (30 minutes).toMillis
-  }
-  def AutoLoginAfterRegistration: Boolean = Config.getBoolean("auto.login.after.registration").getOrElse(false)
+  def ResetPasswordTimeout: Long = Cache.cacheOnProd(
+    Cache.Conf.getMilliseconds("resetPassword.timeout").getOrElse {
+      (30 minutes).toMillis
+    }
+  )()
+  def AutoLoginAfterRegistration: Boolean = Cache.cacheOnProd(
+    Cache.Conf.getBoolean("auto.login.after.registration").getOrElse(false)
+  )()
 
   def jaForm(implicit lang: Lang) = Form(
     mapping(

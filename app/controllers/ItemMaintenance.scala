@@ -16,7 +16,6 @@ import java.sql.SQLException
 import org.joda.time.DateTime
 import helpers.QueryString
 import play.api.Play
-import play.api.Mode
 
 class ChangeItem(
   val id: Long,
