@@ -22,7 +22,6 @@ import com.ruimo.csv.CsvParseException
 import com.ruimo.csv.CsvRecord
 import com.ruimo.csv.Parser._
 import play.api.Play
-import play.api.Mode
 import helpers.Cache
 
 class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -41,7 +40,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def createEmployeeForm(implicit lang: Lang) = Form(
     mapping(
-      "userName" -> text.verifying(userNameConstraint: _*),
+      "userName" -> text.verifying(userNameConstraint(): _*),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
@@ -54,7 +53,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def modifyUserForm(implicit lang: Lang) = Form(
     mapping(
       "userId" -> longNumber,
-      "userName" -> text.verifying(userNameConstraint: _*),
+      "userName" -> text.verifying(userNameConstraint(): _*),
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "middleName" -> optional(text),
       "lastName" -> text.verifying(lastNameConstraint: _*),
@@ -73,7 +72,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def newSiteOwnerForm(implicit lang: Lang) = Form(
     mapping(
       "siteId" -> longNumber,
-      "userName" -> text.verifying(userNameConstraint: _*),
+      "userName" -> text.verifying(userNameConstraint(): _*),
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "middleName" -> optional(text),
       "lastName" -> text.verifying(lastNameConstraint: _*),

@@ -1,7 +1,6 @@
 package controllers
 
 import play.api.Play
-import play.api.Mode
 import helpers.PasswordHash
 import constraints.FormConstraints._
 import java.util.Locale

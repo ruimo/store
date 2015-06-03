@@ -24,7 +24,7 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
     unapply: T => Option[(String, String, Option[String], String, String, (String, String), String)]
   )(implicit lang: Lang) = Form(
     mapping(
-      "userName" -> text.verifying(userNameConstraint: _*),
+      "userName" -> text.verifying(userNameConstraint(): _*),
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "middleName" -> optional(text),
       "lastName" -> text.verifying(lastNameConstraint: _*),

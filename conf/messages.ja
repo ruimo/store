@@ -456,3 +456,5 @@ deleteConfirm=削除してよろしいですか
 yes=はい
 no=いいえ
 createNewEmployeeUserMenu=従業員の追加
+normalUserNamePatternRule=
+normalUserNamePatternError=ユーザー名が不正です

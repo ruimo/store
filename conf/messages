@@ -424,3 +424,5 @@ deleteConfirm=Are you sure to delete?
 yes=Yes
 no=No
 createNewEmployeeUserMenu=Create Employee
+normalUserNamePatternRule=
+normalUserNamePatternError=User name is not valid
