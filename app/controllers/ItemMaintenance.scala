@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.Cache
 import play.api.data.Form
 import controllers.I18n.I18nAware
 import play.api.mvc.Controller
@@ -48,10 +49,9 @@ class ChangeItem(
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
-  val AppVal = Play.maybeApplication.get
-  def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
-  def Config = App.configuration
-  def ItemDescriptionSize: Int = Config.getInt("itemDescription.size").getOrElse(2048)
+  def ItemDescriptionSize: Int = Cache.cacheOnProd(
+    Cache.Conf.getInt("itemDescription.size").getOrElse(2048)
+  )()
 
   val createItemForm = Form(
     mapping(
