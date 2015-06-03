@@ -71,7 +71,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.$("#companyName_field dd.error").getText === Messages("error.required")
         browser.$("#firstName_field dd.error").getText === Messages("error.required")
         browser.$("#email_field dd.error").getText === Messages("error.email")
-        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", passwordMinLength)
+        browser.$("#password_main_field dd.error").getText === Messages("error.minLength", passwordMinLength())
       }
     }
 

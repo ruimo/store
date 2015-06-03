@@ -32,7 +32,7 @@ class ChangePasswordSpec extends Specification {
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#currentPassword_field .error").getText === Messages("error.required")
 
-        val passwordMinLength = constraints.FormConstraints.passwordMinLength
+        val passwordMinLength: Int = constraints.FormConstraints.passwordMinLength()
         browser.find("#newPassword_main_field .error").getText === Messages("error.minLength", passwordMinLength)
         browser.find("#newPassword_confirm_field .error").getText === Messages("error.minLength", passwordMinLength)
 

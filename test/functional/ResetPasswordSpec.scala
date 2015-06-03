@@ -79,15 +79,15 @@ class ResetPasswordSpec extends Specification {
 
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#password_main_field .error").getText === 
-          Messages("error.minLength", constraints.FormConstraints.passwordMinLength.toString)
+          Messages("error.minLength", constraints.FormConstraints.passwordMinLength().toString)
         browser.find("#password_confirm_field .error").getText === 
-          Messages("error.minLength", constraints.FormConstraints.passwordMinLength.toString)
+          Messages("error.minLength", constraints.FormConstraints.passwordMinLength().toString)
 
         browser.fill("#password_main").`with`("12345678")
         browser.find("#doResetPasswordButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.find("#password_confirm_field .error").getText === 
-          Messages("error.minLength", constraints.FormConstraints.passwordMinLength.toString)
+          Messages("error.minLength", constraints.FormConstraints.passwordMinLength().toString)
 
         browser.fill("#password_main").`with`("12345678")
         browser.fill("#password_confirm").`with`("12345679")

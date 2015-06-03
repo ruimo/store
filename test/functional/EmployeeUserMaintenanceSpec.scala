@@ -89,7 +89,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.find("#userName_field .error").getText === 
           Messages("error.minLength", FormConstraints.userNameMinLength)
         browser.find("#password_main_field .error").getText === 
-          Messages("error.minLength", FormConstraints.passwordMinLength)
+          Messages("error.minLength", FormConstraints.passwordMinLength())
 
         // Confirm password does not match.
         browser.fill("#userName").`with`("12345678")
@@ -220,7 +220,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.find("#email_field .error", 0).getText === Messages("error.email")
         browser.find("#email_field .error", 1).getText === Messages("error.required")
         browser.find("#password_main_field .error").getText ===
-          Messages("error.minLength", FormConstraints.passwordMinLength)
+          Messages("error.minLength", FormConstraints.passwordMinLength())
 
         browser.fill("#userName").`with`(employee01.userName + "new")
         browser.fill("#firstName").`with`("firstName2")
