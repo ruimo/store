@@ -23,18 +23,21 @@ import com.ruimo.csv.CsvRecord
 import com.ruimo.csv.Parser._
 import play.api.Play
 import play.api.Mode
+import helpers.Cache
 
 class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with HasLogger {
   import NeedLogin._
-  val AppVal = Play.maybeApplication.get
-  def App = if (Play.maybeApplication.get.mode == Mode.Test) Play.maybeApplication.get else AppVal
-  def Config = App.configuration
-  def EmployeeCsvRegistration: Boolean = Config.getBoolean("employee.csv.registration").getOrElse(false)
-  def SiteOwnerCanEditEmployee: Boolean = Config.getBoolean("siteOwnerCanEditEmployee").getOrElse(false)
+  val EmployeeCsvRegistration: () => Boolean = Cache.cacheOnProd(
+    Cache.Conf.getBoolean("employee.csv.registration").getOrElse(false)
+  )
+  val SiteOwnerCanEditEmployee: () => Boolean = Cache.cacheOnProd(
+    Cache.Conf.getBoolean("siteOwnerCanEditEmployee").getOrElse(false)
+  )
 
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
-  lazy val config = play.api.Play.maybeApplication.map(_.configuration).get
-  lazy val siteOwnerCanUploadUserCsv = config.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
+  val SiteOwnerCanUploadUserCsv: () => Boolean = Cache.cacheOnProd(
+    Cache.Conf.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
+  )
 
   def createEmployeeForm(implicit lang: Lang) = Form(
     mapping(
@@ -88,7 +91,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def index = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
-      if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
+      if (SiteOwnerCanUploadUserCsv() || login.isSuperUser) {
         Ok(views.html.admin.userMaintenance())
       }
       else {
@@ -123,7 +126,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def startCreateNewEmployeeUser = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSiteOwner(login) {
-      if (SiteOwnerCanEditEmployee) {
+      if (SiteOwnerCanEditEmployee()) {
         val siteId = login.siteUser.map(_.siteId).get
         DB.withConnection { implicit conn =>
           Ok(views.html.admin.createNewEmployeeUser(Site(siteId), createEmployeeForm))
@@ -147,7 +150,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           }
         },
         newUser => {
-          if (SiteOwnerCanEditEmployee) {
+          if (SiteOwnerCanEditEmployee()) {
             val siteId = login.siteUser.map(_.siteId).get
             val salt = tokenGenerator.next
             DB.withConnection { implicit conn =>
@@ -244,7 +247,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec))))
         }
         else { // Store owner
-          if (SiteOwnerCanEditEmployee) {
+          if (SiteOwnerCanEditEmployee()) {
             val siteId = login.siteUser.map(_.siteId).get
             Ok(views.html.admin.editUser(StoreUser.listUsers(page, pageSize, OrderBy(orderBySpec), employeeSiteId = Some(siteId))))
           }
@@ -318,12 +321,12 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   }
 
   def canEditEmployee(userId: Long, siteId: Long)(implicit conn: Connection): Boolean =
-    StoreUser(userId).isEmployeeOf(siteId) && SiteOwnerCanEditEmployee
+    StoreUser(userId).isEmployeeOf(siteId) && SiteOwnerCanEditEmployee()
 
   def startAddUsersByCsv = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
-      if (siteOwnerCanUploadUserCsv || login.isSuperUser) {
+      if (SiteOwnerCanUploadUserCsv() || login.isSuperUser) {
         DB.withConnection { implicit conn =>
           Ok(views.html.admin.addUsersByCsv())
         }
@@ -391,7 +394,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
         z,
         csvRecordFilter,
         deleteSqlSupplemental,
-        EmployeeCsvRegistration
+        EmployeeCsvRegistration()
       )
     } match {
       case Success(updatedColumnCount) =>

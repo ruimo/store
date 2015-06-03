@@ -48,9 +48,9 @@ class ChangeItem(
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
-  def ItemDescriptionSize: Int = Cache.cacheOnProd(
+  val ItemDescriptionSize: () => Int = Cache.cacheOnProd(
     Cache.Conf.getInt("itemDescription.size").getOrElse(2048)
-  )()
+  )
 
   val createItemForm = Form(
     mapping(
@@ -63,7 +63,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       "price" -> bigDecimal.verifying(min(BigDecimal(0))),
       "listPrice" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "costPrice" -> bigDecimal.verifying(min(BigDecimal(0))),
-      "description" -> text.verifying(maxLength(ItemDescriptionSize)),
+      "description" -> text.verifying(maxLength(ItemDescriptionSize())),
       "isCoupon" ->boolean
     ) (CreateItem.apply)(CreateItem.unapply)
   )
@@ -843,7 +843,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         mapping(
           "siteId" -> longNumber,
           "localeId" -> longNumber,
-          "itemDescription" -> text.verifying(nonEmpty, maxLength(ItemDescriptionSize))
+          "itemDescription" -> text.verifying(nonEmpty, maxLength(ItemDescriptionSize()))
         ) (ChangeItemDescription.apply)(ChangeItemDescription.unapply)
       )
     ) (ChangeItemDescriptionTable.apply)(ChangeItemDescriptionTable.unapply)
@@ -853,7 +853,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "siteId" -> longNumber,
       "localeId" -> longNumber,
-      "itemDescription" -> text.verifying(nonEmpty, maxLength(ItemDescriptionSize))
+      "itemDescription" -> text.verifying(nonEmpty, maxLength(ItemDescriptionSize()))
     ) (ChangeItemDescription.apply)(ChangeItemDescription.unapply)
   )
 

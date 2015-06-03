@@ -43,14 +43,14 @@ import helpers.Cache
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
 
-  def ResetPasswordTimeout: Long = Cache.cacheOnProd(
+  def ResetPasswordTimeout: () => Long = Cache.cacheOnProd(
     Cache.Conf.getMilliseconds("resetPassword.timeout").getOrElse {
       (30 minutes).toMillis
     }
-  )()
-  def AutoLoginAfterRegistration: Boolean = Cache.cacheOnProd(
+  )
+  def AutoLoginAfterRegistration: () => Boolean = Cache.cacheOnProd(
     Cache.Conf.getBoolean("auto.login.after.registration").getOrElse(false)
-  )()
+  )
 
   def jaForm(implicit lang: Lang) = Form(
     mapping(
@@ -248,7 +248,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
               "message" -> Messages("userInfoIsUpdated")
             )
 
-            if (AutoLoginAfterRegistration) {
+            if (AutoLoginAfterRegistration()) {
               result.withSession {
                 (LoginUserKey, LoginSession.serialize(userId, System.currentTimeMillis + SessionTimeout))
               }
@@ -460,7 +460,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
   def resetPasswordConfirm(userId: Long, token: Long) = Action { implicit request =>
     DB.withConnection { implicit conn =>
       logger.info("Password reset confirmation ok = " + userId + ", token = " + token)
-      if (ResetPassword.isValid(userId, token, System.currentTimeMillis - ResetPasswordTimeout)) {
+      if (ResetPassword.isValid(userId, token, System.currentTimeMillis - ResetPasswordTimeout())) {
         Ok(
           views.html.resetWithNewPassword(
             resetWithNewPasswordForm.bind(
@@ -490,7 +490,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
             ResetPassword.changePassword(
               newInfo.userId,
               newInfo.token, 
-              System.currentTimeMillis - ResetPasswordTimeout,
+              System.currentTimeMillis - ResetPasswordTimeout(),
               newInfo.passwords._1
             )
           ) {
