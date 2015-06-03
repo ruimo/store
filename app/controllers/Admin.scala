@@ -39,6 +39,26 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
     )(apply)(unapply)
   )
 
+  def createNormalUserForm[T <: CreateUser](
+    apply: (String, String, Option[String], String, String, (String, String), String) => T,
+    unapply: T => Option[(String, String, Option[String], String, String, (String, String), String)]
+  )(implicit lang: Lang) = Form(
+    mapping(
+      "userName" -> text.verifying(normalUserNameConstraint(): _*),
+      "firstName" -> text.verifying(firstNameConstraint: _*),
+      "middleName" -> optional(text),
+      "lastName" -> text.verifying(lastNameConstraint: _*),
+      "email" -> email.verifying(emailConstraint: _*),
+      "password" -> tuple(
+        "main" -> text.verifying(passwordConstraint: _*),
+        "confirm" -> text
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      ),
+      "companyName" -> text.verifying(companyNameConstraint: _*)
+    )(apply)(unapply)
+  )
+
   def startFirstSetup = Action { implicit request => {
     Ok(views.html.admin.firstSetup(createUserForm(FirstSetup.fromForm, FirstSetup.toForm)))
   }}

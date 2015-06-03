@@ -12,6 +12,9 @@ object FormConstraints {
   )
   val userNameMinLength = 6
   def userNameConstraint: () => Seq[Constraint[String]] = Cache.cacheOnProd(
+    Seq(minLength(userNameMinLength), maxLength(24))
+  )
+  def normalUserNameConstraint: () => Seq[Constraint[String]] = Cache.cacheOnProd(
     Cache.Conf.getString("normalUserNamePattern").map { patStr =>
       Seq(pattern(patStr.r, "normalUserNamePatternRule", "normalUserNamePatternError"))
     }.getOrElse(

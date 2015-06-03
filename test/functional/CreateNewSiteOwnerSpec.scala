@@ -19,7 +19,8 @@ import org.fluentlenium.core.filter.FilterConstructor
 class CreateNewSiteOwnerSpec extends Specification {
   "CreateNewSiteOwnerSpec" should {
     "Can create new user" in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      // normalUserNamePattern should not affect for site owner.
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("normalUserNamePattern" -> "[0-9]{6}"))
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)

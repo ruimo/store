@@ -40,7 +40,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
 
   def createEmployeeForm(implicit lang: Lang) = Form(
     mapping(
-      "userName" -> text.verifying(userNameConstraint(): _*),
+      "userName" -> text.verifying(normalUserNameConstraint(): _*),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
@@ -118,7 +118,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def startCreateNewNormalUser = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
-      Ok(views.html.admin.createNewNormalUser(Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm)))
+      Ok(views.html.admin.createNewNormalUser(Admin.createNormalUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm)))
     }
   }
 
@@ -221,7 +221,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   def createNewNormalUser = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
-      Admin.createUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm).bindFromRequest.fold(
+      Admin.createNormalUserForm(CreateNormalUser.fromForm, CreateNormalUser.toForm).bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in UserMaintenance.createNewNormalUser." + formWithErrors)
           BadRequest(views.html.admin.createNewNormalUser(formWithErrors))
