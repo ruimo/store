@@ -14,7 +14,7 @@ object Cache {
     else () => gen
   }
 
-  def cacheOnProd[T](gen: => T): () => T = mayBeCached(Play.maybeApplication.get.mode == Mode.Test, gen)
+  def cacheOnProd[T](gen: => T): () => T = mayBeCached(Play.maybeApplication.get.mode == Mode.Prod, gen)
 
   def App: Application = cacheOnProd(Play.maybeApplication.get)()
   def Conf: Configuration = cacheOnProd(App.configuration)()
