@@ -48,7 +48,7 @@ class RegisterUserInformationSpec extends Specification {
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.find(".globalErrorMessage").getText === Messages("inputError")
-        browser.find("#password_main_field .help-inline").getText === Messages("error.minLength", passwordMinLength)
+        browser.find("#password_main_field .help-inline").getText === Messages("error.minLength", passwordMinLength())
         browser.find("#firstName_field .help-inline").getText === Messages("error.required")
         browser.find("#lastName_field .help-inline").getText === Messages("error.required")
         browser.find("#firstNameKana_field .help-inline").getText === Messages("error.required")
@@ -60,12 +60,12 @@ class RegisterUserInformationSpec extends Specification {
         browser.find("#address3_field .help-inline").getText === ""
         browser.find("#tel1_field .help-inline").getText === Messages("error.required") + ", " + Messages("error.number")
 
-        val password = "1" * (passwordMinLength - 1)
+        val password = "1" * (passwordMinLength() - 1)
         browser.fill("#password_main").`with`(password)
         browser.fill("#password_confirm").`with`(password)
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.find("#password_main_field .help-inline").getText === Messages("error.minLength", passwordMinLength)
+        browser.find("#password_main_field .help-inline").getText === Messages("error.minLength", passwordMinLength())
 
         browser.fill("#password_main").`with`("12345678")
         browser.fill("#password_confirm").`with`("12345679")
