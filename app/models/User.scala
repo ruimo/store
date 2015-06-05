@@ -1,5 +1,8 @@
 package models
 
+import play.api.data.validation.Invalid
+import constraints.FormConstraints
+import play.api.data.validation.ValidationError
 import play.api.Logger
 import anorm._
 import play.api.Play.current
@@ -305,12 +308,14 @@ object StoreUser {
       case Failure(e) => throw e
       case Success(cols) if csvRecordFilter(cols) =>
         val companyIdStr = cols('CompanyId)
-        val userName = (if (companyIdStr.isEmpty) "" else companyIdStr + "-") + cols('EmployeeNo)
+        val userName = cols('EmployeeNo)
+        validateNormalUserName(userName)
+        val compoundUserName = (if (companyIdStr.isEmpty) "" else companyIdStr + "-") + userName
         val companyId = if (companyIdStr.isEmpty) None else Some(companyIdStr.toLong)
         val password = cols('Password)
         val salt = tokenGenerator.next
         val hash = PasswordHash.generate(password, salt)
-        Seq(companyId, userName, salt, hash)
+        Seq(companyId, compoundUserName, salt, hash)
     }
 
     if (recs.hasNext) {
@@ -443,6 +448,15 @@ object StoreUser {
     'salt -> salt,
     'userId -> userId
   ).executeUpdate()
+
+  def validateNormalUserName(userName: String) {
+    val errors: Seq[ValidationError] = FormConstraints.normalUserNameConstraint().map(_(userName)).collect {
+      case Invalid(errors: Seq[ValidationError]) => errors
+    }.flatten
+
+    if (! errors.isEmpty)
+      throw new InvalidUserNameException(userName, errors)
+  }
 }
 
 object SiteUser {
