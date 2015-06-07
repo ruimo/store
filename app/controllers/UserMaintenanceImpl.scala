@@ -1,5 +1,6 @@
 package controllers
 
+import models.InvalidUserNameException
 import java.sql.Connection
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import constraints.FormConstraints._
@@ -407,6 +408,14 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           Redirect(
             routes.UserMaintenance.startAddUsersByCsv()
           ).flashing("errorMessage" -> Messages("csv.error", cpe.lineNo))
+        case e: InvalidUserNameException =>
+          logger.error("User name '" + e.userName + "' in CSV is invalid." + e.errors)
+          Redirect(
+            routes.UserMaintenance.startAddUsersByCsv()
+          ).flashing(
+            "errorMessage" -> (e.errors.map {e => Messages(e.message, e.args: _*)}.mkString("。") + s"'${e.userName}'")
+          )
+
         case t: Throwable =>
           logger.error("CSV general error", t)
           Redirect(
