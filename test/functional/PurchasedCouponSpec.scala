@@ -41,20 +41,20 @@ class PurchasedCouponSpec extends Specification {
         // Need site for other customizations where company is selected from sites available in the application.
         val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
-          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
+          browser, "01234567", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
         )
         createNormalUser(
-          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
+          browser, "98765432", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
         )
 
-        val user1 = StoreUser.findByUserName("user01").get
-        val user2 = StoreUser.findByUserName("user02").get
+        val user1 = StoreUser.findByUserName("01234567").get
+        val user2 = StoreUser.findByUserName("98765432").get
 
         val tran01 = createTransaction(lang, user1, 1)
         val tran02 = createTransaction(lang, user2, 10)
 
         logoff(browser)
-        login(browser, "user01", "password01")
+        login(browser, "01234567", "password01")
         browser.goTo(
           "http://localhost:3333" + controllers.routes.CouponHistory.showPurchasedCouponList() + "?lang=" + lang.code
         )

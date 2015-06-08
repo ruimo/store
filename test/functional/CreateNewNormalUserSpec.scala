@@ -25,7 +25,7 @@ class CreateNewNormalUserSpec extends Specification {
         
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("createNormalUserTitle")
-        browser.fill("#userName").`with`("username")
+        browser.fill("#userName").`with`("01234567")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
         browser.fill("#companyName").`with`("site01")
@@ -41,8 +41,8 @@ class CreateNewNormalUserSpec extends Specification {
         browser.title === Messages("createNormalUserTitle")
         browser.find(".message").getText === Messages("userIsCreated")
         
-        val newUser = StoreUser.findByUserName("username").get
-        newUser.userName === "username"
+        val newUser = StoreUser.findByUserName("01234567").get
+        newUser.userName === "01234567"
         newUser.firstName === "firstname"
         newUser.middleName === None
         newUser.lastName === "lastName"
@@ -64,7 +64,7 @@ class CreateNewNormalUserSpec extends Specification {
         
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("createNormalUserTitle")
-        browser.fill("#userName").`with`("username")
+        browser.fill("#userName").`with`("01234567")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
         browser.fill("#companyName").`with`("companyname")
@@ -95,7 +95,7 @@ class CreateNewNormalUserSpec extends Specification {
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("createNormalUserTitle")
-        browser.fill("#userName").`with`("username")
+        browser.fill("#userName").`with`("01234567")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
         browser.fill("#companyName").`with`("companyname")

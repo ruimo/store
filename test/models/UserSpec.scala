@@ -181,14 +181,14 @@ class UserSpec extends Specification {
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
 
           StoreUser.maintainByCsv(Iterator(
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user001", "pass001"))),
-            Success(CsvRecord(2, header, Vector(site1.id.get.toString, "user002", "pass002")))
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "01234567", "pass001"))),
+            Success(CsvRecord(2, header, Vector(site1.id.get.toString, "98765432", "pass002")))
           ))
 
           doWith(StoreUser.listUsers().records) { records =>
             records.size === 2
             doWith(records.map {_.user}.map { r => (r.userName, r)}.toMap) { map =>
-              doWith(map(site1.id.get.toString + "-user001")) { rec =>
+              doWith(map(site1.id.get.toString + "-01234567")) { rec =>
                 rec.firstName === ""
                 rec.middleName === None
                 rec.lastName === ""
@@ -199,7 +199,7 @@ class UserSpec extends Specification {
                 PasswordHash.generate("pass001", rec.salt) === rec.passwordHash
               }
 
-              doWith(map(site1.id.get.toString + "-user002")) { rec =>
+              doWith(map(site1.id.get.toString + "-98765432")) { rec =>
                 rec.firstName === ""
                 rec.middleName === None
                 rec.lastName === ""
@@ -222,9 +222,8 @@ class UserSpec extends Specification {
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
           val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
 
-
           StoreUser.maintainByCsv(Iterator(
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user001", "pass001"))),
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "01234567", "pass001"))),
             Failure(new CsvParseException("", new Exception, 1))
           )) must throwA[CsvParseException]
 
@@ -245,13 +244,13 @@ class UserSpec extends Specification {
 
           // Existing record. This should not be changed.
           StoreUser.create(
-            site1.id.get.toString + "-user001", "first001", Some("middle001"), "last001",
+            site1.id.get.toString + "-01234567", "first001", Some("middle001"), "last001",
             "email001", 123L, 234L, UserRole.NORMAL, Some("company001")
           )
 
           val (insCount, delCount) = StoreUser.maintainByCsv(Iterator(
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user001", "pass001"))),
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user002", "pass002")))
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "01234567", "pass001"))),
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "98765432", "pass002")))
           ))
 
           insCount === 1
@@ -260,8 +259,8 @@ class UserSpec extends Specification {
           doWith(StoreUser.listUsers().records) { records =>
             records.size === 2
             doWith(records.map {_.user}.map { r => (r.userName, r)}.toMap) { map =>
-              doWith(map(site1.id.get.toString + "-user001")) { rec =>
-                rec.userName === site1.id.get.toString + "-user001"
+              doWith(map(site1.id.get.toString + "-01234567")) { rec =>
+                rec.userName === site1.id.get.toString + "-01234567"
                 rec.firstName === "first001"
                 rec.middleName === Option("middle001")
                 rec.lastName === "last001"
@@ -286,7 +285,7 @@ class UserSpec extends Specification {
 
           // Existing record. This should not be deleted.
           StoreUser.create(
-            site1.id.get.toString + "-user001", "first001", Some("middle001"), "last001",
+            site1.id.get.toString + "-01234567", "first001", Some("middle001"), "last001",
             "email001", 123L, 234L, UserRole.NORMAL, Some("company001")
           )
 
@@ -297,7 +296,7 @@ class UserSpec extends Specification {
           )
 
           val (insCount, delCount) = StoreUser.maintainByCsv(Iterator(
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user001", "pass001")))
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "01234567", "pass001")))
           ))
 
           insCount === 0
@@ -322,39 +321,39 @@ class UserSpec extends Specification {
 
           // Existing record. This should be deleted.
           StoreUser.create(
-            site1.id.get.toString + "-user001", "first001", Some("middle001"), "last001",
+            site1.id.get.toString + "-11111111", "first001", Some("middle001"), "last001",
             "email001", 123L, 234L, UserRole.NORMAL, Some("company001")
           )
 
           // Existing record. This should be deleted.
           StoreUser.create(
-            site1.id.get.toString + "-user002", "first002", Some("middle002"), "last002",
+            site1.id.get.toString + "-22222222", "first002", Some("middle002"), "last002",
             "email002", 123L, 234L, UserRole.NORMAL, Some("company002")
           )
 
           // Existing record. This should not be changed.
           StoreUser.create(
-            site1.id.get.toString + "-user003", "first003", Some("middle003"), "last003",
+            site1.id.get.toString + "-33333333", "first003", Some("middle003"), "last003",
             "email003", 123L, 234L, UserRole.NORMAL, Some("company003")
           )
 
           // Existing record. This should not be changed.
           StoreUser.create(
-            site1.id.get.toString + "-user004", "first004", Some("middle004"), "last004",
+            site1.id.get.toString + "-44444444", "first004", Some("middle004"), "last004",
             "email004", 123L, 234L, UserRole.NORMAL, Some("company004")
           )
 
           // Existing record. This should not be changed because this is admin.
           StoreUser.create(
-            site1.id.get.toString + "-user005", "first005", Some("middle005"), "last005",
+            site1.id.get.toString + "-55555555", "first005", Some("middle005"), "last005",
             "email005", 123L, 234L, UserRole.ADMIN, Some("company005")
           )
 
           val (insCount, delCount) = StoreUser.maintainByCsv(Iterator(
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user003", "pass003"))),
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user004", "pass004"))),
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user006", "pass006"))),
-            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user007", "pass007")))
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "33333333", "pass003"))),
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "44444444", "pass004"))),
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "66666666", "pass006"))),
+            Success(CsvRecord(1, header, Vector(site1.id.get.toString, "77777777", "pass007")))
           ))
 
           insCount === 2
@@ -363,10 +362,10 @@ class UserSpec extends Specification {
           doWith(StoreUser.listUsers().records) { records =>
             records.size === 5
             doWith(records.map {_.user}.map { r => (r.userName, r)}.toMap) { map =>
-              map.get(site1.id.get.toString + "-user001") === None
-              map.get(site1.id.get.toString + "-user002") === None
-              doWith(map(site1.id.get.toString + "-user003")) { rec =>
-                rec.userName === site1.id.get.toString + "-user003"
+              map.get(site1.id.get.toString + "-11111111") === None
+              map.get(site1.id.get.toString + "-22222222") === None
+              doWith(map(site1.id.get.toString + "-33333333")) { rec =>
+                rec.userName === site1.id.get.toString + "-333333333"
                 rec.firstName === "first003"
                 rec.middleName === Option("middle003")
                 rec.lastName === "last003"
@@ -377,8 +376,8 @@ class UserSpec extends Specification {
                 rec.companyName === Some("company003")
               }
 
-              doWith(map(site1.id.get.toString + "-user004")) { rec =>
-                rec.userName === site1.id.get.toString + "-user004"
+              doWith(map(site1.id.get.toString + "-44444444")) { rec =>
+                rec.userName === site1.id.get.toString + "-44444444"
                 rec.firstName === "first004"
                 rec.middleName === Option("middle004")
                 rec.lastName === "last004"
@@ -389,8 +388,8 @@ class UserSpec extends Specification {
                 rec.companyName === Some("company004")
               }
 
-              doWith(map(site1.id.get.toString + "-user005")) { rec =>
-                rec.userName === site1.id.get.toString + "-user005"
+              doWith(map(site1.id.get.toString + "-55555555")) { rec =>
+                rec.userName === site1.id.get.toString + "-555555555"
                 rec.firstName === "first005"
                 rec.middleName === Option("middle005")
                 rec.lastName === "last005"
@@ -401,7 +400,7 @@ class UserSpec extends Specification {
                 rec.companyName === Some("company005")
               }
 
-              doWith(map(site1.id.get.toString + "-user006")) { rec =>
+              doWith(map(site1.id.get.toString + "-66666666")) { rec =>
                 rec.firstName === ""
                 rec.middleName === None
                 rec.lastName === ""
@@ -412,7 +411,7 @@ class UserSpec extends Specification {
                 PasswordHash.generate("pass006", rec.salt) === rec.passwordHash
               }
 
-              doWith(map(site1.id.get.toString + "-user007")) { rec =>
+              doWith(map(site1.id.get.toString + "-77777777")) { rec =>
                 rec.firstName === ""
                 rec.middleName === None
                 rec.lastName === ""
@@ -438,15 +437,15 @@ class UserSpec extends Specification {
 
           // Existing record. This should not be affected.
           StoreUser.create(
-            site2.id.get.toString + "-user001", "first001", Some("middle001"), "last001",
+            site2.id.get.toString + "-11111111", "first001", Some("middle001"), "last001",
             "email001", 123L, 234L, UserRole.NORMAL, Some("company001")
           )
 
           StoreUser.maintainByCsv(
             Iterator(
-              Success(CsvRecord(1, header, Vector(site1.id.get.toString, "user001", "pass001"))),
-              Success(CsvRecord(2, header, Vector(site1.id.get.toString, "user002", "pass002"))),
-              Success(CsvRecord(3, header, Vector(site2.id.get.toString, "user003", "pass003")))
+              Success(CsvRecord(1, header, Vector(site1.id.get.toString, "11111111", "pass001"))),
+              Success(CsvRecord(2, header, Vector(site1.id.get.toString, "22222222", "pass002"))),
+              Success(CsvRecord(3, header, Vector(site2.id.get.toString, "33333333", "pass003")))
             ),
             rec => rec('CompanyId) == siteId,
             Some("user_name like '" + siteId + "-%'")
@@ -455,8 +454,8 @@ class UserSpec extends Specification {
           doWith(StoreUser.listUsers().records) { records =>
             records.size === 3
             doWith(records.map {_.user}.map { r => (r.userName, r)}.toMap) { map =>
-              map.get(site2.id.get.toString + "-user003") === None
-              doWith(map(site1.id.get.toString + "-user001")) { rec =>
+              map.get(site2.id.get.toString + "-33333333") === None
+              doWith(map(site1.id.get.toString + "-11111111")) { rec =>
                 rec.firstName === ""
                 rec.middleName === None
                 rec.lastName === ""
@@ -466,7 +465,7 @@ class UserSpec extends Specification {
                 rec.companyName === None
                 PasswordHash.generate("pass001", rec.salt) === rec.passwordHash
               }
-              doWith(map(site1.id.get.toString + "-user002")) { rec =>
+              doWith(map(site1.id.get.toString + "-22222222")) { rec =>
                 rec.firstName === ""
                 rec.middleName === None
                 rec.lastName === ""
@@ -476,7 +475,7 @@ class UserSpec extends Specification {
                 rec.companyName === None
                 PasswordHash.generate("pass002", rec.salt) === rec.passwordHash
               }
-              doWith(map(site2.id.get.toString + "-user001")) { rec =>
+              doWith(map(site2.id.get.toString + "-11111111")) { rec =>
                 rec.firstName === "first001"
                 rec.middleName === Some("middle001")
                 rec.lastName === "last001"

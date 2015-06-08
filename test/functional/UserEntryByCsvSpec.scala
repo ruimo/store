@@ -82,8 +82,8 @@ class UserEntryByCsvSpec extends Specification {
           csvFile, 
           Arrays.asList(
             "CompanyId,EmployeeNo,Password",
-            site.id.get + ",ABCDEF,password0",
-            ",UVWXYZ,password1"
+            site.id.get + ",01234567,password0",
+            ",98765432,password1"
           ),
           Charset.forName("Windows-31j")
         )
@@ -106,7 +106,7 @@ class UserEntryByCsvSpec extends Specification {
           SqlParser.scalar[Long].single
         ) === 3
 
-        doWith(StoreUser.findByUserName(site.id.get + "-ABCDEF").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-01234567").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""
@@ -122,7 +122,7 @@ class UserEntryByCsvSpec extends Specification {
           }
         }
 
-        doWith(StoreUser.findByUserName("UVWXYZ").get) { user =>
+        doWith(StoreUser.findByUserName("98765432").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""
@@ -187,8 +187,8 @@ class UserEntryByCsvSpec extends Specification {
           csvFile, 
           Arrays.asList(
             "CompanyId,EmployeeNo,Password",
-            site.id.get + ",111111,password0",
-            site.id.get + ",222222,password0"
+            site.id.get + ",11111111,password0",
+            site.id.get + ",22222222,password0"
           ),
           Charset.forName("Windows-31j")
         )
@@ -216,10 +216,10 @@ class UserEntryByCsvSpec extends Specification {
           SqlParser.scalar[Long].single
         ) === 2
 
-        doWith(StoreUser.findByUserName(site.id.get + "-111111").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-11111111").get) { user =>
           Employee.getBelonging(user.id.get).get.siteId === site.id.get
         }
-        doWith(StoreUser.findByUserName(site.id.get + "-222222").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-22222222").get) { user =>
           Employee.getBelonging(user.id.get).get.siteId === site.id.get
         }
 
@@ -228,8 +228,8 @@ class UserEntryByCsvSpec extends Specification {
           csvFile, 
           Arrays.asList(
             "CompanyId,EmployeeNo,Password",
-            site.id.get + ",111111,password0",
-            site.id.get + ",333333,password0"
+            site.id.get + ",11111111,password0",
+            site.id.get + ",33333333,password0"
           ),
           Charset.forName("Windows-31j")
         )
@@ -256,13 +256,13 @@ class UserEntryByCsvSpec extends Specification {
           SqlParser.scalar[Long].single
         ) === 3
 
-        doWith(StoreUser.findByUserName(site.id.get + "-111111").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-11111111").get) { user =>
           Employee.getBelonging(user.id.get).get.siteId === site.id.get
         }
 
-        StoreUser.findByUserName(site.id.get + "-222222") === None
+        StoreUser.findByUserName(site.id.get + "-22222222") === None
 
-        doWith(StoreUser.findByUserName(site.id.get + "-333333").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-33333333").get) { user =>
           Employee.getBelonging(user.id.get).get.siteId === site.id.get
         }
       }}
@@ -285,8 +285,8 @@ class UserEntryByCsvSpec extends Specification {
           csvFile, 
           Arrays.asList(
             "CompanyId,EmployeeNo,Password",
-            site.id.get + ",ABCDEF,password0",
-            ",UVWXYZ,password1"
+            site.id.get + ",01234567,password0",
+            ",98765432,password1"
           ),
           Charset.forName("Windows-31j")
         )
@@ -321,7 +321,7 @@ class UserEntryByCsvSpec extends Specification {
           user.companyName === None
         }
 
-        doWith(StoreUser.findByUserName(site.id.get + "-ABCDEF").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-01234567").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""
@@ -337,7 +337,7 @@ class UserEntryByCsvSpec extends Specification {
           }
         }
 
-        doWith(StoreUser.findByUserName("UVWXYZ").get) { user =>
+        doWith(StoreUser.findByUserName("98765432").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""
@@ -362,8 +362,8 @@ class UserEntryByCsvSpec extends Specification {
           csvFile, 
           Arrays.asList(
             "CompanyId,EmployeeNo,Password",
-            site.id.get + ",ABCDEF,password0",
-            ",UVWXYZ,password1"
+            site.id.get + ",01234567,password0",
+            ",98765432,password1"
           ),
           Charset.forName("Windows-31j")
         )
@@ -386,7 +386,7 @@ class UserEntryByCsvSpec extends Specification {
           SqlParser.scalar[Long].single
         ) === 3
 
-        doWith(StoreUser.findByUserName(site.id.get + "-ABCDEF").get) { user =>
+        doWith(StoreUser.findByUserName(site.id.get + "-01234567").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""
@@ -397,7 +397,7 @@ class UserEntryByCsvSpec extends Specification {
           user.companyName === Some(site.name)
         }
 
-        doWith(StoreUser.findByUserName("UVWXYZ").get) { user =>
+        doWith(StoreUser.findByUserName("98765432").get) { user =>
           user.firstName === ""
           user.middleName === None
           user.lastName === ""

@@ -45,9 +45,9 @@ class AccountingBillSpec extends Specification {
         // Need site for other customizations where company is selected from sites available in the application.
         val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
-          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
+          browser, "11111111", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
         )
-        val user = StoreUser.findByUserName("user01").get
+        val user = StoreUser.findByUserName("11111111").get
 
         val master = createMaster
         val tran = createTransaction(master, user)
@@ -110,13 +110,13 @@ class AccountingBillSpec extends Specification {
         // Need site for other customizations where company is selected from sites available in the application.
         val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
         createNormalUser(
-          browser, "user01", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
+          browser, "11111111", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
         )
         createNormalUser(
-          browser, "user02", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
+          browser, "22222222", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
         )
-        val user01 = StoreUser.findByUserName("user01").get
-        val user02 = StoreUser.findByUserName("user02").get
+        val user01 = StoreUser.findByUserName("11111111").get
+        val user02 = StoreUser.findByUserName("22222222").get
 
         val master = createMaster
         val trans = Vector(

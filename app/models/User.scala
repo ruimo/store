@@ -247,7 +247,9 @@ object StoreUser {
            """
         ).executeUpdate()
 
-        insertCsvIntoTempTable(z, csvRecordFilter)
+        ExceptionMapper.mapException {
+          insertCsvIntoTempTable(z, csvRecordFilter)
+        }
 
         conn.setAutoCommit(false)
         try {

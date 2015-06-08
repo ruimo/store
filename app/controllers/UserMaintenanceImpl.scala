@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.Formatter
 import models.InvalidUserNameException
 import java.sql.Connection
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
@@ -413,7 +414,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           Redirect(
             routes.UserMaintenance.startAddUsersByCsv()
           ).flashing(
-            "errorMessage" -> (e.errors.map {e => Messages(e.message, e.args: _*)}.mkString("。") + s"'${e.userName}'")
+            "errorMessage" -> (Formatter.validationErrorsToString(e.errors) + s"'${e.userName}'")
           )
 
         case t: Throwable =>

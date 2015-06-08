@@ -1,5 +1,6 @@
 package functional
 
+import helpers.Formatter
 import helpers.UrlHelper
 import helpers.UrlHelper._
 import helpers.PasswordHash
@@ -87,8 +88,10 @@ class EmployeeUserMaintenanceSpec extends Specification {
         // Check validation error.
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.find("#userName_field .error").getText === 
-          Messages("error.minLength", FormConstraints.userNameMinLength)
+
+        browser.find("#userName_field .error").getText === Formatter.validationErrorString(
+          FormConstraints.normalUserNameConstraint(), ""
+        )
         browser.find("#password_main_field .error").getText === 
           Messages("error.minLength", FormConstraints.passwordMinLength())
 
