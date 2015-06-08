@@ -427,3 +427,4 @@ createNewEmployeeUserMenu=Create Employee
 normalUserNamePatternRule=
 normalUserNamePatternError=User name is not valid
 PeriodSymbol=.
+userNameDuplicated=User name ''{0}'' is duplicated

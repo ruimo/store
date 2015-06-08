@@ -459,3 +459,4 @@ createNewEmployeeUserMenu=従業員の追加
 normalUserNamePatternRule=
 normalUserNamePatternError=ユーザー名が不正です
 PeriodSymbol=。
+userNameDuplicated=ユーザー名 ''{0}'' が重複しています

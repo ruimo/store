@@ -416,6 +416,13 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
           ).flashing(
             "errorMessage" -> (Formatter.validationErrorsToString(e.errors) + s"'${e.userName}'")
           )
+        case e: DuplicatedUserNameException =>
+          logger.error("User name '" + e.userName + "' is duplicated in CSV.")
+          Redirect(
+            routes.UserMaintenance.startAddUsersByCsv()
+          ).flashing(
+            "errorMessage" -> Messages("userNameDuplicated", e.userName)
+          )
 
         case t: Throwable =>
           logger.error("CSV general error", t)

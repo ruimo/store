@@ -409,5 +409,37 @@ class UserEntryByCsvSpec extends Specification {
         }
       }}      
     }
+
+    "Duplicated user should be reported" in {
+      val conf = inMemoryDatabase()
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Site01")
+        val csvFile: Path = Files.createTempFile(null, ".csv")
+        Files.write(
+          csvFile, 
+          Arrays.asList(
+            "CompanyId,EmployeeNo,Password",
+            site.id.get + ",01234567,password0",
+            site.id.get + ",01234567,password1"
+          ),
+          Charset.forName("Windows-31j")
+        )
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.UserMaintenance.startAddUsersByCsv().url + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.webDriver.findElement(By.id("usersCsv")).sendKeys(
+          csvFile.toAbsolutePath.toString
+        )
+        browser.click("#submitUserScsv")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("addUsersByCsv")
+        browser.find(".globalErrorMessage").getText === Messages("userNameDuplicated", "01234567")
+      }}      
+    }
   }
 }

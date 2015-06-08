@@ -14,6 +14,7 @@ import scala.util.{Try, Failure, Success}
 import com.ruimo.csv.CsvRecord
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import java.sql.SQLException
+import scala.collection.mutable
 
 case class StoreUser(
   id: Option[Long] = None,
@@ -244,12 +245,10 @@ object StoreUser {
             salt bigint not null,
             password_hash bigint not null
           )
-           """
+          """
         ).executeUpdate()
 
-        ExceptionMapper.mapException {
-          insertCsvIntoTempTable(z, csvRecordFilter)
-        }
+        insertCsvIntoTempTable(z, csvRecordFilter)
 
         conn.setAutoCommit(false)
         try {
@@ -306,12 +305,17 @@ object StoreUser {
   def insertCsvIntoTempTable(
     z: Iterator[Try[CsvRecord]], csvRecordFilter: CsvRecord => Boolean
   )(implicit conn: Connection) {
+    var userNames = mutable.HashSet[String]()
+
     val recs: Iterator[Seq[ParameterValue]] = z.collect {
       case Failure(e) => throw e
       case Success(cols) if csvRecordFilter(cols) =>
         val companyIdStr = cols('CompanyId)
         val userName = cols('EmployeeNo)
         validateNormalUserName(userName)
+        if (! userNames.add(userName)) {
+          throw new DuplicatedUserNameException(userName)
+        }
         val compoundUserName = (if (companyIdStr.isEmpty) "" else companyIdStr + "-") + userName
         val companyId = if (companyIdStr.isEmpty) None else Some(companyIdStr.toLong)
         val password = cols('Password)
