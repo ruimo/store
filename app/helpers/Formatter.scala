@@ -5,12 +5,13 @@ import play.api.data.validation.ValidationError
 import play.api.i18n.Messages
 import play.api.data.validation.Constraint
 import play.api.data.validation.Invalid
+import play.api.i18n.Lang
 
 object Formatter {
   val yyyy_mm_dd = DateTimeFormat.forPattern("yyyy-MM-dd")
-  def validationErrorsToString(errors: Seq[ValidationError]): String =
+  def validationErrorsToString(errors: Seq[ValidationError])(implicit lang: Lang): String =
     errors.map {e => Messages(e.message, e.args: _*)}.mkString(Messages("PeriodSymbol"))
-  def validationErrorString[T](constraints: Seq[Constraint[T]], value: T): String =
+  def validationErrorString[T](constraints: Seq[Constraint[T]], value: T)(implicit lang: Lang): String =
     validationErrorsToString(
       constraints.map(_.apply(value)).collect {
         case Invalid(errors) => errors

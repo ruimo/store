@@ -365,7 +365,7 @@ class UserSpec extends Specification {
               map.get(site1.id.get.toString + "-11111111") === None
               map.get(site1.id.get.toString + "-22222222") === None
               doWith(map(site1.id.get.toString + "-33333333")) { rec =>
-                rec.userName === site1.id.get.toString + "-333333333"
+                rec.userName === site1.id.get.toString + "-33333333"
                 rec.firstName === "first003"
                 rec.middleName === Option("middle003")
                 rec.lastName === "last003"
