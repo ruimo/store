@@ -460,3 +460,6 @@ normalUserNamePatternRule=
 normalUserNamePatternError=ユーザー名が不正です
 PeriodSymbol=。
 userNameDuplicated=ユーザー名 ''{0}'' が重複しています
+showRegisteredEmployeeCount=登録済従業員数
+allCount=総数
+registeredCount=登録数

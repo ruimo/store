@@ -14,7 +14,8 @@ import scala.util.{Try, Failure, Success}
 import com.ruimo.csv.CsvRecord
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import java.sql.SQLException
-import scala.collection.mutable
+import scala.collection.{mutable, immutable}
+
 
 case class StoreUser(
   id: Option[Long] = None,
@@ -55,7 +56,14 @@ case class ListUserEntry(
   sendNoticeMail: Boolean
 )
 
+case class RegisteredEmployeeCount(
+  registeredCount: Long,
+  allCount: Long
+)
+
 object StoreUser {
+  val EmployeeUserNamePattern = """(\d+)-(.+)""".r
+
   val logger = Logger(getClass)
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
@@ -462,6 +470,52 @@ object StoreUser {
 
     if (! errors.isEmpty)
       throw new InvalidUserNameException(userName, errors)
+  }
+
+  def registeredEmployeeCount(implicit conn: Connection): immutable.SortedMap[Long, RegisteredEmployeeCount] = {
+    class Sum(var registered: Long = 0, var all: Long = 0) {
+      def incRegistered() {
+        registered += 1
+      }
+
+      def incAll() {
+        all += 1
+      }
+    }
+
+    val sum: mutable.Map[Long, Sum] = mutable.LongMap[Sum]()
+
+    SQL(
+      """
+      select user_name, first_name from store_user u
+      where u.deleted=false and u.user_role=
+      """
+      + UserRole.NORMAL.ordinal +
+      """
+      and not exists (select * from site_user su where su.store_user_id = u.store_user_id)
+      """
+    ).as(
+      SqlParser.str("user_name") ~ SqlParser.str("first_name") map(SqlParser.flatten) *
+    ).foreach { t =>
+      t._1 match {
+        case EmployeeUserNamePattern(siteIdStr, employeeCode) =>
+          val siteId = siteIdStr.toLong
+          val sumBySiteId = sum.get(siteId) match {
+            case Some(rec) => rec
+            case None =>
+              val rec = new Sum()
+              sum += (siteId -> rec)
+              rec
+          }
+          sumBySiteId.incAll()
+          if (! t._2.isEmpty) sumBySiteId.incRegistered()
+        case _ =>
+      }
+    }
+
+    sum.foldLeft(immutable.TreeMap[Long, RegisteredEmployeeCount]()) { (sum, e) =>
+      sum + (e._1 -> RegisteredEmployeeCount(e._2.registered, e._2.all))
+    }
   }
 }
 

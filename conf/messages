@@ -428,3 +428,6 @@ normalUserNamePatternRule=
 normalUserNamePatternError=User name is not valid
 PeriodSymbol=.
 userNameDuplicated=User name ''{0}'' is duplicated
+showRegisteredEmployeeCount=Registered employee count
+allCount=All count
+registeredCount=Registed count

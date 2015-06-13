@@ -512,6 +512,173 @@ class UserSpec extends Specification {
         }}
       }
     }
+
+    "Can query registered employees." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          // Not employee, registered
+          val user1 = StoreUser.create(
+            userName = "user01", // Not employee (n-mmmm)
+            firstName = "firstName", // registered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL, // Normal user
+            companyName = None
+          )
+
+          // Not employee, not registered
+          val user2 = StoreUser.create(
+            userName = "user02", // Not employee (n-mmmm)
+            firstName = "", // unregistered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL, // Normal user
+            companyName = None
+          )
+
+          // Employee, not registered
+          val user3 = StoreUser.create(
+            userName = "1-111111", // Employee (n-mmmm)
+            firstName = "", // unregistered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL, // Normal user
+            companyName = None
+          )
+
+          // Employee, registered
+          val user4 = StoreUser.create(
+            userName = "1-222222", // Employee (n-mmmm)
+            firstName = "firstName", // registered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL, // Normal user
+            companyName = None
+          )
+
+          // Super user, not registered
+          val user5 = StoreUser.create(
+            userName = "11-333333", // In employee format (n-mmmm), but role is not normal.
+            firstName = "", // unregistered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.ADMIN, // Admin
+            companyName = None
+          )
+
+          // Super user, registered
+          val user6 = StoreUser.create(
+            userName = "11-4444444", // In employee format (n-mmmm), but role is not normal.
+            firstName = "firstName", // registered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.ADMIN, // Admin
+            companyName = None
+          )
+
+          // Site owner, not registered
+          val user7 = StoreUser.create(
+            userName = "10-555555", // In employee format (n-mmmm), but site owner is not employee.
+            firstName = "", // unregistered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL,
+            companyName = None
+          )
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "Store01")
+          val siteUser1 = SiteUser.createNew(user7.id.get, site1.id.get)
+
+          // Store owner, registered
+          val user8 = StoreUser.create(
+            userName = "10-66666666", // In employee format (n-mmmm), but site owner is not employee.
+            firstName = "firstName", // registered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL,
+            companyName = None
+          )
+          val site2 = Site.createNew(LocaleInfo.Ja, "Store02")
+          val siteUser2 = SiteUser.createNew(user8.id.get, site2.id.get)
+
+          // Employee, registered
+          val user9 = StoreUser.create(
+            userName = "10-77777777", // In employee format (n-mmmm), but site owner is not employee.
+            firstName = "firstName", // registered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL,
+            companyName = None
+          )
+
+          // Employee, unregistered
+          val user10 = StoreUser.create(
+            userName = "10-99999999", // In employee format (n-mmmm), but site owner is not employee.
+            firstName = "", // unregistered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL,
+            companyName = None
+          )
+
+          // Employee, unregistered
+          val user11 = StoreUser.create(
+            userName = "10-12345678", // In employee format (n-mmmm), but site owner is not employee.
+            firstName = "", // unregistered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL,
+            companyName = None
+          )
+
+          val sum = StoreUser.registeredEmployeeCount
+          sum.size === 2
+
+          doWith(sum(1)) { s=>
+            s.registeredCount === 1
+            s.allCount === 2
+          }
+
+          doWith(sum(10)) { s=>
+            s.registeredCount === 1
+            s.allCount === 3
+          }
+        }
+      }
+    }
   }
 }
 

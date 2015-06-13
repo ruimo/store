@@ -1,0 +1,41 @@
+@(
+  sites: scala.collection.immutable.Map[Long, Site],
+  table: scala.collection.immutable.SortedMap[Long, RegisteredEmployeeCount]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("showRegisteredEmployeeCount"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("showRegisteredEmployeeCount")</h1>
+
+  <table class="registeredEmployeeCountTable">
+    <tr>
+      <th class="site title">@Messages("site")</th>
+      <th class="allCount title">@Messages("allCount")</th>
+      <th class="registeredCount title">@Messages("registeredCount")</th>
+    </tr>
+    @loginSession.siteUser match {
+      case Some(siteUser) => {
+        @table.get(siteUser.siteId).map { rec =>
+          <tr>
+            <td class="site body">@sites.get(siteUser.siteId).map(_.name).getOrElse("-")</th>
+            <th class="allCount body">@rec.allCount</th>
+            <th class="registeredCount body">@rec.registeredCount</th>
+          </tr>
+        }.getOrElse("")
+      }
+      case None => {
+        @table.map { rec =>
+          <tr>
+            <td class="site body">@sites.get(rec._1).map(_.name).getOrElse("-")</th>
+            <th class="allCount body">@rec._2.allCount</th>
+            <th class="registeredCount body">@rec._2.registeredCount</th>
+          </tr>
+        }
+      }
+    }
+  </table>
+}

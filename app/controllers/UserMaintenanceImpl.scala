@@ -432,4 +432,18 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
       }
     }
   }
+
+  def showRegisteredEmployeeCount = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      DB.withConnection { implicit conn =>
+        Ok(
+          views.html.admin.showRegisteredEmployeeCount(
+            Site.listAsMap,
+            StoreUser.registeredEmployeeCount
+          )
+        )
+      }
+    }
+  }
 }

@@ -1,5 +1,7 @@
 package functional
 
+import helpers.UrlHelper._
+import helpers.Helper
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
@@ -15,7 +17,7 @@ import play.api.test.TestServer
 import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import org.openqa.selenium.By
-import models.{StoreUser, OrderNotification}
+import models.{StoreUser, OrderNotification, UserRole, Site, LocaleInfo}
 
 class UserMaintenanceSpec extends Specification {
   "User maintenance" should {
@@ -85,6 +87,129 @@ class UserMaintenanceSpec extends Specification {
 
         browser.title() === Messages("editUserTitle")
         OrderNotification.getByUserId(user.id.get).isDefined === false
+      }}
+    }
+
+    "Super user see all registed employee count." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+
+        val site1 = Site.createNew(LocaleInfo.Ja, "Store01")
+        val site2 = Site.createNew(LocaleInfo.Ja, "Store02")
+
+        // Employee, not registered
+        val user3 = StoreUser.create(
+          userName = site1.id.get + "-111111", // Employee (n-mmmm)
+          firstName = "", // unregistered
+          middleName = None,
+          lastName = "lastName",
+          email = "null@ruimo.com",
+          passwordHash = 0,
+          salt = 0,
+          userRole = UserRole.NORMAL, // Normal user
+          companyName = None
+        )
+
+        // Employee, registered
+        val user4 = StoreUser.create(
+          userName = site1.id.get + "-222222", // Employee (n-mmmm)
+          firstName = "firstName", // registered
+          middleName = None,
+          lastName = "lastName",
+          email = "null@ruimo.com",
+          passwordHash = 0,
+          salt = 0,
+          userRole = UserRole.NORMAL, // Normal user
+          companyName = None
+        )
+
+        // Employee, registered
+        val user9 = StoreUser.create(
+          userName = site2.id.get + "-77777777", // In employee format (n-mmmm), but site owner is not employee.
+          firstName = "firstName", // registered
+          middleName = None,
+          lastName = "lastName",
+          email = "null@ruimo.com",
+          passwordHash = 0,
+          salt = 0,
+          userRole = UserRole.NORMAL,
+          companyName = None
+        )
+
+        // Employee, unregistered
+        val user10 = StoreUser.create(
+          userName = site2.id.get + "-99999999", // In employee format (n-mmmm), but site owner is not employee.
+          firstName = "", // unregistered
+          middleName = None,
+          lastName = "lastName",
+          email = "null@ruimo.com",
+          passwordHash = 0,
+          salt = 0,
+          userRole = UserRole.NORMAL,
+          companyName = None
+        )
+
+        // Employee, unregistered
+        val user11 = StoreUser.create(
+          userName = site2.id.get + "-12345678", // In employee format (n-mmmm), but site owner is not employee.
+          firstName = "", // unregistered
+          middleName = None,
+          lastName = "lastName",
+          email = "null@ruimo.com",
+          passwordHash = 0,
+          salt = 0,
+          userRole = UserRole.NORMAL,
+          companyName = None
+        )
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.showRegisteredEmployeeCount().url.addParm("lang", lang.code)
+        )
+
+        browser.title() === Messages("showRegisteredEmployeeCount")
+
+        browser.find(".site.body").getTexts.size === 2
+
+        browser.find(".site.body", 0).getText === site1.name
+        browser.find(".allCount.body", 0).getText === "2"
+        browser.find(".registeredCount.body", 0).getText === "1"
+
+        browser.find(".site.body", 1).getText === site2.name
+        browser.find(".allCount.body", 1).getText === "3"
+        browser.find(".registeredCount.body", 1).getText === "1"
+
+        val (ownerUser, ownerSiteUser) = Helper.createStoreOwner(name = "StoreOwner01", siteId = site1.id.get)
+        Helper.logoff(browser)
+        Helper.login(browser, "StoreOwner01", "password")
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.showRegisteredEmployeeCount().url.addParm("lang", lang.code)
+        )
+
+        browser.title() === Messages("showRegisteredEmployeeCount")
+        browser.find(".site.body").getTexts.size === 1
+        browser.find(".site.body", 0).getText === site1.name
+        browser.find(".allCount.body", 0).getText === "2"
+        browser.find(".registeredCount.body", 0).getText === "1"
+
+        val (ownerUser2, ownerSiteUser2) = Helper.createStoreOwner(name = "StoreOwner02", siteId = site2.id.get)
+        Helper.logoff(browser)
+        Helper.login(browser, "StoreOwner02", "password")
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.showRegisteredEmployeeCount().url.addParm("lang", lang.code)
+        )
+
+        browser.title() === Messages("showRegisteredEmployeeCount")
+        browser.find(".site.body").getTexts.size === 1
+        browser.find(".site.body", 0).getText === site2.name
+        browser.find(".allCount.body", 0).getText === "3"
+        browser.find(".registeredCount.body", 0).getText === "1"
       }}
     }
   }

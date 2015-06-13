@@ -1,7 +1,7 @@
 package helpers
 
 import play.api.db.DB
-import models.{UserRole, StoreUser}
+import models.{UserRole, StoreUser, SiteUser}
 import play.api.Play.current
 import play.api.test.TestBrowser
 import java.io.{ByteArrayOutputStream, InputStreamReader, BufferedReader, InputStream}
@@ -18,6 +18,24 @@ object Helper {
       "administrator", "Admin", None, "Manager", "admin@abc.com",
       4151208325021896473L, -1106301469931443100L, UserRole.ADMIN, Some("Company1")
     )
+  }
+
+  // password == password
+  def createStoreOwner(
+    name: String,
+    firstName: String = "firstName",
+    middleName: Option[String] = None,
+    lastName: String = "lastName",
+    siteId: Long
+  ): (StoreUser, SiteUser) = DB.withConnection { implicit conn =>
+    val storeUser = StoreUser.create(
+      name, firstName, middleName, lastName, "admin@abc.com",
+      4151208325021896473L, -1106301469931443100L, UserRole.NORMAL, Some("Company1")
+    )
+
+    val siteUser = SiteUser.createNew(storeUser.id.get, siteId)
+
+    (storeUser, siteUser)
   }
 
   def loginWithTestUser(browser: TestBrowser): StoreUser = {

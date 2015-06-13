@@ -224,5 +224,7 @@ POST    /submitQaSiteJa                  controllers.Qa.submitQaSiteJa(siteId: L
 GET     /createNewEmployeeStart          controllers.UserMaintenance.startCreateNewEmployeeUser()
 POST    /createNewEmployee               controllers.UserMaintenance.createNewEmployeeUser()
 
+GET     /showRegisteredEmployeeCount     controllers.UserMaintenance.showRegisteredEmployeeCount()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

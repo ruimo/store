@@ -349,5 +349,78 @@ class ItemMaintenanceSpec extends Specification {
         }
       }}
     }
+
+    def createNormalUser(userName: String = "user"): StoreUser = DB.withConnection { implicit conn =>
+      StoreUser.create(
+        userName, "Admin", None, "Manager", "admin@abc.com",
+        4151208325021896473L, -1106301469931443100L, UserRole.NORMAL, Some("Company1")
+      )
+    }
+
+    def login(browser: TestBrowser, userName: String = "administrator") {
+      browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url)
+      browser.fill("#userName").`with`(userName)
+      browser.fill("#password").`with`("password")
+      browser.click("#doLoginButton")
+    }
+
+    "Store owner cannot edit item name." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+        val user01 = createNormalUser("user01")
+        val siteOwner = SiteUser.createNew(user01.id.get, site.id.get)
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find("#siteId").find("option").getText() === "Store01"
+        browser.find("#categoryId").find("option").getText() === "Cat01"
+        browser.find("#taxId").find("option").getText() === "外税"
+        browser.fill("#description").`with`("Description01")
+
+        browser.fill("#itemName").`with`("ItemName01")
+        browser.fill("#price").`with`("1234")
+        browser.fill("#costPrice").`with`("2345")
+        browser.find("#createNewItemForm").find("input[type='submit']").click
+
+        browser.find(".message").getText() === Messages("itemIsCreated")
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.editItem(List("")).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        doWith(browser.find(".itemTableBody")) { tr =>
+          tr.find(".itemTableItemName").getText === "ItemName01"
+          tr.find(".itemTableSiteName").getText === "Store01"
+          tr.find(".itemTablePrice").getText === ViewHelpers.toAmount(BigDecimal(1234))
+        }
+
+        val itemId = ItemId(browser.find(".itemTableBody .itemTableItemId a").getText.toLong)
+
+        ItemName.add(itemId, LocaleInfo.En.id, "ItemName01-EN")
+
+        logoff(browser)
+        login(browser, "user01")
+        // Store owner cannot remove item.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.removeItemName(itemId.id, LocaleInfo.Ja.id).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        ItemName.list(itemId).size === 2
+        browser.title === Messages("company.name")
+      }}
+    }
   }
 }

@@ -369,7 +369,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def changeItemName(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeAdmin(login) {
+    assumeSuperUser(login) {
       changeItemNameForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
@@ -421,7 +421,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def addItemName(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeAdmin(login) {
+    assumeSuperUser(login) {
       addItemNameForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
@@ -511,7 +511,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemName(itemId: Long, localeId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeAdmin(login) {
+    assumeSuperUser(login) {
       DB.withConnection { implicit conn =>
         ItemName.remove(ItemId(itemId), localeId)
       }

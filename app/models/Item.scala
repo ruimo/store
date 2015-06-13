@@ -488,20 +488,18 @@ object ItemName {
     ).executeUpdate()
   }
 
-  def remove(itemId: ItemId, localeId: Long)(implicit conn: Connection) {
-    SQL(
-      """
-      delete from item_name
-      where item_id = {itemId}
-      and locale_id = {localeId}
-      and (select count(*) from item_name where item_id = {itemId}) > 1
-      """
-    )
-    .on(
-      'itemId -> itemId.id,
-      'localeId -> localeId
-    ).executeUpdate()
-  }
+  def remove(itemId: ItemId, localeId: Long)(implicit conn: Connection): Long = SQL(
+    """
+    delete from item_name
+    where item_id = {itemId}
+    and locale_id = {localeId}
+    and (select count(*) from item_name where item_id = {itemId}) > 1
+    """
+  )
+  .on(
+    'itemId -> itemId.id,
+    'localeId -> localeId
+  ).executeUpdate()
 
   def update(itemId: ItemId, localeId: Long, itemName: String)(implicit conn: Connection) {
     SQL(
