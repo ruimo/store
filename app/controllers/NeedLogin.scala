@@ -177,7 +177,7 @@ trait NeedLogin extends Controller with HasLogger {
           else {
             logger.info("Login success '" + user.compoundUserName + "'")
             Redirect(user.uri).flashing(
-              "message" -> "Welcome"
+              "message" -> @Messages("welcome")
             ).withSession {
               (LoginUserKey, LoginSession.serialize(rec.id.get, System.currentTimeMillis + SessionTimeout))
             }
