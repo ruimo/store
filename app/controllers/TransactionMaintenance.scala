@@ -46,7 +46,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     assumeAdmin(login) {
       DB.withConnection { implicit conn =>
         val pagedRecords = TransactionSummary.list(
-          login.siteUser.map(_.siteId)
+          siteId = login.siteUser.map(_.siteId),
+          page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
         )
         Ok(
           views.html.admin.transactionMaintenance(

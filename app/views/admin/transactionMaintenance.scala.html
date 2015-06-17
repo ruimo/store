@@ -98,6 +98,14 @@
       </tr>
     }
   </table>  
+  <br>
+  @defining(Some(loginSession)) { implicit login =>
+    @pagingPanel(
+      tran,
+      routes.TransactionMaintenance.index( _: Int, _: Int, _: String),
+      10, 25, 50
+    )
+  }
 
   <div class="menuPanel">
     <br>
