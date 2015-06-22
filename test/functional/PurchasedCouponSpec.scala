@@ -182,10 +182,10 @@ class PurchasedCouponSpec extends Specification {
     val fee2 = ShippingFee.createNew(box2.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
     
     val feeHis1 = ShippingFeeHistory.createNew(
-      fee1.id.get, tax.id.get, BigDecimal(123), date("9999-12-31")
+      fee1.id.get, tax.id.get, BigDecimal(123), None, date("9999-12-31")
     )
     val feeHis2 = ShippingFeeHistory.createNew(
-      fee2.id.get, tax.id.get, BigDecimal(234), date("9999-12-31")
+      fee2.id.get, tax.id.get, BigDecimal(234), None, date("9999-12-31")
     )
     val now = System.currentTimeMillis
 

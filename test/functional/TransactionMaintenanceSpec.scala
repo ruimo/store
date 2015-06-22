@@ -255,7 +255,7 @@ class TransactionMaintenanceSpec extends Specification {
     }}
   }
 
-  def createTransaction(lang: Lang, user: StoreUser)(implicit conn: Connection): Tran = {
+  def createTransaction(lang: Lang, user: StoreUser, count: Int = 1)(implicit conn: Connection): Tran = {
     val tax = Tax.createNew
     val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
@@ -344,10 +344,10 @@ class TransactionMaintenanceSpec extends Specification {
     val fee2 = ShippingFee.createNew(box2.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
     
     val feeHis1 = ShippingFeeHistory.createNew(
-      fee1.id.get, tax.id.get, BigDecimal(123), date("9999-12-31")
+      fee1.id.get, tax.id.get, BigDecimal(123), None, date("9999-12-31")
     )
     val feeHis2 = ShippingFeeHistory.createNew(
-      fee2.id.get, tax.id.get, BigDecimal(234), date("9999-12-31")
+      fee2.id.get, tax.id.get, BigDecimal(234), None, date("9999-12-31")
     )
     val now = System.currentTimeMillis
 
@@ -364,9 +364,12 @@ class TransactionMaintenanceSpec extends Specification {
     )
 
     val cartTotal1 = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
-    val tranId = (new TransactionPersister).persist(
-      Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, Some(addr1), shippingTotal1, shippingDate1, now)
-    )
+    (1 to count) foreach {
+      i => (new TransactionPersister).persist(
+        Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, Some(addr1), shippingTotal1, shippingDate1, now)
+      )
+    }
+
     val tranList = TransactionLogHeader.list()
     val tranSiteList = TransactionLogSite.list()
 

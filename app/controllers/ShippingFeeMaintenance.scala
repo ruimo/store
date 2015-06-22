@@ -53,6 +53,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
           "historyId" -> longNumber,
           "taxId" -> longNumber,
           "fee" -> bigDecimal.verifying(min(BigDecimal(0))),
+          "costFee" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
           "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
         ) (ChangeFeeHistory.apply)(ChangeFeeHistory.unapply)
       )
@@ -64,6 +65,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
       "historyId" -> ignored(0L),
       "taxId" -> longNumber,
       "fee" -> bigDecimal.verifying(min(BigDecimal(0))),
+      "costFee" -> optional(bigDecimal.verifying(min(BigDecimal(0)))),
       "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
     ) (ChangeFeeHistory.apply)(ChangeFeeHistory.unapply)
   )
@@ -94,7 +96,7 @@ object ShippingFeeMaintenance extends Controller with I18nAware with NeedLogin w
   def createFeeHistoryForm(feeId: Long): Form[ChangeFeeHistoryTable] = {
     DB.withConnection { implicit conn => {
       val histories = ShippingFeeHistory.list(feeId).map {
-        h => ChangeFeeHistory(h.id.get, h.taxId, h.fee, new DateTime(h.validUntil))
+        h => ChangeFeeHistory(h.id.get, h.taxId, h.fee, h.costFee, new DateTime(h.validUntil))
       }.toSeq
 
       changeFeeHistoryForm.fill(ChangeFeeHistoryTable(histories))

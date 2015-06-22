@@ -87,7 +87,7 @@ case class ShippingFee(
 )
 
 case class ShippingFeeHistory(
-  id: Option[Long] = None, shippingFeeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
+  id: Option[Long] = None, shippingFeeId: Long, taxId: Long, fee: BigDecimal, costFee: Option[BigDecimal], validUntil: Long
 )
 
 case class ShippingFeeEntries(
@@ -378,8 +378,11 @@ object ShippingFeeHistory {
     SqlParser.get[Long]("shipping_fee_history.shipping_fee_id") ~
     SqlParser.get[Long]("shipping_fee_history.tax_id") ~
     SqlParser.get[java.math.BigDecimal]("shipping_fee_history.fee") ~
+    SqlParser.get[Option[java.math.BigDecimal]]("shipping_fee_history.cost_fee") ~
     SqlParser.get[java.util.Date]("shipping_fee_history.valid_until") map {
-      case id~feeId~taxId~fee~validUntil => ShippingFeeHistory(id, feeId, taxId, fee, validUntil.getTime)
+      case id~feeId~taxId~fee~costFee~validUntil => ShippingFeeHistory(
+        id, feeId, taxId, fee, costFee.map {(b: java.math.BigDecimal) => BigDecimal(b)}, validUntil.getTime
+      )
     }
   }
 
@@ -395,13 +398,14 @@ object ShippingFeeHistory {
   )
 
   def update(
-    historyId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
+    historyId: Long, taxId: Long, fee: BigDecimal, costFee: Option[BigDecimal], validUntil: Long
   )(implicit conn: Connection) {
     SQL(
       """
       update shipping_fee_history
       set tax_id = {taxId},
         fee = {fee},
+        costFee = {costFee},
         valid_until = {validUntil}
       where shipping_fee_history_id = {historyId}
       """
@@ -409,6 +413,7 @@ object ShippingFeeHistory {
       'historyId -> historyId,
       'taxId -> taxId,
       'fee -> fee.bigDecimal,
+      'costFee -> costFee.map(_.bigDecimal),
       'validUntil -> new java.sql.Timestamp(validUntil)
     ).executeUpdate()
   }
@@ -425,25 +430,26 @@ object ShippingFeeHistory {
   }
 
   def createNew(
-    feeId: Long, taxId: Long, fee: BigDecimal, validUntil: Long
+    feeId: Long, taxId: Long, fee: BigDecimal, costFee: Option[BigDecimal], validUntil: Long
   )(implicit conn: Connection): ShippingFeeHistory = {
     SQL(
       """
-      insert into shipping_fee_history (shipping_fee_history_id, shipping_fee_id, tax_id, fee, valid_until)
+      insert into shipping_fee_history (shipping_fee_history_id, shipping_fee_id, tax_id, fee, cost_fee, valid_until)
       values (
-        (select nextval('shipping_fee_history_seq')), {feeId}, {taxId}, {fee}, {validUntil}
+        (select nextval('shipping_fee_history_seq')), {feeId}, {taxId}, {fee}, {costFee}, {validUntil}
       )
       """
     ).on(
       'feeId -> feeId,
       'taxId -> taxId,
       'fee -> fee.bigDecimal,
+      'costFee -> costFee.map(_.bigDecimal),
       'validUntil -> new java.sql.Timestamp(validUntil)
     ).executeUpdate()
 
     val id = SQL("select currval('shipping_fee_history_seq')").as(SqlParser.scalar[Long].single)
 
-    ShippingFeeHistory(Some(id), feeId, taxId, fee, validUntil)
+    ShippingFeeHistory(Some(id), feeId, taxId, fee, costFee, validUntil)
   }
 
   def list(feeId: Long)(implicit conn: Connection): Seq[ShippingFeeHistory] = SQL(

@@ -52,7 +52,7 @@ class TransactionPersisterSpec extends Specification {
             box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code
           )
           val feeHistory = ShippingFeeHistory.createNew(
-            fee.id.get, tax.id.get, BigDecimal(123), date("9999-12-31")
+            fee.id.get, tax.id.get, BigDecimal(123), Some(BigDecimal(100)), date("9999-12-31")
           )
           val shippingTotal = ShippingFeeHistory.feeBySiteAndItemClass(
             CountryCode.JPN, JapanPrefecture.東京都.code,
@@ -146,7 +146,7 @@ class TransactionPersisterSpec extends Specification {
             box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code
           )
           val feeHistory = ShippingFeeHistory.createNew(
-            fee.id.get, tax.id.get, BigDecimal(123), date("9999-12-31")
+            fee.id.get, tax.id.get, BigDecimal(123), None, date("9999-12-31")
           )
           val shippingTotal = ShippingFeeHistory.feeBySiteAndItemClass(
             CountryCode.JPN, JapanPrefecture.東京都.code,

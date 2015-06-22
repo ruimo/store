@@ -67,10 +67,10 @@ class TransactionSummarySpec extends Specification {
           val shipping1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
           val shipping2 = ShippingFee.createNew(box2.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
           ShippingFeeHistory.createNew(
-            shipping1.id.get, tax2.id.get, BigDecimal(1234), date("9999-12-31")
+            shipping1.id.get, tax2.id.get, BigDecimal(1234), Some(BigDecimal(1000)), date("9999-12-31")
           )
           ShippingFeeHistory.createNew(
-            shipping2.id.get, tax2.id.get, BigDecimal(2345), date("9999-12-31")
+            shipping2.id.get, tax2.id.get, BigDecimal(2345), None, date("9999-12-31")
           )
 
           ShippingFeeHistory.feeBySiteAndItemClass(
@@ -313,10 +313,10 @@ class TransactionSummarySpec extends Specification {
           val shipping1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
           val shipping2 = ShippingFee.createNew(box2.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
           ShippingFeeHistory.createNew(
-            shipping1.id.get, tax2.id.get, BigDecimal(1234), date("9999-12-31")
+            shipping1.id.get, tax2.id.get, BigDecimal(1234), None, date("9999-12-31")
           )
           ShippingFeeHistory.createNew(
-            shipping2.id.get, tax2.id.get, BigDecimal(2345), date("9999-12-31")
+            shipping2.id.get, tax2.id.get, BigDecimal(2345), Some(BigDecimal(2000)), date("9999-12-31")
           )
 
           ShippingFeeHistory.feeBySiteAndItemClass(

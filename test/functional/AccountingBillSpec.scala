@@ -288,10 +288,10 @@ class AccountingBillSpec extends Specification {
     val fee2 = ShippingFee.createNew(boxes(1).id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
     
     val feeHis1 = ShippingFeeHistory.createNew(
-      fee1.id.get, taxes(1).id.get, BigDecimal(123), date("9999-12-31")
+      fee1.id.get, taxes(1).id.get, BigDecimal(123), None, date("9999-12-31")
     )
     val feeHis2 = ShippingFeeHistory.createNew(
-      fee2.id.get, taxes(1).id.get, BigDecimal(234), date("9999-12-31")
+      fee2.id.get, taxes(1).id.get, BigDecimal(234), Some(BigDecimal(111)), date("9999-12-31")
     )
 
     val transporters = Vector(Transporter.createNew, Transporter.createNew)

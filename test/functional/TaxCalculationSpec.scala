@@ -86,8 +86,8 @@ class TaxCalculationSpec extends Specification {
         val fee1 = ShippingFee.createNew(box1_1.id.get, CountryCode.JPN, JapanPrefecture.三重県.code)
         val fee2 = ShippingFee.createNew(box2_1.id.get, CountryCode.JPN, JapanPrefecture.三重県.code)
 
-        val feeHis1 = ShippingFeeHistory.createNew(fee1.id.get, tax.id.get, BigDecimal(2345), date("9999-12-31"))
-        val feeHis2 = ShippingFeeHistory.createNew(fee2.id.get, tax.id.get, BigDecimal(3333), date("9999-12-31"))
+        val feeHis1 = ShippingFeeHistory.createNew(fee1.id.get, tax.id.get, BigDecimal(2345), None, date("9999-12-31"))
+        val feeHis2 = ShippingFeeHistory.createNew(fee2.id.get, tax.id.get, BigDecimal(3333), None, date("9999-12-31"))
 
         SiteItem.createNew(site1, item1)
         SiteItem.createNew(site2, item2)
