@@ -43,6 +43,7 @@ var removeHistory = function(id) {
         <th></th>
         <th>@Messages("tax")</th>
         <th>@Messages("price")</th>
+        <th>@Messages("costPrice")</th>
         <th>@Messages("validUntil")</th>
       </tr>
       @form(action = helper.CSRF(routes.ShippingFeeMaintenance.changeHistory(fee.id.get))) {
@@ -78,6 +79,14 @@ var removeHistory = function(id) {
     
             <td>
               @inputText(
+                his("costFee")
+              )(
+                helper.FieldConstructor(simpleField.f), implicitly
+              )
+            </td>
+
+            <td>
+              @inputText(
                 his("validUntil")
               )(
                 helper.FieldConstructor(simpleField.f), implicitly
@@ -87,7 +96,7 @@ var removeHistory = function(id) {
         }
 
         <tr>
-          <td colspan="4">
+          <td colspan="5">
             <input id="updateShippingFeeHistoryButton" style="float: right;" type="submit" value=@Messages("update")>
           </td>
         </tr>
@@ -116,6 +125,14 @@ var removeHistory = function(id) {
     
           <td>
             @inputText(
+              addForm("costFee")
+            )(
+              helper.FieldConstructor(simpleField.f), implicitly
+            )
+          </td>
+    
+          <td>
+            @inputText(
               addForm("validUntil")
             )(
               helper.FieldConstructor(simpleField.f), implicitly
@@ -124,7 +141,7 @@ var removeHistory = function(id) {
         </tr>
 
         <tr>
-          <td colspan="4">
+          <td colspan="5">
             <input id="addShippingFeeHistoryButton" style="float: right;" type="submit" value=@Messages("add")>
           </td>
         </tr>
