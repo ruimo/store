@@ -405,7 +405,7 @@ object ShippingFeeHistory {
       update shipping_fee_history
       set tax_id = {taxId},
         fee = {fee},
-        costFee = {costFee},
+        cost_fee = {costFee},
         valid_until = {validUntil}
       where shipping_fee_history_id = {historyId}
       """
