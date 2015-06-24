@@ -23,7 +23,7 @@ class ShippingMaintenanceSpec extends Specification {
   "Shipping fee maintenance" should {
     "Should occur validation error in creating shipping box" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -50,7 +50,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can create shipping box" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -108,7 +108,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can edit without records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         
@@ -122,7 +122,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can edit with some records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -157,7 +157,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can edit one box record with validation error" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -206,7 +206,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can maintenance fee without records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -227,7 +227,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can maintenance fee with records" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -262,7 +262,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Can remove fee record" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -334,7 +334,7 @@ class ShippingMaintenanceSpec extends Specification {
 
     "Show validation error when adding fee" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -370,12 +370,19 @@ class ShippingMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until("#fee_field").areDisplayed()
         browser.find("#fee_field").find(".error").getText === Messages("error.number")
         browser.find("#validUntil_field").find(".error").getText === Messages("error.date")
+        browser.find("#costFee_field").find(".error").getTexts.size === 0
+
+        browser.fill("#costFee").`with`("-1")
+        browser.find("#addShippingFeeHistoryButton").click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).until("#fee_field").areDisplayed()
+        browser.find("#costFee_field").find(".error").getText === Messages("error.min", 0)
       }}
     }
 
     "Can add, edit, delete fee" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -403,6 +410,7 @@ class ShippingMaintenanceSpec extends Specification {
           rec.find(".prefecture").getText === "北海道"
         }
         
+        // without cost fee.
         browser.find("#taxId").find("option", 1).click()
         browser.fill("#fee").`with`("123")
         browser.fill("#validUntil").`with`("2015-01-23 11:22:33")
@@ -415,11 +423,35 @@ class ShippingMaintenanceSpec extends Specification {
           By.cssSelector("option[value='" + tax2.id.get + "']")
         ).isSelected === true
         browser.find("#histories_0_fee").getAttribute("value") === "123.00"
+        browser.find("#histories_0_costFee").getAttribute("value") === ""
+        browser.find("#histories_0_validUntil").getAttribute("value") === "2015-01-23 11:22:33"
+
+        // Remove history.
+        browser.find(".removeHistoryButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+        browser.find("#histories_0_fee").getTexts.size === 0
+
+        // with cost fee.
+        browser.find("#taxId").find("option", 1).click()
+        browser.fill("#fee").`with`("123")
+        browser.fill("#costFee").`with`("100")
+        browser.fill("#validUntil").`with`("2015-01-23 11:22:33")
+
+        browser.find("#addShippingFeeHistoryButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.webDriver.findElement(By.id("histories_0_taxId")).findElement(
+          By.cssSelector("option[value='" + tax2.id.get + "']")
+        ).isSelected === true
+        browser.find("#histories_0_fee").getAttribute("value") === "123.00"
+        browser.find("#histories_0_costFee").getAttribute("value") === "100.00"
         browser.find("#histories_0_validUntil").getAttribute("value") === "2015-01-23 11:22:33"
 
         // Can change history.
         browser.find("#histories_0_taxId").find("option[value='" + tax1.id.get + "']").click()
         browser.fill("#histories_0_fee").`with`("234")
+        browser.fill("#histories_0_costFee").`with`("")
         browser.fill("#histories_0_validUntil").`with`("2016-01-23 22:33:44")
         browser.find("#updateShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
@@ -429,7 +461,14 @@ class ShippingMaintenanceSpec extends Specification {
           By.cssSelector("option[value='" + tax1.id.get + "']")
         ).isSelected === true
         browser.find("#histories_0_fee").getAttribute("value") === "234.00"
+        browser.find("#histories_0_costFee").getAttribute("value") === ""
         browser.find("#histories_0_validUntil").getAttribute("value") === "2016-01-23 22:33:44"
+
+        browser.fill("#histories_0_costFee").`with`("100")
+        browser.find("#updateShippingFeeHistoryButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
+        browser.title === Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.find("#histories_0_costFee").getAttribute("value") === "100.00"
 
         // Check fee history.
         browser.goTo(
