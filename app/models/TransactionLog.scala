@@ -33,6 +33,7 @@ case class TransactionLogShipping(
   id: Option[Long] = None,
   transactionSiteId: Long,
   amount: BigDecimal, // Unit price * boxCount
+  costAmount: Option[BigDecimal], // Unit cost price * boxCount
   addressId: Long,
   itemClass: Long,
   boxSize: Int,
@@ -293,6 +294,7 @@ object TransactionLogShipping {
     SqlParser.get[Option[Long]]("transaction_shipping.transaction_shipping_id") ~
     SqlParser.get[Long]("transaction_shipping.transaction_site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_shipping.amount") ~
+    SqlParser.get[Option[java.math.BigDecimal]]("transaction_shipping.costAmount") ~
     SqlParser.get[Long]("transaction_shipping.address_id") ~
     SqlParser.get[Long]("transaction_shipping.item_class") ~
     SqlParser.get[Int]("transaction_shipping.box_size") ~
@@ -300,13 +302,13 @@ object TransactionLogShipping {
     SqlParser.get[Int]("transaction_shipping.box_count") ~
     SqlParser.get[String]("transaction_shipping.box_name") ~
     SqlParser.get[java.util.Date]("transaction_shipping.shipping_date") map {
-      case id~transactionId~amount~addressId~itemClass~boxSize~taxId~boxCount~boxName~shippingDate =>
-        TransactionLogShipping(id, transactionId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate.getTime)
+      case id~transactionId~amount~costAmount~addressId~itemClass~boxSize~taxId~boxCount~boxName~shippingDate =>
+        TransactionLogShipping(id, transactionId, amount, costAmount.map {BigDecimal.apply}, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate.getTime)
     }
   }
 
   def createNew(
-    transactionSiteId: Long, amount: BigDecimal, addressId: Long,
+    transactionSiteId: Long, amount: BigDecimal, costAmount: Option[BigDecimal], addressId: Long,
     itemClass: Long, boxSize: Int, taxId: Long, boxCount: Int, boxName: String, shippingDate: Long
   )(implicit conn: Connection): TransactionLogShipping = {
     SQL(
@@ -323,6 +325,7 @@ object TransactionLogShipping {
     ).on(
       'transactionSiteId -> transactionSiteId,
       'amount -> amount.bigDecimal,
+      'costAmount -> costAmount.map {_.bigDecimal},
       'addressId -> addressId,
       'itemClass -> itemClass,
       'boxSize -> boxSize,
@@ -334,7 +337,7 @@ object TransactionLogShipping {
 
     val id = SQL("select currval('transaction_shipping_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionLogShipping(Some(id), transactionSiteId, amount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
+    TransactionLogShipping(Some(id), transactionSiteId, amount, costAmount, addressId, itemClass, boxSize, taxId, boxCount, boxName, shippingDate)
   }
 
   def list(limit: Int = 20, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogShipping] =
@@ -976,7 +979,7 @@ class TransactionPersister {
     tran.shippingTotal.table.foreach { e =>
       tran.shippingAddress.foreach { addr =>
         TransactionLogShipping.createNew(
-          siteLog.id.get, e.boxTotal, addr.id.get, e.itemClass, e.shippingBox.boxSize,
+          siteLog.id.get, e.boxTotal, e.boxCostTotal, addr.id.get, e.itemClass, e.shippingBox.boxSize,
           e.boxTaxInfo.taxId, e.boxQuantity, e.shippingBox.boxName, tran.shippingDate.tables(e.site.id.get).shippingDate
         )
       }

@@ -16,9 +16,12 @@ case class ShippingTotalEntry (
   itemQuantity: Int,
   boxQuantity: Int,
   boxUnitPrice: BigDecimal,
+  boxUnitCostPrice: Option[BigDecimal],
   boxTaxInfo: TaxHistory
 ) {
   lazy val boxTotal = boxUnitPrice * boxQuantity
+  lazy val boxCostTotal = boxUnitCostPrice.map(_ * boxQuantity)
+  lazy val boxTotalCostPrice: Option[BigDecimal] = boxUnitCostPrice.map(_ * boxQuantity)
   lazy val outerTax = boxTaxInfo.outerTax(boxTotal)
 }
 
@@ -590,7 +593,7 @@ object ShippingFeeHistory {
           val taxHistory = TaxHistory.at(boxFeeHistory.taxId)
           ret.append(
             ShippingTotalEntry(
-              site, e._1, e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, taxHistory
+              site, e._1, e._2._1, e._2._2, quantity, boxCount, boxFeeHistory.fee, boxFeeHistory.costFee, taxHistory
             )
           )
         }

@@ -316,16 +316,16 @@ class ShippingSpec extends Specification {
       val total = ShippingTotal(
         List(
           ShippingTotalEntry(
-            site1, itemClass1, box1, fee1, 3, 1, BigDecimal(12), taxHis1
+            site1, itemClass1, box1, fee1, 3, 1, BigDecimal(12), Some(10), taxHis1
           ),
           ShippingTotalEntry(
-            site1, itemClass2, box1, fee2, 5, 2, BigDecimal(23), taxHis2
+            site1, itemClass2, box1, fee2, 5, 2, BigDecimal(23), None, taxHis2
           ),
           ShippingTotalEntry(
-            site2, itemClass1, box1, fee3, 2, 3, BigDecimal(34), taxHis3
+            site2, itemClass1, box1, fee3, 2, 3, BigDecimal(34), Some(30), taxHis3
           ),
           ShippingTotalEntry(
-            site2, itemClass2, box1, fee4, 4, 4, BigDecimal(45), taxHis4
+            site2, itemClass2, box1, fee4, 4, 4, BigDecimal(45), None, taxHis4
           )
         )
       )
