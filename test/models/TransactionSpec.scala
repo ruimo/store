@@ -74,7 +74,7 @@ class TransactionSpec extends Specification {
           )
 
           val shipping = TransactionLogShipping.createNew(
-            tranSite.id.get, BigDecimal(9876), addr1.id.get, 1L, 1, 1L, 1, "boxName", date("2013-05-05")
+            tranSite.id.get, BigDecimal(9876), Some(234L), addr1.id.get, 1L, 1, 1L, 1, "boxName", date("2013-05-05")
           )
 
           val list = TransactionLogShipping.list()
@@ -546,6 +546,7 @@ class TransactionSpec extends Specification {
           val shipping1 = TransactionLogShipping.createNew(
             transactionSiteId = tranSite1.id.get,
             amount = BigDecimal(1000),
+            costAmount = None,
             addressId = addr1.id.get,
             itemClass = 1L,
             boxSize = 3,
@@ -558,6 +559,7 @@ class TransactionSpec extends Specification {
           val shipping2 = TransactionLogShipping.createNew(
             transactionSiteId = tranSite1.id.get,
             amount = BigDecimal(2000),
+            costAmount = Some(1234),
             addressId = addr1.id.get,
             itemClass = 2L,
             boxSize = 5,
