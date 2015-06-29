@@ -72,6 +72,42 @@ case class TransactionLogCoupon(
   couponId: CouponId
 )
 
+case class TransactionLogItemNumericMetadataId(id: Long) extends AnyVal
+
+case class TransactionLogItemNumericMetadata(
+  id: Option[TransactionLogItemNumericMetadataId] = None,
+  transactionItemId: Long,
+  metadataType: ItemNumericMetadataType,
+  metadata: Long
+)
+
+case class TransactionLogItemTextMetadataId(id: Long) extends AnyVal
+
+case class TransactionLogItemTextMetadata(
+  id: Option[TransactionLogItemTextMetadataId] = None,
+  transactionItemId: Long,
+  metadataType: ItemTextMetadataType,
+  metadata: String
+)
+
+case class TransactionLogSiteItemNumericMetadataId(id: Long) extends AnyVal
+
+case class TransactionLogSiteItemNumericMetadata(
+  id: Option[TransactionLogSiteItemNumericMetadataId] = None,
+  transactionItemId: Long,
+  metadataType: SiteItemNumericMetadataType,
+  metadata: Long
+)
+
+case class TransactionLogSiteItemTextMetadataId(id: Long) extends AnyVal
+
+case class TransactionLogSiteItemTextMetadata(
+  id: Option[TransactionLogSiteItemTextMetadataId] = None,
+  transactionItemId: Long,
+  metadataType: SiteItemTextMetadataType,
+  metadata: String
+)
+
 case class ShippingInfo(
   transporterId: Long,
   slipCode: String
@@ -773,7 +809,7 @@ object TransactionShipStatus {
     ).as(
       simple.single
     )
-
+  
   def createNew(
     transactionSiteId: Long, status: TransactionStatus, lastUpdate: Long, shippingInfo: Option[ShippingInfo]
   )(implicit conn: Connection): TransactionShipStatus = {
@@ -878,6 +914,218 @@ object TransactionShipStatus {
       'tranSiteId -> tranSiteId
     ).executeUpdate()
   }
+}
+
+object TransactionLogItemNumericMetadata {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_item_numeric_metadata.transaction_item_numeric_metadata_id") ~
+    SqlParser.get[Long]("transaction_item_numeric_metadata.transaction_item_id") ~
+    SqlParser.get[Int]("transaction_item_numeric_metadata.metadata_type") ~
+    SqlParser.get[Long]("transaction_item_numeric_metadata.metadata") map {
+      case id~tranItemId~metadataType~metadata =>
+        TransactionLogItemNumericMetadata(
+          id.map(TransactionLogItemNumericMetadataId.apply),
+          tranItemId, ItemNumericMetadataType.byIndex(metadataType), metadata
+        )
+    }
+  }
+
+  def createNew(
+    transactionItemId: Long, metadataTable: Seq[ItemNumericMetadata]
+  )(implicit conn: Connection): Seq[TransactionLogItemNumericMetadata] = metadataTable.map { md =>
+    SQL(
+      """
+      insert into transaction_item_numeric_metadata (
+        transaction_item_numeric_metadata_id, transaction_item_id,
+        metadata_type, metadata
+      ) values (
+        (select nextval('transaction_item_numeric_metadata_seq')),
+        {transactionItemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'transactionItemId -> transactionItemId,
+      'metadataType -> md.metadataType.ordinal,
+      'metadata -> md.metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogItemNumericMetadata(
+      Some(TransactionLogItemNumericMetadataId(id)), transactionItemId, md.metadataType, md.metadata
+    )
+  }
+
+  def list(transactionItemId: Long)(implicit conn: Connection): Seq[TransactionLogItemNumericMetadata] = SQL(
+    """
+    select * from transaction_item_numeric_metadata
+    where transaction_item_id = {transactionItemId}
+    order by metadata_type
+    """
+  ).on(
+    'transactionItemId -> transactionItemId
+  ).as(
+    simple *
+  )
+}
+
+object TransactionLogItemTextMetadata {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_item_text_metadata.transaction_item_text_metadata_id") ~
+    SqlParser.get[Long]("transaction_item_text_metadata.transaction_item_id") ~
+    SqlParser.get[Int]("transaction_item_text_metadata.metadata_type") ~
+    SqlParser.get[String]("transaction_item_text_metadata.metadata") map {
+      case id~tranItemId~metadataType~metadata =>
+        TransactionLogItemTextMetadata(
+          id.map(TransactionLogItemTextMetadataId.apply),
+          tranItemId, ItemTextMetadataType.byIndex(metadataType), metadata
+        )
+    }
+  }
+
+  def createNew(
+    transactionItemId: Long, metadataTable: Seq[ItemTextMetadata]
+  )(implicit conn: Connection): Seq[TransactionLogItemTextMetadata] = metadataTable.map { md =>
+    SQL(
+      """
+      insert into transaction_item_text_metadata (
+        transaction_item_text_metadata_id, transaction_item_id,
+        metadata_type, metadata
+      ) values (
+        (select nextval('transaction_item_text_metadata_seq')),
+        {transactionItemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'transactionItemId -> transactionItemId,
+      'metadataType -> md.metadataType.ordinal,
+      'metadata -> md.metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_item_text_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogItemTextMetadata(
+      Some(TransactionLogItemTextMetadataId(id)), transactionItemId, md.metadataType, md.metadata
+    )
+  }
+
+  def list(transactionItemId: Long)(implicit conn: Connection): Seq[TransactionLogItemTextMetadata] = SQL(
+    """
+    select * from transaction_item_text_metadata
+    where transaction_item_id = {transactionItemId}
+    order by metadata_type
+    """
+  ).on(
+    'transactionItemId -> transactionItemId
+  ).as(
+    simple *
+  )
+}
+
+object TransactionLogSiteItemNumericMetadata {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_site_item_numeric_metadata.transaction_site_item_numeric_metadata_id") ~
+    SqlParser.get[Long]("transaction_site_item_numeric_metadata.transaction_item_id") ~
+    SqlParser.get[Int]("transaction_site_item_numeric_metadata.metadata_type") ~
+    SqlParser.get[Long]("transaction_site_item_numeric_metadata.metadata") map {
+      case id~tranItemId~metadataType~metadata =>
+        TransactionLogSiteItemNumericMetadata(
+          id.map(TransactionLogSiteItemNumericMetadataId.apply),
+          tranItemId, SiteItemNumericMetadataType.byIndex(metadataType), metadata
+        )
+    }
+  }
+
+  def createNew(
+    transactionItemId: Long, metadataTable: Seq[SiteItemNumericMetadata]
+  )(implicit conn: Connection): Seq[TransactionLogSiteItemNumericMetadata] = metadataTable.map { md =>
+    SQL(
+      """
+      insert into transaction_site_item_numeric_metadata (
+        transaction_site_item_numeric_metadata_id, transaction_item_id,
+        metadata_type, metadata
+      ) values (
+        (select nextval('transaction_site_item_numeric_metadata_seq')),
+        {transactionItemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'transactionItemId -> transactionItemId,
+      'metadataType -> md.metadataType.ordinal,
+      'metadata -> md.metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_site_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogSiteItemNumericMetadata(
+      Some(TransactionLogSiteItemNumericMetadataId(id)), transactionItemId, md.metadataType, md.metadata
+    )
+  }
+
+  def list(transactionItemId: Long)(implicit conn: Connection): Seq[TransactionLogSiteItemNumericMetadata] = SQL(
+    """
+    select * from transaction_site_item_numeric_metadata
+    where transaction_item_id = {transactionItemId}
+    order by metadata_type
+    """
+  ).on(
+    'transactionItemId -> transactionItemId
+  ).as(
+    simple *
+  )
+}
+
+object TransactionLogSiteItemTextMetadata {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_site_item_text_metadata.transaction_site_item_text_metadata_id") ~
+    SqlParser.get[Long]("transaction_site_item_text_metadata.transaction_item_id") ~
+    SqlParser.get[Int]("transaction_site_item_text_metadata.metadata_type") ~
+    SqlParser.get[String]("transaction_site_item_text_metadata.metadata") map {
+      case id~tranItemId~metadataType~metadata =>
+        TransactionLogSiteItemTextMetadata(
+          id.map(TransactionLogSiteItemTextMetadataId.apply),
+          tranItemId, SiteItemTextMetadataType.byIndex(metadataType), metadata
+        )
+    }
+  }
+
+  def createNew(
+    transactionItemId: Long, metadataTable: Seq[SiteItemTextMetadata]
+  )(implicit conn: Connection): Seq[TransactionLogSiteItemTextMetadata] = metadataTable.map { md =>
+    SQL(
+      """
+      insert into transaction_site_item_text_metadata (
+        transaction_site_item_text_metadata_id, transaction_item_id,
+        metadata_type, metadata
+      ) values (
+        (select nextval('transaction_site_item_text_metadata_seq')),
+        {transactionItemId}, {metadataType}, {metadata}
+      )
+      """
+    ).on(
+      'transactionItemId -> transactionItemId,
+      'metadataType -> md.metadataType.ordinal,
+      'metadata -> md.metadata
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_site_item_text_metadata_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogSiteItemTextMetadata(
+      Some(TransactionLogSiteItemTextMetadataId(id)), transactionItemId, md.metadataType, md.metadata
+    )
+  }
+
+  def list(transactionItemId: Long)(implicit conn: Connection): Seq[TransactionLogSiteItemTextMetadata] = SQL(
+    """
+    select * from transaction_site_item_text_metadata
+    where transaction_item_id = {transactionItemId}
+    order by metadata_type
+    """
+  ).on(
+    'transactionItemId -> transactionItemId
+  ).as(
+    simple *
+  )
 }
 
 case class TransactionDetail(

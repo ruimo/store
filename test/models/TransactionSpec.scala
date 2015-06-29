@@ -10,6 +10,7 @@ import play.api.db.DB
 import play.api.Play.current
 import java.sql.Date.{valueOf => date}
 import collection.immutable
+import com.ruimo.scoins.Scoping._
 
 class TransactionSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -698,6 +699,126 @@ class TransactionSpec extends Specification {
           //   ),
           //   Map.empty
 //          )
+        }
+      }
+    }
+
+    "Can persist metadata." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          val currency1 = CurrencyInfo.Jpy
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+          val tranSite1 = TransactionLogSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
+          import models.LocaleInfo.{Ja}
+          val tax1 = Tax.createNew
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+          val itemNumericMd1 = ItemNumericMetadata.createNew(item1, ItemNumericMetadataType.HEIGHT, 10L)
+          val itemNumericMd2 = ItemNumericMetadata.createNew(item2, ItemNumericMetadataType.HEIGHT, 20L)
+          val itemTextMd1 = ItemTextMetadata.createNew(item1, ItemTextMetadataType.ABOUT_HEIGHT, "ABC")
+          val siteItemNumericMd1 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 111
+          )
+          val siteItemNumericMd2 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.PROMOTION, 222
+          )
+          val siteItemTextMd1 = SiteItemTextMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemTextMetadataType.PRICE_MEMO, "AAA"
+          )
+          val siteItemTextMd2 = SiteItemTextMetadata.createNew(
+            site1.id.get, item2.id.get, SiteItemTextMetadataType.LIST_PRICE_MEMO, "BBB"
+          )
+          val siteItemTextMd3 = SiteItemTextMetadata.createNew(
+            site1.id.get, item2.id.get, SiteItemTextMetadataType.PRICE_MEMO, "CCC"
+          )
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+          val tranItem1 = TransactionLogItem.createNew(
+            tranSite1.id.get, item1.id.get.id, price1.id.get, 3, BigDecimal(400 * 3), BigDecimal(300), 123L
+          )
+          val tranItem2 = TransactionLogItem.createNew(
+            tranSite1.id.get, item2.id.get.id, price1.id.get, 5, BigDecimal(500 * 3), BigDecimal(400), 234L
+          )
+
+          TransactionLogItemNumericMetadata.createNew(
+            tranItem1.id.get, Seq(itemNumericMd1)
+          )
+          TransactionLogItemNumericMetadata.createNew(
+            tranItem2.id.get, Seq(itemNumericMd2)
+          )
+
+          TransactionLogItemTextMetadata.createNew(
+            tranItem1.id.get, Seq(itemTextMd1)
+          )
+
+          TransactionLogSiteItemNumericMetadata.createNew(
+            tranItem1.id.get, Seq(siteItemNumericMd1, siteItemNumericMd2)
+          )
+
+          TransactionLogSiteItemTextMetadata.createNew(
+            tranItem1.id.get, Seq(siteItemTextMd1)
+          )
+          TransactionLogSiteItemTextMetadata.createNew(
+            tranItem2.id.get, Seq(siteItemTextMd2, siteItemTextMd3)
+          )
+
+          doWith(TransactionLogItemNumericMetadata.list(tranItem1.id.get)) { mds =>
+            mds.size === 1
+            mds.head.transactionItemId === tranItem1.id.get
+            mds.head.metadataType === ItemNumericMetadataType.HEIGHT
+            mds.head.metadata === 10
+          }
+          doWith(TransactionLogItemNumericMetadata.list(tranItem2.id.get)) { mds =>
+            mds.size === 1
+            mds.head.transactionItemId === tranItem2.id.get
+            mds.head.metadataType === ItemNumericMetadataType.HEIGHT
+            mds.head.metadata === 20
+          }
+          doWith(TransactionLogItemTextMetadata.list(tranItem1.id.get)) { mds =>
+            mds.size === 1
+            mds.head.transactionItemId === tranItem1.id.get
+            mds.head.metadataType === ItemTextMetadataType.ABOUT_HEIGHT
+            mds.head.metadata === "ABC"
+          }
+
+          doWith(TransactionLogSiteItemNumericMetadata.list(tranItem1.id.get)) { mds =>
+            mds.size === 2
+            mds(0).transactionItemId === tranItem1.id.get
+            mds(0).metadataType === SiteItemNumericMetadataType.STOCK
+            mds(0).metadata === 111
+            mds(1).transactionItemId === tranItem1.id.get
+            mds(1).metadataType === SiteItemNumericMetadataType.PROMOTION
+            mds(1).metadata === 222
+          }
+
+          doWith(TransactionLogSiteItemTextMetadata.list(tranItem1.id.get)) { mds =>
+            mds.size === 1
+            mds(0).transactionItemId === tranItem1.id.get
+            mds(0).metadataType === SiteItemTextMetadataType.PRICE_MEMO
+            mds(0).metadata === "AAA"
+          }
+          doWith(TransactionLogSiteItemTextMetadata.list(tranItem2.id.get)) { mds =>
+            mds.size === 2
+            mds(0).transactionItemId === tranItem2.id.get
+            mds(0).metadataType === SiteItemTextMetadataType.PRICE_MEMO
+            mds(0).metadata === "CCC"
+            mds(1).transactionItemId === tranItem2.id.get
+            mds(1).metadataType === SiteItemTextMetadataType.LIST_PRICE_MEMO
+            mds(1).metadata === "BBB"
+          }
         }
       }
     }

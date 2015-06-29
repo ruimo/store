@@ -35,6 +35,18 @@ class SalesSpec extends Specification {
         val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
         val item = Item.createNew(cat)
+        ItemNumericMetadata.createNew(
+          item, ItemNumericMetadataType.HEIGHT, 1
+        )
+        ItemTextMetadata.createNew(
+          item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
+        )
+        SiteItemNumericMetadata.createNew(
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+        )
+        SiteItemTextMetadata.createNew(
+          site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
+        )
         val siteItem = SiteItem.createNew(site, item)
         val itemClass = 1L
         SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, itemClass)

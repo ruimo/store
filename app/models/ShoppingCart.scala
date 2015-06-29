@@ -22,7 +22,8 @@ case class ShoppingCartTotalEntry(
   taxHistory: TaxHistory,
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata] = Map(),
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = Map(),
-  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata] = Map()
+  itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata] = Map(),
+  siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata] = Map()
 ) {
   lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
   lazy val quantity: Int = shoppingCartItem.quantity
@@ -41,7 +42,8 @@ case class ShoppingCartTotalEntry(
     taxHistory,
     itemNumericMetadata,
     siteItemNumericMetadata,
-    itemTextMetadata
+    itemTextMetadata,
+    siteItemTextMetadata
   )
 }
 
@@ -285,8 +287,9 @@ object ShoppingCartItem {
       val metadata = ItemNumericMetadata.allById(itemId)
       val textMetadata = ItemTextMetadata.allById(itemId)
       val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
+      val siteTextMetadata = SiteItemTextMetadata.all(e._5.id.get, itemId)
 
-      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata, textMetadata)
+      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata, textMetadata, siteTextMetadata)
     }
   )
 
