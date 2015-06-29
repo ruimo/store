@@ -34,7 +34,7 @@ create table transaction_item_text_metadata (
   constraint pk_transaction_item_text_metadata primary key (transaction_item_text_metadata_id)
 );
 
-alter table transaction_shipping add column costAmount decimal(15,2) default null;
+alter table transaction_shipping add column cost_amount decimal(15,2) default null;
 
 # --- !Downs
 
@@ -43,4 +43,4 @@ drop table transaction_item_numeric_metadata;
 drop table transaction_site_item_text_metadata;
 drop table transaction_site_item_numeric_metadata;
 
-alter table transaction_shipping drop column costAmount;
+alter table transaction_shipping drop column cost_amount;

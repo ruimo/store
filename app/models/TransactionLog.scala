@@ -294,7 +294,7 @@ object TransactionLogShipping {
     SqlParser.get[Option[Long]]("transaction_shipping.transaction_shipping_id") ~
     SqlParser.get[Long]("transaction_shipping.transaction_site_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_shipping.amount") ~
-    SqlParser.get[Option[java.math.BigDecimal]]("transaction_shipping.costAmount") ~
+    SqlParser.get[Option[java.math.BigDecimal]]("transaction_shipping.cost_amount") ~
     SqlParser.get[Long]("transaction_shipping.address_id") ~
     SqlParser.get[Long]("transaction_shipping.item_class") ~
     SqlParser.get[Int]("transaction_shipping.box_size") ~
@@ -314,11 +314,11 @@ object TransactionLogShipping {
     SQL(
       """
       insert into transaction_shipping (
-        transaction_shipping_id, transaction_site_id, amount, address_id,
+        transaction_shipping_id, transaction_site_id, amount, cost_amount, address_id,
         item_class, box_size, tax_id, box_count, box_name, shipping_date
       ) values (
         (select nextval('transaction_shipping_seq')),
-        {transactionSiteId}, {amount}, {addressId},
+        {transactionSiteId}, {amount}, {costAmount}, {addressId},
         {itemClass}, {boxSize}, {taxId}, {boxCount}, {boxName}, {shippingDate}
       )
       """
