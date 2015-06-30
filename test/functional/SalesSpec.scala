@@ -61,7 +61,7 @@ class SalesSpec extends Specification {
           "http://localhost:3333"
           + controllers.routes.ItemQuery.query(q = List()).url.addParm("lang", lang.code)
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
         browser.find(".addToCartButton").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
