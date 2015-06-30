@@ -77,7 +77,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.fill("#address1").`with`("address01")
         browser.fill("#address2").`with`("address02")
         browser.fill("#tel1").`with`("11111111")
-        browser.find("input[type='submit']").click()
+        browser.find("#enterShippingAddressForm input[type='submit']").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title() === Messages("cannot.ship.title")
@@ -88,7 +88,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         val box = ShippingBox.createNew(site.id.get, itemClass, 3, "box01")
         val fee = ShippingFee.createNew(box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
         val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
-        browser.find("input[type='submit']").click()
+        browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title() === Messages("confirm.shipping.address")
@@ -117,7 +117,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
           e.find(".address .address2").getText === "address02"
           e.find(".shippingTableBody .tel1").getText === "11111111"
         }
-        browser.find("input[type='submit']").click()
+        browser.find("#finalizeTransactionForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title() === Messages("end.transaction")
