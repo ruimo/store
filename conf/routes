@@ -107,7 +107,7 @@ POST    /admin/removeItemDetailPicture   controllers.ItemPictures.removeDetail(i
 GET     /admin/getItemDetailPicture      controllers.ItemPictures.getDetailPicture(id: Long)
 GET     /admin/getItemAttachment         controllers.ItemPictures.getItemAttachment(itemId: Long, no: Int, fileName: String)
 
-GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index(page: Int ?= 0, pageSize: Int ?= 999, orderBySpec: String ?= "transaction_site_id")
+GET     /admin/transactionMaintenance    controllers.TransactionMaintenance.index(page: Int ?= 0, pageSize: Int ?= 999, orderBySpec: String ?= "transaction_site_id desc")
 POST    /admin/setStatus                 controllers.TransactionMaintenance.setStatus
 GET     /admin/transactionDetail         controllers.TransactionMaintenance.detail(tranSiteId: Long)
 POST    /admin/entryShippingInfo         controllers.TransactionMaintenance.entryShippingInfo(tranId: Long, tranSiteId: Long)
