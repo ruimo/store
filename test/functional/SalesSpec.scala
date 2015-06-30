@@ -19,9 +19,8 @@ import java.sql.Connection
 import scala.collection.JavaConversions._
 import com.ruimo.scoins.Scoping._
 
-class SalesSpec extends Specification {
+class SalesSpec extends Specification with SalesSpecBase  {
   implicit def date2milli(d: java.sql.Date) = d.getTime
-  implicit val lang = Lang("ja")
 
   "Sales" should {
     "Can sell item." in {
@@ -57,10 +56,7 @@ class SalesSpec extends Specification {
           itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
         )
 
-        browser.goTo(
-          "http://localhost:3333"
-          + controllers.routes.ItemQuery.query(q = List()).url.addParm("lang", lang.code)
-        )
+        browser.goTo("http://localhost:3333" + itemQueryUrl())
         browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
         browser.find(".addToCartButton").click()
 
