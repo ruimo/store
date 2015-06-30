@@ -1,5 +1,7 @@
 package functional
 
+import helpers.UrlHelper
+import helpers.UrlHelper._
 import anorm._
 import play.api.db._
 import play.api.test._
@@ -46,7 +48,8 @@ class TransactionMaintenanceSpec extends Specification {
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index() + "?lang=" + lang.code
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
         browser.title === Messages("transactionMaintenanceTitle")
@@ -122,7 +125,8 @@ class TransactionMaintenanceSpec extends Specification {
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index() + "?lang=" + lang.code
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
@@ -145,7 +149,8 @@ class TransactionMaintenanceSpec extends Specification {
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
         browser.goTo(
-          "http://localhost:3333" + controllers.routes.TransactionMaintenance.index() + "?lang=" + lang.code
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
