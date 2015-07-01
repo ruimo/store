@@ -224,6 +224,42 @@ class SalesSpec extends Specification with SalesSpecBase  {
                 tranItem.amount === BigDecimal(999)
                 tranItem.costPrice === BigDecimal(888)
                 tranItem.taxId === tax.id.get
+
+                doWith(TransactionLogItemNumericMetadata.list(tranItem.id.get)) { mdTable =>
+                  mdTable.size === 1
+                  doWith(mdTable.head) { md =>
+                    md.metadataType === ItemNumericMetadataType.HEIGHT
+                    md.metadata === 1
+                  }
+                }
+
+                doWith(TransactionLogItemTextMetadata.list(tranItem.id.get)) { mdTable =>
+                  mdTable.size === 1
+                  doWith(mdTable.head) { md =>
+                    md.metadataType === ItemTextMetadataType.ABOUT_HEIGHT
+                    md.metadata === "Hello"
+                  }
+                }
+
+                doWith(TransactionLogSiteItemNumericMetadata.list(tranItem.id.get).toSeq) { mdTable =>
+                  mdTable.size === 2
+                  doWith(mdTable(0)) { md =>
+                    md.metadataType === SiteItemNumericMetadataType.STOCK
+                    md.metadata === 2
+                  }
+                  doWith(mdTable(1)) { md =>
+                    md.metadataType === SiteItemNumericMetadataType.SHIPPING_SIZE
+                    md.metadata === itemClass
+                  }
+                }
+
+                doWith(TransactionLogSiteItemTextMetadata.list(tranItem.id.get)) { mdTable =>
+                  mdTable.size === 1
+                  doWith(mdTable.head) { md =>
+                    md.metadataType === SiteItemTextMetadataType.PRICE_MEMO
+                    md.metadata === "World"
+                  }
+                }
               }
 
               it._3 === None

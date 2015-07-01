@@ -931,8 +931,8 @@ object TransactionLogItemNumericMetadata {
   }
 
   def createNew(
-    transactionItemId: Long, metadataTable: Seq[ItemNumericMetadata]
-  )(implicit conn: Connection): Seq[TransactionLogItemNumericMetadata] = metadataTable.map { md =>
+    transactionItemId: Long, metadataTable: Iterable[ItemNumericMetadata]
+  )(implicit conn: Connection): Iterable[TransactionLogItemNumericMetadata] = metadataTable.map { md =>
     SQL(
       """
       insert into transaction_item_numeric_metadata (
@@ -984,8 +984,8 @@ object TransactionLogItemTextMetadata {
   }
 
   def createNew(
-    transactionItemId: Long, metadataTable: Seq[ItemTextMetadata]
-  )(implicit conn: Connection): Seq[TransactionLogItemTextMetadata] = metadataTable.map { md =>
+    transactionItemId: Long, metadataTable: Iterable[ItemTextMetadata]
+  )(implicit conn: Connection): Iterable[TransactionLogItemTextMetadata] = metadataTable.map { md =>
     SQL(
       """
       insert into transaction_item_text_metadata (
@@ -1037,8 +1037,8 @@ object TransactionLogSiteItemNumericMetadata {
   }
 
   def createNew(
-    transactionItemId: Long, metadataTable: Seq[SiteItemNumericMetadata]
-  )(implicit conn: Connection): Seq[TransactionLogSiteItemNumericMetadata] = metadataTable.map { md =>
+    transactionItemId: Long, metadataTable: Iterable[SiteItemNumericMetadata]
+  )(implicit conn: Connection): Iterable[TransactionLogSiteItemNumericMetadata] = metadataTable.map { md =>
     SQL(
       """
       insert into transaction_site_item_numeric_metadata (
@@ -1090,8 +1090,8 @@ object TransactionLogSiteItemTextMetadata {
   }
 
   def createNew(
-    transactionItemId: Long, metadataTable: Seq[SiteItemTextMetadata]
-  )(implicit conn: Connection): Seq[TransactionLogSiteItemTextMetadata] = metadataTable.map { md =>
+    transactionItemId: Long, metadataTable: Iterable[SiteItemTextMetadata]
+  )(implicit conn: Connection): Iterable[TransactionLogSiteItemTextMetadata] = metadataTable.map { md =>
     SQL(
       """
       insert into transaction_site_item_text_metadata (
@@ -1261,6 +1261,11 @@ class TransactionPersister {
         siteLog.id.get, e.shoppingCartItem.itemId, e.itemPriceHistory.id.get,
         e.quantity, e.itemPrice, e.costUnitPrice, e.itemPriceHistory.taxId
       )
+
+      TransactionLogItemNumericMetadata.createNew(tranItem.id.get, e.itemNumericMetadata.values)
+      TransactionLogItemTextMetadata.createNew(tranItem.id.get, e.itemTextMetadata.values)
+      TransactionLogSiteItemNumericMetadata.createNew(tranItem.id.get, e.siteItemNumericMetadata.values)
+      TransactionLogSiteItemTextMetadata.createNew(tranItem.id.get, e.siteItemTextMetadata.values)
 
       Coupon.getByItem(ItemId(e.shoppingCartItem.itemId)).foreach { coupon =>
         TransactionLogCoupon.createNew(
