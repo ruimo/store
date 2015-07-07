@@ -8,6 +8,7 @@
   loginSession: LoginSession
 )
 
+@import org.joda.time.format.DateTimeFormat
 @import helper._
 
 @fileUpload(id: Long, idx: Int) = {
@@ -388,6 +389,7 @@
   <table class="changeHandlingSitePanel" style="margin-left: 20px; width: 70%;">
     <tr class="itemHeader">
       <th>@Messages("site")</th>
+      <th>@Messages("createdDate")</th>
     </tr>
 
     @c.siteItemTable.map { e =>
@@ -398,6 +400,9 @@
             @Messages("remove")
           </button>
           @e._1.name
+        </td>
+        <td>
+          @DateTimeFormat.forPattern(Messages("site.item.date.format")).print(e._2.created)
         </td>
       </tr>
     }

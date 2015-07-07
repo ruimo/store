@@ -431,3 +431,5 @@ userNameDuplicated=User name ''{0}'' is duplicated
 showRegisteredEmployeeCount=Registered employee count
 allCount=All count
 registeredCount=Registed count
+createdDate=作成日
+site.item.date.format=yyyy-MM-dd

@@ -463,3 +463,5 @@ userNameDuplicated=ユーザー名 ''{0}'' が重複しています
 showRegisteredEmployeeCount=登録済従業員数
 allCount=総数
 registeredCount=登録数
+createdDate=作成日
+site.item.date.format=yyyy年MM月dd日
