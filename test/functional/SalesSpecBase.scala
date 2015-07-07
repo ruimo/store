@@ -26,4 +26,6 @@ trait SalesSpecBase {
 
   def itemQueryUrl(q: List[String] = List()): String =
     controllers.routes.ItemQuery.query(q = List(), 0, 10).url.addParm("lang", lang.code).toString
+
+  def itemSizeExists = true
 }

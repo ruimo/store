@@ -600,6 +600,7 @@ class ItemSpec extends Specification {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withConnection { implicit conn =>
           import LocaleInfo._
+          val startTime = System.currentTimeMillis
           TestHelper.removePreloadedRecords()
 
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
@@ -614,8 +615,8 @@ class ItemSpec extends Specification {
           val name1 = ItemName.createNew(item1, Map(LocaleInfo.Ja -> "杉", LocaleInfo.En -> "Cedar"))
           val name2 = ItemName.createNew(item2, Map(LocaleInfo.Ja -> "桃", LocaleInfo.En -> "Peach"))
 
-          SiteItem.createNew(site1, item1)
-          SiteItem.createNew(site1, item2)
+          val siteItem1 = SiteItem.createNew(site1, item1)
+          val siteItem2 = SiteItem.createNew(site1, item2)
 
           SiteItem.createNew(site2, item1)
 
@@ -639,6 +640,18 @@ class ItemSpec extends Specification {
           }
 
           SiteItem.getWithSiteAndItem(site2.id.get, item2.id.get, Ja) === None
+
+          val currentTime = System.currentTimeMillis
+          doWith(SiteItem.list(item1.id.get)) { tbl =>
+            tbl.size === 2
+            tbl(0)._2.itemId.id === item1.id.get.id
+            tbl(0)._2.created must be_>=(startTime)
+            tbl(0)._2.created must be_<=(currentTime)
+
+            tbl(1)._2.itemId.id === item1.id.get.id
+            tbl(1)._2.created must be_>=(startTime)
+            tbl(1)._2.created must be_<=(currentTime)
+          }
         }
       }
     }

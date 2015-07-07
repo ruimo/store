@@ -43,7 +43,7 @@ case class ItemTextMetadata(
   id: Option[Long] = None, itemId: ItemId, metadataType: ItemTextMetadataType, metadata: String
 )
 
-case class SiteItem(itemId: ItemId, siteId: Long)
+case class SiteItem(itemId: ItemId, siteId: Long, created: Long)
 
 case class SiteItemNumericMetadata(
   id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
@@ -1292,8 +1292,9 @@ object SiteItemTextMetadata {
 object SiteItem {
   val simple = {
     SqlParser.get[Long]("site_item.item_id") ~
-    SqlParser.get[Long]("site_item.site_id") map {
-      case itemId~siteId => SiteItem(ItemId(itemId), siteId)
+    SqlParser.get[Long]("site_item.site_id") ~
+    SqlParser.get[java.util.Date]("site_item.created") map {
+      case itemId~siteId~created => SiteItem(ItemId(itemId), siteId, created.getTime)
     }
   }
 
@@ -1311,6 +1312,7 @@ object SiteItem {
       select * from site_item
       inner join site on site_item.site_id = site.site_id
       where site_item.item_id = {itemId}
+      order by site_item.site_id, site_item.item_id
       """
     ).on(
       'itemId -> itemId.id
@@ -1320,15 +1322,18 @@ object SiteItem {
 
   def createNew(site: Site, item: Item)(implicit conn: Connection): SiteItem = add(item.id.get, site.id.get)
 
-  def add(itemId: ItemId, siteId: Long)(implicit conn: Connection): SiteItem = {
+  def add(
+    itemId: ItemId, siteId: Long, created: Long = System.currentTimeMillis
+  )(implicit conn: Connection): SiteItem = {
     SQL(
-      "insert into site_item (item_id, site_id) values ({itemId}, {siteId})"
+      "insert into site_item (item_id, site_id, created) values ({itemId}, {siteId}, {created})"
     ).on(
       'itemId -> itemId.id,
-      'siteId -> siteId
+      'siteId -> siteId,
+      'created -> new java.sql.Timestamp(created)
     ).executeUpdate()
 
-    SiteItem(itemId, siteId)
+    SiteItem(itemId, siteId, created)
   }
 
   def remove(itemId: ItemId, siteId: Long)(implicit conn: Connection) {

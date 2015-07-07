@@ -94,7 +94,8 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.title() === Messages("confirm.shipping.address")
         browser.find(".itemTableBody .itemName").getText === "かえで"
         browser.find(".itemTableBody .siteName").getText === "Store01"
-        browser.find(".itemTableBody .itemSize").getText === Messages("item.size." + itemClass)
+        if (itemSizeExists)
+          browser.find(".itemTableBody .itemSize").getText === Messages("item.size." + itemClass)
         browser.find(".itemTableBody .itemQuantity").getText === "1"
         browser.find(".itemTableBody .itemPrice").getText === "999円"
         browser.find(".itemTableBody .outerTaxAmount").getText === "0円"
@@ -124,7 +125,8 @@ class SalesSpec extends Specification with SalesSpecBase  {
 
         browser.find(".itemTableBody .itemNameBody").getText === "かえで"
         browser.find(".itemTableBody .siteName").getText === "Store01"
-        browser.find(".itemTableBody .size").getText === Messages("item.size." + itemClass)
+        if (itemSizeExists)
+          browser.find(".itemTableBody .size").getText === Messages("item.size." + itemClass)
         browser.find(".itemTableBody .quantity").getText === "1"
         browser.find(".itemTableBody .itemPrice").getText === "999円"
         browser.find(".itemTableBody .subtotal").getText === "999円"
