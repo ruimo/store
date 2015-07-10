@@ -1,5 +1,7 @@
 package functional
 
+import helpers.UrlHelper
+import helpers.UrlHelper._
 import org.specs2.mutable.Specification
 import play.api.test.{Helpers, TestServer, FakeApplication}
 import play.api.db.DB
@@ -308,6 +310,134 @@ class ItemQuerySpec extends Specification {
           body.find("td.queryItemItemName").find("a").getText === "梅"
           body.find("td.queryItemSite").getText === "商店2"
           body.find("td.queryItemUnitPrice").getText === "333円"
+        }
+      }}
+    }
+
+    "Query with site and category" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+
+        val user = StoreUser.create(
+          "userName", "firstName", Some("middleName"), "lastName", "email",
+          1L, 2L, UserRole.ADMIN, Some("companyName")
+        )
+        
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+        val cat1 = Category.createNew(Map(LocaleInfo.Ja -> "植木"))
+        val cat2 = Category.createNew(Map(LocaleInfo.Ja -> "植木2"))
+        val tax = Tax.createNew
+        val taxHistory = TaxHistory.createNew(
+          tax, TaxType.INNER_TAX, BigDecimal(5), date("9999-12-31")
+        )
+        val item1 = Item.createNew(cat1)
+        val item2 = Item.createNew(cat1)
+        val item3 = Item.createNew(cat2)
+        val item4 = Item.createNew(cat2)
+        val item5 = Item.createNew(cat2)
+        SiteItem.createNew(site1, item1)
+        SiteItem.createNew(site2, item2)
+        SiteItem.createNew(site1, item3)
+        SiteItem.createNew(site2, item4)
+        SiteItem.createNew(site2, item5)
+        ItemName.createNew(item1, Map(LocaleInfo.Ja -> "松"))
+        ItemName.createNew(item2, Map(LocaleInfo.Ja -> "梅"))
+        ItemName.createNew(item3, Map(LocaleInfo.Ja -> "桜"))
+        ItemName.createNew(item4, Map(LocaleInfo.Ja -> "あやめ"))
+        ItemName.createNew(item5, Map(LocaleInfo.Ja -> "藤"))
+        ItemDescription.createNew(item1, site1, "松 常緑")
+        ItemDescription.createNew(item2, site2, "梅 常緑")
+        ItemDescription.createNew(item3, site1, "桜 常緑")
+        ItemDescription.createNew(item4, site2, "あやめ 常緑")
+        ItemDescription.createNew(item5, site2, "藤 常緑")
+        val itemPrice1 = ItemPrice.createNew(item1, site1)
+        ItemPriceHistory.createNew(
+          itemPrice1, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+        val itemPrice2 = ItemPrice.createNew(item2, site2)
+        ItemPriceHistory.createNew(
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(333), None, BigDecimal("222"), date("9999-12-31")
+        )
+        val itemPrice3 = ItemPrice.createNew(item3, site1)
+        ItemPriceHistory.createNew(
+          itemPrice3, tax, CurrencyInfo.Jpy, BigDecimal(222), None, BigDecimal("444"), date("9999-12-31")
+        )
+        val itemPrice4 = ItemPrice.createNew(item4, site2)
+        ItemPriceHistory.createNew(
+          itemPrice4, tax, CurrencyInfo.Jpy, BigDecimal(111), None, BigDecimal("999"), date("9999-12-31")
+        )
+        val itemPrice5 = ItemPrice.createNew(item5, site2)
+        ItemPriceHistory.createNew(
+          itemPrice5, tax, CurrencyInfo.Jpy, BigDecimal(123), None, BigDecimal("987"), date("9999-12-31")
+        )
+        
+        // Search by site1 and cat1
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.ItemQuery.queryBySiteAndCategory(
+            List(), Some(site1.id.get), Some(cat1.id.get), 0, 10
+          ).url.addParm("lang", lang.code)
+        )
+
+        browser.title === Messages("item.list")
+        doWith(browser.$("tr.queryItemTableBody")) { body =>
+          body.size() === 1
+          body.find("td.queryItemItemName").find("a").getText === "松"
+          body.find("td.queryItemSite").getText === "商店1"
+          body.find("td.queryItemUnitPrice").getText === "999円"
+        }
+
+        // Search by site1 and cat2
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.ItemQuery.queryBySiteAndCategory(
+            List(), Some(site1.id.get), Some(cat2.id.get), 0, 10
+          ).url.addParm("lang", lang.code)
+        )
+
+        browser.title === Messages("item.list")
+        doWith(browser.$("tr.queryItemTableBody")) { body =>
+          body.size() === 1
+          body.find("td.queryItemItemName").find("a").getText === "桜"
+          body.find("td.queryItemSite").getText === "商店1"
+          body.find("td.queryItemUnitPrice").getText === "222円"
+        }
+
+        // Search by site2 and cat1
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.ItemQuery.queryBySiteAndCategory(
+            List(), Some(site2.id.get), Some(cat1.id.get), 0, 10
+          ).url.addParm("lang", lang.code)
+        )
+
+        browser.title === Messages("item.list")
+        doWith(browser.$("tr.queryItemTableBody")) { body =>
+          body.size() === 1
+          body.find("td.queryItemItemName").find("a").getText === "梅"
+          body.find("td.queryItemSite").getText === "商店2"
+          body.find("td.queryItemUnitPrice").getText === "333円"
+        }
+
+        // Search by site2 and cat2
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.ItemQuery.queryBySiteAndCategory(
+            List(), Some(site2.id.get), Some(cat2.id.get), 0, 10
+          ).url.addParm("lang", lang.code)
+        )
+
+        browser.title === Messages("item.list")
+        doWith(browser.$("tr.queryItemTableBody")) { body =>
+          body.size() === 2
+          body.find("td.queryItemItemName", 0).find("a").getText === "あやめ"
+          body.find("td.queryItemSite", 0).getText === "商店2"
+          body.find("td.queryItemUnitPrice", 0).getText === "111円"
+          body.find("td.queryItemItemName", 1).find("a").getText === "藤"
+          body.find("td.queryItemSite", 1).getText === "商店2"
+          body.find("td.queryItemUnitPrice", 1).getText === "123円"
         }
       }}
     }
