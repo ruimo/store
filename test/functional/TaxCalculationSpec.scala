@@ -253,25 +253,31 @@ class TaxCalculationSpec extends Specification {
         // 送付先
         browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody")
+          .find("tr.shippingTableBody.courtesyName")
           .find("td", 1)
           .getText === "firstName lastName"
 
         browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 1)
+          .find("tr.shippingTableBody.furiganaKana")
           .find("td", 1)
           .getText === "firstNameKana lastNameKana"
 
         browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 2)
+          .find("tr.shippingTableBody.email")
+          .find("td", 1)
+          .getText === "email1"
+
+        browser
+          .find("table.shippingAddress")
+          .find("tr.shippingTableBody.zip")
           .find("td", 1)
           .getText === "zip1 - zip2"
 
         val addressLine = browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 3)
+          .find("tr.shippingTableBody.address")
           .find("td", 1)
           .getText
 
@@ -281,7 +287,7 @@ class TaxCalculationSpec extends Specification {
 
         browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody", 4)
+          .find("tr.shippingTableBody.tel1")
           .find("td", 1)
           .getText === "123-2345"
       }}
@@ -299,6 +305,7 @@ class TaxCalculationSpec extends Specification {
     prefecture = JapanPrefecture.三重県,
     address1 = "address1",
     address2 = "address2",
-    tel1 = "123-2345"
+    tel1 = "123-2345",
+    email = "email1"
   )
 }

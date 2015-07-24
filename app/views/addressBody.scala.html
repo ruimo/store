@@ -6,26 +6,26 @@
 @import java.util.Locale
 
 @if(address.hasName) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody courtesyName">
     <td>@Messages("courtesyName")</td><td class="name">@address.firstName @address.lastName</td>
   </tr>
 }
 @if(address.hasKanaName) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody furiganaKana">
     <td>@Messages("furiganaKana")</td><td class="nameKana">@address.firstNameKana @address.lastNameKana</td>
   </tr>
 }
 @if(showEmail) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody email">
     <td>@Messages("email")</td><td class="email">@address.email</td>
   </tr>
 }
 @if(address.hasZip) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody zip">
     <td>@Messages("zipMark")</td><td class="zip">@address.zip1 - @address.zip2</td>
   </tr>
 }
-<tr class="shippingTableBody">
+<tr class="shippingTableBody address">
   <td class="addressHeader">@Messages("courtesyAddress")</td>
   <td class="address">
     @if(! address.prefecture.isUnknown) {
@@ -54,7 +54,7 @@
   </td>
 </tr>
 @if(!address.tel1.isEmpty) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody tel1">
     <td>TEL</td><td class="tel1">@address.tel1</td>
   </tr>
 }
