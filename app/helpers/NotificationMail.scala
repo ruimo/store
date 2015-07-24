@@ -74,18 +74,20 @@ object NotificationMail extends HasLogger {
     login: LoginSession, tran: PersistedTransaction, addr: Option[Address],
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
   ) {
-    logger.info("Sending confirmation for buyer sent to " + login.storeUser.email)
+    val email = addr.map(_.email).filter(!_.isEmpty).getOrElse(login.storeUser.email)
+
+    logger.info("Sending confirmation for buyer sent to " + email)
     val body = views.html.mail.forBuyer(login, tran, addr, metadata).toString
     if (! disableMailer) {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
         val mail = Email(
           subject = Messages("mail.buyer.subject").format(tran.header.id.get),
-          to = Seq(login.storeUser.email),
+          to = Seq(email),
           from = from,
           bodyText = Some(body)
         )
         MailerPlugin.send(mail)
-        logger.info("Ordering confirmation for buyer sent to " + login.storeUser.email)
+        logger.info("Ordering confirmation for buyer sent to " + email)
       }
     }
   }
@@ -96,8 +98,9 @@ object NotificationMail extends HasLogger {
     status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
+    val email = if (addr.email.isEmpty) buyer.email else addr.email
 
-    logger.info("Sending shipping notification for buyer sent to " + buyer.email)
+    logger.info("Sending shipping notification for buyer sent to " + email)
     val body = views.html.mail.shippingNotificationForBuyer(
       login, siteId, tran, addr, metadata, buyer, status, transporters
     ).toString
@@ -106,12 +109,12 @@ object NotificationMail extends HasLogger {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
         val mail = Email(
           subject = Messages("mail.shipping.buyer.subject").format(tran.header.id.get),
-          to = Seq(buyer.email),
+          to = Seq(email),
           from = from,
           bodyText = Some(body)
         )
         MailerPlugin.send(mail)
-        logger.info("Shipping notification for buyer sent to " + buyer.email)
+        logger.info("Shipping notification for buyer sent to " + email)
       }
     }
   }
@@ -122,7 +125,9 @@ object NotificationMail extends HasLogger {
     status: TransactionShipStatus, transporters: LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
-    logger.info("Sending cancel notification for buyer sent to " + buyer.email)
+    val email = if (addr.email.isEmpty) buyer.email else addr.email
+
+    logger.info("Sending cancel notification for buyer sent to " + email)
     val body = views.html.mail.cancelNotificationForBuyer(
       login, siteId, tran, addr, metadata, buyer, status, transporters
     ).toString
@@ -131,12 +136,12 @@ object NotificationMail extends HasLogger {
       Akka.system.scheduler.scheduleOnce(0.microsecond) {
         val mail = Email(
           subject = Messages("mail.cancel.buyer.subject").format(tran.header.id.get),
-          to = Seq(buyer.email),
+          to = Seq(email),
           from = from,
           bodyText = Some(body)
         )
         MailerPlugin.send(mail)
-        logger.info("Shipping cancel notification for buyer sent to " + buyer.email)
+        logger.info("Shipping cancel notification for buyer sent to " + email)
       }
     }
   }
