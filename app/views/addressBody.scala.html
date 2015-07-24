@@ -1,4 +1,7 @@
-@(address: Address)(implicit lang: Lang)
+@(
+  address: Address,
+  showEmail: Boolean = false
+)(implicit lang: Lang)
 
 @import java.util.Locale
 
@@ -10,6 +13,11 @@
 @if(address.hasKanaName) {
   <tr class="shippingTableBody">
     <td>@Messages("furiganaKana")</td><td class="nameKana">@address.firstNameKana @address.lastNameKana</td>
+  </tr>
+}
+@if(showEmail) {
+  <tr class="shippingTableBody">
+    <td>@Messages("email")</td><td class="email">@address.email</td>
   </tr>
 }
 @if(address.hasZip) {

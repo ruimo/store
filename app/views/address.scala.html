@@ -1,4 +1,7 @@
-@(address: Address)(implicit lang: Lang)
+@(
+  address: Address,
+  showEmail: Boolean = false
+)(implicit lang: Lang)
 
 @import java.util.Locale
 
@@ -6,5 +9,5 @@
   <tr class="shippingTableHeader">
     <th colspan="2">送付先</th>
   </tr>
-  @addressBody(address)
+  @addressBody(address, showEmail)
 </table>

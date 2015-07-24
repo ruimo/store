@@ -29,11 +29,15 @@ case class Address(
   tel1: String,
   tel2: String,
   tel3: String,
-  comment: String
+  comment: String,
+  email: String
 ) {
   lazy val hasName: Boolean = !firstName.isEmpty || !lastName.isEmpty
   lazy val hasKanaName: Boolean = !firstNameKana.isEmpty || !lastNameKana.isEmpty
   lazy val hasZip: Boolean = !zip1.isEmpty || !zip2.isEmpty || !zip3.isEmpty
+  lazy val hasEmail: Boolean = !email.isEmpty
+  def fillEmailIfEmpty(newEmail: String): Address =
+    if (email.isEmpty) this.copy(email = newEmail) else this
 }
 
 case class ShippingAddressHistory(
@@ -64,9 +68,10 @@ object Address {
     SqlParser.get[String]("address.tel1") ~
     SqlParser.get[String]("address.tel2") ~
     SqlParser.get[String]("address.tel3") ~
-    SqlParser.get[String]("address.comment") map {
+    SqlParser.get[String]("address.comment") ~
+    SqlParser.get[String]("email")  map {
       case id~countryCode~firstName~middleName~lastName~firstNameKana~lastNameKana~zip1~zip2~zip3~prefecture~
-        address1~address2~address3~address4~address5~tel1~tel2~tel3~comment => {
+        address1~address2~address3~address4~address5~tel1~tel2~tel3~comment~email => {
           val cc = CountryCode.byIndex(countryCode)
           val pref = 
             if (cc == CountryCode.JPN) JapanPrefecture.byIndex(prefecture) else UnknownPrefecture.UNKNOWN
@@ -77,7 +82,7 @@ object Address {
                   zip1, zip2, zip3,
                   pref,
                   address1, address2, address3, address4, address5,
-                  tel1, tel2, tel3, comment)
+                  tel1, tel2, tel3, comment, email)
         }
     }
   }
@@ -101,7 +106,8 @@ object Address {
     tel1: String = "",
     tel2: String = "",
     tel3: String = "",
-    comment: String = ""
+    comment: String = "",
+    email: String = ""
   )(implicit conn: Connection): Address = {
     SQL(
       """
@@ -112,7 +118,7 @@ object Address {
         zip1, zip2, zip3,
         prefecture,
         address1, address2, address3, address4, address5,
-        tel1, tel2, tel3, comment
+        tel1, tel2, tel3, comment, email
       ) values (
         (select nextval('address_seq')),
         {countryCode},
@@ -121,7 +127,7 @@ object Address {
         {zip1}, {zip2}, {zip3},
         {prefecture},
         {address1}, {address2}, {address3}, {address4}, {address5},
-        {tel1}, {tel2}, {tel3}, {comment}
+        {tel1}, {tel2}, {tel3}, {comment}, {email}
       )
       """
     ).on(
@@ -143,7 +149,8 @@ object Address {
       'tel1 -> tel1,
       'tel2 -> tel2,
       'tel3 -> tel3,
-      'comment -> comment
+      'comment -> comment,
+      'email -> email
     ).executeUpdate()
 
     val id = SQL("select currval('address_seq')").as(SqlParser.scalar[Long].single)
@@ -154,7 +161,7 @@ object Address {
             zip1, zip2, zip3,
             prefecture,
             address1, address2, address3, address4, address5,
-            tel1, tel2, tel3, comment)
+            tel1, tel2, tel3, comment, email)
   }
 
   def byId(id: Long)(implicit conn: Connection): Address =
@@ -186,7 +193,8 @@ object Address {
       tel1 = {tel1},
       tel2 = {tel2},
       tel3 = {tel3},
-      comment = {comment}
+      comment = {comment},
+      email = {email}
       where address_id = {id}
       """
     ).on(
@@ -209,7 +217,8 @@ object Address {
       'tel1 -> address.tel1,
       'tel2 -> address.tel2,
       'tel3 -> address.tel3,
-      'comment -> address.comment
+      'comment -> address.comment,
+      'email -> address.email
     ).executeUpdate()
   }
 
@@ -260,6 +269,7 @@ object ShippingAddressHistory {
         and tel2 = {tel2}
         and tel3 = {tel3}
         and comment = {comment}
+        and email = {email}
       )
       """
     ).on(
@@ -283,7 +293,8 @@ object ShippingAddressHistory {
       'tel1 -> address.tel1,
       'tel2 -> address.tel2,
       'tel3 -> address.tel3,
-      'comment -> address.comment
+      'comment -> address.comment,
+      'email -> address.email
     ).executeUpdate()
       
     if (updateCount == 0) {
@@ -306,7 +317,8 @@ object ShippingAddressHistory {
         address.tel1,
         address.tel2,
         address.tel3,
-        address.comment
+        address.comment,
+        address.email
       )
 
       SQL(

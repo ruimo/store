@@ -62,6 +62,11 @@
       '_label -> Messages("lastNameKana"), 'size -> 24, 'maxlength -> 64
     )
 
+    @helper.inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
+    )
+
     <div class="@{if (zipError(myForm)) {"error"} else {""}}">
       <label for="zip1">郵便番号</label>
       <div class="input">

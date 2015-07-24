@@ -10,7 +10,7 @@
 @import org.joda.time.format.DateTimeFormat
 <ご注文者様>
 @{login.storeUser.companyName.getOrElse("")} @{login.storeUser.firstName} @{login.storeUser.lastName}様
-メールアドレス： @login.storeUser.email
+メールアドレス： @addr.map(_.email).filter(!_.isEmpty).getOrElse(login.storeUser.email)
 
 <店舗>
 @tran.siteTable.map { site =>@site.name

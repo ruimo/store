@@ -52,12 +52,13 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       "tel2" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
       "tel3" -> text.verifying(Messages("error.number"), z => TelOptionPattern.matcher(z).matches),
       "shippingDate" -> jodaDate(Messages("shipping.date.format")),
-      "comment" -> text.verifying(maxLength(2048))
+      "comment" -> text.verifying(maxLength(2048)),
+      "email" -> text.verifying(emailConstraint: _*)
     )(CreateAddress.apply4Japan)(CreateAddress.unapply4Japan)
   )
 
   def startEnterShippingAddress = NeedAuthenticated { implicit request =>
-    implicit val login = request.user
+    implicit val login: LoginSession = request.user
     DB.withConnection { implicit conn =>
       if (ShoppingCartItem.isAllCoupon(login.userId)) {
         Redirect(routes.Shipping.confirmShippingAddressJa())
@@ -69,10 +70,16 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         val shippingDate = new DateTime().plusDays(5)
         val form = addr match {
           case Some(a) =>
-            jaForm.fill(CreateAddress.fromAddress(a, shippingDate))
+            jaForm.fill(CreateAddress.fromAddress(a.fillEmailIfEmpty(login.storeUser.email), shippingDate))
           case None =>
-            jaForm.bind(Map("shippingDate" -> shippingDateFormat.print(shippingDate))).discardingErrors
+            jaForm.bind(
+              Map(
+                "shippingDate" -> shippingDateFormat.print(shippingDate),
+                "email" -> login.storeUser.email
+              )
+            ).discardingErrors
         }
+
         request2lang.toLocale match {
           case Locale.JAPANESE =>
             Ok(views.html.shippingAddressJa(form, Address.JapanPrefectures))

@@ -39,7 +39,7 @@
 
 <ご注文者様>
 @{login.storeUser.companyName.getOrElse("")} @{login.storeUser.firstName} @{login.storeUser.lastName}様
-メールアドレス： @login.storeUser.email
+メールアドレス： @{addr.map(_.email).filter(!_.isEmpty).getOrElse(login.storeUser.email)}
 
 @addr.map { a =><お届け先>
 @a.firstName　@a.lastName

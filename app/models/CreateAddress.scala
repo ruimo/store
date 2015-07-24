@@ -25,7 +25,8 @@ case class CreateAddress(
   tel2: String,
   tel3: String,
   shippingDate: DateTime,
-  comment: String
+  comment: String,
+  email: String
 ) {
   lazy val hasName: Boolean = !firstName.isEmpty || !lastName.isEmpty
   lazy val hasKanaName: Boolean = !firstNameKana.isEmpty || !lastNameKana.isEmpty
@@ -51,7 +52,8 @@ case class CreateAddress(
       tel1 = this.tel1,
       tel2 = this.tel2,
       tel3 = this.tel3,
-      comment = this.comment
+      comment = this.comment,
+      email = this.email
     )
 
     ShoppingCartItem.sites(userId).foreach { siteId =>
@@ -85,7 +87,8 @@ object CreateAddress {
       addr.tel2,
       addr.tel3,
       shippingDate,
-      addr.comment
+      addr.comment,
+      addr.email
     )
 
   def apply4Japan(
@@ -105,7 +108,8 @@ object CreateAddress {
     tel2: String,
     tel3: String,
     shippingDate: DateTime,
-    comment: String
+    comment: String,
+    email: String
   ) = CreateAddress(
     CountryCode.JPN,
     firstName,
@@ -126,7 +130,8 @@ object CreateAddress {
     tel2,
     tel3,
     shippingDate,
-    comment
+    comment,
+    email
   )
 
   def unapply4Japan(addr: CreateAddress): Option[(
@@ -135,12 +140,12 @@ object CreateAddress {
     String, String,
     Int,
     String, String, String, String, String,
-    String, String, String, DateTime, String
+    String, String, String, DateTime, String, String
   )] = Some((addr.firstName, addr.lastName,
              addr.firstNameKana, addr.lastNameKana,
              addr.zip1, addr.zip2,
              addr.prefecture.code,
              addr.address1, addr.address2, addr.address3, addr.address4, addr.address5,
-             addr.tel1, addr.tel2, addr.tel3, addr.shippingDate, addr.comment
+             addr.tel1, addr.tel2, addr.tel3, addr.shippingDate, addr.comment, addr.email
   ))
 }
