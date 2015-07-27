@@ -21,7 +21,7 @@
   </tr>
 }
 @if(address.hasZip) {
-  <tr class="shippingTableBody zip">
+  <tr class="shippingTableBody zipLine">
     <td>@Messages("zipMark")</td><td class="zip">@address.zip1 - @address.zip2</td>
   </tr>
 }
@@ -54,17 +54,17 @@
   </td>
 </tr>
 @if(!address.tel1.isEmpty) {
-  <tr class="shippingTableBody tel1">
+  <tr class="shippingTableBody tel1Line">
     <td>TEL</td><td class="tel1">@address.tel1</td>
   </tr>
 }
 @if(!address.tel2.isEmpty) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody tel2Line">
     <td></td><td class="tel2">@address.tel2</td>
   </tr>
 }
 @if(!address.tel3.isEmpty) {
-  <tr class="shippingTableBody">
+  <tr class="shippingTableBody tel3Line">
     <td></td><td class="tel3">@address.tel3</td>
   </tr>
 }

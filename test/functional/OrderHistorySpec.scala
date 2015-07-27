@@ -34,7 +34,7 @@ class OrderHistorySpec extends Specification {
   "Order history" should {
     "Show login user's order history" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val tran = createTransaction(lang, user)
