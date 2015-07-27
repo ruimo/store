@@ -44,7 +44,7 @@ class TaxCalculationSpec extends Specification {
       // This spec ensures the tax is actually calculated to 7 yen but 8 yen.
 
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         import models.LocaleInfo.{Ja, En}
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -271,7 +271,7 @@ class TaxCalculationSpec extends Specification {
 
         browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody.zip")
+          .find("tr.shippingTableBody.zipLine")
           .find("td", 1)
           .getText === "zip1 - zip2"
 
@@ -287,7 +287,7 @@ class TaxCalculationSpec extends Specification {
 
         browser
           .find("table.shippingAddress")
-          .find("tr.shippingTableBody.tel1")
+          .find("tr.shippingTableBody.tel1Line")
           .find("td", 1)
           .getText === "123-2345"
       }}
