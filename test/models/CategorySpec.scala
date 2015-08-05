@@ -153,9 +153,6 @@ class CategorySpec extends Specification {
           pathList.contains((parent,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
           pathList.contains((child,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
           pathList.contains((child2,CategoryName(LocaleInfo.En,child2.id.get,"English Only Tree"))) === true
-
-
-
         }
       }}
     }

@@ -323,7 +323,7 @@ object Item {
       else buf.toString
 
     createQueryConditionSql(0) + category.map {
-      cid => f"and item.category_id = $cid "
+      cid => f"and item.category_id in (select descendant from category_path where ancestor = $cid) "
     }.getOrElse("") + siteId.map {
       sid => f"and site.site_id = $sid "
     }.getOrElse("")
