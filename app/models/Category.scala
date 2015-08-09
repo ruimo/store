@@ -26,6 +26,14 @@ object Category {
     }
   }
 
+  val withName = Category.simple ~ CategoryName.simple map {
+    case cat~name => (cat, name)
+  }
+
+  val withNameOpt = Category.simple ~ (CategoryName.simple ?) map {
+    case cat~nameOpt => (cat, nameOpt)
+  }
+
   def tableForDropDown(implicit lang: Lang, conn: Connection): Seq[(String, String)] = {
     val locale = LocaleInfo.byLang(lang)
 
@@ -86,14 +94,6 @@ object Category {
       'locale_id -> locale.id
     ).as(Category.simple *)
 
-
-  val withName = Category.simple ~ CategoryName.simple map {
-    case cat~name => (cat, name)
-  }
-
-  val withNameOpt = Category.simple ~ (CategoryName.simple ?) map {
-    case cat~nameOpt => (cat, nameOpt)
-  }
 
   def listWithName(
     page: Int = 0, pageSize: Int = 10, locale: LocaleInfo, orderBy: OrderBy
@@ -493,4 +493,23 @@ object CategoryPath {
         case p ~ locale ~ cat ~ name => (Category(p), CategoryName(LocaleInfo(locale),cat,name))
       } *
     )
+}
+
+case class SupplementalCategoryId(id: Long) extends AnyVal
+
+case class SupplementalCategory(id: Option[SupplementalCategoryId] = None, categoryId: Long, itemId: ItemId)
+
+object SupplementalCateogry {
+  val simple = {
+    SqlParser.get[Option[Long]]("supplemental_category.supplemental_category_id") ~
+    SqlParser.get[Long]("supplemental_category.category_id") ~
+    SqlParser.get[Long]("supplemental_category.item_id") map {
+      case id~categoryId~itemId =>
+        SupplementalCategory(
+          id.map(SupplementalCategoryId.apply),
+          categoryId,
+          ItemId(itemId)
+        )
+    }
+  }
 }
