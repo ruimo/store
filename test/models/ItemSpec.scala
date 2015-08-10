@@ -633,10 +633,34 @@ class ItemSpec extends Specification {
       Item.createQueryConditionSql(QueryString(List("Hello", "World")), Some(123L), None) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) " +
-        "and item.category_id in (select descendant from category_path where ancestor = 123) "
+        """
+        and (
+          item.category_id in (
+            select descendant from category_path where ancestor = 123
+          )
+          or
+          123 in (
+            select descendant from category_path where ancestor in (
+              select category_id from supplemental_category where item_id = item.item_id
+            )
+          )
+        )
+      """
 
       Item.createQueryConditionSql(QueryString(List()), Some(123L), None) ===
-        "and item.category_id in (select descendant from category_path where ancestor = 123) "
+        """
+        and (
+          item.category_id in (
+            select descendant from category_path where ancestor = 123
+          )
+          or
+          123 in (
+            select descendant from category_path where ancestor in (
+              select category_id from supplemental_category where item_id = item.item_id
+            )
+          )
+        )
+      """
 
       Item.createQueryConditionSql(QueryString(List()), None, Some(234L)) ===
         "and site.site_id = 234 "

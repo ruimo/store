@@ -323,7 +323,19 @@ object Item {
       else buf.toString
 
     createQueryConditionSql(0) + category.map {
-      cid => f"and item.category_id in (select descendant from category_path where ancestor = $cid) "
+      cid => f"""
+        and (
+          item.category_id in (
+            select descendant from category_path where ancestor = $cid
+          )
+          or
+          $cid in (
+            select descendant from category_path where ancestor in (
+              select category_id from supplemental_category where item_id = item.item_id
+            )
+          )
+        )
+      """
     }.getOrElse("") + siteId.map {
       sid => f"and site.site_id = $sid "
     }.getOrElse("")
