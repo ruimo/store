@@ -1,8 +1,9 @@
 package models
 
+import play.api.Play
+import play.api.Play.current
 import anorm._
 import anorm.SqlParser
-import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import play.api.i18n.Lang
@@ -495,21 +496,62 @@ object CategoryPath {
     )
 }
 
-case class SupplementalCategoryId(id: Long) extends AnyVal
+case class SupplementalCategory(itemId: ItemId, categoryId: Long)
 
-case class SupplementalCategory(id: Option[SupplementalCategoryId] = None, categoryId: Long, itemId: ItemId)
+object SupplementalCategory {
+  val MaxSupplementalCategoryCountPerItem = 
+    Play.current.configuration.getInt("maxSupplementalCategoryCountPerItem").getOrElse(10)
 
-object SupplementalCateogry {
   val simple = {
-    SqlParser.get[Option[Long]]("supplemental_category.supplemental_category_id") ~
     SqlParser.get[Long]("supplemental_category.category_id") ~
     SqlParser.get[Long]("supplemental_category.item_id") map {
-      case id~categoryId~itemId =>
-        SupplementalCategory(
-          id.map(SupplementalCategoryId.apply),
-          categoryId,
-          ItemId(itemId)
-        )
+      case categoryId~itemId => SupplementalCategory(ItemId(itemId), categoryId)
     }
   }
+
+  def createNew(itemId: ItemId, categoryId: Long)(implicit conn: Connection): SupplementalCategory = {
+    val updateCount = SQL(
+      """
+      insert into supplemental_category (
+        category_id, item_id
+      )
+      select
+        {categoryId}, {itemId}
+      where
+        (select count(*) from supplemental_category where item_id = {itemId}) < {maxCount}
+      """
+    ).on(
+      'categoryId -> categoryId,
+      'itemId -> itemId.id,
+      'maxCount -> MaxSupplementalCategoryCountPerItem
+    ).executeUpdate()
+
+    if (updateCount == 0)
+      throw new MaxRowCountExceededException("itemId = " + itemId + ", categoryId = " + categoryId)
+
+    SupplementalCategory(itemId, categoryId)
+  }
+
+  def byItem(itemId: ItemId)(implicit conn: Connection): Seq[SupplementalCategory] = SQL(
+    """
+    select * from supplemental_category
+    where item_id = {itemId}
+    order by category_id
+    """
+  ).on(
+    'itemId -> itemId.id
+  ).as(
+    simple *
+  )
+
+  def remove(itemId: ItemId, categoryId: Long)(implicit conn: Connection): Int = SQL(
+    """
+    delete from supplemental_category
+    where item_id = {itemId} and category_id = {categoryId}
+    """
+  ).on(
+    'itemId -> itemId.id,
+    'categoryId -> categoryId
+  ).executeUpdate()
 }
+

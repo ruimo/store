@@ -469,5 +469,52 @@ class CategorySpec extends Specification {
         }}
       }
     }
+
+    "Can add supplemental categories." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          val categories = (1 to 20) map { idx =>
+            Category.createNew(
+              Map(LocaleInfo.Ja -> ("植木" + idx))
+            )
+          }
+          val item1 = Item.createNew(categories(0))
+          val item2 = Item.createNew(categories(1))
+          doWith(SupplementalCategory.byItem(item1.id.get)) { table =>
+            table.size === 0
+          }
+          doWith(SupplementalCategory.byItem(item2.id.get)) { table =>
+            table.size === 0
+          }
+
+          (1 to 10) foreach { idx =>
+            SupplementalCategory.createNew(item1.id.get, categories(idx).id.get)
+          }
+          doWith(SupplementalCategory.byItem(item1.id.get)) { table =>
+            table.size === 10
+            (0 to 9) foreach { idx =>
+              table(idx) === SupplementalCategory(item1.id.get, categories(idx + 1).id.get)
+            }
+          }
+
+          try {
+            SupplementalCategory.createNew(item1.id.get, categories(11).id.get)
+            throw new AssertionError("Logic error")
+          }
+          catch {
+            case e: MaxRowCountExceededException =>
+          }
+
+          // No exception should be thrown since item2 hash no supplemental categories.
+          SupplementalCategory.createNew(item2.id.get, categories(0).id.get) ===
+            SupplementalCategory(item2.id.get, categories(0).id.get)
+
+          // Remove
+          SupplementalCategory.remove(item1.id.get, categories(10).id.get) === 1
+          SupplementalCategory.byItem(item1.id.get).size === 9
+        }}
+      }
+    }
   }
 }
