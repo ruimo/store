@@ -29,7 +29,7 @@ class LocaleInfoSpec extends Specification {
 
     "byLang has all locale." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        val byLang = LocaleInfo.byLang
+        val byLang = LocaleInfo.byLangTable
         byLang.size === 2
         byLang(new Lang("ja")) === LocaleInfo.Ja
         byLang(new Lang("en")) === LocaleInfo.En

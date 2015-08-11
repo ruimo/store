@@ -19,35 +19,98 @@ import play.api.Play
 
 class ChangeItem(
   val id: Long,
-  val siteMap: Map[Long, Site] = ItemMaintenance.siteListAsMap,
-  val langTable: Seq[(String, String)] = LocaleInfo.localeTable,
+  val siteMap: Map[Long, Site],
+  val langTable: Seq[(String, String)],
   val itemNameTableForm: Form[ChangeItemNameTable],
-  val newItemNameForm: Form[ChangeItemName] = ItemMaintenance.addItemNameForm,
+  val newItemNameForm: Form[ChangeItemName],
   val siteNameTable: Seq[(String, String)],
   val siteItemTable: Seq[(Site, SiteItem)],
-  val newSiteItemForm: Form[ChangeSiteItem] = ItemMaintenance.addSiteItemForm,
+  val newSiteItemForm: Form[ChangeSiteItem],
   val updateCategoryForm: Form[ChangeItemCategory],
   val categoryTable: Seq[(String, String)],
   val itemDescriptionTableForm: Form[ChangeItemDescriptionTable],
-  val newItemDescriptionForm: Form[ChangeItemDescription] = ItemMaintenance.addItemDescriptionForm,
+  val newItemDescriptionForm: Form[ChangeItemDescription],
   val itemPriceTableForm: Form[ChangeItemPriceTable],
-  val newItemPriceForm: Form[ChangeItemPrice] = ItemMaintenance.addItemPriceForm,
+  val newItemPriceForm: Form[ChangeItemPrice],
   val taxTable: Seq[(String, String)],
-  val currencyTable: Seq[(String, String)] = ItemMaintenance.currencyTable,
+  val currencyTable: Seq[(String, String)],
   val itemInSiteTable: Seq[(String, String)],
   val itemMetadataTableForm: Form[ChangeItemMetadataTable],
-  val newItemMetadataForm: Form[ChangeItemMetadata] = ItemMaintenance.addItemMetadataForm,
+  val newItemMetadataForm: Form[ChangeItemMetadata],
   val siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
-  val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata] = ItemMaintenance.addSiteItemMetadataForm,
+  val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata],
   val siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable],
-  val newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata] = ItemMaintenance.addSiteItemTextMetadataForm,
+  val newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata],
   val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
-  val newItemTextMetadataForm: Form[ChangeItemTextMetadata] = ItemMaintenance.addItemTextMetadataForm,
+  val newItemTextMetadataForm: Form[ChangeItemTextMetadata],
   val attachmentNames: Map[Int, String],
   val couponForm: Form[ChangeCoupon]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
+  def createChangeItem(
+    id: Long,
+    login: LoginSession
+  )(
+    siteMap: Map[Long, Site] = siteListAsMap,
+    langTable: Seq[(String, String)] = LocaleInfo.localeTable,
+    itemNameTableForm: Form[ChangeItemNameTable] = createItemNameTable(id),
+    newItemNameForm: Form[ChangeItemName] = addItemNameForm,
+    siteNameTable: Seq[(String, String)] = createSiteTable(login),
+    siteItemTable: Seq[(Site, SiteItem)] = createSiteItemTable(id),
+    newSiteItemForm: Form[ChangeSiteItem] = addSiteItemForm,
+    updateCategoryForm: Form[ChangeItemCategory] = createItemCategoryForm(id),
+    categoryTable: Seq[(String, String)] = createCategoryTable,
+    itemDescriptionTableForm: Form[ChangeItemDescriptionTable] = createItemDescriptionTable(id),
+    newItemDescriptionForm: Form[ChangeItemDescription] = addItemDescriptionForm,
+    itemPriceTableForm: Form[ChangeItemPriceTable] = createItemPriceTable(id),
+    newItemPriceForm: Form[ChangeItemPrice] = addItemPriceForm,
+    taxTable: Seq[(String, String)] = taxTable,
+    currencyTable: Seq[(String, String)] = currencyTable,
+    itemInSiteTable: Seq[(String, String)] = createSiteTable(id)(login),
+    itemMetadataTableForm: Form[ChangeItemMetadataTable] = createItemMetadataTable(id),
+    newItemMetadataForm: Form[ChangeItemMetadata] = addItemMetadataForm,
+    siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable] = createSiteItemMetadataTable(id),
+    newSiteItemMetadataForm: Form[ChangeSiteItemMetadata] = addSiteItemMetadataForm,
+    siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable] = createSiteItemTextMetadataTable(id),
+    newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata] = addSiteItemTextMetadataForm,
+    itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable] = createItemTextMetadataTable(id),
+    newItemTextMetadataForm: Form[ChangeItemTextMetadata] = addItemTextMetadataForm,
+    attachmentNames: Map[Int, String] = ItemPictures.retrieveAttachmentNames(id),
+    couponForm: Form[ChangeCoupon] = createCouponForm(ItemId(id))
+  ) = {
+println("*** categoryTable = " + categoryTable)
+    new ChangeItem(
+    id,
+    siteMap,
+    langTable,
+    itemNameTableForm,
+    newItemNameForm,
+    siteNameTable,
+    siteItemTable,
+    newSiteItemForm,
+    updateCategoryForm,
+    categoryTable,
+    itemDescriptionTableForm,
+    newItemDescriptionForm,
+    itemPriceTableForm,
+    newItemPriceForm,
+    taxTable,
+    currencyTable,
+    itemInSiteTable,
+    itemMetadataTableForm,
+    newItemMetadataForm,
+    siteItemMetadataTableForm,
+    newSiteItemMetadataForm,
+    siteItemTextMetadataTableForm,
+    newSiteItemTextMetadataForm,
+    itemTextMetadataTableForm,
+    newItemTextMetadataForm,
+    attachmentNames,
+    couponForm
+    )
+  }
+
   val ItemDescriptionSize: () => Int = Cache.cacheOnProd(
     Cache.Conf.getInt("itemDescription.size").getOrElse(2048)
   )
@@ -183,27 +246,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def startChangeItem(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
-val catTable = createCategoryTable
-println("*** catTable = " + catTable)
       Ok(views.html.admin.changeItem(
-        new ChangeItem(
-          id = id,
-          itemNameTableForm = createItemNameTable(id),
-          siteNameTable = createSiteTable,
-          siteItemTable = createSiteItemTable(id),
-          updateCategoryForm = createItemCategoryForm(id),
-          categoryTable = catTable,
-          itemDescriptionTableForm = createItemDescriptionTable(id),
-          itemPriceTableForm = createItemPriceTable(id),
-          taxTable = taxTable,
-          itemInSiteTable = createSiteTable(id),
-          itemMetadataTableForm = createItemMetadataTable(id),
-          siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-          siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-          itemTextMetadataTableForm = createItemTextMetadataTable(id),
-          attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-          couponForm = createCouponForm(ItemId(id))
-        )
+        createChangeItem(id, login)()
       ))
     }
   }
@@ -366,23 +410,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = formWithErrors,
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                itemNameTableForm = formWithErrors
               )
             )
           )
@@ -407,24 +438,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                newItemNameForm = formWithErrors,
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newItemNameForm = formWithErrors
               )
             )
           )
@@ -441,24 +458,10 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    newItemNameForm = addItemNameForm.fill(newItem).withError("localeId", "unique.constraint.violation"),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                  createChangeItem(
+                    id, login
+                  )(
+                    newItemNameForm = addItemNameForm.fill(newItem).withError("localeId", "unique.constraint.violation")
                   )
                 )
               )
@@ -570,24 +573,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addSiteItem." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                newSiteItemForm = formWithErrors,
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newSiteItemForm = formWithErrors
               )
             )
           )
@@ -606,24 +595,10 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    newSiteItemForm = addSiteItemForm.fill(newSiteItem).withError("siteId", "unique.constraint.violation"),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                  createChangeItem(
+                    id, login
+                  )(
+                    newSiteItemForm = addSiteItemForm.fill(newSiteItem).withError("siteId", "unique.constraint.violation")
                   )
                 )
               )
@@ -681,22 +656,9 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.updateItemAsItem." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
+              createChangeItem(
+                id, login
+              )(
                 couponForm = formWithErrors
               )
             )
@@ -722,23 +684,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.updateItemCategory." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = formWithErrors,
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                updateCategoryForm = formWithErrors
               )
             )
           )
@@ -793,23 +742,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = formWithErrors,
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                itemDescriptionTableForm = formWithErrors
               )
             )
           )
@@ -834,24 +770,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeItem." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                newItemDescriptionForm = formWithErrors,
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newItemDescriptionForm = formWithErrors
               )
             )
           )
@@ -868,27 +790,13 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
+                  createChangeItem(
+                    id, login
+                  )(
                     newItemDescriptionForm = addItemDescriptionForm
                       .fill(newItem)
                       .withError("localeId", "unique.constraint.violation")
-                      .withError("siteId", "unique.constraint.violation"),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                      .withError("siteId", "unique.constraint.violation")
                   )
                 )
               )
@@ -967,23 +875,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeItemPrice." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = formWithErrors,
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                itemPriceTableForm = formWithErrors
               )
             )
           )
@@ -1008,24 +903,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addItemPrice " + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                newItemPriceForm = formWithErrors,
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newItemPriceForm = formWithErrors
               )
             )
           )
@@ -1043,27 +924,13 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
+                  createChangeItem(
+                    id, login
+                  )(
                     newItemPriceForm = addItemPriceForm
                       .fill(newHistory)
                       .withError("siteId", "unique.constraint.violation")
-                      .withError("validUntil", "unique.constraint.violation"),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                      .withError("validUntil", "unique.constraint.violation")
                   )
                 )
               )
@@ -1097,23 +964,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeItemMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = itemId,
-                itemNameTableForm = createItemNameTable(itemId),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(itemId),
-                updateCategoryForm = createItemCategoryForm(itemId),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(itemId),
-                itemPriceTableForm = createItemPriceTable(itemId),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(itemId),
-                itemMetadataTableForm = formWithErrors,
-                siteItemMetadataTableForm = createSiteItemMetadataTable(itemId),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(itemId),
-                itemTextMetadataTableForm = createItemTextMetadataTable(itemId),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(itemId),
-                couponForm = createCouponForm(ItemId(itemId))
+              createChangeItem(
+                itemId, login
+              )(
+                itemMetadataTableForm = formWithErrors
               )
             )
           )
@@ -1138,23 +992,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeItemTextMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = itemId,
-                itemNameTableForm = createItemNameTable(itemId),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(itemId),
-                updateCategoryForm = createItemCategoryForm(itemId),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(itemId),
-                itemPriceTableForm = createItemPriceTable(itemId),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(itemId),
-                itemMetadataTableForm = createItemMetadataTable(itemId),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(itemId),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(itemId),
-                itemTextMetadataTableForm = formWithErrors,
-                attachmentNames = ItemPictures.retrieveAttachmentNames(itemId),
-                couponForm = createCouponForm(ItemId(itemId))
+              createChangeItem(
+                itemId, login
+              )(
+                itemTextMetadataTableForm = formWithErrors
               )
             )
           )
@@ -1179,23 +1020,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeSiteItemMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = itemId,
-                itemNameTableForm = createItemNameTable(itemId),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(itemId),
-                updateCategoryForm = createItemCategoryForm(itemId),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(itemId),
-                itemPriceTableForm = createItemPriceTable(itemId),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(itemId),
-                itemMetadataTableForm = createItemMetadataTable(itemId),
-                siteItemMetadataTableForm = formWithErrors,
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(itemId),
-                itemTextMetadataTableForm = createItemTextMetadataTable(itemId),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(itemId),
-                couponForm = createCouponForm(ItemId(itemId))
+              createChangeItem(
+                itemId, login
+              )(
+                siteItemMetadataTableForm = formWithErrors
               )
             )
           )
@@ -1220,23 +1048,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.changeSiteItemTextMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = itemId,
-                itemNameTableForm = createItemNameTable(itemId),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(itemId),
-                updateCategoryForm = createItemCategoryForm(itemId),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(itemId),
-                itemPriceTableForm = createItemPriceTable(itemId),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(itemId),
-                itemMetadataTableForm = createItemMetadataTable(itemId),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(itemId),
-                siteItemTextMetadataTableForm = formWithErrors,
-                itemTextMetadataTableForm = createItemTextMetadataTable(itemId),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(itemId),
-                couponForm = createCouponForm(ItemId(itemId))
+              createChangeItem(
+                itemId, login
+              )(
+                siteItemTextMetadataTableForm = formWithErrors
               )
             )
           )
@@ -1261,24 +1076,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addItemMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                newItemMetadataForm = formWithErrors,
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newItemMetadataForm = formWithErrors
               )
             )
           )
@@ -1295,26 +1096,12 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
+                  createChangeItem(
+                    id, login
+                  )(
                     newItemMetadataForm = addItemMetadataForm
                       .fill(newMetadata)
-                      .withError("metadataType", "unique.constraint.violation"),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                      .withError("metadataType", "unique.constraint.violation")
                   )
                 )
               )
@@ -1333,25 +1120,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addItemTextMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                newItemTextMetadataForm = formWithErrors,
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newItemTextMetadataForm = formWithErrors
               )
             )
           )
@@ -1368,26 +1140,12 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
+                  createChangeItem(
+                    id, login
+                  )(
                     newItemTextMetadataForm = addItemTextMetadataForm
                       .fill(newMetadata)
-                      .withError("metadataType", "unique.constraint.violation"),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                      .withError("metadataType", "unique.constraint.violation")
                   )
                 )
               )
@@ -1406,24 +1164,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addSiteItemMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                newSiteItemMetadataForm = formWithErrors,
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newSiteItemMetadataForm = formWithErrors
               )
             )
           )
@@ -1442,26 +1186,12 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
+                  createChangeItem(
+                    id, login
+                  )(
                     newSiteItemMetadataForm = addSiteItemMetadataForm
                       .fill(newMetadata)
-                      .withError("metadataType", "unique.constraint.violation"),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                      .withError("metadataType", "unique.constraint.violation")
                   )
                 )
               )
@@ -1480,24 +1210,10 @@ println("*** catTable = " + catTable)
           logger.error("Validation error in ItemMaintenance.addSiteItemTextMetadata." + formWithErrors + ".")
           BadRequest(
             views.html.admin.changeItem(
-              new ChangeItem(
-                id = id,
-                itemNameTableForm = createItemNameTable(id),
-                siteNameTable = createSiteTable,
-                siteItemTable = createSiteItemTable(id),
-                updateCategoryForm = createItemCategoryForm(id),
-                categoryTable = createCategoryTable,
-                itemDescriptionTableForm = createItemDescriptionTable(id),
-                itemPriceTableForm = createItemPriceTable(id),
-                taxTable = taxTable,
-                itemInSiteTable = createSiteTable(id),
-                itemMetadataTableForm = createItemMetadataTable(id),
-                siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
-                newSiteItemTextMetadataForm = formWithErrors,
-                itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                couponForm = createCouponForm(ItemId(id))
+              createChangeItem(
+                id, login
+              )(
+                newSiteItemTextMetadataForm = formWithErrors
               )
             )
           )
@@ -1516,26 +1232,12 @@ println("*** catTable = " + catTable)
             case e: UniqueConstraintException => {
               BadRequest(
                 views.html.admin.changeItem(
-                  new ChangeItem(
-                    id = id,
-                    itemNameTableForm = createItemNameTable(id),
-                    siteNameTable = createSiteTable,
-                    siteItemTable = createSiteItemTable(id),
-                    updateCategoryForm = createItemCategoryForm(id),
-                    categoryTable = createCategoryTable,
-                    itemDescriptionTableForm = createItemDescriptionTable(id),
-                    itemPriceTableForm = createItemPriceTable(id),
-                    taxTable = taxTable,
-                    itemInSiteTable = createSiteTable(id),
-                    itemMetadataTableForm = createItemMetadataTable(id),
-                    siteItemMetadataTableForm = createSiteItemMetadataTable(id),
-                    siteItemTextMetadataTableForm = createSiteItemTextMetadataTable(id),
+                  createChangeItem(
+                    id, login
+                  )(
                     newSiteItemTextMetadataForm = addSiteItemTextMetadataForm
                       .fill(newMetadata)
-                      .withError("metadataType", "unique.constraint.violation"),
-                    itemTextMetadataTableForm = createItemTextMetadataTable(id),
-                    attachmentNames = ItemPictures.retrieveAttachmentNames(id),
-                    couponForm = createCouponForm(ItemId(id))
+                      .withError("metadataType", "unique.constraint.violation")
                   )
                 )
               )

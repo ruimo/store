@@ -348,6 +348,53 @@ class ItemSpec extends Specification {
       }
     }
 
+    "List item by category with supplemental category." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          import LocaleInfo._
+          TestHelper.removePreloadedRecords()
+
+          val tax = Tax.createNew
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val cat1 = Category.createNew(Map(Ja -> "植木", En -> "Plant"))
+          val cat2 = Category.createNew(Map(Ja -> "果樹", En -> "Fruit"))
+        
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat2)
+          SupplementalCategory.createNew(item1.id.get, cat2.id.get)
+
+          ItemName.createNew(item1, Map(Ja -> "杉", En -> "Cedar"))
+          ItemName.createNew(item2, Map(Ja -> "梅", En -> "Ume"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site1, item2)
+
+          ItemDescription.createNew(item1, site1, "杉説明")
+          ItemDescription.createNew(item2, site1, "梅説明")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site1)
+
+          ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(89), date("9999-12-31")
+          )
+          ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(291), date("9999-12-31")
+          )
+
+          // Since item1 has supplemental category(cat2), both item1 and item2 will be shown.
+          val list1 = Item.list(locale = LocaleInfo.Ja, queryString = QueryString(), category = Some(cat2.id.get))
+          doWith(list1.records) { recs =>
+            recs.size === 2
+
+            recs(0)._2.name === "杉"
+            recs(1)._2.name === "梅"
+          }
+        }}
+      }
+    }
+
     "List item." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withConnection { implicit conn => {

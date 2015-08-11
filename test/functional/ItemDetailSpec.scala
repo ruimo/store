@@ -31,7 +31,7 @@ class ItemDetailSpec extends Specification {
   "Item detail" should {
     "Can show list price with memo" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)

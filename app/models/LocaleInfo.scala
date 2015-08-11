@@ -47,18 +47,23 @@ object LocaleInfo {
     )
   }
 
-  lazy val byLang: Map[Lang, LocaleInfo] =
+  lazy val byLangTable: Map[Lang, LocaleInfo] =
     registry.values.foldLeft(new mutable.HashMap[Lang, LocaleInfo]) {
       (map, e) => {map.put(new Lang(e.lang, e.country.getOrElse("")), e); map}
     }.toMap
+
+  def byLang(lang: Lang): LocaleInfo =
+    byLangTable.get(lang).orElse(
+      byLangTable.get(new Lang(lang.language))
+    ).get
 
   def localeTable(implicit lang: Lang): Seq[(String, String)] = registry.values.map {
     e => e.id.toString -> Messages("lang." + e.lang)
   }.toSeq
 
   def getDefault(implicit lang: Lang): LocaleInfo =
-    byLang.get(lang).orElse {
-      byLang.get(new Lang(lang.language))
+    byLangTable.get(lang).orElse {
+      byLangTable.get(new Lang(lang.language))
     }.getOrElse {
       LocaleInfo.En
     }
