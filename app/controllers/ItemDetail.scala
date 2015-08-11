@@ -12,6 +12,7 @@ import controllers.I18n.I18nAware
 object ItemDetail extends Controller with I18nAware with NeedLogin {
   def show(itemId: Long, siteId: Long) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     val itemDetail = models.ItemDetail.show(siteId, itemId, LocaleInfo.getDefault)
+println("*** detail.siteItemTextMetadata = " + itemDetail.siteItemTextMetadata)
     itemDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.ITEM_DETAIL_TEMPLATE) match {
       case None => Ok(views.html.itemDetail(itemDetail))
       case Some(metadata) => 

@@ -183,6 +183,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def startChangeItem(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
+val catTable = createCategoryTable
+println("*** catTable = " + catTable)
       Ok(views.html.admin.changeItem(
         new ChangeItem(
           id = id,
@@ -190,7 +192,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           siteNameTable = createSiteTable,
           siteItemTable = createSiteItemTable(id),
           updateCategoryForm = createItemCategoryForm(id),
-          categoryTable = createCategoryTable,
+          categoryTable = catTable,
           itemDescriptionTableForm = createItemDescriptionTable(id),
           itemPriceTableForm = createItemPriceTable(id),
           taxTable = taxTable,
