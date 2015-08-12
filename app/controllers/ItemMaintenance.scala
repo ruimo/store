@@ -50,37 +50,36 @@ class ChangeItem(
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   def createChangeItem(
     id: Long,
-    login: LoginSession
+    login: LoginSession,
+    lang: Lang
   )(
-    siteMap: Map[Long, Site] = siteListAsMap,
+    siteMap: Map[Long, Site] = ItemMaintenance.siteListAsMap,
     langTable: Seq[(String, String)] = LocaleInfo.localeTable,
-    itemNameTableForm: Form[ChangeItemNameTable] = createItemNameTable(id),
-    newItemNameForm: Form[ChangeItemName] = addItemNameForm,
-    siteNameTable: Seq[(String, String)] = createSiteTable(login),
-    siteItemTable: Seq[(Site, SiteItem)] = createSiteItemTable(id),
-    newSiteItemForm: Form[ChangeSiteItem] = addSiteItemForm,
-    updateCategoryForm: Form[ChangeItemCategory] = createItemCategoryForm(id),
-    categoryTable: Seq[(String, String)] = createCategoryTable,
-    itemDescriptionTableForm: Form[ChangeItemDescriptionTable] = createItemDescriptionTable(id),
-    newItemDescriptionForm: Form[ChangeItemDescription] = addItemDescriptionForm,
-    itemPriceTableForm: Form[ChangeItemPriceTable] = createItemPriceTable(id),
-    newItemPriceForm: Form[ChangeItemPrice] = addItemPriceForm,
-    taxTable: Seq[(String, String)] = taxTable,
-    currencyTable: Seq[(String, String)] = currencyTable,
-    itemInSiteTable: Seq[(String, String)] = createSiteTable(id)(login),
-    itemMetadataTableForm: Form[ChangeItemMetadataTable] = createItemMetadataTable(id),
-    newItemMetadataForm: Form[ChangeItemMetadata] = addItemMetadataForm,
-    siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable] = createSiteItemMetadataTable(id),
-    newSiteItemMetadataForm: Form[ChangeSiteItemMetadata] = addSiteItemMetadataForm,
-    siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable] = createSiteItemTextMetadataTable(id),
-    newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata] = addSiteItemTextMetadataForm,
-    itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable] = createItemTextMetadataTable(id),
-    newItemTextMetadataForm: Form[ChangeItemTextMetadata] = addItemTextMetadataForm,
+    itemNameTableForm: Form[ChangeItemNameTable] = ItemMaintenance.createItemNameTable(id),
+    newItemNameForm: Form[ChangeItemName] = ItemMaintenance.addItemNameForm,
+    siteNameTable: Seq[(String, String)] = ItemMaintenance.createSiteTable(login),
+    siteItemTable: Seq[(Site, SiteItem)] = ItemMaintenance.createSiteItemTable(id),
+    newSiteItemForm: Form[ChangeSiteItem] = ItemMaintenance.addSiteItemForm,
+    updateCategoryForm: Form[ChangeItemCategory] = ItemMaintenance.createItemCategoryForm(id),
+    categoryTable: Seq[(String, String)] = ItemMaintenance.createCategoryTable(lang),
+    itemDescriptionTableForm: Form[ChangeItemDescriptionTable] = ItemMaintenance.createItemDescriptionTable(id),
+    newItemDescriptionForm: Form[ChangeItemDescription] = ItemMaintenance.addItemDescriptionForm,
+    itemPriceTableForm: Form[ChangeItemPriceTable] = ItemMaintenance.createItemPriceTable(id),
+    newItemPriceForm: Form[ChangeItemPrice] = ItemMaintenance.addItemPriceForm,
+    taxTable: Seq[(String, String)] = ItemMaintenance.taxTable(lang),
+    currencyTable: Seq[(String, String)] = ItemMaintenance.currencyTable,
+    itemInSiteTable: Seq[(String, String)] = ItemMaintenance.createSiteTable(id)(login),
+    itemMetadataTableForm: Form[ChangeItemMetadataTable] = ItemMaintenance.createItemMetadataTable(id),
+    newItemMetadataForm: Form[ChangeItemMetadata] = ItemMaintenance.addItemMetadataForm,
+    siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable] = ItemMaintenance.createSiteItemMetadataTable(id),
+    newSiteItemMetadataForm: Form[ChangeSiteItemMetadata] = ItemMaintenance.addSiteItemMetadataForm,
+    siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable] = ItemMaintenance.createSiteItemTextMetadataTable(id),
+    newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata] = ItemMaintenance.addSiteItemTextMetadataForm,
+    itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable] = ItemMaintenance.createItemTextMetadataTable(id),
+    newItemTextMetadataForm: Form[ChangeItemTextMetadata] = ItemMaintenance.addItemTextMetadataForm,
     attachmentNames: Map[Int, String] = ItemPictures.retrieveAttachmentNames(id),
-    couponForm: Form[ChangeCoupon] = createCouponForm(ItemId(id))
-  ) = {
-println("*** categoryTable = " + categoryTable)
-    new ChangeItem(
+    couponForm: Form[ChangeCoupon] = ItemMaintenance.createCouponForm(ItemId(id))
+  ) = new ChangeItem(
     id,
     siteMap,
     langTable,
@@ -108,8 +107,7 @@ println("*** categoryTable = " + categoryTable)
     newItemTextMetadataForm,
     attachmentNames,
     couponForm
-    )
-  }
+  )
 
   val ItemDescriptionSize: () => Int = Cache.cacheOnProd(
     Cache.Conf.getInt("itemDescription.size").getOrElse(2048)
@@ -247,7 +245,7 @@ println("*** categoryTable = " + categoryTable)
     implicit val login = request.user
     assumeAdmin(login) {
       Ok(views.html.admin.changeItem(
-        createChangeItem(id, login)()
+        createChangeItem(id, login, request2lang)()
       ))
     }
   }
@@ -411,7 +409,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 itemNameTableForm = formWithErrors
               )
@@ -439,7 +437,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newItemNameForm = formWithErrors
               )
@@ -459,7 +457,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newItemNameForm = addItemNameForm.fill(newItem).withError("localeId", "unique.constraint.violation")
                   )
@@ -574,7 +572,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newSiteItemForm = formWithErrors
               )
@@ -596,7 +594,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newSiteItemForm = addSiteItemForm.fill(newSiteItem).withError("siteId", "unique.constraint.violation")
                   )
@@ -657,7 +655,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 couponForm = formWithErrors
               )
@@ -685,7 +683,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 updateCategoryForm = formWithErrors
               )
@@ -743,7 +741,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 itemDescriptionTableForm = formWithErrors
               )
@@ -771,7 +769,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newItemDescriptionForm = formWithErrors
               )
@@ -791,7 +789,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newItemDescriptionForm = addItemDescriptionForm
                       .fill(newItem)
@@ -876,7 +874,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 itemPriceTableForm = formWithErrors
               )
@@ -904,7 +902,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newItemPriceForm = formWithErrors
               )
@@ -925,7 +923,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newItemPriceForm = addItemPriceForm
                       .fill(newHistory)
@@ -965,7 +963,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                itemId, login
+                itemId, login, request2lang
               )(
                 itemMetadataTableForm = formWithErrors
               )
@@ -993,7 +991,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                itemId, login
+                itemId, login, request2lang
               )(
                 itemTextMetadataTableForm = formWithErrors
               )
@@ -1021,7 +1019,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                itemId, login
+                itemId, login, request2lang
               )(
                 siteItemMetadataTableForm = formWithErrors
               )
@@ -1049,7 +1047,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                itemId, login
+                itemId, login, request2lang
               )(
                 siteItemTextMetadataTableForm = formWithErrors
               )
@@ -1077,7 +1075,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newItemMetadataForm = formWithErrors
               )
@@ -1097,7 +1095,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newItemMetadataForm = addItemMetadataForm
                       .fill(newMetadata)
@@ -1121,7 +1119,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newItemTextMetadataForm = formWithErrors
               )
@@ -1141,7 +1139,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newItemTextMetadataForm = addItemTextMetadataForm
                       .fill(newMetadata)
@@ -1165,7 +1163,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newSiteItemMetadataForm = formWithErrors
               )
@@ -1187,7 +1185,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newSiteItemMetadataForm = addSiteItemMetadataForm
                       .fill(newMetadata)
@@ -1211,7 +1209,7 @@ println("*** categoryTable = " + categoryTable)
           BadRequest(
             views.html.admin.changeItem(
               createChangeItem(
-                id, login
+                id, login, request2lang
               )(
                 newSiteItemTextMetadataForm = formWithErrors
               )
@@ -1233,7 +1231,7 @@ println("*** categoryTable = " + categoryTable)
               BadRequest(
                 views.html.admin.changeItem(
                   createChangeItem(
-                    id, login
+                    id, login, request2lang
                   )(
                     newSiteItemTextMetadataForm = addSiteItemTextMetadataForm
                       .fill(newMetadata)
