@@ -116,7 +116,7 @@ class ItemDetailSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".itemDetailListPrice .value .memo").areDisplayed()
 
-Thread.sleep(20000)
+println("*** Page Source = " + browser.webDriver.getPageSource)
         browser.find(".itemDetailListPrice .value .memo").getText === "List price memo"
       }}
     }
