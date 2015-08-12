@@ -114,9 +114,9 @@ class ItemDetailSpec extends Specification {
           "http://localhost:3333"
           + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
         )
+println("*** Page Source = " + browser.webDriver.getPageSource)
         browser.await().atMost(5, TimeUnit.SECONDS).until(".itemDetailListPrice .value .memo").areDisplayed()
 
-println("*** Page Source = " + browser.webDriver.getPageSource)
         browser.find(".itemDetailListPrice .value .memo").getText === "List price memo"
       }}
     }
