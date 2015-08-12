@@ -92,6 +92,8 @@ class ItemDetailSpec extends Specification {
         browser.fill("#itemPrices_0_listPrice").`with`("3000")
         browser.find("#changeItemPriceButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+println("*** Page Source = " + browser.webDriver.getPageSource)
+        browser.title === Messages("changeItemTitle")
 
         // add list price memo
         browser.goTo(
@@ -114,7 +116,6 @@ class ItemDetailSpec extends Specification {
           "http://localhost:3333"
           + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
         )
-println("*** Page Source = " + browser.webDriver.getPageSource)
         browser.await().atMost(5, TimeUnit.SECONDS).until(".itemDetailListPrice .value .memo").areDisplayed()
 
         browser.find(".itemDetailListPrice .value .memo").getText === "List price memo"
