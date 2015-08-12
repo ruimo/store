@@ -11,8 +11,8 @@ import controllers.I18n.I18nAware
 
 object ItemDetail extends Controller with I18nAware with NeedLogin {
   def show(itemId: Long, siteId: Long) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
+println("*** itemPriceHistory = " + anorm.SQL("select * from item_price_history").as(models.ItemPriceHistory.simple *))
     val itemDetail = models.ItemDetail.show(siteId, itemId, LocaleInfo.getDefault)
-println("*** locale = " + LocaleInfo.getDefault)
 println("*** detail = " + itemDetail)
     itemDetail.siteItemNumericMetadata.get(SiteItemNumericMetadataType.ITEM_DETAIL_TEMPLATE) match {
       case None => Ok(views.html.itemDetail(itemDetail))

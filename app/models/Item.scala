@@ -809,7 +809,6 @@ object ItemPriceHistory {
         select item_price_id from item_price
         where item_price.item_id = {itemId} and item_price.site_id = {siteId}
       )
-      and item_price_history.item_price_id = item_price_id
       and {now} < valid_until
       order by valid_until
       limit 1
