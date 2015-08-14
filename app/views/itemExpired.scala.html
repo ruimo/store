@@ -1,0 +1,15 @@
+@(
+  errors: Seq[ItemExpiredException]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("itemExpiredTitle"), Some(loginSession)) {
+} {
+<h1 class="title">@Messages("itemExpiredTitle")</h1>
+
+}
