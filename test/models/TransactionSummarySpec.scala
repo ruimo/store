@@ -80,7 +80,7 @@ class TransactionSummarySpec extends Specification {
               .add(site2, itemClass1, 5)
           )
 
-          val cart1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)
+          val cart1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)._1
           val addr1 = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "FirstName",
@@ -92,7 +92,7 @@ class TransactionSummarySpec extends Specification {
             tel1 = "12345678"
           )
 
-          val cart2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get)
+          val cart2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get)._1
           val addr2 = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "FirstName2",
@@ -326,7 +326,7 @@ class TransactionSummarySpec extends Specification {
               .add(site2, itemClass1, 5)
           )
 
-          val cart1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)
+          val cart1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)._1
           val addr1 = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "FirstName",
@@ -338,7 +338,7 @@ class TransactionSummarySpec extends Specification {
             tel1 = "12345678"
           )
 
-          val cart2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get)
+          val cart2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get)._1
           val addr2 = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "FirstName2",

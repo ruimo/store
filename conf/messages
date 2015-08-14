@@ -433,3 +433,4 @@ allCount=All count
 registeredCount=Registed count
 createdDate=作成日
 site.item.date.format=yyyy-MM-dd
+itemExpiredTitle=Item expired

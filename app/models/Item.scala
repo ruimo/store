@@ -784,7 +784,11 @@ object ItemPriceHistory {
 
   def at(
     itemPriceId: Long, now: Long = System.currentTimeMillis
-  )(implicit conn: Connection): ItemPriceHistory = SQL(
+  )(implicit conn: Connection): ItemPriceHistory = getAt(itemPriceId, now).get
+
+  def getAt(
+    itemPriceId: Long, now: Long = System.currentTimeMillis
+  )(implicit conn: Connection): Option[ItemPriceHistory] = SQL(
     """
     select * from item_price_history
     where item_price_id = {itemPriceId}
@@ -796,7 +800,7 @@ object ItemPriceHistory {
     'itemPriceId -> itemPriceId,
     'now -> new java.sql.Timestamp(now)
   ).as(
-    ItemPriceHistory.simple.single
+    ItemPriceHistory.simple.singleOpt
   )
 
   def atBySiteAndItem(

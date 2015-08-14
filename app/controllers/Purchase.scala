@@ -3,7 +3,7 @@ package controllers
 import play.api._
 import db.DB
 import play.api.mvc._
-import models.{LocaleInfo, ShoppingCartItem}
+import models._
 import play.api.Play.current
 import controllers.I18n.I18nAware
 
@@ -18,16 +18,14 @@ object Purchase extends Controller with NeedLogin with HasLogger with I18nAware 
 
   def showShoppingCart = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    Ok(
-      views.html.shoppingCart(
-        DB.withConnection { implicit conn =>
-          ShoppingCartItem.listItemsForUser(
-            LocaleInfo.getDefault, 
-            login.userId
-          )
-        }
+    val (total: ShoppingCartTotal, errors: Seq[ItemExpiredException]) = DB.withConnection { implicit conn =>
+      ShoppingCartItem.listItemsForUser(
+        LocaleInfo.getDefault,
+        login.userId
       )
-    )
+    }
+
+    if (errors.isEmpty) Ok(views.html.shoppingCart(total)) else Ok(views.html.itemExpired(errors))
   }
 
   def changeItemQuantity(cartId: Long, quantity: Int) = NeedAuthenticated { implicit request =>

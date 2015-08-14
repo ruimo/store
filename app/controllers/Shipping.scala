@@ -114,34 +114,41 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   def confirmShippingAddressJa = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     DB.withConnection { implicit conn =>
-      val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-      if (ShoppingCartItem.isAllCoupon(login.userId)) {
-        Ok(
-          views.html.confirmShippingAddressJa(
-            Transaction(
-              login.userId, CurrencyInfo.Jpy, cart, None, ShippingTotal(), ShippingDate()
-            )
-          )
-        )
+      val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
+        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+
+      if (! errors.isEmpty) {
+        Ok(views.html.itemExpired(errors))
       }
       else {
-        val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
-          sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
-        }
-        val his = ShippingAddressHistory.list(login.userId).head
-        val addr = Address.byId(his.addressId)
-        try {
+        if (ShoppingCartItem.isAllCoupon(login.userId)) {
           Ok(
             views.html.confirmShippingAddressJa(
               Transaction(
-                login.userId, CurrencyInfo.Jpy, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping)
+                login.userId, CurrencyInfo.Jpy, cart, None, ShippingTotal(), ShippingDate()
               )
             )
           )
         }
-        catch {
-          case e: CannotShippingException => {
-            Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+        else {
+          val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+            sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
+          }
+          val his = ShippingAddressHistory.list(login.userId).head
+          val addr = Address.byId(his.addressId)
+          try {
+            Ok(
+              views.html.confirmShippingAddressJa(
+                Transaction(
+                  login.userId, CurrencyInfo.Jpy, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping)
+                )
+              )
+            )
+          }
+          catch {
+            case e: CannotShippingException => {
+              Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+            }
           }
         }
       }
@@ -189,44 +196,50 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     currency: CurrencyInfo
   )(implicit request: Request[AnyContent], login: LoginSession): Result = {
     DB.withTransaction { implicit conn =>
-      val cart = ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-      if (cart.isEmpty) {
-        logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
-        throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
+      val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
+        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+      if (! errors.isEmpty) {
+        Ok(views.html.itemExpired(errors))
       }
       else {
-        if (ShoppingCartItem.isAllCoupon(login.userId)) {
-          val persister = new TransactionPersister()
-          val tranId = persister.persist(
-            Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())
-          )
-          ShoppingCartItem.removeForUser(login.userId)
-          val tran = persister.load(tranId, LocaleInfo.getDefault)
-          NotificationMail.orderCompleted(loginSession.get, tran, None)
-          RecommendEngine.onSales(loginSession.get, tran, None)
-          Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
+        if (cart.isEmpty) {
+          logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
+          throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
         }
         else {
-          val his = ShippingAddressHistory.list(login.userId).head
-          val addr = Address.byId(his.addressId)
-          val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
-            sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
-          }
-          try {
+          if (ShoppingCartItem.isAllCoupon(login.userId)) {
             val persister = new TransactionPersister()
             val tranId = persister.persist(
-              Transaction(login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping))
+              Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())
             )
             ShoppingCartItem.removeForUser(login.userId)
             val tran = persister.load(tranId, LocaleInfo.getDefault)
-            val address = Address.byId(tran.shippingTable.head._2.head.addressId)
-            NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
-            RecommendEngine.onSales(loginSession.get, tran, Some(address))
-            Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
+            NotificationMail.orderCompleted(loginSession.get, tran, None)
+            RecommendEngine.onSales(loginSession.get, tran, None)
+            Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
           }
-          catch {
-            case e: CannotShippingException => {
-              Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+          else {
+            val his = ShippingAddressHistory.list(login.userId).head
+            val addr = Address.byId(his.addressId)
+            val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+              sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
+            }
+            try {
+              val persister = new TransactionPersister()
+              val tranId = persister.persist(
+                Transaction(login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping))
+              )
+              ShoppingCartItem.removeForUser(login.userId)
+              val tran = persister.load(tranId, LocaleInfo.getDefault)
+              val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+              NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
+              RecommendEngine.onSales(loginSession.get, tran, Some(address))
+              Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
+            }
+            catch {
+              case e: CannotShippingException => {
+                Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+              }
             }
           }
         }

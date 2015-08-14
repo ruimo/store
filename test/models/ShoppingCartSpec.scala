@@ -87,7 +87,7 @@ class ShoppingCartSpec extends Specification {
           cart3.quantity === 10
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -102,7 +102,7 @@ class ShoppingCartSpec extends Specification {
           list1(1).itemPriceHistory === ph4
 
           val time2 = date("2013-01-01").getTime
-          val list2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get, 0, 10, time2)
+          val list2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get, 0, 10, time2)._1
           list2.size === 1
           list2(0).shoppingCartItem === cart3
           list2(0).itemName === name1(Ja)
@@ -181,7 +181,7 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 3
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -264,7 +264,7 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 3
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -349,7 +349,7 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 3
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -423,7 +423,7 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 10
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -440,7 +440,7 @@ class ShoppingCartSpec extends Specification {
           // Add same id as cart1. Will increase quantity.
           val cart3 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 3)
 
-          val list2 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list2 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
           list2.size === 2
           cart3.quantity === 5
           list2(0).shoppingCartItem === cart3
@@ -534,7 +534,7 @@ class ShoppingCartSpec extends Specification {
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 3)
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
 
           list1.size === 2
           list1.taxTotal === BigDecimal((101 * 2 + 301 * 3) * 5 / 100)
@@ -589,7 +589,7 @@ class ShoppingCartSpec extends Specification {
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 1)
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
 
           list1.size === 2
           list1.taxTotal === BigDecimal((119 * 5 / 100) + (59 * 5 /100))
@@ -644,7 +644,7 @@ class ShoppingCartSpec extends Specification {
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 1)
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)
+          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
 
           list1.size === 2
           list1.taxTotal === BigDecimal((59 * 5 / 105) + (119 * 5 / 100))

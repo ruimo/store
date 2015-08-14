@@ -343,9 +343,10 @@ class AccountingBillSpec extends Specification {
       )
     )
 
-    val cartTotal1 = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
+    val (cartTotal: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
+        ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
     val tranId = (new TransactionPersister).persist(
-      Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal1, Some(addr1), shippingTotal1, shippingDate1, now)
+      Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(addr1), shippingTotal1, shippingDate1, now)
     )
     val tranList = TransactionLogHeader.list()
     val tranSiteList = TransactionLogSite.list()

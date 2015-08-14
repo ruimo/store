@@ -1,20 +1,15 @@
 package controllers
 
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-import models._
-import play.api.data.Form
 import controllers.I18n.I18nAware
-import play.api.mvc.Controller
-import play.api.db.DB
-import play.api.i18n.{Lang, Messages}
-import play.api.Play.current
-import helpers.{TokenGenerator, RandomTokenGenerator}
-import play.api.libs.json.Json
-
 import helpers.ViewHelpers
-import helpers.RecommendEngine
-import collection.immutable
+import models._
+import play.api.Play.current
+import play.api.db.DB
+import play.api.i18n.Lang
+import play.api.libs.json._
+import play.api.mvc.Controller
+
+import scala.collection.immutable
 
 object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLogger {
   def addToCartJson = NeedAuthenticatedJson { implicit request =>
@@ -27,15 +22,20 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
 
       DB.withConnection { implicit conn => {
         ShoppingCartItem.addItem(login.userId, siteId, itemId, quantity)
-        val cart: ShoppingCartTotal = ShoppingCartItem.listItemsForUser(
+        val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) = ShoppingCartItem.listItemsForUser(
           LocaleInfo.getDefault, 
           login.userId
         )
 
-        Ok(Json.toJson(toJson(
-          getItemInfo(Map((siteId, itemId) -> quantity), cart.table),
-          cart
-        )))
+        Ok(
+          Json.toJson(
+            toJson(errors) ++
+            toJson(
+              getItemInfo(Map((siteId, itemId) -> quantity), cart.table),
+              cart
+            )
+          )
+        )
       }}
     }.get
   }
@@ -53,43 +53,60 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
           ShoppingCartItem.addItem(login.userId, siteId, e.itemId, e.quantity.toInt)
         }
 
-        val cart = ShoppingCartItem.listItemsForUser(
+        val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) = ShoppingCartItem.listItemsForUser(
           LocaleInfo.getDefault, 
           login.userId
         )
 
-        Ok(Json.toJson(toJson(
-          getItemInfo(
-            itemsInTran.map {
-              e => (siteId, e.itemId) -> e.quantity.toInt
-            }.toMap,
-            cart.table
-          ),
-          cart
-        )))
+        Ok(
+          Json.toJson(
+            toJson(errors) ++
+            toJson(
+              getItemInfo(
+                itemsInTran.map {
+                  e => (siteId, e.itemId) -> e.quantity.toInt
+                }.toMap,
+                cart.table
+              ),
+              cart
+            )
+          )
+        )
       }}
     }.get
   }
 
+  def toJson(errors: Seq[ItemExpiredException]): JsObject = JsObject(
+    Seq(
+      "expiredItemExists" -> JsBoolean(!errors.isEmpty)
+    )
+  )
+
   def toJson(
     addedItems: immutable.Seq[ShoppingCartTotalEntry],
     cart: ShoppingCartTotal
-  )(implicit lang: Lang): immutable.Map[String, immutable.Seq[immutable.Map[String, String]]] = Map(
-    "added" -> toJson(addedItems),
-    "current" -> toJson(cart.table)
+  )(implicit lang: Lang): JsObject = JsObject(
+    Seq(
+      "added" -> toJson(addedItems),
+      "current" -> toJson(cart.table)
+    )
   )
 
   def toJson(
     table: immutable.Seq[ShoppingCartTotalEntry]
-  )(implicit lang: Lang): immutable.Seq[immutable.Map[String, String]] = table.map { e =>
-      Map(
-        "itemName" -> e.itemName.name,
-        "siteName" -> e.site.name,
-        "unitPrice" -> ViewHelpers.toAmount(e.itemPriceHistory.unitPrice),
-        "quantity" -> e.shoppingCartItem.quantity.toString,
-        "price" -> ViewHelpers.toAmount(e.itemPrice)
+  )(implicit lang: Lang): JsArray = JsArray(
+    table.map { e =>
+      JsObject(
+        Seq(
+          "itemName" -> JsString(e.itemName.name),
+          "siteName" -> JsString(e.site.name),
+          "unitPrice" -> JsString(ViewHelpers.toAmount(e.itemPriceHistory.unitPrice)),
+          "quantity" -> JsString(e.shoppingCartItem.quantity.toString),
+          "price" -> JsString(ViewHelpers.toAmount(e.itemPrice))
+        )
       )
     }
+  )
 
   /**
    * @param keys Tupple of siteId, itemId, quantity.

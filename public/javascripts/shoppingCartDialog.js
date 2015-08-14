@@ -41,6 +41,11 @@ var shoppingCartDialog = {
   },
 
   _showDialog: function(self, data, status, jqXhr) {
+    if (data.expiredItemExists) {
+      window.location.href = self.arg.showShoppingCartUrl;
+      return;
+    }
+
     var dlg = $("#cartDialog");
 
     var addedContent = $("#cartDialogAddedContent");

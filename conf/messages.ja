@@ -465,3 +465,4 @@ allCount=総数
 registeredCount=登録数
 createdDate=作成日
 site.item.date.format=yyyy年MM月dd日
+itemExpiredTitle=期限切れ商品

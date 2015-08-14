@@ -6,7 +6,7 @@ import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-import collection.immutable.{LongMap, HashSet, HashMap, IntMap}
+import scala.collection.immutable._
 import java.sql.Connection
 import play.api.data.Form
 import org.joda.time.DateTime
@@ -56,7 +56,7 @@ case class ShoppingCartTotal(
   lazy val notEmpty: Boolean = (! table.isEmpty)
   lazy val quantity: Int = table.foldLeft(0)(_ + _.quantity)
   lazy val total: BigDecimal = table.foldLeft(BigDecimal(0))(_ + _.itemPrice) // Excluding outer tax
-  lazy val sites: Seq[Site] = table.foldLeft(new HashSet[Site])(_ + _.site).toSeq
+  lazy val sites: Seq[Site] = table.foldLeft(new HashSet[Site])(_ + _.site).toList
   lazy val taxTotal: BigDecimal = taxByType.values.foldLeft(BigDecimal(0))(_ + _)
   lazy val taxHistoryById: LongMap[TaxHistory] = table.foldLeft(LongMap[TaxHistory]()) {
     (sum, e) => sum.updated(e.taxHistory.taxId, e.taxHistory)
@@ -257,7 +257,9 @@ object ShoppingCartItem {
     locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 100, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
-  ): ShoppingCartTotal = ShoppingCartTotal(
+  ): (ShoppingCartTotal, Seq[ItemExpiredException]) = {
+    var error = new VectorBuilder[ItemExpiredException]()
+    var total = new VectorBuilder[ShoppingCartTotalEntry]()
     SQL(
       """
       select * from shopping_cart_item
@@ -279,19 +281,26 @@ object ShoppingCartItem {
       'offset -> page * pageSize
     ).as(
       listParser *
-    ).map { e =>
+    ).foreach { e =>
       val itemId = ItemId(e._1.itemId)
       val itemPriceId = e._4.id.get
-      val priceHistory = ItemPriceHistory.at(itemPriceId, now)
-      val taxHistory = TaxHistory.at(priceHistory.taxId, now)
-      val metadata = ItemNumericMetadata.allById(itemId)
-      val textMetadata = ItemTextMetadata.allById(itemId)
-      val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
-      val siteTextMetadata = SiteItemTextMetadata.all(e._5.id.get, itemId)
-
-      ShoppingCartTotalEntry(e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata, textMetadata, siteTextMetadata)
+      ItemPriceHistory.getAt(itemPriceId, now) match {
+        case Some(priceHistory) =>
+          val taxHistory: TaxHistory = TaxHistory.at(priceHistory.taxId, now)
+          val metadata = ItemNumericMetadata.allById(itemId)
+          val textMetadata = ItemTextMetadata.allById(itemId)
+          val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
+          val siteTextMetadata = SiteItemTextMetadata.all(e._5.id.get, itemId)
+          total += ShoppingCartTotalEntry(
+            e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata, textMetadata, siteTextMetadata
+          )
+        case None =>
+          error += new ItemExpiredException(e._1, e._2, e._5)
+      }
     }
-  )
+
+    (ShoppingCartTotal(total.result), error.result)
+  }
 
   def changeQuantity(id: Long, userId: Long, quantity: Int)(implicit conn: Connection): Int = {
     SQL(

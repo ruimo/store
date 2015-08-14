@@ -1,5 +1,6 @@
 package functional
 
+import org.joda.time.DateTime
 import helpers.Helper.disableMailer
 import helpers.UrlHelper
 import helpers.UrlHelper._
@@ -268,6 +269,56 @@ class SalesSpec extends Specification with SalesSpecBase  {
             }
           }
         }
+      }}
+    }
+
+    "If price is expired, error should be shown." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        val adminUser = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val item = Item.createNew(cat)
+        ItemNumericMetadata.createNew(
+          item, ItemNumericMetadataType.HEIGHT, 1
+        )
+        ItemTextMetadata.createNew(
+          item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
+        )
+        SiteItemNumericMetadata.createNew(
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+        )
+        SiteItemTextMetadata.createNew(
+          site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
+        )
+        val siteItem = SiteItem.createNew(site, item)
+        val itemClass = 1L
+        SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, itemClass)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val iph = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+
+        browser.goTo("http://localhost:3333" + itemQueryUrl())
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
+        browser.find(".addToCartButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+
+        // Expire price history.
+        ItemPriceHistory.update(
+          iph.id.get, iph.taxId, iph.currency.id, iph.unitPrice, iph.listPrice, iph.costPrice,
+          new DateTime(System.currentTimeMillis - 10000)
+        )
+
+        // Goto cart button
+        browser.find(".ui-dialog-buttonset button").get(1).click()
+Thread.sleep(20000)
+1===1
       }}
     }
   }
