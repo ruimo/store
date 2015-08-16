@@ -60,7 +60,6 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.goTo("http://localhost:3333" + itemQueryUrl())
         browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
         browser.find(".addToCartButton").click()
-
         browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
         // Goto cart button
         browser.find(".ui-dialog-buttonset button").get(1).click()
@@ -317,7 +316,11 @@ class SalesSpec extends Specification with SalesSpecBase  {
 
         // Goto cart button
         browser.find(".ui-dialog-buttonset button").get(1).click()
-Thread.sleep(20000)
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title == Messages("itemExpiredTitle")
+
+        Thread.sleep(20000)
 1===1
       }}
     }

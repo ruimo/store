@@ -736,3 +736,7 @@ tr.recommendationByAdminTable.body {
 #qaType_field > label {
   display: none;
 }
+
+.expiredItem {
+  margin:1em 1em 2em 1em;
+}

@@ -10,6 +10,22 @@
 
 @main(Messages("itemExpiredTitle"), Some(loginSession)) {
 } {
-<h1 class="title">@Messages("itemExpiredTitle")</h1>
+  <h1 class="title">@Messages("itemExpiredTitle")</h1>
+  
+  <div class="itemExpiredDescription">
+    @Messages("itemExpiredDescription")
+  </div>
+  
+  <table class="expiredItem">
+    @errors.map { e =>
+      <tr>
+        <td class="siteName">@e.site.name</td>
+        <td class="itemName">@e.itemName.name</td>
+      </tr>
+    }
+  </table>
 
+  @form(action = helper.CSRF(routes.ShoppingCart.removeExpiredItems())) {
+    <input type="submit" value="Ok">
+  }
 }

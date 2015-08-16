@@ -10,9 +10,12 @@ import play.api.db.DB
 import play.api.Play.current
 import java.util.Locale
 import java.sql.Date.{valueOf => date}
+import java.sql.Timestamp.{valueOf => timestamp}
+import com.ruimo.scoins.Scoping._
 
 class ShoppingCartSpec extends Specification {
-  implicit def date2milli(d: java.sql.Date) = d.getTime
+  implicit def date2milli(d: java.sql.Date): Long = d.getTime
+  implicit def timestamp2milli(d: java.sql.Timestamp): Long = d.getTime
 
   "ShoppingCart" should {
     "addItem will assign sequence number." in {
@@ -768,6 +771,136 @@ class ShoppingCartSpec extends Specification {
           ) === 0
         }
       }}
+    }
+
+    "Can remove expired items." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
+          )
+          import models.LocaleInfo.Ja
+          val site1 = Site.createNew(Ja, "商店1")
+          val site2 = Site.createNew(Ja, "商店2")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+          val cat2 = Category.createNew(Map(Ja -> "果樹"))
+
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat2)
+          val item3 = Item.createNew(cat1)
+          val item4 = Item.createNew(cat2)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+          val name3 = ItemName.createNew(item3, Map(Ja -> "杉2"))
+          val name4 = ItemName.createNew(item4, Map(Ja -> "梅3"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site2, item2)
+          SiteItem.createNew(site1, item3)
+          SiteItem.createNew(site2, item4)
+
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc2 = ItemDescription.createNew(item2, site2, "梅説明")
+          val desc3 = ItemDescription.createNew(item3, site1, "杉説明2")
+          val desc4 = ItemDescription.createNew(item4, site2, "梅説明2")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site2)
+          val price3 = ItemPrice.createNew(item3, site1)
+          val price4 = ItemPrice.createNew(item4, site2)
+
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(100), None, BigDecimal(90),
+            timestamp("2013-01-02 00:00:00")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(100),
+            timestamp("2013-01-02 00:00:01")
+          )
+          val ph3 = ItemPriceHistory.createNew(
+            price3, tax, CurrencyInfo.Jpy, BigDecimal(102), None, BigDecimal(110),
+            timestamp("2013-01-02 00:00:02")
+          )
+          val ph4 = ItemPriceHistory.createNew(
+            price4, tax, CurrencyInfo.Jpy, BigDecimal(103), None, BigDecimal(120),
+            date("9999-12-31")
+          )
+
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
+          val cart3 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item3.id.get.id, 1)
+          val cart4 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item4.id.get.id, 1)
+
+          doWith(
+            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:01"))
+          ) { t =>
+            t._2.size === 2
+          }
+          doWith(
+            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:00"))
+          ) { t =>
+            t._2.size === 1
+          }
+
+          ShoppingCartItem.removeExpiredItems(user1.id.get, timestamp("2013-01-02 00:00:00")) === 1
+          doWith(
+            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:00"))
+          ) { t =>
+            t._2.size === 0
+            doWith(t._1.table) { total =>
+              total.size === 3
+              total(0).shoppingCartItem.sequenceNumber === 2
+              total(1).shoppingCartItem.sequenceNumber === 3
+              total(2).shoppingCartItem.sequenceNumber === 4
+            }
+          }
+
+          ShoppingCartItem.removeExpiredItems(user1.id.get, timestamp("2013-01-02 00:00:02")) === 2
+          doWith(
+            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:00"))
+          ) { t =>
+            t._2.size === 0
+            doWith(t._1.table) { total =>
+              total.size === 1
+              total(0).shoppingCartItem.sequenceNumber === 4
+            }
+          }
+
+          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
+          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
+          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item3.id.get.id, 1)
+
+          doWith(
+            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-01 23:59:59"))
+          ) { t =>
+            t._2.size === 0
+            t._1.table.size === 4
+          }
+
+          // Delete item_price_history record of item4
+          SQL(
+            "delete from item_price_history where item_price_history_id = {id}"
+          ).on(
+            'id -> ph4.id.get
+          ).executeUpdate() === 1
+
+          doWith(
+            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-01 23:59:59"))
+          ) { t =>
+            t._2.size === 1
+            doWith(t._1.table) { total =>
+              t._1.table.size === 3
+              total(0).shoppingCartItem.sequenceNumber === 5
+              total(1).shoppingCartItem.sequenceNumber === 6
+              total(2).shoppingCartItem.sequenceNumber === 7
+            }
+          }
+        }}
+      }
     }
   }
 }

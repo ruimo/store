@@ -1,5 +1,7 @@
 package models
 
+import java.time.Instant
+
 import anorm._
 import anorm.SqlParser
 import model.Until
@@ -301,6 +303,28 @@ object ShoppingCartItem {
 
     (ShoppingCartTotal(total.result), error.result)
   }
+
+  def removeExpiredItems(
+    userId: Long, now: Long = System.currentTimeMillis
+  )(
+    implicit conn: Connection
+  ): Long = SQL(
+    """
+    delete from shopping_cart_item sci
+    where store_user_id = {userId}
+    and 0 = (
+      select coalesce(count(*), 0)
+      from item_price ip
+      inner join item_price_history iph on ip.item_price_id = iph.item_price_id
+      where iph.valid_until > {now}
+      and sci.site_id = ip.site_id
+      and sci.item_id = ip.item_id
+    )
+    """
+  ).on(
+    'userId -> userId,
+    'now -> Instant.ofEpochMilli(now)
+  ).executeUpdate()
 
   def changeQuantity(id: Long, userId: Long, quantity: Int)(implicit conn: Connection): Int = {
     SQL(

@@ -466,3 +466,4 @@ registeredCount=登録数
 createdDate=作成日
 site.item.date.format=yyyy年MM月dd日
 itemExpiredTitle=期限切れ商品
+itemExpiredDescription=申し訳ありません。以下の商品は販売期間が過ぎているため、ショッピングカートから削除されます。

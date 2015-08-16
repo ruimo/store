@@ -146,4 +146,11 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
 
     getItemInfo(keys, cart, Vector[ShoppingCartTotalEntry]())
   }
+
+  def removeExpiredItems = NeedAuthenticated { implicit request =>
+    DB.withConnection { implicit conn =>
+      models.ShoppingCartItem.removeExpiredItems(request.user.storeUser.id.get)
+    }
+    Redirect(routes.Purchase.showShoppingCart)
+  }
 }

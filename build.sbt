@@ -10,6 +10,9 @@ sbt.Keys.fork in Test := false
 
 resolvers += "ruimo.com" at "http://static.ruimo.com/release"
 
+// For IntelliJ hack.
+unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
+
 libraryDependencies ++= Seq(
   "postgresql" % "postgresql" % "9.1-901.jdbc4",
   "com.typesafe.play" %% "play-mailer" % "2.4.1",
