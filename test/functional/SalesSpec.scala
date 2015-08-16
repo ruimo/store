@@ -306,7 +306,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.goTo("http://localhost:3333" + itemQueryUrl())
         browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
         browser.find(".addToCartButton").click()
-        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
 
         // Expire price history.
         ItemPriceHistory.update(
