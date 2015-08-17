@@ -362,7 +362,7 @@ class OrderHistorySpec extends Specification {
         browser.find(".expiredItemRow .siteName").getText === "商店1"
         browser.find(".expiredItemRow .itemName").getText === "植木1"
 
-        browser.find("input[type='submit']").click()
+        browser.find("#removeExpiredItemsButton").click()
         browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
       }}
     }

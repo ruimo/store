@@ -334,7 +334,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find(".expiredItemRow").getTexts.size === 1
         browser.find(".expiredItemRow .siteName").getText === site.name
         browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
-        browser.find("input[type='submit']").click()
+        browser.find("#removeExpiredItemsButton").click()
         browser.find(".shoppingCartTable tr").size === 2
         browser.find(".shoppingCartTable tr", 1).find("td").getText === itemName2(Ja).name
       }}
@@ -410,7 +410,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find(".expiredItemRow").getTexts.size === 1
         browser.find(".expiredItemRow .siteName").getText === site.name
         browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
-        browser.find("input[type='submit']").click()
+        browser.find("#removeExpiredItemsButton").click()
         browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
       }}
     }
@@ -492,7 +492,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find(".expiredItemRow").getTexts.size === 1
         browser.find(".expiredItemRow .siteName").getText === site.name
         browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
-        browser.find("input[type='submit']").click()
+        browser.find("#removeExpiredItemsButton").click()
         browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
       }}
     }
