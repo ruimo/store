@@ -16,10 +16,9 @@
     @Messages("itemExpiredDescription")
   </div>
   
-errors = @errors
   <table class="expiredItem">
     @errors.map { e =>
-      <tr>
+      <tr class="expiredItemRow">
         <td class="siteName">@e.site.name</td>
         <td class="itemName">@e.itemName.name</td>
       </tr>

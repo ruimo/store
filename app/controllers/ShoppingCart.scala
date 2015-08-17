@@ -118,26 +118,21 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
     cart: immutable.Seq[ShoppingCartTotalEntry]
   ): immutable.Seq[ShoppingCartTotalEntry] = {
     def getItemInfo(
-      keys: immutable.Map[(Long, Long), Int], 
+      quantities: immutable.Map[(Long, Long), Int],
       cart: immutable.Seq[ShoppingCartTotalEntry],
       result: immutable.Vector[ShoppingCartTotalEntry]
     ): immutable.Seq[ShoppingCartTotalEntry] = 
       if (cart.isEmpty) {
-        if (keys.isEmpty) {
-          result
-        }
-        else {
-          throw new Error("Logic error. key(" + keys + ") was not found in shopping cart.")
-        }
+        result
       }
       else {
         val cartHead = cart.head
         val keyToDrop = (cartHead.site.id.get, cartHead.itemId)
 
-        keys.get(keyToDrop) match {
-          case None => getItemInfo(keys, cart.tail, result)
+        quantities.get(keyToDrop) match {
+          case None => getItemInfo(quantities, cart.tail, result)
           case Some(quantity) => getItemInfo(
-            keys - keyToDrop,
+            quantities - keyToDrop,
             cart.tail,
             result :+ cartHead.withNewQuantity(quantity)
           )

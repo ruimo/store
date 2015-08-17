@@ -4,6 +4,8 @@ import org.joda.time.DateTime
 import helpers.Helper.disableMailer
 import helpers.UrlHelper
 import helpers.UrlHelper._
+import org.openqa.selenium.By
+import org.openqa.selenium.By._
 import play.api.test.Helpers._
 import play.api.Play.current
 import helpers.Helper._
@@ -281,6 +283,74 @@ class SalesSpec extends Specification with SalesSpecBase  {
         val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
         val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
         val item = Item.createNew(cat)
+        val item2 = Item.createNew(cat)
+        ItemNumericMetadata.createNew(
+          item, ItemNumericMetadataType.HEIGHT, 1
+        )
+        ItemTextMetadata.createNew(
+          item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
+        )
+        SiteItemNumericMetadata.createNew(
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+        )
+        SiteItemTextMetadata.createNew(
+          site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
+        )
+        val siteItem = SiteItem.createNew(site, item)
+        SiteItem.createNew(site, item2)
+        val itemClass = 1L
+        SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, itemClass)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemName2 = ItemName.createNew(item2, Map(LocaleInfo.Ja -> "まつ"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemDesc2 = ItemDescription.createNew(item2, site, "まつ説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val itemPrice2 = ItemPrice.createNew(item2, site)
+        val iph = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+        val iph2 = ItemPriceHistory.createNew(
+          itemPrice2, tax, CurrencyInfo.Jpy, BigDecimal(1999), None, BigDecimal("1888"), date("9999-12-31")
+        )
+
+        browser.goTo("http://localhost:3333" + itemQueryUrl())
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
+        browser.find(".addToCartButton").click()
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+        browser.find(".addToCartButton", 1).click()
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+
+        // Expire price history.
+        ItemPriceHistory.update(
+          iph.id.get, iph.taxId, iph.currency.id, iph.unitPrice, iph.listPrice, iph.costPrice,
+          new DateTime(System.currentTimeMillis - 10000)
+        )
+
+        // Goto cart button
+        browser.find(".ui-dialog-buttonset button").get(1).click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title == Messages("itemExpiredTitle")
+        browser.find(".expiredItemRow").getTexts.size === 1
+        browser.find(".expiredItemRow .siteName").getText === site.name
+        browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
+        browser.find("input[type='submit']").click()
+        browser.find(".shoppingCartTable tr").size === 2
+        browser.find(".shoppingCartTable tr", 1).find("td").getText === itemName2(Ja).name
+      }}
+    }
+
+    "Item expires at shipping confirmation." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        val adminUser = loginWithTestUser(browser)
+        
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val item = Item.createNew(cat)
         ItemNumericMetadata.createNew(
           item, ItemNumericMetadataType.HEIGHT, 1
         )
@@ -306,7 +376,27 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.goTo("http://localhost:3333" + itemQueryUrl())
         browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
         browser.find(".addToCartButton").click()
-        browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+        // Goto cart button
+        browser.find(".ui-dialog-buttonset button").get(1).click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find(".toEnterShippingAddressInner a").click()
+
+        val box = ShippingBox.createNew(site.id.get, itemClass, 3, "box01")
+        val fee = ShippingFee.createNew(box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
+        val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.fill("#firstName").`with`("firstName01")
+        browser.fill("#lastName").`with`("lastName01")
+        browser.fill("#firstNameKana").`with`("firstNameKana01")
+        browser.fill("#lastNameKana").`with`("lastNameKana01")
+        browser.fill("input[name='zip1']").`with`("146")
+        browser.fill("input[name='zip2']").`with`("0082")
+        browser.fill("#address1").`with`("address01")
+        browser.fill("#address2").`with`("address02")
+        browser.fill("#tel1").`with`("11111111")
 
         // Expire price history.
         ItemPriceHistory.update(
@@ -314,14 +404,96 @@ class SalesSpec extends Specification with SalesSpecBase  {
           new DateTime(System.currentTimeMillis - 10000)
         )
 
+        browser.find("#enterShippingAddressForm input[type='submit']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title == Messages("itemExpiredTitle")
+        browser.find(".expiredItemRow").getTexts.size === 1
+        browser.find(".expiredItemRow .siteName").getText === site.name
+        browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
+        browser.find("input[type='submit']").click()
+        browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
+      }}
+    }
+
+    "Item expires on finalizing transaction." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        val adminUser = loginWithTestUser(browser)
+        
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val item = Item.createNew(cat)
+        ItemNumericMetadata.createNew(
+          item, ItemNumericMetadataType.HEIGHT, 1
+        )
+        ItemTextMetadata.createNew(
+          item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
+        )
+        SiteItemNumericMetadata.createNew(
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+        )
+        SiteItemTextMetadata.createNew(
+          site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
+        )
+        val siteItem = SiteItem.createNew(site, item)
+        val itemClass = 1L
+        SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, itemClass)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val iph = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+
+        browser.goTo("http://localhost:3333" + itemQueryUrl())
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
+        browser.find(".addToCartButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+
+        val box = ShippingBox.createNew(site.id.get, itemClass, 3, "box01")
+        val fee = ShippingFee.createNew(box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
+        val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
+
         // Goto cart button
         browser.find(".ui-dialog-buttonset button").get(1).click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find(".toEnterShippingAddressInner a").click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.fill("#firstName").`with`("firstName01")
+        browser.fill("#lastName").`with`("lastName01")
+        browser.fill("#firstNameKana").`with`("firstNameKana01")
+        browser.fill("#lastNameKana").`with`("lastNameKana01")
+        browser.fill("input[name='zip1']").`with`("146")
+        browser.fill("input[name='zip2']").`with`("0082")
+        browser.fill("#address1").`with`("address01")
+        browser.fill("#address2").`with`("address02")
+        browser.fill("#tel1").`with`("11111111")
+
+        browser.find("#enterShippingAddressForm input[type='submit']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("confirm.shipping.address")
+
+        // Expire price history.
+        ItemPriceHistory.update(
+          iph.id.get, iph.taxId, iph.currency.id, iph.unitPrice, iph.listPrice, iph.costPrice,
+          new DateTime(System.currentTimeMillis - 10000)
+        )
+        
+        browser.find("#finalizeTransactionForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title == Messages("itemExpiredTitle")
-
-        Thread.sleep(20000)
-1===1
+        browser.find(".expiredItemRow").getTexts.size === 1
+        browser.find(".expiredItemRow .siteName").getText === site.name
+        browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
+        browser.find("input[type='submit']").click()
+        browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
       }}
     }
   }

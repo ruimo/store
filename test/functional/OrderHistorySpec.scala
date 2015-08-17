@@ -1,5 +1,6 @@
 package functional
 
+import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 import models._
 import java.sql.Date.{valueOf => date}
@@ -28,7 +29,8 @@ class OrderHistorySpec extends Specification {
     transporter2: Transporter,
     transporterName1: TransporterName,
     transporterName2: TransporterName,
-    address: Address
+    address: Address,
+    itemPriceHistory: Seq[ItemPriceHistory]
   )
 
   "Order history" should {
@@ -243,6 +245,7 @@ class OrderHistorySpec extends Specification {
         browser.title === Messages("order.history.title")
 
         browser.find(".orderHistoryInnerTable3").size === 2
+
         if (browser.find(".orderHistoryInnerTable3", 0).find("td.itemName").getText == "植木1") {
           browser.find(".orderHistoryInnerTable3", 0).find("button").get(0).click()
         }
@@ -250,7 +253,7 @@ class OrderHistorySpec extends Specification {
           browser.find(".orderHistoryInnerTable3", 1).find("button").get(0).click()
         }
 
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
         browser.find(".ui-dialog-titlebar").find("span.ui-dialog-title").getText === Messages("shopping.cart")
         doWith(browser.find("#cartDialogContent")) { b =>
           b.find("td.itemName").getText === "植木1"
@@ -319,6 +322,51 @@ class OrderHistorySpec extends Specification {
           b.find("td.quantity").get(2).getText === "5"
           b.find("td.price").get(2).getText === "1,000円"
         }
+        Thread.sleep(1000)
+        1===1
+
+      }}
+    }
+
+    "Can put an item that is bought before into shopping cart and expired." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      SeleniumHelpers.running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.Purchase.clear() + "?lang=" + lang.code
+        )
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
+        )
+        browser.title === Messages("order.history.title")
+
+        browser.find(".orderHistoryInnerTable3").size === 2
+
+        // Expire 植木1
+        doWith(tran.itemPriceHistory.head) { iph =>
+          ItemPriceHistory.update(
+            iph.id.get, iph.taxId, iph.currency.id, iph.unitPrice, iph.listPrice, iph.costPrice,
+            new DateTime(System.currentTimeMillis - 10000)
+          )
+        }
+
+        if (browser.find(".orderHistoryInnerTable3", 0).find("td.itemName").getText == "植木1") {
+          browser.find(".orderHistoryInnerTable3", 0).find("button").get(0).click()
+        }
+        else {
+          browser.find(".orderHistoryInnerTable3", 1).find("button").get(0).click()
+        }
+
+        browser.await().atMost(30, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title == Messages("itemExpiredTitle")
+        browser.find(".expiredItemRow").size === 1
+        browser.find(".expiredItemRow .siteName").getText === "商店1"
+        browser.find(".expiredItemRow .itemName").getText === "植木1"
+
+        browser.find("input[type='submit']").click()
+        browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
       }}
     }
   }
@@ -447,7 +495,8 @@ class OrderHistorySpec extends Specification {
       transporter2 = trans2,
       transporterName1 = transName1,
       transporterName2 = transName2,
-      addr1
+      addr1,
+      itemPriceHis1::itemPriceHis2::itemPriceHis3::Nil
     )
   }
 }
