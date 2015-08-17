@@ -446,6 +446,18 @@
     <input type="submit" value='@Messages("update")'>
   }
 
+  <h2 class="supplementalCategory">@Messages("supplementalCategory")</h2>
+  @form(action = CSRF(routes.ItemMaintenance.addSupplementalCategory(c.id))) {
+    @select(
+      c.newSupplementalCategoryForm("categoryId"),
+      c.categoryTable, 
+      '_showConstraints -> false
+    )(
+      FieldConstructor(simpleField.f), implicitly
+    )
+    <input style="float: right;" type="submit" value='@Messages("add")'>
+  }
+
   <h2 class="coupon">@Messages("coupon")</h2>
   @form(action = CSRF(routes.ItemMaintenance.updateItemAsCoupon(c.id))) {
     @checkbox(

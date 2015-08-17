@@ -435,3 +435,5 @@ createdDate=作成日
 site.item.date.format=yyyy-MM-dd
 itemExpiredTitle=Item expired
 itemExpiredDescription=Sorry, the following items are expired. These will be removed from your shopping cart.
+supplementalCategory=Supplemental categories
+maxSupplementalCategoryCountSucceeded=You cannot add supplemental categories any more.

@@ -44,7 +44,8 @@ class ChangeItem(
   val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
   val newItemTextMetadataForm: Form[ChangeItemTextMetadata],
   val attachmentNames: Map[Int, String],
-  val couponForm: Form[ChangeCoupon]
+  val couponForm: Form[ChangeCoupon],
+  val newSupplementalCategoryForm: Form[ChangeSupplementalCategory]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -78,7 +79,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable] = ItemMaintenance.createItemTextMetadataTable(id),
     newItemTextMetadataForm: Form[ChangeItemTextMetadata] = ItemMaintenance.addItemTextMetadataForm,
     attachmentNames: Map[Int, String] = ItemPictures.retrieveAttachmentNames(id),
-    couponForm: Form[ChangeCoupon] = ItemMaintenance.createCouponForm(ItemId(id))
+    couponForm: Form[ChangeCoupon] = ItemMaintenance.createCouponForm(ItemId(id)),
+    newSupplementalCategoryForm: Form[ChangeSupplementalCategory] = ItemMaintenance.addSupplementalCategoryForm
   ) = new ChangeItem(
     id,
     siteMap,
@@ -106,7 +108,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     itemTextMetadataTableForm,
     newItemTextMetadataForm,
     attachmentNames,
-    couponForm
+    couponForm,
+    newSupplementalCategoryForm
   )
 
   val ItemDescriptionSize: () => Int = Cache.cacheOnProd(
@@ -348,6 +351,12 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "isCoupon" ->boolean
     ) (ChangeCoupon.apply)(ChangeCoupon.unapply)
+  )
+
+  val addSupplementalCategoryForm = Form(
+    mapping(
+      "categoryId" -> longNumber
+    ) (ChangeSupplementalCategory.apply)(ChangeSupplementalCategory.unapply)
   )
 
   def createItemNameTable(id: Long): Form[ChangeItemNameTable] = {
@@ -1240,6 +1249,43 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                 )
               )
             }
+          }
+        }
+      )
+    }
+  }
+
+  def addSupplementalCategory(itemId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      addSupplementalCategoryForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in ItemMaintenance.addSupplementalCategory." + formWithErrors + ".")
+          Redirect(
+            routes.ItemMaintenance.startChangeItem(itemId)
+          ).flashing("errorMessage" -> Messages("unknownError"))
+        },
+        changeCategory => {
+          DB.withConnection { implicit conn =>
+            try {
+              changeCategory.add(itemId)
+            }
+            catch {
+              case e: UniqueConstraintException => {
+                Redirect(
+                  routes.ItemMaintenance.startChangeItem(itemId)
+                ).flashing("errorMessage" -> Messages("unique.constraint.violation"))
+              }
+              case e: MaxRowCountExceededException => {
+                Redirect(
+                  routes.ItemMaintenance.startChangeItem(itemId)
+                ).flashing("errorMessage" -> Messages("maxSupplementalCategoryCountSucceeded"))
+              }
+            }
+
+            Redirect(
+              routes.ItemMaintenance.startChangeItem(itemId)
+            ).flashing("message" -> Messages("itemIsUpdated"))
           }
         }
       )
