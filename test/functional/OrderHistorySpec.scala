@@ -322,9 +322,7 @@ class OrderHistorySpec extends Specification {
           b.find("td.quantity").get(2).getText === "5"
           b.find("td.price").get(2).getText === "1,000円"
         }
-        Thread.sleep(1000)
         1===1
-
       }}
     }
 
