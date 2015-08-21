@@ -166,7 +166,8 @@ object TransactionSummary {
   def listByPeriod(
     siteId: Option[Long] = None,
     storeUserId: Option[Long] = None,
-    yearMonth: HasYearMonth
+    yearMonth: HasYearMonth,
+    onlyShipped: Boolean = false
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     val nextYearMonth = yearMonth.next
 
@@ -176,6 +177,8 @@ object TransactionSummary {
         storeUserId = storeUserId,
         additionalWhere = "where date '%d-%02d-01' <= transaction_time and transaction_time < date '%d-%02d-01'".format(
           yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month
+        ) + (
+          if (onlyShipped) " and transaction_status.status = " + TransactionStatus.SHIPPED.ordinal else ""
         ),
         orderByOpt = List(OrderBy("base.store_user_id", Asc), ListDefaultOrderBy),
         withLimit = false

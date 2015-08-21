@@ -61,7 +61,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
         DB.withConnection { implicit conn =>
           val summariesForAllUser: Seq[TransactionSummaryEntry] = TransactionSummary.listByPeriod(
             siteId = login.siteUser.map(_.siteId), 
-            yearMonth = yearMonth
+            yearMonth = yearMonth,
+            onlyShipped = true
           )
           val userDropDown = getUserDropDown(summariesForAllUser)
           val summaries = yearMonth.userIdOpt match {
@@ -70,6 +71,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           }
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 
+println("*** summaries = " + summaries)
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
             accountingBillForStoreForm,
@@ -102,7 +104,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       yearMonthSite => {
         DB.withConnection { implicit conn =>
           val summaries = TransactionSummary.listByPeriod(
-            siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite
+            siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite,
+            onlyShipped = true
           )
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 

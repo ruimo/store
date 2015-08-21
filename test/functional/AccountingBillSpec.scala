@@ -1,5 +1,6 @@
 package functional
 
+import anorm._
 import play.api.test.Helpers._
 import play.api.Play.current
 import helpers.Helper._
@@ -56,6 +57,19 @@ class AccountingBillSpec extends Specification {
         )
         browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
+        DB.withConnection { implicit conn =>
+          SQL(
+            """
+            update transaction_status
+            set status = {status},
+            last_update = {lastUpdate}
+            """
+          ).on(
+            'status -> TransactionStatus.SHIPPED.ordinal,
+            'lastUpdate -> new java.sql.Timestamp(date("2015-02-03").getTime)
+          ).executeUpdate()
+        }
+
         browser.fill("#storeYear").`with`("%tY".format(tran.tranHeader.transactionTime))
         browser.fill("#storeMonth").`with`("%tm".format(tran.tranHeader.transactionTime))
         browser.find("#storeSubmit").click();
@@ -65,12 +79,14 @@ class AccountingBillSpec extends Specification {
         doWith(browser.find(".accountingBillTable")) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === tran.tranHeader.id.get.toString
-            headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.tranHeader.transactionTime)
+            headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(
+              tran.tranHeader.transactionTime
+            )
             headerTbl.find(".tranBuyer").getText === user.firstName + " " + user.lastName
           }
 
           doWith(tbl.find(".transactionStatus")) { statusTbl =>
-            statusTbl.find(".status").getText === Messages("transaction.status.ORDERED")
+            statusTbl.find(".status").getText === Messages("transaction.status.SHIPPED")
             statusTbl.find(".shippingDate").getText === DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
               tran.shippingDate.bySiteId(master.sites(1).id.get).shippingDate
             )
@@ -129,6 +145,19 @@ class AccountingBillSpec extends Specification {
         )
         browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
+        DB.withConnection { implicit conn =>
+          SQL(
+            """
+            update transaction_status
+            set status = {status},
+            last_update = {lastUpdate}
+            """
+          ).on(
+            'status -> TransactionStatus.SHIPPED.ordinal,
+            'lastUpdate -> new java.sql.Timestamp(date("2015-02-03").getTime)
+          ).executeUpdate()
+        }
+
         browser.fill("#userYear").`with`("%tY".format(trans(0).tranHeader.transactionTime))
         browser.fill("#userMonth").`with`("%tm".format(trans(0).tranHeader.transactionTime))
         browser.find("#userSubmit").click();
@@ -141,12 +170,14 @@ class AccountingBillSpec extends Specification {
         doWith(browser.find(".accountingBillTable", tbl0)) { tbl =>
           doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
             headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
-            headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(trans(2).tranHeader.transactionTime)
+            headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(
+              trans(tbl0).tranHeader.transactionTime
+            )
             headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
           }
 
           doWith(tbl.find(".transactionStatus")) { statusTbl =>
-            statusTbl.find(".status").getText === Messages("transaction.status.ORDERED")
+            statusTbl.find(".status").getText === Messages("transaction.status.SHIPPED")
             statusTbl.find(".shippingDate").getText === DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
               trans(0).shippingDate.bySiteId(master.sites(0).id.get).shippingDate
             )
@@ -224,6 +255,200 @@ class AccountingBillSpec extends Specification {
             headerTbl.find(".tranBuyer").getText === user02.firstName + " " + user02.lastName
           }
         }
+      }}
+    }
+
+    "All transaction that are having sent status should be shown" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val adminUser = loginWithTestUser(browser)
+
+        // Need site for other customizations where company is selected from sites available in the application.
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
+        createNormalUser(
+          browser, "11111111", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
+        )
+        createNormalUser(
+          browser, "22222222", "password02", "user02@mail.xxx", "firstName02", "lastName02", "商店111"
+        )
+        val user01 = StoreUser.findByUserName("11111111").get
+        val user02 = StoreUser.findByUserName("22222222").get
+
+        val master = createMaster
+        val trans = Vector(
+          createTransaction(master, user01),
+          createTransaction(master, user02),
+          createTransaction(master, user01)
+        )
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
+        )
+        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
+
+        DB.withConnection { implicit conn =>
+          SQL(
+            """
+            update transaction_status
+            set status = {status},
+            last_update = {lastUpdate}
+            """
+          ).on(
+            'status -> TransactionStatus.SHIPPED.ordinal,
+            'lastUpdate -> new java.sql.Timestamp(date("2015-02-03").getTime)
+          ).executeUpdate()
+        }
+
+        browser.fill("#userYear").`with`("%tY".format(trans(0).tranHeader.transactionTime))
+        browser.fill("#userMonth").`with`("%tm".format(trans(0).tranHeader.transactionTime))
+        browser.find("#userSubmit").click();
+
+        browser.find(".accountingBillTable").size() === 6
+        val (tbl0, tbl1) = if (
+          browser.find(".accountingBillTable", 0).find(".itemName.body").size == 2
+        ) (0, 1) else (1, 0)
+
+        doWith(browser.find(".accountingBillTable", tbl0)) { tbl =>
+          doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
+            headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
+            headerTbl.find(".tranDateTime").getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(
+              trans(0).tranHeader.transactionTime
+            )
+            headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
+          }
+
+          doWith(tbl.find(".transactionStatus")) { statusTbl =>
+            statusTbl.find(".status").getText === Messages("transaction.status.SHIPPED")
+            statusTbl.find(".shippingDate").getText === DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
+              trans(0).shippingDate.bySiteId(master.sites(0).id.get).shippingDate
+            )
+          }
+          val items = trans(0).shoppingCartItems.filter(_.siteId == master.sites(0).id.get)
+          tbl.find(".itemName.body").size === 2
+          tbl.find(".itemName.body", 0).getText === master.itemNames(0)(Ja).name
+          tbl.find(".itemName.body", 1).getText === master.itemNames(2)(Ja).name
+
+          tbl.find(".quantity.body", 0).getText === items(0).quantity.toString
+          tbl.find(".quantity.body", 1).getText === items(1).quantity.toString
+          tbl.find(".price.body", 0).getText ===
+            "%,.0f円".format(master.itemPriceHistories(0).unitPrice * items(0).quantity)
+          tbl.find(".price.body", 1).getText ===
+            "%,.0f円".format(master.itemPriceHistories(2).unitPrice * items(1).quantity)
+          tbl.find(".subtotal.body").getText ===
+            "%,.0f円".format(
+              master.itemPriceHistories(0).unitPrice * items(0).quantity +
+              master.itemPriceHistories(2).unitPrice * items(1).quantity
+            )
+          tbl.find(".boxName.body").getText === master.boxes.filter(_.siteId == master.sites(0).id.get).head.boxName
+          val boxCount = 1
+          tbl.find(".boxCount.body").getText === boxCount.toString
+          tbl.find(".boxPrice.body").getText === "%,d円".format(123 * boxCount)
+          tbl.find(".subtotal.box.body").getText === "%,d円".format(123 * boxCount)
+          tbl.find(".tax.body").getText ===
+            "%,d円".format(
+              (
+                master.itemPriceHistories(0).unitPrice * items(0).quantity +
+                master.itemPriceHistories(2).unitPrice * items(1).quantity
+              ).toInt * 5 / 100
+            )
+          tbl.find(".total.body").getText ===
+            "%,d円".format(
+              (
+                master.itemPriceHistories(0).unitPrice * items(0).quantity +
+                master.itemPriceHistories(2).unitPrice * items(1).quantity
+              ).toInt * 105 / 100 +
+              123 * boxCount
+            )
+        }
+
+        // Should be ordered by user and transaction id.
+        doWith(browser.find(".accountingBillTable", tbl1)) { tbl =>
+          doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
+            headerTbl.find(".tranId").getText === trans(2).tranHeader.id.get.toString
+            headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
+          }
+        }
+
+        doWith(browser.find(".accountingBillTable", 2)) { tbl =>
+          doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
+            headerTbl.find(".tranId").getText === trans(0).tranHeader.id.get.toString
+            headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
+          }
+        }
+
+        doWith(browser.find(".accountingBillTable", 3)) { tbl =>
+          doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
+            headerTbl.find(".tranId").getText === trans(0).tranHeader.id.get.toString
+            headerTbl.find(".tranBuyer").getText === user01.firstName + " " + user01.lastName
+          }
+        }
+
+        doWith(browser.find(".accountingBillTable", 4)) { tbl =>
+          doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
+            headerTbl.find(".tranId").getText === trans(1).tranHeader.id.get.toString
+            headerTbl.find(".tranBuyer").getText === user02.firstName + " " + user02.lastName
+          }
+        }
+
+        doWith(browser.find(".accountingBillTable", 5)) { tbl =>
+          doWith(tbl.find(".accountingBillHeaderTable")) { headerTbl =>
+            headerTbl.find(".tranId").getText === trans(1).tranHeader.id.get.toString
+            headerTbl.find(".tranBuyer").getText === user02.firstName + " " + user02.lastName
+          }
+        }
+      }}
+    }
+
+    "Transactions having sent status should be shown." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val adminUser = loginWithTestUser(browser)
+
+        // Need site for other customizations where company is selected from sites available in the application.
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
+        createNormalUser(
+          browser, "11111111", "password01", "user01@mail.xxx", "firstName01", "lastName01", "商店111"
+        )
+        val user01 = StoreUser.findByUserName("11111111").get
+
+        val master = createMaster
+        val trans = Vector(
+          createTransaction(
+            master = master, user = user01,
+            shoppingCartFactory =
+              (userId, master, conn) => Vector(
+                ShoppingCartItem.addItem(user01.id.get, master.sites(0).id.get, master.items(0).id.get.id, 3)(conn),
+                ShoppingCartItem.addItem(user01.id.get, master.sites(1).id.get, master.items(1).id.get.id, 5)(conn)
+              )
+          )
+        )
+
+        trans.size === 1
+        SQL(
+          """
+          update transaction_status
+          set status = {status},
+          last_update = {lastUpdate}
+          where transaction_site_id = {tranSiteId}
+          """
+        ).on(
+          'status -> TransactionStatus.SHIPPED.ordinal,
+          'lastUpdate -> new java.sql.Timestamp(date("2015-02-03").getTime),
+          'tranSiteId -> trans(0).tranSiteHeader(1).id.get
+        ).executeUpdate()
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
+        )
+        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
+
+        browser.fill("#userYear").`with`("%tY".format(trans(0).tranHeader.transactionTime))
+        browser.fill("#userMonth").`with`("%tm".format(trans(0).tranHeader.transactionTime))
+        browser.find("#userSubmit").click();
+
+        browser.find(".transactionStatus").size === 1
+        browser.find(".transactionStatus .status").getText === Messages("transaction.status.SHIPPED")
       }}
     }
   }
@@ -307,17 +532,22 @@ class AccountingBillSpec extends Specification {
     Master(sites, items, itemNames, itemPriceHistories, boxes, transporters, transporterNames)
   }
 
+  def createShoppingCartItems(userId: Long, master: Master)(implicit conn: Connection): Vector[ShoppingCartItem] = Vector(
+    ShoppingCartItem.addItem(userId, master.sites(0).id.get, master.items(0).id.get.id, 3),
+    ShoppingCartItem.addItem(userId, master.sites(1).id.get, master.items(1).id.get.id, 5),
+    ShoppingCartItem.addItem(userId, master.sites(0).id.get, master.items(2).id.get.id, 7)
+  )
+
   def createTransaction(
-    master: Master, user: StoreUser, now: Long = System.currentTimeMillis, offset: Int = 0
+    master: Master, user: StoreUser, now: Long = System.currentTimeMillis, offset: Int = 0,
+    sentDate: Option[Long] = None,
+    shoppingCartFactory: (Long, Master, Connection) => Vector[ShoppingCartItem] =
+      (userId, master, conn) => createShoppingCartItems(userId, master)(conn)
   )(implicit conn: Connection): Tran = {
     ShoppingCartItem.removeForUser(user.id.get)
 
-    val shoppingCartItems = Vector(
-      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(0).id.get.id, 3),
-      ShoppingCartItem.addItem(user.id.get, master.sites(1).id.get, master.items(1).id.get.id, 5),
-      ShoppingCartItem.addItem(user.id.get, master.sites(0).id.get, master.items(2).id.get.id, 7)
-    )
-    
+    val shoppingCartItems = shoppingCartFactory(user.id.get, master, conn)
+
     val addr1 = Address.createNew(
       countryCode = CountryCode.JPN,
       firstName = "firstName1",
