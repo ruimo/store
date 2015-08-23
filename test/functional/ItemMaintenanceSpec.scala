@@ -1,5 +1,7 @@
 package functional
 
+import helpers.UrlHelper
+import helpers.UrlHelper._
 import java.util.concurrent.TimeUnit
 import play.api.test._
 import play.api.test.Helpers._
@@ -420,6 +422,45 @@ class ItemMaintenanceSpec extends Specification {
 
         ItemName.list(itemId).size === 2
         browser.title === Messages("company.name")
+      }}
+    }
+
+    "Creating an item that is treated by two sites." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site01 = Site.createNew(LocaleInfo.Ja, "Store01")
+        val site02 = Site.createNew(LocaleInfo.Ja, "Store02")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startCreateNewItem().url + "?lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#siteId").find("option", 0).getText() === "Store01"
+        browser.find("#siteId option[value='" + site01.id.get + "']").click()
+        browser.find("#categoryId").find("option").getText() === "Cat01"
+        browser.find("#taxId").find("option").getText() === "外税"
+        browser.fill("#description").`with`("Description01")
+
+        browser.fill("#itemName").`with`("ItemName01")
+        browser.fill("#price").`with`("1234")
+        browser.fill("#costPrice").`with`("2345")
+        browser.find("#createNewItemForm").find("input[type='submit']").click
+
+        browser.find(".message").getText() === Messages("itemIsCreated")
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(1000).url.addParm("lang", lang.code)
+        )
+
+        1===1
       }}
     }
   }
