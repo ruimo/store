@@ -10,4 +10,8 @@ case class ChangeSupplementalCategory(categoryId: Long) {
       SupplementalCategory.createNew(ItemId(itemId), categoryId)
     }
   }
+
+  def remove(itemId: Long)(implicit conn: Connection) {
+    SupplementalCategory.remove(ItemId(itemId), categoryId)
+  }
 }

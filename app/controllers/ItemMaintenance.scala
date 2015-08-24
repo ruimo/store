@@ -45,7 +45,8 @@ class ChangeItem(
   val newItemTextMetadataForm: Form[ChangeItemTextMetadata],
   val attachmentNames: Map[Int, String],
   val couponForm: Form[ChangeCoupon],
-  val newSupplementalCategoryForm: Form[ChangeSupplementalCategory]
+  val newSupplementalCategoryForm: Form[ChangeSupplementalCategory],
+  val supplementalCategories: Seq[(Long, String)]
 )
 
 object ItemMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
@@ -80,7 +81,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     newItemTextMetadataForm: Form[ChangeItemTextMetadata] = ItemMaintenance.addItemTextMetadataForm,
     attachmentNames: Map[Int, String] = ItemPictures.retrieveAttachmentNames(id),
     couponForm: Form[ChangeCoupon] = ItemMaintenance.createCouponForm(ItemId(id)),
-    newSupplementalCategoryForm: Form[ChangeSupplementalCategory] = ItemMaintenance.addSupplementalCategoryForm
+    newSupplementalCategoryForm: Form[ChangeSupplementalCategory] = ItemMaintenance.addSupplementalCategoryForm,
+    supplementalCategories: Seq[(Long, String)] = ItemMaintenance.supplementalCategories(ItemId(id), lang)
   ) = new ChangeItem(
     id,
     siteMap,
@@ -109,7 +111,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     newItemTextMetadataForm,
     attachmentNames,
     couponForm,
-    newSupplementalCategoryForm
+    newSupplementalCategoryForm,
+    supplementalCategories
   )
 
   val ItemDescriptionSize: () => Int = Cache.cacheOnProd(
@@ -1289,6 +1292,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
           }
         }
       )
+    }
+  }
+
+  def supplementalCategories(itemId: ItemId, lang: Lang): Seq[(Long, String)] = {
+    DB.withConnection { implicit conn =>
+      SupplementalCategory.byItemWithName(itemId, lang).map { t =>
+        (t._1.categoryId, t._2.name)
+      }
     }
   }
 }

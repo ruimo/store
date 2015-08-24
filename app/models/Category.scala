@@ -509,6 +509,10 @@ object SupplementalCategory {
     }
   }
 
+  val withName = simple ~ CategoryName.simple map {
+    case cat~name => (cat, name)
+  }
+
   def createNew(itemId: ItemId, categoryId: Long)(implicit conn: Connection): SupplementalCategory = {
     val updateCount = SQL(
       """
@@ -542,6 +546,25 @@ object SupplementalCategory {
     'itemId -> itemId.id
   ).as(
     simple *
+  )
+
+  def byItemWithName(
+    itemId: ItemId, lang: Lang
+  )(
+    implicit conn: Connection
+  ): Seq[(SupplementalCategory, CategoryName)] = SQL(
+    """
+    select * from supplemental_category sc
+    inner join category_name cn on sc.category_id = cn.category_id
+    where item_id = {itemId}
+    and cn.locale_id = {localeId}
+    order by category_id
+    """
+  ).on(
+    'itemId -> itemId.id,
+    'localeId -> LocaleInfo.byLang(lang).id
+  ).as(
+    withName *
   )
 
   def remove(itemId: ItemId, categoryId: Long)(implicit conn: Connection): Int = SQL(
