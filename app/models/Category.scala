@@ -558,7 +558,7 @@ object SupplementalCategory {
     inner join category_name cn on sc.category_id = cn.category_id
     where item_id = {itemId}
     and cn.locale_id = {localeId}
-    order by category_id
+    order by sc.category_id
     """
   ).on(
     'itemId -> itemId.id,
