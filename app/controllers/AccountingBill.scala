@@ -43,7 +43,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def show() = NeedAuthenticated { implicit request =>
+  def show(useShippedDate: Boolean) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     accountingBillForm.bindFromRequest.fold(
@@ -62,7 +62,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           val summariesForAllUser: Seq[TransactionSummaryEntry] = TransactionSummary.listByPeriod(
             siteId = login.siteUser.map(_.siteId), 
             yearMonth = yearMonth,
-            onlyShipped = true
+            onlyShipped = true, useShippedDate = useShippedDate
           )
           val userDropDown = getUserDropDown(summariesForAllUser)
           val summaries = yearMonth.userIdOpt match {
@@ -71,7 +71,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           }
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 
-println("*** summaries = " + summaries)
           Ok(views.html.accountingBill(
             accountingBillForm.fill(yearMonth),
             accountingBillForStoreForm,
@@ -87,7 +86,7 @@ println("*** summaries = " + summaries)
       }
     )
   }
-  def showForStore() = NeedAuthenticated { implicit request =>
+  def showForStore(useShippedDate: Boolean) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     accountingBillForStoreForm.bindFromRequest.fold(
@@ -105,7 +104,7 @@ println("*** summaries = " + summaries)
         DB.withConnection { implicit conn =>
           val summaries = TransactionSummary.listByPeriod(
             siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite,
-            onlyShipped = true
+            onlyShipped = true, useShippedDate = useShippedDate
           )
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 

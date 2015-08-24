@@ -167,10 +167,11 @@ object TransactionSummary {
     siteId: Option[Long] = None,
     storeUserId: Option[Long] = None,
     yearMonth: HasYearMonth,
-    onlyShipped: Boolean = false
+    onlyShipped: Boolean = false,
+    useShippedDate:Boolean = false
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     val nextYearMonth = yearMonth.next
-    val dateCol = if (onlyShipped) "transaction_status.last_update" else "transaction_time"
+    val dateCol = if (useShippedDate) "transaction_status.last_update" else "transaction_time"
 
     SQL(
       baseSql(
