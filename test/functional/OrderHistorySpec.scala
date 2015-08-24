@@ -357,7 +357,7 @@ class OrderHistorySpec extends Specification {
         }
 
         browser.await().atMost(30, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title == Messages("itemExpiredTitle")
+        browser.title === Messages("itemExpiredTitle")
         browser.find(".expiredItemRow").size === 1
         browser.find(".expiredItemRow .siteName").getText === "商店1"
         browser.find(".expiredItemRow .itemName").getText === "植木1"
