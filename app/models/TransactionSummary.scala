@@ -177,7 +177,9 @@ object TransactionSummary {
       baseSql(
         siteId = siteId,
         storeUserId = storeUserId,
-        additionalWhere = "where date '%d-%02d-01' <= " + dateCol + " and " + dateCol + " < date '%d-%02d-01'".format(
+        additionalWhere = (
+          "where date '%d-%02d-01' <= " + dateCol + " and " + dateCol + " < date '%d-%02d-01'"
+        ).format(
           yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month
         ) + (
           if (onlyShipped) " and transaction_status.status = " + TransactionStatus.SHIPPED.ordinal else ""
