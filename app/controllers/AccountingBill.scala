@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.Cache
 import play.api.i18n.{Lang, Messages}
 import play.api.Play.current
 import play.api.data.Forms._
@@ -12,6 +13,10 @@ import play.api.mvc.{Controller, RequestHeader}
 import java.sql.Connection
 
 object AccountingBill extends Controller with NeedLogin with HasLogger with I18nAware {
+  val UseShippingDateForAccountingBill: () => Boolean = Cache.cacheOnProd(
+    Cache.Conf.getBoolean("useShippingDateForAccountingBill").getOrElse(false)
+  )
+
   val accountingBillForm = Form(
     mapping(
       "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
@@ -43,7 +48,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def show(useShippedDate: Boolean) = NeedAuthenticated { implicit request =>
+  def show() = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     accountingBillForm.bindFromRequest.fold(
@@ -62,7 +67,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           val summariesForAllUser: Seq[TransactionSummaryEntry] = TransactionSummary.listByPeriod(
             siteId = login.siteUser.map(_.siteId), 
             yearMonth = yearMonth,
-            onlyShipped = true, useShippedDate = useShippedDate
+            onlyShipped = true, useShippedDate = UseShippingDateForAccountingBill()
           )
           val userDropDown = getUserDropDown(summariesForAllUser)
           val summaries = yearMonth.userIdOpt match {
@@ -86,7 +91,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       }
     )
   }
-  def showForStore(useShippedDate: Boolean) = NeedAuthenticated { implicit request =>
+  def showForStore() = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     accountingBillForStoreForm.bindFromRequest.fold(
@@ -104,7 +109,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
         DB.withConnection { implicit conn =>
           val summaries = TransactionSummary.listByPeriod(
             siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite,
-            onlyShipped = true, useShippedDate = useShippedDate
+            onlyShipped = true, useShippedDate = UseShippingDateForAccountingBill()
           )
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 
