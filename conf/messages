@@ -309,6 +309,7 @@ year=Year
 month=Month
 accountingBillTitle=Accounting Bill
 showAccountingBill=Show accounting bill
+showAccountingBillCsv=Download accounting bill
 tranid=Transaction Id
 fee.total=Fee total
 shippingBoxName=Box

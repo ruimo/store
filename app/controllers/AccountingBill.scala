@@ -1,5 +1,6 @@
 package controllers
 
+import scala.collection.immutable
 import helpers.Cache
 import play.api.i18n.{Lang, Messages}
 import play.api.Play.current
@@ -21,7 +22,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     mapping(
       "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
       "month" -> number(min = 1, max = 12),
-      "user" -> longNumber
+      "user" -> longNumber,
+      "command" -> text
     )(YearMonthUser.apply)(YearMonthUser.unapply)
   )
 
@@ -29,7 +31,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     mapping(
       "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
       "month" -> number(min = 1, max = 12),
-      "site" -> longNumber
+      "site" -> longNumber,
+      "command" -> text
     )(YearMonthSite.apply)(YearMonthSite.unapply)
   )
 
@@ -76,17 +79,31 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           }
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 
-          Ok(views.html.accountingBill(
-            accountingBillForm.fill(yearMonth),
-            accountingBillForStoreForm,
-            summaries, getDetailByTranSiteId(summaries),
-            getBoxBySiteAndItemSize(summaries),
-            siteTranByTranId,
-            false,
-            Site.tableForDropDown,
-            getAddressTable(siteTranByTranId),
-            userDropDown
-          ))
+          if (yearMonth.command == "csv") {
+            implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
+            val fileName = "fileName.csv"
+
+            Ok(
+              createCsv(summaries, siteTranByTranId)
+            ).as(
+              "text/csv charset=Shift_JIS"
+            ).withHeaders(
+              CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
+            )
+          }
+          else {
+            Ok(views.html.accountingBill(
+              accountingBillForm.fill(yearMonth),
+              accountingBillForStoreForm,
+              summaries, getDetailByTranSiteId(summaries),
+              getBoxBySiteAndItemSize(summaries),
+              siteTranByTranId,
+              false,
+              Site.tableForDropDown,
+              getAddressTable(siteTranByTranId),
+              userDropDown
+            ))
+          }
         }
       }
     )
@@ -113,16 +130,30 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
           )
           val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
 
-          Ok(views.html.accountingBill(
-            accountingBillForm,
-            accountingBillForStoreForm.fill(yearMonthSite),
-            summaries, getDetailByTranSiteId(summaries),
-            getBoxBySiteAndItemSize(summaries),
-            siteTranByTranId,
-            true, Site.tableForDropDown,
-            getAddressTable(siteTranByTranId),
-            getUserDropDown(summaries)
-          ))
+          if (yearMonthSite.command == "csv") {
+            implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
+            val fileName = "fileName.csv"
+
+            Ok(
+              createCsv(summaries, siteTranByTranId)
+            ).as(
+              "text/csv charset=Shift_JIS"
+            ).withHeaders(
+              CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(fileName))
+            )
+          }
+          else {
+            Ok(views.html.accountingBill(
+              accountingBillForm,
+              accountingBillForStoreForm.fill(yearMonthSite),
+              summaries, getDetailByTranSiteId(summaries),
+              getBoxBySiteAndItemSize(summaries),
+              siteTranByTranId,
+              true, Site.tableForDropDown,
+              getAddressTable(siteTranByTranId),
+              getUserDropDown(summaries)
+            ))
+          }
         }
       }
     )
@@ -198,4 +229,36 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
   }.map {
     u => (u.id.get.toString, u.userName)
   }.toSeq
+
+  def createCsv(
+    summaries: Seq[TransactionSummaryEntry],
+    siteTranByTranId: immutable.LongMap[PersistedTransaction]
+  ): String = {
+    class Rec {
+      var userName: String = _
+      var itemSubtotal: BigDecimal = BigDecimal(0)
+      var tax: BigDecimal = BigDecimal(0)
+      var fee: BigDecimal = BigDecimal(0)
+      def total = itemSubtotal + tax + fee
+    }
+
+    "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+    summaries.foldLeft(immutable.LongMap[Rec]().withDefault(idx => new Rec)) { (sum, e) =>
+      val rec = sum(e.buyer.id.get)
+      rec.userName = e.buyer.fullName
+      rec.itemSubtotal += siteTranByTranId(e.transactionId).itemTotal(e.siteId)
+      rec.tax += siteTranByTranId(e.transactionId).outerTaxTotal(e.siteId)
+      rec.fee += siteTranByTranId(e.transactionId).boxTotal(e.siteId)
+
+      sum
+    }.foldLeft(new StringBuilder) { (buf, e) =>
+      buf.append(e._1)
+        .append('"').append(e._2.userName).append('"')
+        .append(',').append(e._2.itemSubtotal)
+        .append(',').append(e._2.tax)
+        .append(',').append(e._2.fee)
+        .append(',').append(e._2.total)
+        .append("\r\n")
+    }.toString
+  }
 }

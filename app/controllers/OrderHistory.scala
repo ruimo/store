@@ -20,7 +20,8 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
   val orderHistoryForm = Form(
     mapping(
       "year" -> number(min = YearMonth.MinYear, max = YearMonth.MaxYear),
-      "month" -> number(min = 1, max = 12)
+      "month" -> number(min = 1, max = 12),
+      "command" -> text
     )(YearMonth.apply)(YearMonth.unapply)
   )
 

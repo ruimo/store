@@ -57,7 +57,8 @@
         </td>
         <td>@Messages("month")</td>
         <td>
-          <input type="submit" id="userSubmit" value="@Messages("showAccountingBill")">
+          <button type="submit" name="command" id="userSubmit" value="show">@Messages("showAccountingBill")</button>
+          <button type="submit" name="command" id="userSubmitCsv" value="csv">@Messages("showAccountingBillCsv")</button>
         </td>
       </tr>
     }
@@ -94,7 +95,8 @@
           </td>
           <td>@Messages("month")</td>
           <td>
-            <input type="submit" id="storeSubmit" value="@Messages("showAccountingBill")">
+            <button type="submit" name="command" id="storeSubmit" value="show">@Messages("showAccountingBill")</button>
+            <button type="submit" name="command" id="storeSubmitCsv" value="csv">@Messages("showAccountingBillCsv")</button>
           </td>
         </tr>
       }

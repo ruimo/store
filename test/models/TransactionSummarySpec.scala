@@ -382,7 +382,7 @@ class TransactionSummarySpec extends Specification {
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
-          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 1))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 1, "show"))) { s =>
             s.size === 1
             doWith(s(0)) { e =>
               e.transactionId === tranNo1
@@ -395,7 +395,7 @@ class TransactionSummarySpec extends Specification {
             }
           }
 
-          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 3))) { s =>
+          doWith(TransactionSummary.listByPeriod(siteId = Some(siteUser1.siteId), yearMonth = YearMonth(2013, 3, "show"))) { s =>
             s.size === 1
             doWith(s(0)) { e =>
               e.transactionId === tranNo2

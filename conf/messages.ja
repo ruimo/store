@@ -340,6 +340,7 @@ year=年
 month=月
 accountingBillTitle=請求書
 showAccountingBill=ご請求料金の内訳を見る
+showAccountingBillCsv=CSVダウンロード
 tranid=ご注文番号
 fee.total=送料計
 shippingBoxName=箱
