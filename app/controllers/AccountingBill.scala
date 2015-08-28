@@ -67,17 +67,11 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       },
       yearMonth => {
         DB.withConnection { implicit conn =>
-          val summariesForAllUser: Seq[TransactionSummaryEntry] = TransactionSummary.listByPeriod(
-            siteId = login.siteUser.map(_.siteId), 
-            yearMonth = yearMonth,
-            onlyShipped = true, useShippedDate = UseShippingDateForAccountingBill()
-          )
-          val userDropDown = getUserDropDown(summariesForAllUser)
-          val summaries = yearMonth.userIdOpt match {
-            case Some(userId) => summariesForAllUser.filter(_.buyer.id.get == userId)
-            case None => summariesForAllUser
-          }
-          val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
+          val siteId: Option[Long] = login.siteUser.map(_.siteId)
+          val summariesForAllUser: Seq[TransactionSummaryEntry] =
+            TransactionSummary.summaryForAllUser(yearMonth, yearMonth.userIdOpt, siteId, UseShippingDateForAccountingBill())
+          val summaries = TransactionSummary.summaryForUser(yearMonth.userIdOpt, summariesForAllUser)
+          val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
 
           if (yearMonth.command == "csv") {
             implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
@@ -101,13 +95,14 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               false,
               Site.tableForDropDown,
               getAddressTable(siteTranByTranId),
-              userDropDown
+              getUserDropDown(summariesForAllUser)
             ))
           }
         }
       }
     )
   }
+
   def showForStore() = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
@@ -128,7 +123,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             siteId = Some(yearMonthSite.siteId), yearMonth = yearMonthSite,
             onlyShipped = true, useShippedDate = UseShippingDateForAccountingBill()
           )
-          val siteTranByTranId = getSiteTranByTranId(summaries, request2lang)
+          val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
 
           if (yearMonthSite.command == "csv") {
             implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
@@ -208,16 +203,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     (sum, e) =>
     val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.getDefault)
     sum.updated(e.transactionSiteId, details)
-  }
-
-  def getSiteTranByTranId(
-    summaries: Seq[TransactionSummaryEntry], lang: Lang
-  )(
-    implicit conn: Connection
-  ): LongMap[PersistedTransaction] = summaries.foldLeft(LongMap[PersistedTransaction]()) {
-    (sum, e) =>
-    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault(lang))
-    sum.updated(e.transactionId, siteTran)
   }
 
   def getUserDropDown(

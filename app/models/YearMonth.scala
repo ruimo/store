@@ -8,7 +8,6 @@ trait HasYearMonth {
   val year: Int
   val month: Int
   def next: HasYearMonth
-  val command: String
 }
 
 case class YearMonth(year: Int, month: Int, command: String) extends HasYearMonth {

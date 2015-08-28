@@ -3,6 +3,8 @@ package models
 import anorm._
 import java.sql.Connection
 import scala.language.postfixOps
+import scala.collection.immutable
+import play.api.i18n.Lang
 
 case class TransactionSummaryEntry(
   transactionId: Long,
@@ -23,6 +25,13 @@ case class TransactionSummaryEntry(
 ) {
   lazy val totalWithTax = totalAmount + totalTax
 }
+
+case class AccountingBillTable(
+  userId: Option[Long],
+  summariesForAllUser: Seq[TransactionSummaryEntry],
+  summaries: Seq[TransactionSummaryEntry],
+  siteTranByTranId: immutable.LongMap[PersistedTransaction]
+)
 
 object TransactionSummary {
   val ListDefaultOrderBy = OrderBy("base.transaction_time", Desc)
@@ -200,4 +209,54 @@ object TransactionSummary {
     ).as(
       parser.singleOpt
     )
+
+  def accountingBillForUser(
+    siteId: Option[Long], yearMonth: HasYearMonth, userId: Option[Long], lang: Lang, userShippedDate: Boolean
+  )(
+    implicit conn: Connection
+  ): AccountingBillTable = {
+    val summariesForAllUser: Seq[TransactionSummaryEntry] =
+      TransactionSummary.summaryForAllUser(yearMonth, userId, siteId, userShippedDate)
+    val summaries = TransactionSummary.summaryForUser(userId, summariesForAllUser)
+    val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, lang)
+
+    AccountingBillTable(
+      userId,
+      summariesForAllUser,
+      summaries,
+      siteTranByTranId
+    )
+  }
+
+  def summaryForAllUser(
+    yearMonth: HasYearMonth, userId: Option[Long], siteId: Option[Long], userShippedDate: Boolean
+  )(
+    implicit conn: Connection
+  ): Seq[TransactionSummaryEntry] = {
+    val summariesForAllUser: Seq[TransactionSummaryEntry] = TransactionSummary.listByPeriod(
+      siteId = siteId,
+      yearMonth = yearMonth,
+      onlyShipped = true, useShippedDate = userShippedDate
+    )
+    summariesForAllUser
+  }
+
+  def summaryForUser(
+    userId: Option[Long], summariesForAllUser: Seq[TransactionSummaryEntry]
+  ): Seq[TransactionSummaryEntry] = {
+    userId match {
+      case Some(userId) => summariesForAllUser.filter(_.buyer.id.get == userId)
+      case None => summariesForAllUser
+    }
+  }
+
+  def getSiteTranByTranId(
+    summaries: Seq[TransactionSummaryEntry], lang: Lang
+  )(
+    implicit conn: Connection
+  ): immutable.LongMap[PersistedTransaction] = summaries.foldLeft(immutable.LongMap[PersistedTransaction]()) {
+    (sum, e) =>
+    val siteTran = (new TransactionPersister).load(e.transactionId, LocaleInfo.getDefault(lang))
+    sum.updated(e.transactionId, siteTran)
+  }
 }
