@@ -88,7 +88,7 @@ class AccountingBillSpec extends Specification {
           doWith(tbl.find(".transactionStatus")) { statusTbl =>
             statusTbl.find(".status").getText === Messages("transaction.status.SHIPPED")
             statusTbl.find(".shippingDate").getText === DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
-              tran.shippingDate.bySiteId(master.sites(1).id.get).shippingDate
+              date("2015-02-03")
             )
           }
 
@@ -179,7 +179,7 @@ class AccountingBillSpec extends Specification {
           doWith(tbl.find(".transactionStatus")) { statusTbl =>
             statusTbl.find(".status").getText === Messages("transaction.status.SHIPPED")
             statusTbl.find(".shippingDate").getText === DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
-              trans(0).shippingDate.bySiteId(master.sites(0).id.get).shippingDate
+              date("2015-02-03")
             )
           }
           val items = trans(0).shoppingCartItems.filter(_.siteId == master.sites(0).id.get)
@@ -320,7 +320,7 @@ class AccountingBillSpec extends Specification {
           doWith(tbl.find(".transactionStatus")) { statusTbl =>
             statusTbl.find(".status").getText === Messages("transaction.status.SHIPPED")
             statusTbl.find(".shippingDate").getText === DateTimeFormat.forPattern(Messages("shipping.date.format")).print(
-              trans(0).shippingDate.bySiteId(master.sites(0).id.get).shippingDate
+              date("2015-02-03")
             )
           }
           val items = trans(0).shoppingCartItems.filter(_.siteId == master.sites(0).id.get)
