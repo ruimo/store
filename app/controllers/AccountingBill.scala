@@ -67,18 +67,20 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       },
       yearMonth => {
         DB.withConnection { implicit conn =>
-          val siteId: Option[Long] = login.siteUser.map(_.siteId)
-          val summariesForAllUser: Seq[TransactionSummaryEntry] =
-            TransactionSummary.summaryForAllUser(yearMonth, yearMonth.userIdOpt, siteId, UseShippingDateForAccountingBill())
-          val summaries = TransactionSummary.summaryForUser(yearMonth.userIdOpt, summariesForAllUser)
-          val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
+          val table: AccountingBillTable = TransactionSummary.accountingBillForUser(
+            login.siteUser.map(_.siteId),
+            yearMonth,
+            yearMonth.userIdOpt,
+            request2lang,
+            UseShippingDateForAccountingBill()
+          )
 
           if (yearMonth.command == "csv") {
             implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
             val fileName = "fileName.csv"
 
             Ok(
-              createCsv(summaries, siteTranByTranId)
+              createCsv(table.summaries, table.siteTranByTranId)
             ).as(
               "text/csv charset=Shift_JIS"
             ).withHeaders(
@@ -89,13 +91,14 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             Ok(views.html.accountingBill(
               accountingBillForm.fill(yearMonth),
               accountingBillForStoreForm,
-              summaries, getDetailByTranSiteId(summaries),
-              getBoxBySiteAndItemSize(summaries),
-              siteTranByTranId,
+              table.summaries,
+              getDetailByTranSiteId(table.summaries),
+              getBoxBySiteAndItemSize(table.summaries),
+              table.siteTranByTranId,
               false,
               Site.tableForDropDown,
-              getAddressTable(siteTranByTranId),
-              getUserDropDown(summariesForAllUser)
+              getAddressTable(table.siteTranByTranId),
+              getUserDropDown(table.summariesForAllUser)
             ))
           }
         }
@@ -141,10 +144,12 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             Ok(views.html.accountingBill(
               accountingBillForm,
               accountingBillForStoreForm.fill(yearMonthSite),
-              summaries, getDetailByTranSiteId(summaries),
+              summaries,
+              getDetailByTranSiteId(summaries),
               getBoxBySiteAndItemSize(summaries),
               siteTranByTranId,
-              true, Site.tableForDropDown,
+              true,
+              Site.tableForDropDown,
               getAddressTable(siteTranByTranId),
               getUserDropDown(summaries)
             ))
