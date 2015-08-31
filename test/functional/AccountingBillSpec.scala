@@ -137,7 +137,6 @@ class AccountingBillSpec extends Specification {
           ",\"" + user.fullName + "\"" +
           ",950.00,47,702.00,1699.00\r\n"
         )
-
       }}
     }
 
