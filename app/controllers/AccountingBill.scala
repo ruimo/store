@@ -78,7 +78,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
           if (yearMonth.command == "csv") {
             implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
-            val fileName = "fileName.csv"
+            val fileName = "accountingBillByUser.csv"
 
             Ok(
               createCsv(table.summaries, table.siteTranByTranId, false)
@@ -133,7 +133,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
           if (yearMonthSite.command == "csv") {
             implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
-            val fileName = "fileName.csv"
+            val fileName = "accountingBillByStore.csv"
 
             Ok(
               createCsv(summaries, siteTranByTranId, useCostPrice)
