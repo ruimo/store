@@ -80,7 +80,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             val fileName = "fileName.csv"
 
             Ok(
-              createCsv(table.summaries, table.siteTranByTranId)
+              createCsv(table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false)
             ).as(
               "text/csv charset=Shift_JIS"
             ).withHeaders(
@@ -92,7 +92,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               accountingBillForm.fill(yearMonth),
               accountingBillForStoreForm,
               table.summaries,
-              getDetailByTranSiteId(table.summaries),
+              table.detailByTranSiteId,
               getBoxBySiteAndItemSize(table.summaries),
               table.siteTranByTranId,
               false,
@@ -127,13 +127,15 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             onlyShipped = true, useShippedDate = UseShippingDateForAccountingBill()
           )
           val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
+          val detailByTranSiteId: LongMap[Seq[TransactionDetail]] = TransactionSummary.getDetailByTranSiteId(summaries)
+          val useCostPrice = true
 
           if (yearMonthSite.command == "csv") {
             implicit val cs = play.api.mvc.Codec.javaSupported("Windows-31j")
             val fileName = "fileName.csv"
 
             Ok(
-              createCsv(summaries, siteTranByTranId)
+              createCsv(summaries, siteTranByTranId, detailByTranSiteId, useCostPrice)
             ).as(
               "text/csv charset=Shift_JIS"
             ).withHeaders(
@@ -145,10 +147,10 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               accountingBillForm,
               accountingBillForStoreForm.fill(yearMonthSite),
               summaries,
-              getDetailByTranSiteId(summaries),
+              detailByTranSiteId,
               getBoxBySiteAndItemSize(summaries),
               siteTranByTranId,
-              true,
+              useCostPrice,
               Site.tableForDropDown,
               getAddressTable(siteTranByTranId),
               getUserDropDown(summaries)
@@ -200,16 +202,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def getDetailByTranSiteId(
-    summaries: Seq[TransactionSummaryEntry]
-  )(
-    implicit conn: Connection, lang: Lang
-  ): LongMap[Seq[TransactionDetail]] = summaries.foldLeft(LongMap[Seq[TransactionDetail]]()) {
-    (sum, e) =>
-    val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.getDefault)
-    sum.updated(e.transactionSiteId, details)
-  }
-
   def getUserDropDown(
     summaries: Seq[TransactionSummaryEntry]
   )(
@@ -222,7 +214,9 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
 
   def createCsv(
     summaries: Seq[TransactionSummaryEntry],
-    siteTranByTranId: immutable.LongMap[PersistedTransaction]
+    siteTranByTranId: immutable.LongMap[PersistedTransaction],
+    detailByTranSiteId: LongMap[Seq[TransactionDetail]],
+    useCostPrice: Boolean
   ): String = {
     class Rec {
       var userName: String = _
@@ -232,23 +226,31 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       def total = itemSubtotal + tax + fee
     }
 
-    "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
-    summaries.foldLeft(immutable.LongMap[Rec]().withDefault(idx => new Rec)) { (sum, e) =>
+    val rows = summaries.foldLeft(immutable.LongMap[Rec]().withDefault(idx => new Rec)) { (sum, e) =>
       val rec = sum(e.buyer.id.get)
+
       rec.userName = e.buyer.fullName
-      rec.itemSubtotal += siteTranByTranId(e.transactionId).itemTotal(e.siteId)
-      rec.tax += siteTranByTranId(e.transactionId).outerTaxTotal(e.siteId)
+      rec.itemSubtotal += (
+        if (useCostPrice) siteTranByTranId(e.transactionId).costPriceTotal
+        else siteTranByTranId(e.transactionId).itemTotal
+      )(e.siteId)
+      rec.tax += (
+        if (useCostPrice) siteTranByTranId(e.transactionId).outerTaxWhenCostPrice
+        else siteTranByTranId(e.transactionId).outerTaxTotal
+      )(e.siteId)
       rec.fee += siteTranByTranId(e.transactionId).boxTotal(e.siteId)
 
-      sum
+      sum.updated(e.buyer.id.get, rec)
     }.foldLeft(new StringBuilder) { (buf, e) =>
       buf.append(e._1)
-        .append('"').append(e._2.userName).append('"')
+        .append(',').append('"').append(e._2.userName).append('"')
         .append(',').append(e._2.itemSubtotal)
         .append(',').append(e._2.tax)
         .append(',').append(e._2.fee)
         .append(',').append(e._2.total)
         .append("\r\n")
     }.toString
+
+    "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" + rows
   }
 }

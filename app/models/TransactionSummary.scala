@@ -29,6 +29,7 @@ case class TransactionSummaryEntry(
 case class AccountingBillTable(
   summariesForAllUser: Seq[TransactionSummaryEntry],
   summaries: Seq[TransactionSummaryEntry],
+  detailByTranSiteId: immutable.LongMap[Seq[TransactionDetail]],
   siteTranByTranId: immutable.LongMap[PersistedTransaction]
 )
 
@@ -215,15 +216,27 @@ object TransactionSummary {
     implicit conn: Connection
   ): AccountingBillTable = {
     val summariesForAllUser: Seq[TransactionSummaryEntry] =
-      TransactionSummary.summaryForAllUser(yearMonth, userId, siteId, userShippedDate)
-    val summaries = TransactionSummary.summaryForUser(userId, summariesForAllUser)
-    val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, lang)
+      summaryForAllUser(yearMonth, userId, siteId, userShippedDate)
+    val summaries = summaryForUser(userId, summariesForAllUser)
+    val siteTranByTranId: immutable.LongMap[PersistedTransaction] = getSiteTranByTranId(summaries, lang)
+    val detailByTranSiteId: immutable.LongMap[Seq[TransactionDetail]] = getDetailByTranSiteId(summaries)
 
     AccountingBillTable(
       summariesForAllUser,
       summaries,
+      detailByTranSiteId,
       siteTranByTranId
     )
+  }
+
+  def getDetailByTranSiteId(
+    summaries: Seq[TransactionSummaryEntry]
+  )(
+    implicit conn: Connection, lang: Lang
+  ): immutable.LongMap[Seq[TransactionDetail]] = summaries.foldLeft(immutable.LongMap[Seq[TransactionDetail]]()) {
+    (sum, e) =>
+    val details = TransactionDetail.show(e.transactionSiteId, LocaleInfo.getDefault)
+    sum.updated(e.transactionSiteId, details)
   }
 
   def summaryForAllUser(

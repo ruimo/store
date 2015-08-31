@@ -14,6 +14,7 @@ import java.sql.Date.{valueOf => date}
 import LocaleInfo._
 import java.sql.Connection
 import scala.collection.JavaConversions._
+import scala.collection.immutable
 import com.ruimo.scoins.Scoping._
 
 class AccountingBillSpec extends Specification {
@@ -114,6 +115,31 @@ class AccountingBillSpec extends Specification {
               234 * boxCount
             )
         }
+
+        // Check CSV
+        val summaries = TransactionSummary.listByPeriod(
+          siteId = master.sites(1).id,
+          yearMonth = YearMonth(
+            "%tY".format(tran.tranHeader.transactionTime).toInt,
+            "%tm".format(tran.tranHeader.transactionTime).toInt,
+            ""
+          ),
+          onlyShipped = true, useShippedDate = false
+        )
+        val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, lang)
+        val detailByTranSiteId: immutable.LongMap[Seq[TransactionDetail]] = 
+          TransactionSummary.getDetailByTranSiteId(summaries)
+        val csv = controllers.AccountingBill.createCsv(
+          summaries, siteTranByTranId, detailByTranSiteId, true
+        )
+
+        csv === (
+          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          user.id.get + 
+          ",\"" + user.fullName + "\"" +
+          ",950.00,47,702.00,1699.00\r\n"
+        )
+
       }}
     }
 
@@ -255,6 +281,33 @@ class AccountingBillSpec extends Specification {
             headerTbl.find(".tranBuyer").getText === user02.firstName + " " + user02.lastName
           }
         }
+
+        // Check CSV
+        val table: AccountingBillTable = TransactionSummary.accountingBillForUser(
+          None,
+          YearMonth(
+            "%tY".format(trans(0).tranHeader.transactionTime).toInt,
+            "%tm".format(trans(0).tranHeader.transactionTime).toInt,
+            ""
+          ),
+          None,
+          lang,
+          false
+        )
+
+        val csv = controllers.AccountingBill.createCsv(
+          table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false
+        )
+
+        csv === (
+          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          user01.id.get + 
+          ",\"" + user01.fullName + "\"" +
+          ",6800.00,340.00,1650.00,8790.00\r\n" +
+          user02.id.get + 
+          ",\"" + user02.fullName + "\"" +
+          ",3400.00,170.00,825.00,4395.00\r\n"
+        )
       }}
     }
 
@@ -396,6 +449,33 @@ class AccountingBillSpec extends Specification {
             headerTbl.find(".tranBuyer").getText === user02.firstName + " " + user02.lastName
           }
         }
+
+        // Check CSV
+        val table: AccountingBillTable = TransactionSummary.accountingBillForUser(
+          None,
+          YearMonth(
+            "%tY".format(trans(0).tranHeader.transactionTime).toInt,
+            "%tm".format(trans(0).tranHeader.transactionTime).toInt,
+            ""
+          ),
+          None,
+          lang,
+          false
+        )
+
+        val csv = controllers.AccountingBill.createCsv(
+          table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false
+        )
+
+        csv === (
+          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          user01.id.get + 
+          ",\"" + user01.fullName + "\"" +
+          ",6800.00,340.00,1650.00,8790.00\r\n" +
+          user02.id.get + 
+          ",\"" + user02.fullName + "\"" +
+          ",3400.00,170.00,825.00,4395.00\r\n"
+        )
       }}
     }
 
@@ -441,7 +521,6 @@ class AccountingBillSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.AccountingBill.index() + "?lang=" + lang.code
         )
-        browser.find("#siteDropDown").find("option[value=\"" + master.sites(1).id.get + "\"]").click()
 
         browser.fill("#userYear").`with`("%tY".format(trans(0).tranHeader.transactionTime))
         browser.fill("#userMonth").`with`("%tm".format(trans(0).tranHeader.transactionTime))
@@ -449,6 +528,30 @@ class AccountingBillSpec extends Specification {
 
         browser.find(".transactionStatus").size === 1
         browser.find(".transactionStatus .status").getText === Messages("transaction.status.SHIPPED")
+
+        // Check CSV
+        val table: AccountingBillTable = TransactionSummary.accountingBillForUser(
+          None,
+          YearMonth(
+            "%tY".format(trans(0).tranHeader.transactionTime).toInt,
+            "%tm".format(trans(0).tranHeader.transactionTime).toInt,
+            ""
+          ),
+          None,
+          lang,
+          false
+        )
+
+        val csv = controllers.AccountingBill.createCsv(
+          table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false
+        )
+
+        csv === (
+          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          user01.id.get + 
+          ",\"" + user01.fullName + "\"" +
+          ",1000.00,50.00,702.00,1752.00\r\n"
+        )
       }}
     }
   }

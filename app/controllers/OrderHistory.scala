@@ -92,7 +92,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     Ok(
       view(
         pagedRecords,
-        AccountingBill.getDetailByTranSiteId(pagedRecords.records),
+        TransactionSummary.getDetailByTranSiteId(pagedRecords.records),
         AccountingBill.getBoxBySiteAndItemSize(pagedRecords.records),
         siteTranByTranId, 
         AccountingBill.getAddressTable(siteTranByTranId),
@@ -118,7 +118,7 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
           Ok(views.html.showMonthlyOrderHistory(
             orderHistoryForm.fill(yearMonth),
             summaries,
-            AccountingBill.getDetailByTranSiteId(summaries),
+            TransactionSummary.getDetailByTranSiteId(summaries),
             AccountingBill.getBoxBySiteAndItemSize(summaries),
             siteTranByTranId,
             AccountingBill.getAddressTable(siteTranByTranId)
