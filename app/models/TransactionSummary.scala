@@ -29,7 +29,6 @@ case class TransactionSummaryEntry(
 case class AccountingBillTable(
   summariesForAllUser: Seq[TransactionSummaryEntry],
   summaries: Seq[TransactionSummaryEntry],
-  detailByTranSiteId: immutable.LongMap[Seq[TransactionDetail]],
   siteTranByTranId: immutable.LongMap[PersistedTransaction]
 )
 
@@ -219,12 +218,10 @@ object TransactionSummary {
       summaryForAllUser(yearMonth, userId, siteId, userShippedDate)
     val summaries = summaryForUser(userId, summariesForAllUser)
     val siteTranByTranId: immutable.LongMap[PersistedTransaction] = getSiteTranByTranId(summaries, lang)
-    val detailByTranSiteId: immutable.LongMap[Seq[TransactionDetail]] = getDetailByTranSiteId(summaries)
 
     AccountingBillTable(
       summariesForAllUser,
       summaries,
-      detailByTranSiteId,
       siteTranByTranId
     )
   }

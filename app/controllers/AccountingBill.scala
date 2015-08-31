@@ -80,7 +80,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             val fileName = "fileName.csv"
 
             Ok(
-              createCsv(table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false)
+              createCsv(table.summaries, table.siteTranByTranId, false)
             ).as(
               "text/csv charset=Shift_JIS"
             ).withHeaders(
@@ -92,7 +92,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               accountingBillForm.fill(yearMonth),
               accountingBillForStoreForm,
               table.summaries,
-              table.detailByTranSiteId,
+              TransactionSummary.getDetailByTranSiteId(table.summaries),
               getBoxBySiteAndItemSize(table.summaries),
               table.siteTranByTranId,
               false,
@@ -127,7 +127,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             onlyShipped = true, useShippedDate = UseShippingDateForAccountingBill()
           )
           val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
-          val detailByTranSiteId: LongMap[Seq[TransactionDetail]] = TransactionSummary.getDetailByTranSiteId(summaries)
           val useCostPrice = true
 
           if (yearMonthSite.command == "csv") {
@@ -135,7 +134,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
             val fileName = "fileName.csv"
 
             Ok(
-              createCsv(summaries, siteTranByTranId, detailByTranSiteId, useCostPrice)
+              createCsv(summaries, siteTranByTranId, useCostPrice)
             ).as(
               "text/csv charset=Shift_JIS"
             ).withHeaders(
@@ -147,7 +146,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
               accountingBillForm,
               accountingBillForStoreForm.fill(yearMonthSite),
               summaries,
-              detailByTranSiteId,
+              TransactionSummary.getDetailByTranSiteId(summaries),
               getBoxBySiteAndItemSize(summaries),
               siteTranByTranId,
               useCostPrice,
@@ -215,7 +214,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
   def createCsv(
     summaries: Seq[TransactionSummaryEntry],
     siteTranByTranId: immutable.LongMap[PersistedTransaction],
-    detailByTranSiteId: LongMap[Seq[TransactionDetail]],
     useCostPrice: Boolean
   ): String = {
     class Rec {

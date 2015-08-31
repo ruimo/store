@@ -127,10 +127,8 @@ class AccountingBillSpec extends Specification {
           onlyShipped = true, useShippedDate = false
         )
         val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, lang)
-        val detailByTranSiteId: immutable.LongMap[Seq[TransactionDetail]] = 
-          TransactionSummary.getDetailByTranSiteId(summaries)
         val csv = controllers.AccountingBill.createCsv(
-          summaries, siteTranByTranId, detailByTranSiteId, true
+          summaries, siteTranByTranId, true
         )
 
         csv === (
@@ -296,7 +294,7 @@ class AccountingBillSpec extends Specification {
         )
 
         val csv = controllers.AccountingBill.createCsv(
-          table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false
+          table.summaries, table.siteTranByTranId, false
         )
 
         csv === (
@@ -464,7 +462,7 @@ class AccountingBillSpec extends Specification {
         )
 
         val csv = controllers.AccountingBill.createCsv(
-          table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false
+          table.summaries, table.siteTranByTranId, false
         )
 
         csv === (
@@ -543,7 +541,7 @@ class AccountingBillSpec extends Specification {
         )
 
         val csv = controllers.AccountingBill.createCsv(
-          table.summaries, table.siteTranByTranId, table.detailByTranSiteId, false
+          table.summaries, table.siteTranByTranId, false
         )
 
         csv === (
