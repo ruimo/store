@@ -111,8 +111,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     implicit val login = request.user
 
     accountingBillForStoreForm.bindFromRequest.fold(
-      logger.error("Validation error in AccountingBill.showForStore() " + formWithErrors)
       formWithErrors => {
+        logger.error("Validation error in AccountingBill.showForStore() " + formWithErrors)
         DB.withConnection { implicit conn =>
           BadRequest(
             views.html.accountingBill(
