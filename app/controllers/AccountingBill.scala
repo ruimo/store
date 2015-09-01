@@ -220,6 +220,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
   ): String = {
     class Rec {
       var userName: String = _
+      var companyName: String = _
       var itemSubtotal: BigDecimal = BigDecimal(0)
       var tax: BigDecimal = BigDecimal(0)
       var fee: BigDecimal = BigDecimal(0)
@@ -230,6 +231,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
       val rec = sum(e.buyer.id.get)
 
       rec.userName = e.buyer.fullName
+      rec.companyName = e.buyer.companyName.getOrElse("")
       rec.itemSubtotal += (
         if (useCostPrice) siteTranByTranId(e.transactionId).costPriceTotal
         else siteTranByTranId(e.transactionId).itemTotal
@@ -244,6 +246,7 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     }.foldLeft(new StringBuilder) { (buf, e) =>
       buf.append(e._1)
         .append(',').append('"').append(e._2.userName).append('"')
+        .append(',').append('"').append(e._2.companyName).append('"')
         .append(',').append(e._2.itemSubtotal)
         .append(',').append(e._2.tax)
         .append(',').append(e._2.fee)
@@ -251,6 +254,6 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
         .append("\r\n")
     }.toString
 
-    "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" + rows
+    "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" + rows
   }
 }

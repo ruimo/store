@@ -132,9 +132,10 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
           user.id.get + 
           ",\"" + user.fullName + "\"" +
+          ",\"" + user.companyName.getOrElse("") + "\"" +
           ",950.00,47,702.00,1699.00\r\n"
         )
       }}
@@ -297,12 +298,14 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
+          ",\"" + user01.companyName.getOrElse("") + "\"" +
           ",6800.00,340.00,1650.00,8790.00\r\n" +
           user02.id.get + 
           ",\"" + user02.fullName + "\"" +
+          ",\"" + user02.companyName.getOrElse("") + "\"" +
           ",3400.00,170.00,825.00,4395.00\r\n"
         )
       }}
@@ -465,12 +468,14 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
+          ",\"" + user01.companyName.getOrElse("") + "\"" +
           ",6800.00,340.00,1650.00,8790.00\r\n" +
           user02.id.get + 
           ",\"" + user02.fullName + "\"" +
+          ",\"" + user02.companyName.getOrElse("") + "\"" +
           ",3400.00,170.00,825.00,4395.00\r\n"
         )
       }}
@@ -544,9 +549,10 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
+          ",\"" + user01.companyName.getOrElse("") + "\"" +
           ",1000.00,50.00,702.00,1752.00\r\n"
         )
       }}
