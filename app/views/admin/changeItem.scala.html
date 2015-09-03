@@ -447,6 +447,19 @@
   }
 
   <h2 class="supplementalCategory">@Messages("supplementalCategory")</h2>
+  <table>
+    @c.supplementalCategories.map { t =>
+      <tr>
+        <td>@t._2</td>
+        <td>
+          @form(action = CSRF(routes.ItemMaintenance.removeSupplementalCategory(c.id, t._1))) {
+            <input type="submit" value='@Messages("remove")'>
+          }
+        </td>
+      </tr>
+    }
+  </table>
+
   @form(action = CSRF(routes.ItemMaintenance.addSupplementalCategory(c.id))) {
     @select(
       c.newSupplementalCategoryForm("categoryId"),

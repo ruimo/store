@@ -34,8 +34,9 @@ POST    /admin/changeSiteItemTextMetadata controllers.ItemMaintenance.changeSite
 GET     /admin/removeItemMetadata        controllers.ItemMaintenance.removeItemMetadata(itemId: Long, metadataType: Int)
 GET     /admin/removeItemTextMetadata    controllers.ItemMaintenance.removeItemTextMetadata(itemId: Long, metadataType: Int)
 GET     /admin/removeSiteItemMetadata    controllers.ItemMaintenance.removeSiteItemMetadata(itemId: Long, siteId: Long, metadataType: Int)
-GET     /admin/removeSiteItemTextMetadata    controllers.ItemMaintenance.removeSiteItemTextMetadata(itemId: Long, siteId: Long, metadataType: Int)
+GET     /admin/removeSiteItemTextMetadata controllers.ItemMaintenance.removeSiteItemTextMetadata(itemId: Long, siteId: Long, metadataType: Int)
 POST    /admin/addSupplementalCategory   controllers.ItemMaintenance.addSupplementalCategory(itemId: Long)
+POST    /removeSupplementalCategory      controllers.ItemMaintenance.removeSupplementalCategory(itemId: Long, categoryId: Long)
 
 POST    /admin/addSiteItem               controllers.ItemMaintenance.addSiteItem(id: Long)
 GET     /admin/removeSiteItem            controllers.ItemMaintenance.removeSiteItem(itemId: Long, siteId: Long)

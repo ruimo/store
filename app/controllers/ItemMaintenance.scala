@@ -1263,7 +1263,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     assumeSuperUser(login) {
       addSupplementalCategoryForm.bindFromRequest.fold(
         formWithErrors => {
-          logger.error("Validation error in ItemMaintenance.addSupplementalCategory." + formWithErrors + ".")
+          logger.error("Validation error in ItemMaintenance.addSupplementalCategory " + formWithErrors + ".")
           Redirect(
             routes.ItemMaintenance.startChangeItem(itemId)
           ).flashing("errorMessage" -> Messages("unknownError"))
@@ -1300,6 +1300,18 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
       SupplementalCategory.byItemWithName(itemId, lang).map { t =>
         (t._1.categoryId, t._2.name)
       }
+    }
+  }
+
+  def removeSupplementalCategory(itemId: Long, categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      DB.withConnection { implicit conn =>
+        SupplementalCategory.remove(ItemId(itemId), categoryId)
+      }
+      Redirect(
+        routes.ItemMaintenance.startChangeItem(itemId)
+      ).flashing("message" -> Messages("itemIsUpdated"))
     }
   }
 }
