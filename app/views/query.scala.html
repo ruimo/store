@@ -24,14 +24,32 @@
 
 @main(Messages("item.list"), loginSession) {
   @shoppingCartDialogDeclaration()
+  <script>
+    var onSortOrderChanged = function(o) {
+    alert(o.value);
+    }
+  </script>
 } {
   @shoppingCartDialogImplementation()
 
-  @helper.form(action=routes.ItemQuery.query(queryString.table.toList)) {
-    <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")"
-           value="@queryString.toString">
-    <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
-  }
+  <table style="width: 100%;">
+    <tr>
+      <td>
+        @helper.form(action=routes.ItemQuery.query(queryString.table.toList)) {
+          <input type="search" id="searchbox" name="q" placeholder="@Messages("search.placeholder")"
+                 value="@queryString.toString">
+          <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
+        }
+      </td>
+      <td halign="right">
+        <select id="sortDropDown" onchange="onSortOrderChanged(this);">
+          <option value="newer">新着順</option>
+          <option value="name">名前順</option>
+          <option value="price">価格順</option>
+        </select>
+      </td>
+    </tr>
+  </table>
 
   <br>
   <table class="queryItemTable">
