@@ -1,6 +1,10 @@
 package models
 
+import play.api.Play.current
+import anorm._
 import java.sql.Connection
+
+import play.api.db.DB
 
 case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expireTime: Long) {
   lazy val user = User(storeUser, siteUser)
@@ -12,6 +16,9 @@ case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expire
   lazy val isSuperUser = role == SuperUser
   lazy val isAdmin = role != Buyer
   lazy val isSiteOwner = isAdmin && (! isSuperUser)
+  def quantityInShoppingCart: Long = DB.withConnection { implicit conn =>
+    ShoppingCartItem.quantityForUser(storeUser.id.get)
+  }
 }
 
 object LoginSession {

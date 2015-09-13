@@ -148,6 +148,7 @@ GET     /showShoppingCart                controllers.Purchase.showShoppingCart
 GET     /changeItemQuantity              controllers.Purchase.changeItemQuantity(cartId: Long ?= 0, quantity: Int ?= 1)
 GET     /deleteItemFromCart              controllers.Purchase.deleteItemFromCart(cartId: Long ?= 0)
 GET     /clearShoppingCart               controllers.Purchase.clear()
+GET     /quantityInShoppingCart          controllers.ShoppingCart.quantityInShoppingCartJson
 
 GET     /startEnterShippingAddress       controllers.Shipping.startEnterShippingAddress()
 POST    /enterShippingAddressJa          controllers.Shipping.enterShippingAddressJa()

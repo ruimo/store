@@ -339,6 +339,14 @@ object ShoppingCartItem {
     ).executeUpdate()
   }
 
+  def quantityForUser(storeUserId: Long)(implicit conn: Connection): Long = SQL(
+    """
+    select coalesce(sum(quantity), 0) from shopping_cart_item where store_user_id = {id}
+    """
+  ).on(
+    'id -> storeUserId
+  ).as(SqlParser.scalar[Long].single)
+
   def apply(id: Long)(implicit conn: Connection): ShoppingCartItem = SQL(
     "select * from shopping_cart_item where shopping_cart_item_id = {id}"
   ).on(

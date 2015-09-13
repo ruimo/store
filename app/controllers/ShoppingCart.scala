@@ -12,6 +12,20 @@ import play.api.mvc.Controller
 import scala.collection.immutable
 
 object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLogger {
+  def quantityInShoppingCartJson = NeedAuthenticatedJson { implicit request =>
+    implicit val login = request.user
+
+    DB.withConnection { implicit conn =>
+      Ok(
+        Json.toJson(
+          JsObject(
+            Seq(("quantity", JsNumber(BigDecimal(ShoppingCartItem.quantityForUser(login.userId)))))
+          )
+        )
+      )
+    }
+  }
+
   def addToCartJson = NeedAuthenticatedJson { implicit request =>
     implicit val login = request.user
 

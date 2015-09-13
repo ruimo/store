@@ -17,7 +17,7 @@
       }
       case _ => {
         <button type="button" class='addToCartButton reserveButton @cssClass.getOrElse("")'
-               onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
+                onclick="location.href='@routes.ItemInquiryReserve.startItemReservation(siteId, itemId)';">
            @Messages("itemReservation")
         </button>
       }

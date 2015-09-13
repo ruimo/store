@@ -84,6 +84,7 @@ var shoppingCartDialog = {
       "</tr>"
     );
 
+    var quantityTotal = 0;
     $.each(data.current, function(idx, e) {
       currentContent.append(
         "<tr>" +
@@ -94,6 +95,7 @@ var shoppingCartDialog = {
         "  <td class='price body'>" + e.price + "</td>" +
         "</tr>"
       );
+      quantityTotal += e.quantity;
     });
 
     showRecommendation(

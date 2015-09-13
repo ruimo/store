@@ -33,6 +33,9 @@ class ShoppingCartSpec extends Specification {
             "name2", "first2", None, "last2", "email2", 987L, 765L, UserRole.NORMAL, None
           )
 
+          ShoppingCartItem.quantityForUser(user1.id.get) === 0
+          ShoppingCartItem.quantityForUser(user2.id.get) === 0
+
           import models.LocaleInfo.{Ja, En}
           val site1 = Site.createNew(Ja, "商店1")
           val site2 = Site.createNew(Ja, "商店2")
@@ -115,6 +118,9 @@ class ShoppingCartSpec extends Specification {
 
           ShoppingCartItem.isAllCoupon(user1.id.get) === false
           ShoppingCartItem.isAllCoupon(user2.id.get) === false
+
+          ShoppingCartItem.quantityForUser(user1.id.get) === 5
+          ShoppingCartItem.quantityForUser(user2.id.get) === 10
         }}
       }
     }

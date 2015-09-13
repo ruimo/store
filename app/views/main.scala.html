@@ -34,7 +34,9 @@
       @loginSession match {
         case None => {}
         case Some(login) => {
-          <li><a href="/showShoppingCart">@Messages("shopping.cart")</a></li>
+          <li><a href="/showShoppingCart">
+            @Messages("shopping.cart") @loginSession.map("(" + _.quantityInShoppingCart + ")").getOrElse("")
+          </a></li>
           <li><a href="@routes.OrderHistory.index()">@Messages("query.order.history")</a></li>
         }
       }
@@ -47,12 +49,6 @@
 <div id="mynaviright">
 <ul>
 <li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-<li>MENU</li>
-
 </ul>
 </div>
 </div>
