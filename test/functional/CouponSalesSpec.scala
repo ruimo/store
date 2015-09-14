@@ -24,7 +24,9 @@ class CouponSalesSpec extends Specification {
 
   "Coupon sale" should {
     "If the all of items are coupon, shipping address should be skipped." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val app = FakeApplication(
+        additionalConfiguration = inMemoryDatabase(options = Map("MVCC" -> "true"))
+      )
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         import models.LocaleInfo.{Ja, En}
         implicit val lang = Lang("ja")

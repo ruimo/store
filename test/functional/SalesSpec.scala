@@ -27,7 +27,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
 
   "Sales" should {
     "Can sell item." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer)
+      val app = FakeApplication(
+        additionalConfiguration = inMemoryDatabase(options = Map("MVCC" -> "true")) ++ disableMailer
+      )
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         val adminUser = loginWithTestUser(browser)
         
