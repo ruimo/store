@@ -132,7 +132,9 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
+            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
+            "," + Messages("grandTotal") + "\r\n" +
           user.id.get + 
           ",\"" + user.fullName + "\"" +
           ",\"" + user.companyName.getOrElse("") + "\"" +
@@ -298,7 +300,9 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
+            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
+            "," + Messages("grandTotal") + "\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
           ",\"" + user01.companyName.getOrElse("") + "\"" +
@@ -468,7 +472,9 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
+            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
+            "," + Messages("grandTotal") + "\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
           ",\"" + user01.companyName.getOrElse("") + "\"" +
@@ -549,7 +555,9 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          "userId,userName,companyName,itemTotal,outerTax,fee,grandTotal\r\n" +
+          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
+            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
+            "," + Messages("grandTotal") + "\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
           ",\"" + user01.companyName.getOrElse("") + "\"" +
