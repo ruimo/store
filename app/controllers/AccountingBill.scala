@@ -217,6 +217,8 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     summaries: Seq[TransactionSummaryEntry],
     siteTranByTranId: immutable.LongMap[PersistedTransaction],
     useCostPrice: Boolean
+  )(
+    implicit lang: Lang
   ): String = {
     class Rec {
       var userName: String = _
