@@ -255,11 +255,11 @@ object AccountingBill extends Controller with NeedLogin with HasLogger with I18n
     }.toString
 
     Messages("accountingBillCsvHeaderUserId") + "," +
-    Messages("accountingBillCsvHeaderUserIdUserName") + "," +
-    Messages("accountingBillCsvHeaderUserIdCompanyName") + "," +
-    Messages("accountingBillCsvHeaderUserIdItemTotal") + "," +
-    Messages("accountingBillCsvHeaderUserIdOuterTax") + "," +
-    Messages("accountingBillCsvHeaderUserIdFee") + "," +
+    Messages("accountingBillCsvHeaderUserName") + "," +
+    Messages("accountingBillCsvHeaderCompanyName") + "," +
+    Messages("accountingBillCsvHeaderItemTotal") + "," +
+    Messages("accountingBillCsvHeaderOuterTax") + "," +
+    Messages("accountingBillCsvHeaderFee") + "," +
     Messages("accountingBillCsvHeaderGrandTotal") + "\r\n" + rows
   }
 }

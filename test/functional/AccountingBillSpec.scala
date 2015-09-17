@@ -132,9 +132,13 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
-            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
-            "," + Messages("grandTotal") + "\r\n" +
+          Messages("accountingBillCsvHeaderUserId") + "," +
+            Messages("accountingBillCsvHeaderUserName") + "," +
+            Messages("accountingBillCsvHeaderCompanyName") + "," +
+            Messages("accountingBillCsvHeaderItemTotal") + "," +
+            Messages("accountingBillCsvHeaderOuterTax") + "," +
+            Messages("accountingBillCsvHeaderFee") + "," +
+            Messages("accountingBillCsvHeaderGrandTotal") + "\r\n" +
           user.id.get + 
           ",\"" + user.fullName + "\"" +
           ",\"" + user.companyName.getOrElse("") + "\"" +
@@ -300,9 +304,13 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
-            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
-            "," + Messages("grandTotal") + "\r\n" +
+          Messages("accountingBillCsvHeaderUserId") + "," +
+            Messages("accountingBillCsvHeaderUserName") + "," +
+            Messages("accountingBillCsvHeaderCompanyName") + "," +
+            Messages("accountingBillCsvHeaderItemTotal") + "," +
+            Messages("accountingBillCsvHeaderOuterTax") + "," +
+            Messages("accountingBillCsvHeaderFee") + "," +
+            Messages("accountingBillCsvHeaderGrandTotal") + "\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
           ",\"" + user01.companyName.getOrElse("") + "\"" +
@@ -472,9 +480,13 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
-            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
-            "," + Messages("grandTotal") + "\r\n" +
+          Messages("accountingBillCsvHeaderUserId") + "," +
+            Messages("accountingBillCsvHeaderUserName") + "," +
+            Messages("accountingBillCsvHeaderCompanyName") + "," +
+            Messages("accountingBillCsvHeaderItemTotal") + "," +
+            Messages("accountingBillCsvHeaderOuterTax") + "," +
+            Messages("accountingBillCsvHeaderFee") + "," +
+            Messages("accountingBillCsvHeaderGrandTotal") + "\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
           ",\"" + user01.companyName.getOrElse("") + "\"" +
@@ -555,9 +567,13 @@ class AccountingBillSpec extends Specification {
         )
 
         csv === (
-          Messages("userId") + "," + Messages("userName") + "," + Messages("companyName") +
-            "," + Messages("itemTotal") + "," + Messages("outerTax") + "," + Messages("fee") +
-            "," + Messages("grandTotal") + "\r\n" +
+          Messages("accountingBillCsvHeaderUserId") + "," +
+            Messages("accountingBillCsvHeaderUserName") + "," +
+            Messages("accountingBillCsvHeaderCompanyName") + "," +
+            Messages("accountingBillCsvHeaderItemTotal") + "," +
+            Messages("accountingBillCsvHeaderOuterTax") + "," +
+            Messages("accountingBillCsvHeaderFee") + "," +
+            Messages("accountingBillCsvHeaderGrandTotal") + "\r\n" +
           user01.id.get + 
           ",\"" + user01.fullName + "\"" +
           ",\"" + user01.companyName.getOrElse("") + "\"" +
