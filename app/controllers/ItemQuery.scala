@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.CategorySearchCondition
 import play.api._
 import db.DB
 import play.api.mvc._
@@ -46,7 +47,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val list = Item.list(
       locale = LocaleInfo.getDefault, 
       queryString = queryString,
-      category = c,
+      category = CategorySearchCondition(c.toSeq: _*),
       page = page,
       pageSize = pageSize,
       orderBy = OrderBy(orderBySpec)
@@ -105,7 +106,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val list = Item.list(
       locale = LocaleInfo.getDefault,
       queryString = queryString,
-      category = c,
+      category = CategorySearchCondition(c.toSeq: _*),
       siteId = sid,
       page = page,
       pageSize = pageSize,
