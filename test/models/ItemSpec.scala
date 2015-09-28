@@ -13,6 +13,7 @@ import com.ruimo.scoins.Scoping._
 
 import java.sql.Date.{valueOf => date}
 import helpers.QueryString
+import helpers.CategorySearchCondition
 import com.ruimo.scoins.Scoping._
 
 class ItemSpec extends Specification {
@@ -337,7 +338,9 @@ class ItemSpec extends Specification {
           )
 
           // Since cat2 is a child of cat1, both item1 and item2 will be shown.
-          val list1 = Item.list(locale = LocaleInfo.Ja, queryString = QueryString(), category = Some(cat1.id.get))
+          val list1 = Item.list(
+            locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat1.id.get)
+          )
           doWith(list1.records) { recs =>
             recs.size === 2
 
@@ -384,7 +387,9 @@ class ItemSpec extends Specification {
           )
 
           // Since item1 has supplemental category(cat2), both item1 and item2 will be shown.
-          val list1 = Item.list(locale = LocaleInfo.Ja, queryString = QueryString(), category = Some(cat2.id.get))
+          val list1 = Item.list(
+            locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat2.id.get)
+          )
           doWith(list1.records) { recs =>
             recs.size === 2
 
@@ -458,7 +463,7 @@ class ItemSpec extends Specification {
 
           // Specify category
           doWith(
-            Item.list(None, LocaleInfo.Ja, QueryString(), Some(createdRecords.category1.id.get), now = time)
+            Item.list(None, LocaleInfo.Ja, QueryString(), CategorySearchCondition(createdRecords.category1.id.get), now = time)
           ) { pages =>
             pages.pageCount === 1
             pages.currentPage === 0
@@ -493,7 +498,7 @@ class ItemSpec extends Specification {
 
           // Specify site
           doWith(
-            Item.list(None, LocaleInfo.Ja, QueryString(), None, Some(site1.id.get), now = time)
+            Item.list(None, LocaleInfo.Ja, QueryString(), CategorySearchCondition.Null, Some(site1.id.get), now = time)
           ) { pages =>
             pages.pageCount === 1
             pages.currentPage === 0
@@ -673,11 +678,11 @@ class ItemSpec extends Specification {
     }
 
     "Can create sql for item query." in {
-      Item.createQueryConditionSql(QueryString(List("Hello", "World")), None, None) ===
+      Item.createQueryConditionSql(QueryString(List("Hello", "World")), CategorySearchCondition.Null, None) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) "
 
-      Item.createQueryConditionSql(QueryString(List("Hello", "World")), Some(123L), None) ===
+      Item.createQueryConditionSql(QueryString(List("Hello", "World")), CategorySearchCondition(123L), None) ===
         "and (item_name.item_name like {query0} or item_description.description like {query0}) " +
         "and (item_name.item_name like {query1} or item_description.description like {query1}) " +
         """
@@ -694,7 +699,7 @@ class ItemSpec extends Specification {
         )
       """
 
-      Item.createQueryConditionSql(QueryString(List()), Some(123L), None) ===
+      Item.createQueryConditionSql(QueryString(List()), CategorySearchCondition(123L), None) ===
         """
         and (
           item.category_id in (
@@ -709,7 +714,7 @@ class ItemSpec extends Specification {
         )
       """
 
-      Item.createQueryConditionSql(QueryString(List()), None, Some(234L)) ===
+      Item.createQueryConditionSql(QueryString(List()), CategorySearchCondition.Null, Some(234L)) ===
         "and site.site_id = 234 "
     }
 
