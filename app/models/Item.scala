@@ -333,7 +333,7 @@ object Item {
             item.category_id in (
               select descendant from category_path where ancestor in ($cs)
             )
-            or (
+            or exists (
               select descendant from category_path
               where ancestor in (
                 select category_id from supplemental_category where item_id = item.item_id
