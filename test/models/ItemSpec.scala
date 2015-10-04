@@ -360,24 +360,40 @@ class ItemSpec extends Specification {
           val tax = Tax.createNew
 
           val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
-          val cat1 = Category.createNew(Map(Ja -> "植木", En -> "Plant"))
-          val cat2 = Category.createNew(Map(Ja -> "果樹", En -> "Fruit"))
+          val cat0 = Category.createNew(Map(Ja -> "樹木", En -> "Tree"))
+          val cat1 = Category.createNew(Some(cat0), Map(Ja -> "植木", En -> "Plant"))
+          val cat2 = Category.createNew(Some(cat0), Map(Ja -> "果樹", En -> "Fruit"))
+          val cat3 = Category.createNew(Some(cat0), Map(Ja -> "盆栽", En -> "Bonsai"))
         
+          // item1: cat1, cat2
+          // item2: cat2
+          // item3: cat1
+          // item4: cat3
           val item1 = Item.createNew(cat1)
           val item2 = Item.createNew(cat2)
+          val item3 = Item.createNew(cat1)
+          val item4 = Item.createNew(cat3)
           SupplementalCategory.createNew(item1.id.get, cat2.id.get)
 
           ItemName.createNew(item1, Map(Ja -> "杉", En -> "Cedar"))
           ItemName.createNew(item2, Map(Ja -> "梅", En -> "Ume"))
+          ItemName.createNew(item3, Map(Ja -> "松", En -> "Pine"))
+          ItemName.createNew(item4, Map(Ja -> "もみじ", En -> "Maple"))
 
           SiteItem.createNew(site1, item1)
           SiteItem.createNew(site1, item2)
+          SiteItem.createNew(site1, item3)
+          SiteItem.createNew(site1, item4)
 
           ItemDescription.createNew(item1, site1, "杉説明")
           ItemDescription.createNew(item2, site1, "梅説明")
+          ItemDescription.createNew(item3, site1, "松説明")
+          ItemDescription.createNew(item4, site1, "もみじ説明")
 
           val price1 = ItemPrice.createNew(item1, site1)
           val price2 = ItemPrice.createNew(item2, site1)
+          val price3 = ItemPrice.createNew(item3, site1)
+          val price4 = ItemPrice.createNew(item4, site1)
 
           ItemPriceHistory.createNew(
             price1, tax, CurrencyInfo.Jpy, BigDecimal(101), None, BigDecimal(89), date("9999-12-31")
@@ -385,16 +401,44 @@ class ItemSpec extends Specification {
           ItemPriceHistory.createNew(
             price2, tax, CurrencyInfo.Jpy, BigDecimal(301), None, BigDecimal(291), date("9999-12-31")
           )
-
-          // Since item1 has supplemental category(cat2), both item1 and item2 will be shown.
-          val list1 = Item.list(
-            locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat2.id.get)
+          ItemPriceHistory.createNew(
+            price3, tax, CurrencyInfo.Jpy, BigDecimal(401), None, BigDecimal(391), date("9999-12-31")
           )
-          doWith(list1.records) { recs =>
+          ItemPriceHistory.createNew(
+            price4, tax, CurrencyInfo.Jpy, BigDecimal(501), None, BigDecimal(491), date("9999-12-31")
+          )
+
+          doWith(
+            Item.list(
+              locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat2.id.get)
+            ).records
+          ) { recs =>
             recs.size === 2
 
             recs(0)._2.name === "杉"
             recs(1)._2.name === "梅"
+          }
+
+          doWith(
+            Item.list(
+              locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat1.id.get)
+            ).records
+          ) { recs =>
+            recs.size === 2
+
+            recs(0)._2.name === "杉"
+            recs(1)._2.name === "松"
+          }
+
+          doWith(
+            Item.list(
+              locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat1.id.get)
+            ).records
+          ) { recs =>
+            recs.size === 2
+
+            recs(0)._2.name === "杉"
+            recs(1)._2.name === "松"
           }
         }}
       }
