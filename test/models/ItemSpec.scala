@@ -432,13 +432,38 @@ class ItemSpec extends Specification {
 
           doWith(
             Item.list(
-              locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat1.id.get)
+              locale = LocaleInfo.Ja, queryString = QueryString(), category = CategorySearchCondition(cat3.id.get)
             ).records
           ) { recs =>
-            recs.size === 2
+            recs.size === 1
+
+            recs(0)._2.name === "もみじ"
+          }
+
+          // cat1 or cat3
+          doWith(
+            Item.list(
+              locale = LocaleInfo.Ja, queryString = QueryString(),
+              category = CategorySearchCondition(cat1.id.get + "," + cat3.id.get)
+            ).records
+          ) { recs =>
+            recs.size === 3
+
+            recs(0)._2.name === "もみじ"
+            recs(1)._2.name === "杉"
+            recs(2)._2.name === "松"
+          }
+
+          // cat1 or cat3 & cat2
+          doWith(
+            Item.list(
+              locale = LocaleInfo.Ja, queryString = QueryString(),
+              category = CategorySearchCondition(cat1.id.get + "," + cat3.id.get + "&" + cat2.id.get)
+            ).records
+          ) { recs =>
+            recs.size === 1
 
             recs(0)._2.name === "杉"
-            recs(1)._2.name === "松"
           }
         }}
       }

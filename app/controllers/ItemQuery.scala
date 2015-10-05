@@ -3,6 +3,7 @@ package controllers
 import helpers.CategorySearchCondition
 import play.api._
 import db.DB
+import libs.json.{JsObject, Json}
 import play.api.mvc._
 
 import models.{OrderBy, Item, LocaleInfo}
@@ -160,5 +161,11 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       Redirect(routes.ItemQuery.query(list, page, pageSize, templateNo = templateNo))
     }
   }}
-}
 
+  def queryJson(
+    qs: List[String], categories: CategorySearchCondition, sid: Option[Long],
+    page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
+  ) = optIsAuthenticatedJson { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
+    Ok(Json.obj("hello" -> "World"))
+  }}
+}

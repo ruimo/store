@@ -66,21 +66,21 @@
   <table class="queryItemTable">
     <tr class="queryItemTableHeader">
       <th></th>
-      <th>
+      <th id="itemNameHeader">
         @orderMark(
           Messages("itemName"),
           query(_: Int, _: Int, 0, _: String),
           "item_name.item_name", list
         )
       </th>
-      <th>
+      <th id="siteHeader">
         @orderMark(
           Messages("site"),
           query(_: Int, _: Int, 0, _: String),
           "site.site_name", list
         )
       </th>
-      <th>
+      <th id="unitPriceHeader">
         @orderMark(
           Messages("unitPrice"),
           query(_: Int, _: Int, 0, _: String),
@@ -89,24 +89,7 @@
       </th>
       <th></th>
     </tr>
-
-    @list.records.map { e =>
-      <tr class="queryItemTableBody">
-        <td class="queryItemPhoto">
-          <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get.id, 0)">
-        </td>
-        <td class="queryItemItemName">
-          <a href="@routes.ItemDetail.show(e._1.id.get.id, e._4.id.get)">
-            @e._2.name
-          </a>
-        </td>
-        <td class="queryItemSite">@e._4.name</td>
-        <td class="queryItemUnitPrice">@amount(e._5.unitPrice)</td>
-        <td>
-          @purchaseButton(e._4.id.get, e._1.id.get.id, 1, e._7)
-        </td>
-      </tr>
-    }
+    @queryItemTableBody(list)
   </table>
   <br>
   @pagingPanel(list, query(_, _, 0, _), 10, 25, 50)

@@ -105,7 +105,31 @@ trait NeedLogin extends Controller with HasLogger {
         optLogin match {
           case Some(login) =>
             result.withSession(
-              request.session + (LoginUserKey -> login.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+              request.session + 
+              (LoginUserKey -> login.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+            )
+          case None => result
+        }
+      })
+    }
+
+  def optIsAuthenticatedJson(f: => Option[LoginSession] => Request[AnyContent] => Result) = 
+    if (needAuthenticationEntirely) {
+      Authenticated(retrieveLoginSession, onUnauthorizedJson) { user =>
+        Action(request => f(Some(user))(request).withSession(
+          request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
+        ))
+      }
+    }
+    else {
+      Action(request => {
+        val optLogin: Option[LoginSession] = DB.withConnection { conn => loginSession(request, conn) }
+        val result = f(optLogin)(request)
+        optLogin match {
+          case Some(login) =>
+            result.withSession(
+              request.session + 
+              (LoginUserKey -> login.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
             )
           case None => result
         }
