@@ -171,7 +171,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
 
   def queryAdvancedContent(
     qs: List[String], cs: String, sid: Option[Long],
-    page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
+    page: Int, pageSize: Int, orderBySpec: String
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
     Ok(views.html.queryAdvancedContent())
   }}
