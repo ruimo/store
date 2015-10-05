@@ -1,4 +1,5 @@
 @(
+  templateNo: Int
 )(
   implicit lang: Lang,
   token: play.filters.csrf.CSRF.Token,
@@ -10,7 +11,30 @@
 
 @main(Messages("item.list"), loginSession) {
   @shoppingCartDialogDeclaration()
+  <script>
+    var query = function() {
+      $("#queryItemTable").empty();
+      $("#queryItemTable").load('@routes.ItemQuery.queryAdvancedContent(templateNo = templateNo)');
+    };
+ 
+   $(function() {
+      if (@templateNo == 0) {
+        $("#queryTemplateBody").load('@routes.Assets.at("templates/itemQuery/0.html")');
+        query();
+      }
+      else {
+        $("#queryTemplateBody").load("/static/templates/itemQueries/" + @templateNo + ".html");
+        query();
+      }
+window.history.pushState(null, null, '/test');
+    });
+  </script>
 } {
   @shoppingCartDialogImplementation()
 
+  <div id="queryTemplateBody">
+  </div>
+
+  <table style="display:none;" id="queryItemTable">
+  </table>
 }
