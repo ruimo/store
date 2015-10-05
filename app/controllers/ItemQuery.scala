@@ -162,10 +162,10 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     }
   }}
 
-  def queryJson(
-    qs: List[String], categories: CategorySearchCondition, sid: Option[Long],
+  def queryAdvanced(
+    qs: List[String], cs: String, sid: Option[Long],
     page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
-  ) = optIsAuthenticatedJson { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
-    Ok(Json.obj("hello" -> "World"))
+  ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
+    Ok(views.html.queryAdvanced())
   }}
 }
