@@ -99,7 +99,7 @@ class ConfirmShippingSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.Shipping.confirmShippingAddressJa().url + "?lang=" + lang.code
         )
-        browser.title === Messages("confirm.shipping.address")
+        browser.title === Messages("commonTitle") + " " + Messages("confirm.shipping.address")
 
         browser.find("table.itemTable").find("tr.itemTableBody").size === 6
         browser.find("table.itemTable")

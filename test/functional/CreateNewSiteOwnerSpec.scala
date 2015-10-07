@@ -29,7 +29,7 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSiteOwner.url + "?lang=" + lang.code)
         
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
         browser.find("option", FilterConstructor.withText("store02")).click()
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
@@ -40,7 +40,7 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345678")
         browser.submit("#registerSiteOwner")
         // Waiting next super user to create.
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
         val user2 = StoreUser.findByUserName("username").get
 
         user2.deleted === false
@@ -65,7 +65,7 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSiteOwner.url + "?lang=" + lang.code)
 
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
         browser.fill("#lastName").`with`("")
@@ -76,7 +76,7 @@ class CreateNewSiteOwnerSpec extends Specification {
 
         browser.submit("#registerSiteOwner")
         // Waiting next super user to create.
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#userName_field dd.error").getText === Messages("error.minLength", FormConstraints.userNameMinLength)
@@ -95,7 +95,7 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSiteOwner.url + "?lang=" + lang.code)
 
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
         browser.fill("#userName").`with`("userName")
         browser.fill("#firstName").`with`("firstName")
         browser.fill("#lastName").`with`("lastName")
@@ -105,7 +105,7 @@ class CreateNewSiteOwnerSpec extends Specification {
 
         browser.submit("#registerSiteOwner")
         // Waiting next super user to create.
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#email_field dd.error").getText === Messages("error.email")
@@ -120,7 +120,7 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSiteOwner.url + "?lang=" + lang.code)
 
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -131,7 +131,7 @@ class CreateNewSiteOwnerSpec extends Specification {
         browser.submit("#registerSiteOwner")
 
         // Waiting next super user to create.
-        browser.title === Messages("createSiteOwnerTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSiteOwnerTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#password_confirm_field dd.error").getText === Messages("confirmPasswordDoesNotMatch")

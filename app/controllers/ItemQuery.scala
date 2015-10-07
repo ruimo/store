@@ -155,7 +155,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     page: Int, pageSize: Int, templateNo: Int
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn => {
     val list = request.queryString.filterKeys {_.startsWith("queryText")}.values.foldLeft(List[String]())(_ ++ _)
-    if (list .isEmpty)
+    if (list.isEmpty)
       Ok(views.html.queryByRadio())
     else
       Redirect(routes.ItemQuery.query(list, page, pageSize, templateNo = templateNo))
@@ -173,6 +173,17 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     qs: List[String], cs: String, sid: Option[Long],
     page: Int, pageSize: Int, orderBySpec: String
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
-    Ok(views.html.queryAdvancedContent())
+    val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
+    val list = Item.list(
+      locale = LocaleInfo.getDefault,
+      queryString = queryString,
+      category = CategorySearchCondition(cs),
+      siteId = sid,
+      page = page,
+      pageSize = pageSize,
+      orderBy = OrderBy(orderBySpec)
+    )
+
+    Ok(views.html.queryAdvancedContent(list))
   }}
 }

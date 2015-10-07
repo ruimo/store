@@ -445,3 +445,4 @@ accountingBillCsvHeaderItemTotal=itemTotal
 accountingBillCsvHeaderOuterTax=outerTax
 accountingBillCsvHeaderFee=fee
 accountingBillCsvHeaderGrandTotal=grandTotal
+commonTitle=Functional Store

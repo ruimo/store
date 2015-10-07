@@ -30,7 +30,7 @@ class CategoryMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.CategoryMaintenance.editCategory(None).url + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("editCategoryTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editCategoryTitle")
         
         browser.find("#langSpec option").getTexts.size === LocaleInfo.registry.size
         browser.find(".categoryTableBody").getTexts.size === 0
@@ -48,7 +48,7 @@ class CategoryMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.CategoryMaintenance.startCreateNewCategory().url + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("createNewCategoryTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createNewCategoryTitle")
 
         browser.find("#langId option").getTexts.size === LocaleInfo.registry.size
         browser.find("#langId option[value='" + LocaleInfo.Ja.id + "']").click()
@@ -139,7 +139,7 @@ class CategoryMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.CategoryMaintenance.startCreateNewCategory().url + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("createNewCategoryTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createNewCategoryTitle")
 
         browser.find("#langId option").getTexts.size === LocaleInfo.registry.size
         browser.find("#langId option[value='" + LocaleInfo.Ja.id + "']").click()
@@ -162,7 +162,7 @@ class CategoryMaintenanceSpec extends Specification {
         browser.find(".editCategoryNameLink", 0).click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("editCategoryNameTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editCategoryNameTitle")
         browser.find(".langName").getText === Messages("lang.ja")
         browser.find("#categoryNames_0_name").getAttribute("value") === "カテゴリ001"
 
@@ -170,17 +170,17 @@ class CategoryMaintenanceSpec extends Specification {
         browser.find("#submitCategoryNameUpdate").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("editCategoryTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editCategoryTitle")
         browser.find(".editCategoryNameLink", 0).click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         
-        browser.title === Messages("editCategoryNameTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editCategoryNameTitle")
         browser.find("#createCategoryNameForm #localeId option[value='" + LocaleInfo.En.id + "']").click()
         browser.fill("#createCategoryNameForm #name").`with`("category999")
         browser.find("#submitCategoryNameCreate").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("editCategoryNameTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editCategoryNameTitle")
         if (browser.find(".langName", 0).getText == Messages("lang.ja")) {
           browser.find("#categoryNames_0_name").getAttribute("value") === "カテゴリ999"
           browser.find("#categoryNames_1_name").getAttribute("value") === "category999"

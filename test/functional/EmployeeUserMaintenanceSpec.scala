@@ -64,7 +64,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         
         // Since employee maintenance is disabled, redirected to top.
-        browser.title() === Messages("company.name")
+        browser.title() === Messages("commonTitle") + " " + Messages("company.name")
       }}
     }
 
@@ -83,7 +83,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
 
         // Check validation error.
         browser.find("#registerEmployee").click()
@@ -110,7 +110,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
         browser.find(".message").getText === Messages("userIsCreated")
 
         // store_user table should be updated.
@@ -145,14 +145,14 @@ class EmployeeUserMaintenanceSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
 
         browser.fill("#userName").`with`("abcdef")
         browser.fill("#password_main").`with`("abcdefgh")
         browser.fill("#password_confirm").`with`("abcdefgh")
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
         browser.find("#userName_field dd.error").getText === Messages("normalUserNamePatternError")
 
         browser.fill("#userName").`with`("12345")
@@ -160,7 +160,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.fill("#password_confirm").`with`("abcdefgh")
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
         browser.find("#userName_field dd.error").getText === Messages("normalUserNamePatternError")
 
         browser.fill("#userName").`with`("1234567")
@@ -168,7 +168,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.fill("#password_confirm").`with`("abcdefgh")
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
         browser.find("#userName_field dd.error").getText === Messages("normalUserNamePatternError")
 
         browser.fill("#userName").`with`("123456")
@@ -177,7 +177,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.find("#registerEmployee").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title() === Messages("createEmployeeTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("createEmployeeTitle")
         browser.find(".message").getText === Messages("userIsCreated")
 
         // store_user table should be updated.
@@ -208,7 +208,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("company.name")
+        browser.title() === Messages("commonTitle") + " " + Messages("company.name")
       }}
     }
 
@@ -231,14 +231,14 @@ class EmployeeUserMaintenanceSpec extends Specification {
           controllers.routes.UserMaintenance.editUser().url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("company.name")
+        browser.title() === Messages("commonTitle") + " " + Messages("company.name")
 
         browser.goTo(
           "http://localhost:3333" + 
           controllers.routes.UserMaintenance.modifyUserStart(employee01.id.get).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("company.name")
+        browser.title() === Messages("commonTitle") + " " + Messages("company.name")
       }}
     }
 
@@ -266,7 +266,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.find(".userTable .userTableBody .name").getText === employee01.userName
         browser.find(".userTable .userTableBody .id a").click()
 
-        browser.title() === Messages("modifyUserTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("modifyUserTitle")
         browser.find("#userId").getAttribute("value") === employee01.id.get.toString
         browser.find("#userName").getAttribute("value") === employee01.userName
         browser.find("#firstName").getAttribute("value") === employee01.firstName
@@ -309,7 +309,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.find("#modifyUser").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title() === Messages("editUserTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("editUserTitle")
         browser.find(".message").getText === Messages("userIsUpdated")
 
         doWith(StoreUser(employee01.id.get)) { newUser =>
@@ -325,7 +325,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
         browser.find(".ui-dialog-buttonset .ui-button", 1).click() // click No
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("editUserTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("editUserTitle")
 
         browser.goTo(
           "http://localhost:3333" + 
@@ -336,7 +336,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
         browser.find(".ui-dialog-buttonset .ui-button", 0).click() // click Yes
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("editUserTitle")
+        browser.title() === Messages("commonTitle") + " " + Messages("editUserTitle")
 
         browser.find(".userTable .userTableBody").getTexts.size === 0
       }}

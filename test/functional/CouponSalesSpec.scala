@@ -81,7 +81,7 @@ class CouponSalesSpec extends Specification {
         )
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("confirm.shipping.address")
+        browser.title === Messages("commonTitle") + " " + Messages("confirm.shipping.address")
 
         doWith(browser.find(".itemTableBody", 0)) { b =>
           b.find(".itemName").getText === "クーポン1"

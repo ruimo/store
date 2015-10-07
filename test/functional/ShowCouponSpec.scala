@@ -46,7 +46,7 @@ class ShowCouponSpec extends Specification {
           "http://localhost:3333" + controllers.routes.CouponHistory.showInstantCoupon(site.id.get, item.id.get.id).url + "&lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("coupon.title")
+        browser.title === Messages("commonTitle") + " " + Messages("coupon.title")
         browser.find("td.siteName").getText.indexOf(user.companyName.get) !== -1
         browser.find("td.name").getText.indexOf(user.fullName) !== -1
         browser.find("td.tranId").getTexts.size === 0
@@ -77,7 +77,7 @@ class ShowCouponSpec extends Specification {
           "http://localhost:3333" + controllers.routes.CouponHistory.showInstantCoupon(site.id.get, item.id.get.id).url + "&lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("company.name")
+        browser.title === Messages("commonTitle") + " " + Messages("company.name")
       }}
     }
   }

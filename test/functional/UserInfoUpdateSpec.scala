@@ -37,7 +37,7 @@ class UserInfoUpdateSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("updateUserInformation")
+        browser.title === Messages("commonTitle") + " " + Messages("updateUserInformation")
         
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()

@@ -17,7 +17,7 @@ class FirstSetupSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
       }
     }
 
@@ -26,7 +26,7 @@ class FirstSetupSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn => {
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -36,7 +36,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345678")
 
         browser.submit("#registerFirstUser")
-        browser.title === Messages("loginTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("loginTitle")
 
         val list = StoreUser.all
         list.size === 1
@@ -57,7 +57,7 @@ class FirstSetupSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
         browser.fill("#lastName").`with`("")
@@ -67,7 +67,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#companyName").`with`("")
 
         browser.submit("#registerFirstUser")
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#userName_field dd.error").getText === Messages("error.minLength", 6)
@@ -83,7 +83,7 @@ class FirstSetupSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
         browser.fill("#userName").`with`("userName")
         browser.fill("#firstName").`with`("firstName")
         browser.fill("#lastName").`with`("lastName")
@@ -92,7 +92,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_confirm").`with`("password")
 
         browser.submit("#registerFirstUser")
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#email_field dd.error").getText === Messages("error.email")
@@ -104,7 +104,7 @@ class FirstSetupSpec extends Specification {
       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -113,7 +113,7 @@ class FirstSetupSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345679")
 
         browser.submit("#registerFirstUser")
-        browser.title === Messages("firstSetupTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("firstSetupTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#password_confirm_field dd.error").getText === Messages("confirmPasswordDoesNotMatch")

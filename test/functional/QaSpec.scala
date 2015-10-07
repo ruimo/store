@@ -29,7 +29,7 @@ class QaSpec extends Specification {
             "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
           )
           browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-          browser.title === Messages("qaTitle")
+          browser.title === Messages("commonTitle") + " " + Messages("qaTitle")
 
           browser.find("#qaTypeGroup .help-block").getText === Messages("constraint.required")
           browser.find("#comment").getText === ""
@@ -53,7 +53,7 @@ class QaSpec extends Specification {
           "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("qaTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("qaTitle")
 
         browser.find("#comment").getAttribute("value") === ""
         browser.find("#firstName").getAttribute("value") === "Admin"
@@ -100,7 +100,7 @@ class QaSpec extends Specification {
           "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("qaTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("qaTitle")
 
         browser.find("#comment").getAttribute("value") === ""
         browser.find("#firstName").getAttribute("value") === "Admin"
@@ -123,7 +123,7 @@ class QaSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.Qa.index() + "?lang=" + lang.code
         )
-        browser.title === Messages("qaTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("qaTitle")
 
         if (NeedLogin.needAuthenticationEntirely) {
           browser.fill("#companyName").`with`("")

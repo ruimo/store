@@ -62,7 +62,7 @@ class ItemReserveSpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("item.list")
+        browser.title === Messages("commonTitle") + " " + Messages("item.list")
         doWith(browser.find(".queryItemTable")) { tbl =>
           doWith(tbl.find(".queryItemTableBody", 0)) { tr =>
             tr.find(".queryItemItemName").getText === "かえで"
@@ -79,7 +79,7 @@ class ItemReserveSpec extends Specification {
         }
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         doWith(browser.find(".itemReservation")) { tbl =>
           tbl.find(".siteName.body").getText === site.name
           tbl.find(".itemName.body").getText === "もみじ"
@@ -99,7 +99,7 @@ class ItemReserveSpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("item.list")
+        browser.title === Messages("commonTitle") + " " + Messages("item.list")
         doWith(browser.find(".queryItemTable")) { tbl =>
           doWith(tbl.find(".queryItemTableBody", 0)) { tr =>
             tr.find(".queryItemItemName").getAttribute("textContent").trim === "かえで"
@@ -117,13 +117,13 @@ class ItemReserveSpec extends Specification {
           + controllers.routes.ItemDetail.show(item02.id.get.id, site.id.get).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("item.detail")
+        browser.title === Messages("commonTitle") + " " + Messages("item.detail")
         doWith(browser.find("button.reserveButton")) { btn =>
           btn.getText === Messages("itemReservation")
           btn.click()
         }
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         doWith(browser.find("#itemReservationForm")) { form =>
           form.find("#siteId").getAttribute("value") === site.id.get.toString
           form.find("#itemId").getAttribute("value") === item02.id.get.id.toString
@@ -139,7 +139,7 @@ class ItemReserveSpec extends Specification {
           + controllers.routes.ItemDetail.show(item02.id.get.id, site.id.get).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("item.detail")
+        browser.title === Messages("commonTitle") + " " + Messages("item.detail")
         browser.find("button.reserveButton").getAttribute("textContent").trim === Messages("itemReservation")
       }}      
     }
@@ -174,7 +174,7 @@ class ItemReserveSpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         doWith(browser.find(".itemReservation.siteItemContainer")) { tbl =>
           tbl.find(".siteName.body").getText === site.name
           tbl.find(".itemName.body").getText === "かえで"
@@ -192,7 +192,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#submitItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         browser.find("#name_field dd.error").getText === Messages("error.required")
         browser.find("#email_field dd.error").getText === Messages("error.required")
         browser.find("#comment_field dd.error").getTexts.size === 0
@@ -204,7 +204,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#submitItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservationConfirm")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservationConfirm")
         val rec: ItemInquiry = SQL("select * from item_inquiry").as(ItemInquiry.simple.single)
 
         doWith(browser.find("#submitItemReservationForm")) { form =>
@@ -222,7 +222,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#amendItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         browser.find("#siteId").getAttribute("value") === site.id.get.toString
         browser.find("#itemId").getAttribute("value") === item01.id.get.id.toString
         browser.find("#name").getAttribute("value") === "MyName"
@@ -254,7 +254,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#submitItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("company.name")
+        browser.title === Messages("commonTitle") + " " + Messages("company.name")
 
         doWith(SQL("select * from item_inquiry").as(ItemInquiry.simple.single)) { inq =>
           inq.id === rec.id
@@ -304,7 +304,7 @@ class ItemReserveSpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         doWith(browser.find(".itemReservation.siteItemContainer")) { tbl =>
           tbl.find(".siteName.body").getText === site.name
           tbl.find(".itemName.body").getText === "かえで"
@@ -322,7 +322,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#submitItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         browser.find("#name_field dd.error").getText === Messages("error.required")
         browser.find("#email_field dd.error").getText === Messages("error.required")
         browser.find("#comment_field dd.error").getTexts.size === 0
@@ -335,7 +335,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#submitItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservationConfirm")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservationConfirm")
         val rec: ItemInquiry = SQL("select * from item_inquiry").as(ItemInquiry.simple.single)
 
         doWith(browser.find("#submitItemReservationForm")) { form =>
@@ -354,7 +354,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#amendItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("itemReservation")
+        browser.title === Messages("commonTitle") + " " + Messages("itemReservation")
         browser.find("#siteId").getAttribute("value") === site.id.get.toString
         browser.find("#itemId").getAttribute("value") === item01.id.get.id.toString
         browser.find("#name").getAttribute("value") === "MyName"
@@ -387,7 +387,7 @@ class ItemReserveSpec extends Specification {
         browser.find("#submitItemReservation").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("company.name")
+        browser.title === Messages("commonTitle") + " " + Messages("company.name")
 
         doWith(SQL("select * from item_inquiry").as(ItemInquiry.simple.single)) { inq =>
           inq.id === rec.id

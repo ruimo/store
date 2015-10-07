@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-all" % "1.9.5" % "test",
   "com.ruimo" %% "recoengplugin4play23" % "1.0-SNAPSHOT",
   "com.ruimo" %% "csvparser" % "1.0-SNAPSHOT",
-  "com.ruimo" %% "scoins" % "1.0-SNAPSHOT",
+  "com.ruimo" %% "scoins" % "1.0",
   jdbc,
 //  anorm,
   "com.typesafe.play" %% "anorm" % "2.4.0",

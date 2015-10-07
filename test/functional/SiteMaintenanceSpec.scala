@@ -28,7 +28,7 @@ class SiteMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.SiteMaintenance.startCreateNewSite().url + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("createNewSiteTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createNewSiteTitle")
         browser.click("select[id='langId'] option[value='1']")
         browser.fill("#siteName").`with`("Store01")
         browser.find("#createNewSiteForm").find("input[type='submit']").click
@@ -58,7 +58,7 @@ class SiteMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.SiteMaintenance.editSite().url + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("editSiteTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editSiteTitle")
         browser.find(".siteTableBody").getTexts.size === 2
         doWith(browser.find(".siteTableBody", 0)) { e =>
           e.find(".id").getText === site2.id.get.toString
@@ -72,7 +72,7 @@ class SiteMaintenanceSpec extends Specification {
         browser.find(".siteTableBody", 0).find("a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("changeSiteTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("changeSiteTitle")
         browser.find("#siteId").getAttribute("value") === site2.id.get.toString
         browser.webDriver.findElement(By.id("langId"))
           .findElement(By.cssSelector("option[value='" + LocaleInfo.En.id + "']")).isSelected === true
@@ -90,7 +90,7 @@ class SiteMaintenanceSpec extends Specification {
         browser.find("#changeSite").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("editSiteTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("editSiteTitle")
         browser.find(".siteTableBody").getTexts.size === 2
         doWith(browser.find(".siteTableBody", 0)) { e =>
           e.find(".id").getText === site2.id.get.toString

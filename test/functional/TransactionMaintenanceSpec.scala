@@ -52,7 +52,7 @@ class TransactionMaintenanceSpec extends Specification {
           controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
-        browser.title === Messages("transactionMaintenanceTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("transactionMaintenanceTitle")
         browser.find(".site").getText === "商店1"
         browser.find(".shippingDate").getText === "2013年02月03日"
         browser.find(".transactionAmount").getText === "2,400円"
@@ -98,7 +98,7 @@ class TransactionMaintenanceSpec extends Specification {
           "#changeShippingInfoButton" + tranSiteId
         ).click()
 
-        browser.title === Messages("transactionMaintenanceTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("transactionMaintenanceTitle")
         browser.webDriver
           .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"1\"]")).isSelected === true
 

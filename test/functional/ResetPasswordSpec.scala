@@ -41,7 +41,7 @@ class ResetPasswordSpec extends Specification {
           "http://localhost:3333" + controllers.routes.UserEntry.resetPasswordStart() + "?lang=" + lang.code
         )
 
-        browser.title === Messages("resetPassword")
+        browser.title === Messages("commonTitle") + " " + Messages("resetPassword")
 
         // Empty input
         browser.find("#doResetPasswordButton").click()
@@ -62,7 +62,7 @@ class ResetPasswordSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         val now2 = System.currentTimeMillis
-        browser.title === Messages("resetPasswordMailSent")
+        browser.title === Messages("commonTitle") + " " + Messages("resetPasswordMailSent")
         val rec = ResetPassword.getByStoreUserId(user.id.get).get
         (now <= rec.resetTime && rec.resetTime <= now2) === true
         
@@ -70,7 +70,7 @@ class ResetPasswordSpec extends Specification {
           "http://localhost:3333" + controllers.routes.UserEntry.resetPasswordConfirm(user.id.get, rec.token) + "&lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("resetPassword")
+        browser.title === Messages("commonTitle") + " " + Messages("resetPassword")
         browser.find("input[name='userId']").getAttribute("value") === user.id.get.toString
         browser.find("input[name='token']").getAttribute("value") === rec.token.toString
 
@@ -101,7 +101,7 @@ class ResetPasswordSpec extends Specification {
         browser.find("#doResetPasswordButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("passwordIsUpdated")
+        browser.title === Messages("commonTitle") + " " + Messages("passwordIsUpdated")
         val newUser = StoreUser(user.id.get)
         newUser.passwordHash === PasswordHash.generate("1q2w3e4r", newUser.salt)
       }}

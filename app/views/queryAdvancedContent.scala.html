@@ -1,4 +1,15 @@
 @(
+  list: PagedRecords[(
+    models.Item,
+    models.ItemName,
+    models.ItemDescription,
+    models.Site,
+    models.ItemPriceHistory,
+    Map[ItemNumericMetadataType, ItemNumericMetadata],
+    Map[SiteItemNumericMetadataType, SiteItemNumericMetadata],
+    Map[ItemTextMetadataType, ItemTextMetadata],
+    Map[SiteItemTextMetadataType, SiteItemTextMetadata]
+  )]
 )(
   implicit lang: Lang,
   token: play.filters.csrf.CSRF.Token,
@@ -8,7 +19,6 @@
 
 @import helper._
 
-<tr>
-  <td>Hello</td>
-</tr>
+@queryItemTableBody(list)
+
 

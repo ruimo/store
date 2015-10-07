@@ -21,7 +21,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSuperUser.url + "?lang=" + lang.code)
         
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -32,7 +32,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.submit("#registerSuperUser")
 
         // Waiting next super user to create.
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
         val user2 = StoreUser.findByUserName("username").get
 
         user2.deleted === false
@@ -53,7 +53,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSuperUser.url + "?lang=" + lang.code)
 
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
         browser.fill("#userName").`with`("usern")
         browser.fill("#firstName").`with`("")
         browser.fill("#lastName").`with`("")
@@ -64,7 +64,7 @@ class CreateNewSuperUserSpec extends Specification {
 
         browser.submit("#registerSuperUser")
         // Waiting next super user to create.
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#userName_field dd.error").getText === Messages("error.minLength", 6)
@@ -83,7 +83,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSuperUser.url + "?lang=" + lang.code)
 
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
         browser.fill("#userName").`with`("userName")
         browser.fill("#firstName").`with`("firstName")
         browser.fill("#lastName").`with`("lastName")
@@ -93,7 +93,7 @@ class CreateNewSuperUserSpec extends Specification {
 
         browser.submit("#registerSuperUser")
         // Waiting next super user to create.
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#email_field dd.error").getText === Messages("error.email")
@@ -108,7 +108,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewSuperUser.url + "?lang=" + lang.code)
 
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
         browser.fill("#userName").`with`("username")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -119,7 +119,7 @@ class CreateNewSuperUserSpec extends Specification {
         browser.submit("#registerSuperUser")
 
         // Waiting next super user to create.
-        browser.title === Messages("createSuperUserTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("createSuperUserTitle")
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#password_confirm_field dd.error").getText === Messages("confirmPasswordDoesNotMatch")

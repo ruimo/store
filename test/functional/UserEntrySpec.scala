@@ -20,7 +20,7 @@ class UserEntrySpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.UserEntry.index() + "?lang=" + lang.code
         )
-        browser.title === Messages("userEntryTitle")
+        browser.title === Messages("commonTitle") + " " + Messages("userEntryTitle")
         browser.find("#submitUserEntry").click()
 
         browser.find(".globalErrorMessage").getText === Messages("inputError")
