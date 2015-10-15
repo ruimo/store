@@ -1,1 +1,71 @@
-TEMPLATE 0
+<script>
+  $(function() {
+    var photoes = $(".queryItemPhoto");
+    var itemNames = $(".queryItemItemName");
+    var sites = $(".queryItemSite");
+    var listPrices = $(".queryItemListPrice");
+    var listPricesmemo = $(".queryItemListPriceMemo");
+    var unitPrices = $(".queryItemUnitPrice");
+    var unitPricesmemo = $(".queryItemPriceMemo");
+    var addToCartButtons = $(".addToCartButton");
+    var itemHights = $(".queryItemHight");
+    var itemPromotions = $(".queryItemPromotion");
+    var queryBody = $("#queryBody");
+
+    $.each(photoes, function(idx, photo) {
+      var detailUrl = itemNames.eq(idx).find("a").attr("href");
+      var queryElement = $("#queryElement").clone();
+      queryElement.removeAttr("id");
+      queryElement.find("[data-attach-point='itemPhoto']").attr(
+        "src", photoes.eq(idx).find("img").attr("src")
+      );
+      queryElement.find("[data-attach-point='detailLink']").attr("href", detailUrl);
+      queryElement.find("[data-attach-point='itemName']").html(itemNames.eq(idx).html());
+      queryElement.find("[data-attach-point='siteName']").html(sites.eq(idx).html());
+      	var priceTxt = $.trim(listPrices.eq(idx).html());
+      	if (priceTxt === '') {
+      		queryElement.find("[data-attach-point='itemListPriceRow']").attr("style", "display:none;");
+      	} else {
+      		queryElement.find("[data-attach-point='itemListPrice']").html(priceTxt+listPricesmemo.eq(idx).html());
+      	}
+      	var unitPriceTxt = $.trim(unitPrices.eq(idx).html());
+      	if (unitPriceTxt === '') {
+      		queryElement.find("[data-attach-point='itemPriceRow']").attr("style", "display:none;");
+      	} else {
+      		queryElement.find("[data-attach-point='itemPrice']").html(unitPriceTxt+unitPricesmemo.eq(idx).html());
+      	}
+      	
+      queryElement.find("[data-attach-point='addToCartButton']").replaceWith(addToCartButtons.eq(idx));
+      queryElement.find("[data-attach-point='itemHeight']").html(itemHights.eq(idx).html());
+      queryElement.find("[data-attach-point='itemPromotion']").html(itemPromotions.eq(idx).html());
+      queryElement.show();
+      queryBody.append(queryElement);
+    });
+
+        $("[data-attach-point='siteName']").each(function() {
+      	if ($(this).width() > $(this).parent().width()) {
+      		var str = $(this).text();
+      		$(this).attr({title:(str)});
+      	};
+        });
+  });
+</script>
+
+<div id="queryBody">
+</div>
+
+<div style="display:none;">
+  <div id="queryElement" class="qthumItem">
+    <a class="qthumItem_img" data-attach-point="detailLink"><img data-attach-point="itemPhoto" src=""></a>
+    <div class="qthumItem_name" data-attach-point="itemName"><a data-attach-point="detailLink"></a></div>
+    <div class="qthumItem_info">
+      <p><span data-attach-point="siteName"></span></p>
+      <p data-attach-point="itemListPriceRow">定価：<span data-attach-point="itemListPrice"></span></p>
+      <p data-attach-point="itemPriceRow">価格：<span data-attach-point="itemPrice"></span></p>
+    </div>
+    <div class="qthumItem_buy">
+      <p><span data-attach-point="itemPromotion"></span></p>
+      <button data-attach-point="addToCartButton">カートに入れる</button>
+    </div>
+  </div>
+</div>

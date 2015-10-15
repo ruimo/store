@@ -1,5 +1,6 @@
 @(
-  templateNo: Int
+  templateNo: Int,
+  contentUrl: String
 )(
   implicit lang: Lang,
   token: play.filters.csrf.CSRF.Token,
@@ -9,32 +10,149 @@
 
 @import helper._
 
-@main(Messages("item.list"), loginSession) {
+@mainWithoutMenu(Messages("item.list"), loginSession) {
+  <script src='@routes.Assets.at("javascripts/URI.js")'></script>
+
+  @javascriptRouter("jsRoutes")(
+      routes.javascript.ItemQuery.queryAdvancedContent,
+      routes.javascript.ItemQuery.queryAdvanced
+  )
+
   @shoppingCartDialogDeclaration()
   <script>
-    var query = function() {
-      $("#queryItemTable").empty();
-      $("#queryItemTable").load('@routes.ItemQuery.queryAdvancedContent()');
+    var onConditionChanged;
+
+    var applyCurrentCondition = function() {
+        renderResult(currentContentUrl());
+    };
+
+    var pushCurrentState = function() {
+        normalizeCondition();
+        var bodyUrl = jsRoutes.controllers.ItemQuery.queryAdvanced(
+            currentCondition.qs,
+            currentCondition.cs,
+            currentCondition.sid,
+            currentCondition.page,
+            currentCondition.pageSize,
+            currentCondition.orderBySpec
+        ).url
+
+        window.history.pushState(bodyUrl, null, bodyUrl);
+    };
+
+    var currentCondition;
+
+    var currentContentUrl = function() {
+        normalizeCondition();
+        
+        return jsRoutes.controllers.ItemQuery.queryAdvancedContent(
+            currentCondition.qs,
+            currentCondition.cs,
+            currentCondition.sid,
+            currentCondition.page,
+            currentCondition.pageSize,
+            currentCondition.orderBySpec
+        ).url;
+    };
+
+    var query = function(url, onLoad) {
+        $("#queryItemTable").empty();
+        $("#queryItemTable").load(url, onLoad);
     };
  
-   $(function() {
-      if (@templateNo == 0) {
-        $("#queryTemplateBody").load('@routes.Assets.at("templates/itemQuery/0.html")');
-        query();
-      }
-      else {
-        $("#queryTemplateBody").load("/static/templates/itemQueries/" + @templateNo + ".html");
-        query();
-      }
-window.history.pushState(null, null, '/test');
+    var normalizeCondition = function() {
+        if (currentCondition.cs) {
+            if (currentCondition.cs.length === 0) {
+                currentCondition.cs = undefind;
+            }
+        }
+        if (currentCondition.qs && ! $.isArray(currentCondition.qs))
+            currentCondition.qs = [currentCondition.qs];
+    }
+
+    var renderResult = function(contentUrl) {
+        if (@templateNo === 0) {
+            query(contentUrl, function() {
+                $("#queryTemplateBody").load('@routes.Assets.at("templates/itemQuery/0.html")');
+            });
+        }
+        else {
+            query(contentUrl, function() {
+                $("#queryTemplateBody").load("/static/templates/itemQueries/" + @templateNo + ".html");
+            });
+        }
+    };
+
+    var setSearchText = function() {
+        var txt = "";
+        if (currentCondition) {
+            if ($.isArray(currentCondition.qs)) {
+                $.each(currentCondition.qs, function(i, s) {
+                    if (i !== 0) txt += " ";
+                    txt += s;
+                });
+            }
+            else {
+                txt = currentCondition.qs;
+            }
+        }
+        
+        $("#searchTextBox").val(txt);
+    }
+
+    var search = function() {
+        currentCondition.qs = [$("#searchTextBox").val()];
+        applyCurrentCondition();
+        pushCurrentState();
+    };
+
+    $(function() {
+        var uri = new URI('@contentUrl'.replace(/&amp;/g, '&'));
+        currentCondition = uri.search(true);
+        setSearchText();
+        
+        if (@templateNo == 0) {
+            $("#advancedQueryMenu").load('@routes.Assets.at("templates/itemQueryMenu/0.html")');
+        }
+        else {
+            $("#advancedQueryMenu").load("/static/templates/itemQueryMenu/" + @templateNo + ".html");
+        }
+        renderResult('@contentUrl');
+        pushCurrentState();
+        window.onpopstate = function(e) {
+            if (e.state) {
+                var prevUri = new URI(e.state);
+                currentCondition = prevUri.search(true);
+                setSearchText();
+                if (onConditionChanged)
+                    onConditionChanged();
+                applyCurrentCondition();
+            }
+        };
     });
   </script>
 } {
   @shoppingCartDialogImplementation()
 
-  <div id="queryTemplateBody">
+  <div id="searchWordPanel">
+    <label for="searchTextBox">@Messages("advancedQuerySearchTitle")</label><br>
+    <input id="searchTextBox" type="text" style="float:left;">
+    <button id="searchButton" type="button" style="float: left;" onclick="search();">検索</div>
+    <div style="clear: both;"></div>
   </div>
 
-  <table style="display:none;" id="queryItemTable">
-  </table>
+  <div id="advancedQueryMenu">
+  </div>
+
+  <div id="my_contents_without_menu">
+    <div id="mymain">
+      <div class="contents">
+        <div id="queryTemplateBody">
+        </div>
+
+        <table style="display:none;" id="queryItemTable">
+        </table>
+      </div>
+    </div>
+  </div>
 }

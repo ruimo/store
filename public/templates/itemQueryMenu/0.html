@@ -1,0 +1,89 @@
+<script>
+    var itemQueryMenu = {
+        applyCurrentCondition: function() {
+            if (currentCondition.cs) {
+                $.each(currentCondition.cs.split('&'), function(i, g) {
+                    $.each(g.split(','), function(j, cid) {
+                        var cb = $(".categoryConditionItem[value='" + cid + "']");
+                        cb.prop('checked', true);
+                        cb.button("refresh");
+                    });
+                });
+            }
+            else {
+                $(".categoryConditionItem").each(function(i, e) {
+                    var cb = $(e);
+                    cb.prop('checked', false);
+                    cb.button("refresh");
+                });
+            }
+        }
+    };
+
+    $(function() {
+        $("#categoryCondition").accordion({
+            heightStyle: "content"
+        });
+        $(".categoryConditionItem").button();
+     
+        itemQueryMenu.applyCurrentCondition();
+        onConditionChanged = itemQueryMenu.applyCurrentCondition;
+        $(".categoryConditionItem").change(function() {
+            var condGroups = "";
+
+            $(".categoryConditionGroup").each(function(i, g) {
+                var conds = "";
+
+                $(g).find(".categoryConditionItem").each(function(j, e) {
+                    var cb = $(e);
+                    if (cb.prop('checked')) {
+                        if (conds.length !== 0) {
+                            conds += ",";
+                        }
+                        conds += cb.val();
+                    }
+                });
+
+                if (conds.length !== 0) {
+                    if (condGroups.length !== 0) {
+                        condGroups += "&";
+                    }
+                    condGroups += conds;
+                }
+            });
+  
+            currentCondition.cs = condGroups;
+            applyCurrentCondition();
+            pushCurrentState();
+        });
+    });
+</script>
+
+<!-- Specify category id for the value of input[type="checkbox"]. -->
+<div id="categoryCondition">
+  <h3>カテゴリ</h3>
+  <div class="categoryConditionGroup">
+    <div>
+      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem01" value="1004">
+      <label for="categoryConditionItem01">飲食</label>
+    </div>
+    
+    <div>
+      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem02" value="1006">
+      <label for="categoryConditionItem02">不動産</label>
+    </div>
+  </div>
+  
+  <h3>色</h3>
+  <div class="categoryConditionGroup">
+    <div>
+      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem03" value="1014">
+      <label for="categoryConditionItem03">白</label>
+    </div>
+    
+    <div>
+      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem04" value="1015">
+      <label for="categoryConditionItem04">赤</label>
+    </div>
+  </div>
+</div>

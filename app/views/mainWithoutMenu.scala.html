@@ -1,0 +1,48 @@
+@(
+  title: String,
+  loginSession: Option[LoginSession],
+  contentCssClass: String = "contents"
+)(header: Html)(content: Html)(
+  implicit lang: Lang,
+  request: RequestHeader
+)
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>@Messages("commonTitle") @title</title>
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="@routes.Assets.at("javascripts/jquery-ui-1.11.1.custom/jquery-ui.min.js")"></script>
+    <script src="@routes.Assets.at("javascripts/js.cookie-1.5.0.js")"></script>
+    <link href="@routes.Assets.at("javascripts/jquery-ui-1.11.1.custom/jquery-ui.theme.min.css")" rel="stylesheet">
+    <link href="@routes.Assets.at("javascripts/jquery-ui-1.11.1.custom/jquery-ui.min.css")" rel="stylesheet">
+    <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/main.css")">
+    @header
+  </head>
+  <body>
+    <div id="my_header">
+      <h1><a href="/">Functional Store</a></h1>
+
+      <ul>
+        <li>
+          @loginPanel(loginSession)
+        </li>
+        @loginSession match {
+          case None => {}
+          case Some(login) => {
+            <li><a href="/showShoppingCart">
+              @Messages("shopping.cart") @loginSession.map("(" + _.quantityInShoppingCart + ")").getOrElse("")
+            </a></li>
+            <li><a href="@routes.OrderHistory.index()">@Messages("query.order.history")</a></li>
+          }
+        }
+      </ul>
+    </div>
+
+    @content
+
+    <div id="my_footer"><p>FOOTER</p></div>
+  </body>
+</html>

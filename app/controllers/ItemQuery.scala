@@ -163,15 +163,18 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
   }}
 
   def queryAdvanced(
-    qs: List[String], cs: String, sid: Option[Long],
-    page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
+    qs: List[String], cs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
-    Ok(views.html.queryAdvanced(templateNo))
+    Ok(
+      views.html.queryAdvanced(
+        templateNo,
+        routes.ItemQuery.queryAdvancedContent(qs, cs, sid, page, pageSize, orderBySpec).url
+      )
+    )
   }}
 
   def queryAdvancedContent(
-    qs: List[String], cs: String, sid: Option[Long],
-    page: Int, pageSize: Int, orderBySpec: String
+    qs: List[String], cs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
     val list = Item.list(

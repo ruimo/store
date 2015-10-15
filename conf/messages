@@ -446,3 +446,4 @@ accountingBillCsvHeaderOuterTax=outerTax
 accountingBillCsvHeaderFee=fee
 accountingBillCsvHeaderGrandTotal=grandTotal
 commonTitle=Functional Store
+advancedQuerySearchTitle=Search by word
