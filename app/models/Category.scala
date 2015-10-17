@@ -395,17 +395,38 @@ object CategoryName {
     ).as(SqlParser.scalar[String].singleOpt)
 
   def all(categoryId: Long)(implicit conn: Connection): immutable.Map[LocaleInfo, CategoryName] = SQL(
-      """
-      select * from category_name
-      where category_id = {id}
-      """
-    ).on(
-      'id -> categoryId
-    ).as(
-      simple *
-    ).map {
-      rec => (rec.locale, rec)
-    }.toMap
+    """
+    select * from category_name
+    where category_id = {id}
+    """
+  ).on(
+    'id -> categoryId
+  ).as(
+    simple *
+  ).map {
+    rec => (rec.locale, rec)
+  }.toMap
+
+  def categoryNameByCode(
+    codes: Seq[String], locale: LocaleInfo
+  )(implicit conn: Connection): Seq[(String, String)] = SQL(
+    """
+    select * from category
+    inner join category_name on category.category_id = category_name.category_id
+    where locale_id = {localeId} and
+    category_code in (
+    """ +
+    codes.indices.map { "{cc" + _ + "}"}.mkString(",") +
+    ")"
+  ).on(
+    NamedParameter("localeId", locale.id) +:
+    codes.zipWithIndex.map { t => NamedParameter("cc" + t._2, t._1) }: _*
+  ).as(
+    SqlParser.get[String]("category.category_code") ~
+    SqlParser.get[String]("category_name.category_name") map {
+      case code~name => (code, name)
+    } *
+  )
 }
 
 object CategoryPath {
@@ -588,4 +609,3 @@ object SupplementalCategory {
     'categoryId -> categoryId
   ).executeUpdate()
 }
-

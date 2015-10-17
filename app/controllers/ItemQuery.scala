@@ -3,10 +3,10 @@ package controllers
 import helpers.CategorySearchCondition
 import play.api._
 import db.DB
-import libs.json.{JsObject, Json}
+import libs.json.{JsObject, Json, JsString, JsArray}
 import play.api.mvc._
 
-import models.{OrderBy, Item, LocaleInfo}
+import models.{OrderBy, Item, LocaleInfo, CategoryName}
 import play.api.Play.current
 import controllers.I18n.I18nAware
 import helpers.QueryString
@@ -189,4 +189,33 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
 
     Ok(views.html.queryAdvancedContent(list))
   }}
+
+  def categoryNameJson = optIsAuthenticatedJson { implicit optLogin => implicit request =>
+    request.body.asJson.map { json =>
+      val categoryCodes = (json \ "categoryCodes").as[Seq[String]]
+
+      DB.withConnection { implicit conn =>
+        val categoryNames: Seq[(String, String)] = 
+          CategoryName.categoryNameByCode(categoryCodes, LocaleInfo.getDefault)
+        Ok(
+          Json.toJson(
+            JsObject(
+              Seq(
+                "categoryNames" -> JsArray(
+                  categoryNames.map { n =>
+                    JsObject(
+                      Seq(
+                        "categoryCode" -> JsString(n._1),
+                        "categoryName" -> JsString(n._2)
+                      )
+                    )
+                  }
+                )
+              )
+            )
+          )
+        )
+      }
+    }.get
+  }
 }

@@ -20,12 +20,25 @@
         }
     };
 
-    $(function() {
+    var onCategoryNameGot = function(data) {
+        var map = {};
+        $.each(data.categoryNames, function(i, e) {
+            map[e.categoryCode] = e.categoryName;
+        });
+
+        $(".categoryName").each(function(i, e) {
+            var l = $(e);
+            var cc = l.attr("data-category-code");
+            var cn = map[cc];
+            l.text(cn ? cn : cc);
+        });        
+    };
+
+    var createMenu = function() {
         $("#categoryCondition").accordion({
             heightStyle: "content"
         });
         $(".categoryConditionItem").button();
-     
         itemQueryMenu.applyCurrentCondition();
         onConditionChanged = itemQueryMenu.applyCurrentCondition;
         $(".categoryConditionItem").change(function() {
@@ -56,6 +69,30 @@
             applyCurrentCondition();
             pushCurrentState();
         });
+    };
+
+    $(function() {
+        var categoryCodes = [];
+        $(".categoryName").each(function(i, e) {
+            var l = $(e);
+            var cc = l.attr("data-category-code");
+            categoryCodes.push(cc);
+        });
+        $.ajax({
+            type: 'post',
+            url: jsRoutes.controllers.ItemQuery.categoryNameJson().url,
+            data: JSON.stringify({categoryCodes: categoryCodes}),
+            contentType: 'application/json',
+            dataType: 'json',
+            cache: false,
+            success: function(data, status, jqXhr) {
+                onCategoryNameGot(data);
+                createMenu();
+            },
+            error: function(jqXhr, status, error) {
+                createMenu();
+            }
+        });
     });
 </script>
 
@@ -65,7 +102,7 @@
   <div class="categoryConditionGroup">
     <div>
       <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem01" value="1004">
-      <label for="categoryConditionItem01">飲食</label>
+      <label for="categoryConditionItem01" class="categoryName" data-category-code="11111111"></label>
     </div>
     
     <div>
