@@ -11,15 +11,7 @@
 
 <html>
   <head>
-    <title>@Messages("commonTitle") @title</title>
-    <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/main.css")">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <script src="@routes.Assets.at("javascripts/jquery-ui-1.11.1.custom/jquery-ui.min.js")"></script>
-    <script src="@routes.Assets.at("javascripts/js.cookie-1.5.0.js")"></script>
-    <link href="@routes.Assets.at("javascripts/jquery-ui-1.11.1.custom/jquery-ui.theme.min.css")" rel="stylesheet">
-    <link href="@routes.Assets.at("javascripts/jquery-ui-1.11.1.custom/jquery-ui.min.css")" rel="stylesheet">
-    @header
+    @commonHeader(title, header)
   </head>
   <body>
 <div id="my_header"><h1>Functional Store</h1></div>
