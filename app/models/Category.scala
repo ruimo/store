@@ -160,8 +160,10 @@ object Category {
   )(implicit conn: Connection): Category = {
     SQL(
       """
-      insert into category values (
-        (select nextval('category_seq'))
+      insert into category (
+        category_id, category_code
+      ) values (
+        (select nextval('category_seq')), to_char(currval('category_seq'), '9999999999999999999')
       )
       """
     ).executeUpdate()
