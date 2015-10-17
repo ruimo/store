@@ -6,7 +6,7 @@ import play.api.data.validation.Constraints._
 import play.api.mvc.Controller
 import controllers.I18n.I18nAware
 import play.api.data.Form
-import models.{ LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName, OrderBy, PagedRecords }
+import models.{ LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName, OrderBy, PagedRecords, UpdateCategoryCode }
 import play.api.i18n.Messages
 import play.api.db.DB
 import play.api.Play.current
@@ -22,6 +22,12 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
       "categoryName" -> text.verifying(nonEmpty, maxLength(32)),
       "parent" -> optional(longNumber)
     )(CreateCategory.apply)(CreateCategory.unapply)
+  )
+
+  val updateCategoryCodeForm = Form(
+    mapping(
+      "categoryCode" -> text.verifying(nonEmpty, maxLength(20))
+    )(UpdateCategoryCode.apply)(UpdateCategoryCode.unapply)
   )
 
   val updateCategoryNameForm = Form(
@@ -216,6 +222,40 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
         )
       }
     }
+  }
+
+  def editCategoryCode(categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    Ok(views.html.admin.editCategoryCode(categoryId, updateCategoryCodeForm))
+  }
+
+  def updateCategoryCode(categoryId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    updateCategoryCodeForm.bindFromRequest.fold(
+      formWithErrors => {
+        logger.error("Validation error in CategoryMaintenance.updateCategoryCode.")
+        BadRequest(
+          views.html.admin.editCategoryCode(categoryId, formWithErrors)
+        )
+      },
+      newCategoryCode => DB.withConnection { implicit conn =>
+        try {
+          newCategoryCode.save(categoryId)
+          Redirect(
+            routes.CategoryMaintenance.editCategory(None)
+          ).flashing("message" -> Messages("categoryIsUpdated"))
+        }
+        catch {
+          case e: UniqueConstraintException =>
+            BadRequest(
+              views.html.admin.editCategoryCode(
+                categoryId,
+                updateCategoryCodeForm.fill(newCategoryCode).withError("categoryCode", "unique.constraint.violation")
+              )
+            )
+        }
+      }
+    )
   }
 
   def updateCategoryName(categoryId: Long) = NeedAuthenticated { implicit request =>

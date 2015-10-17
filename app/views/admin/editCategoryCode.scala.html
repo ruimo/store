@@ -1,0 +1,48 @@
+@(
+  categoryId: Long,
+  myform: Form[UpdateCategoryCode]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
+  lang: Lang,
+  request: RequestHeader,
+  login: LoginSession
+)
+
+@import helper._
+
+@main(Messages("editCategoryCodeTitle"), Some(login), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("editCategoryCodeTitle")</h1>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @form(action = CSRF(routes.CategoryMaintenance.updateCategoryCode(categoryId)), 'id -> "updateCategoryCodeForm") {
+    @inputText(myform("categoryCode"))
+    <input type="submit" id="submitCategoryCodeUpdate" value='@Messages("update")'>
+  }
+  <div class="menuPanel" >
+    <br>
+    <a class="backLink" href="@routes.CategoryMaintenance.editCategory(None)">
+      @Messages("backTo", Messages("editCategoryTitle"))
+    </a>
+
+    <br>
+    <a class="backLink" href="@routes.CategoryMaintenance.index()">
+      @Messages("backTo", Messages("categoryMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

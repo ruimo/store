@@ -96,6 +96,13 @@
           "category.category_id", page
         )
       </th>
+      <th class="categoryTableHeaderCode categoryHeader">
+        @orderMark(
+          "code",
+          routes.CategoryMaintenance.editCategory(Some(locale.id), _: Int, _: Int, _: String),
+          "category_name.category_code", page
+        )
+      </th>
       <th class="categoryTableHeaderName categoryHeader">
         @orderMark(
           "name",
@@ -110,6 +117,11 @@
         <td class="categoryTableId">
           <a class="editCategoryNameLink" href="@routes.CategoryMaintenance.editCategoryName(rec._1.id.get)">
             @rec._1.id.get
+          </a>
+        </td>
+        <td class="categoryTableCode">
+          <a class="editCategoryCodeLink" href="@routes.CategoryMaintenance.editCategoryCode(rec._1.id.get)">
+            @rec._1.categoryCode
           </a>
         </td>
         <td class="categoryTableName">@rec._2.map(_.name).getOrElse("-")</td>

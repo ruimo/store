@@ -479,3 +479,5 @@ accountingBillCsvHeaderFee=送料計
 accountingBillCsvHeaderGrandTotal=合計
 commonTitle=Functional Store
 advancedQuerySearchTitle=以下を含む商品を検索
+editCategoryCodeTitle=カテゴリコードの更新
+categoryCode=カテゴリコード

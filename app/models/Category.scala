@@ -36,6 +36,15 @@ object Category {
     case cat~nameOpt => (cat, nameOpt)
   }
 
+  def updateCategoryCode(categoryId: Long, categoryCode: String)(implicit conn: Connection): Long = SQL(
+    """
+    update category set category_code = {categoryCode} where category_id = {id}
+    """
+  ).on(
+    'id -> categoryId,
+    'categoryCode -> categoryCode
+  ).executeUpdate()
+
   def tableForDropDown(implicit lang: Lang, conn: Connection): Seq[(String, String)] = {
     val locale = LocaleInfo.byLang(lang)
 

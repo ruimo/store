@@ -59,6 +59,8 @@ GET     /admin/editCategory              controllers.CategoryMaintenance.editCat
 GET     /admin/categoryPathTree          controllers.CategoryMaintenance.categoryPathTree
 POST    /admin/categoryMove              controllers.CategoryMaintenance.moveCategory
 GET     /admin/editCategoryName          controllers.CategoryMaintenance.editCategoryName(categoryId: Long)
+GET     /admin/editCategoryCode          controllers.CategoryMaintenance.editCategoryCode(categoryId: Long)
+POST    /admin/updateCategoryCode        controllers.CategoryMaintenance.updateCategoryCode(categoryId: Long)
 POST    /admin/updateCategoryName        controllers.CategoryMaintenance.updateCategoryName(categoryId: Long)
 POST    /admin/createCategoryName        controllers.CategoryMaintenance.createCategoryName(categoryId: Long)
 POST    /admin/removeCategoryName        controllers.CategoryMaintenance.removeCategoryName(categoryId: Long)

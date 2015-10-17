@@ -447,3 +447,5 @@ accountingBillCsvHeaderFee=fee
 accountingBillCsvHeaderGrandTotal=grandTotal
 commonTitle=Functional Store
 advancedQuerySearchTitle=Search by word
+editCategoryCodeTitle=Update category code
+categoryCode=Category code
