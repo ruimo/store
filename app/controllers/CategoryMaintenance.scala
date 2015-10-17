@@ -6,7 +6,7 @@ import play.api.data.validation.Constraints._
 import play.api.mvc.Controller
 import controllers.I18n.I18nAware
 import play.api.data.Form
-import models.{ LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName, OrderBy }
+import models.{ LocaleInfo, CreateCategory, Category, CategoryPath, CategoryName, OrderBy, PagedRecords }
 import play.api.i18n.Messages
 import play.api.db.DB
 import play.api.Play.current
@@ -94,7 +94,7 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
 
       DB.withConnection { implicit conn =>
         {
-          val categories = Category.listWithName(
+          val categories: PagedRecords[(Category, Option[CategoryName])] = Category.listWithName(
             page = start, pageSize = size, locale = locale, OrderBy(orderBySpec)
           )
           Ok(views.html.admin.editCategory(locale, LocaleInfo.localeTable, categories))
@@ -137,16 +137,15 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
           val locale = LocaleInfo.getDefault
 
           // list of parent-name pairs
-          val pns: Seq[(Category, CategoryName)] = CategoryPath.listNamesWithParent(locale)
+          val pns: Seq[(Long, CategoryName)] = CategoryPath.listNamesWithParent(locale)
 
           val idToName: Map[Long, CategoryName] = pns.map { t => (t._2.categoryId, t._2) }.toMap
 
           //map of Category to list of its child CategoryNames
           val pnSubTrees: Map[Long, Seq[Long]] =
             pns.foldLeft(Map[Long, Seq[Long]]()) { (subTree, pn) =>
-              val p = pn._1
               val name = pn._2
-              val pid = p.id.get
+              val pid = pn._1
               val myid = name.categoryId
               val childrenIds = subTree.get(pid).getOrElse(Seq())
 

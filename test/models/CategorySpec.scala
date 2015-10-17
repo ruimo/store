@@ -17,11 +17,11 @@ class CategorySpec extends Specification {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         TestHelper.removePreloadedRecords()
         DB.withConnection { implicit conn => {
-          val cat = Category.createNew(
+          val cat: Category = Category.createNew(
             Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
           )
 
-          val root = Category.root
+          val root: Seq[Category] = Category.root
           root.size === 1
           root.head === cat
 
@@ -128,31 +128,31 @@ class CategorySpec extends Specification {
 
           CategoryPath.parent(parent) === None
           CategoryPath.children(parent).size === 2
-          CategoryPath.parent(child) === Some(parent)
+          CategoryPath.parent(child) === parent.id
           CategoryPath.children(child).size === 0
 
           val jaChildNames = CategoryPath.childrenNames(parent, LocaleInfo.Ja)
           jaChildNames.size === 1
           val (jaCat, jaName) = jaChildNames.head
-          jaCat === child
+          jaCat === child.id.get
           jaName.locale === LocaleInfo.Ja
           jaName.name === "果樹"
 
           val enChildNames = CategoryPath.childrenNames(parent, LocaleInfo.En)
           enChildNames.size === 2
           val (enCat, enName) = enChildNames.head
-          enCat === child
+          enCat === child.id.get
           enName.locale === LocaleInfo.En
           enName.name === "Fruit Tree"
 
           CategoryPath.childrenNames(child, LocaleInfo.Ja).size === 0
           CategoryPath.childrenNames(child, LocaleInfo.En).size === 0
 
-          var pathList = CategoryPath.listNamesWithParent(LocaleInfo.Ja)
-          pathList.contains((parent,CategoryName(LocaleInfo.Ja,parent.id.get,"植木"))) === true
-          pathList.contains((parent,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
-          pathList.contains((child,CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
-          pathList.contains((child2,CategoryName(LocaleInfo.En,child2.id.get,"English Only Tree"))) === true
+          var pathList: Seq[(Long, CategoryName)] = CategoryPath.listNamesWithParent(LocaleInfo.Ja)
+          pathList.contains((parent.id.get ,CategoryName(LocaleInfo.Ja,parent.id.get,"植木"))) === true
+          pathList.contains((parent.id.get, CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
+          pathList.contains((child.id.get, CategoryName(LocaleInfo.Ja,child.id.get,"果樹"))) === true
+          pathList.contains((child2.id.get, CategoryName(LocaleInfo.En,child2.id.get,"English Only Tree"))) === true
         }
       }}
     }
@@ -186,7 +186,7 @@ class CategorySpec extends Specification {
 
           Category.move(child11, Some(child2))
 
-          CategoryPath.parent(child11).get === child2
+          CategoryPath.parent(child11).get === child2.id.get
 
           CategoryPath.children(child1).size === 0
 
@@ -235,7 +235,7 @@ class CategorySpec extends Specification {
 
           Category.move(child11, Some(child2))
 
-          CategoryPath.parent(child11).get === child2
+          CategoryPath.parent(child11).get === child2.id.get
 
           CategoryPath.children(child1).size === 0
 
@@ -260,7 +260,7 @@ class CategorySpec extends Specification {
 
           Category.move(parent2, Some(parent))
 
-          CategoryPath.parent(parent2) === Some(parent)
+          CategoryPath.parent(parent2) === parent.id
 
           CategoryPath.children(parent2).size === 0
 
@@ -283,7 +283,7 @@ class CategorySpec extends Specification {
 
           Category.move(child1, Some(child1)) must throwA[Exception]
         
-          CategoryPath.parent(child1) === Some(parent)
+          CategoryPath.parent(child1) === parent.id
 
           CategoryPath.children(parent).size === 2
 
@@ -304,7 +304,7 @@ class CategorySpec extends Specification {
 
           Category.move(parent, Some(child1)) must throwA[Exception]
 
-          CategoryPath.parent(child1) === Some(parent)
+          CategoryPath.parent(child1) === parent.id
 
           CategoryPath.children(parent).size === 2
 
