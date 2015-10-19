@@ -1,6 +1,6 @@
 package controllers
 
-import helpers.CategorySearchCondition
+import helpers.{CategoryIdSearchCondition, CategoryCodeSearchCondition}
 import play.api._
 import db.DB
 import libs.json.{JsObject, Json, JsString, JsArray}
@@ -48,7 +48,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val list = Item.list(
       locale = LocaleInfo.getDefault, 
       queryString = queryString,
-      category = CategorySearchCondition(c.toSeq: _*),
+      category = CategoryIdSearchCondition(c.toSeq: _*),
       page = page,
       pageSize = pageSize,
       orderBy = OrderBy(orderBySpec)
@@ -107,7 +107,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     val list = Item.list(
       locale = LocaleInfo.getDefault,
       queryString = queryString,
-      category = CategorySearchCondition(c.toSeq: _*),
+      category = CategoryIdSearchCondition(c.toSeq: _*),
       siteId = sid,
       page = page,
       pageSize = pageSize,
@@ -163,24 +163,26 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
   }}
 
   def queryAdvanced(
-    qs: List[String], cs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
+    qs: List[String], cs: String, ccs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String, 
+    templateNo: Int
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
     Ok(
       views.html.queryAdvanced(
         templateNo,
-        routes.ItemQuery.queryAdvancedContent(qs, cs, sid, page, pageSize, orderBySpec).url
+        routes.ItemQuery.queryAdvancedContent(qs, cs, ccs, sid, page, pageSize, orderBySpec).url
       )
     )
   }}
 
   def queryAdvancedContent(
-    qs: List[String], cs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String
+    qs: List[String], cs: String, ccs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
     val list = Item.list(
       locale = LocaleInfo.getDefault,
       queryString = queryString,
-      category = CategorySearchCondition(cs),
+      category = CategoryIdSearchCondition(cs),
+      categoryCodes = CategoryCodeSearchCondition(ccs),
       siteId = sid,
       page = page,
       pageSize = pageSize,

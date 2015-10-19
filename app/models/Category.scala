@@ -413,11 +413,16 @@ object CategoryName {
     """
     select * from category
     inner join category_name on category.category_id = category_name.category_id
-    where locale_id = {localeId} and
-    category_code in (
-    """ +
-    codes.indices.map { "{cc" + _ + "}"}.mkString(",") +
-    ")"
+    where locale_id = {localeId}
+    """ + (
+      if (codes.isEmpty) "" else (
+        """
+        and category_code in (
+        """ +
+        codes.indices.map { "{cc" + _ + "}"}.mkString(",") +
+        ")"
+      )
+    )
   ).on(
     NamedParameter("localeId", locale.id) +:
     codes.zipWithIndex.map { t => NamedParameter("cc" + t._2, t._1) }: _*

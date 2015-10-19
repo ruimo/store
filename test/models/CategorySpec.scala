@@ -516,5 +516,14 @@ class CategorySpec extends Specification {
         }}
       }
     }
+
+    "Can get category name by category code." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn => {
+          CategoryName.categoryNameByCode(Seq(), LocaleInfo.Ja).size === 0
+        }}
+      }
+    }
   }
 }

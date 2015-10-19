@@ -26,41 +26,44 @@ import scala.annotation.tailrec
 // (id = 1 or id = 2) and (id = 3 or id = 4 or id = 5)
 // For example, items having categories both id = 1 and id = 3 will be hit.
 // Items having categories both id = 1 and id = 2 will not be hit.
-case class CategorySearchCondition(
+case class CategoryIdSearchCondition(
   condition: immutable.Seq[immutable.Seq[Long]]
 )
 
+case class CategoryCodeSearchCondition(
+  condition: immutable.Seq[immutable.Seq[String]]
+)
+
 object CategorySearchCondition {
-  val Null = CategorySearchCondition(Vector[immutable.Seq[Long]]())
-
-  def apply(categoryIds: Long*): CategorySearchCondition =
-    CategorySearchCondition(Vector(categoryIds.toVector))
-
-  def apply(in: String): CategorySearchCondition = {
+  def parseInput[T](
+    in: String,
+    strToData: String => T,
+    isDataChar: Char => Boolean
+  ): immutable.Seq[immutable.Seq[T]] = {
     @tailrec def parse(
-      idx: Int, charBuf: StringBuilder, orBuf: Vector[Long], andBuf: Vector[immutable.Seq[Long]]
-    ): CategorySearchCondition = {
+      idx: Int, charBuf: StringBuilder, orBuf: Vector[T], andBuf: Vector[immutable.Seq[T]]
+    ): immutable.Seq[immutable.Seq[T]] = {
       if (in.endsWith(","))
         throw new IllegalArgumentException("Input string ends with comma '" + in + "'.")
       if (idx >= in.length)
         if (charBuf.length != 0)
-          CategorySearchCondition(andBuf :+ (orBuf :+ charBuf.toString.toLong))
+          andBuf :+ (orBuf :+ strToData(charBuf.toString))
         else
-          CategorySearchCondition(andBuf)
+          andBuf
       else {
         val c = in.charAt(idx)
-        if (isNum(c))
+        if (isDataChar(c))
           parse(idx + 1, charBuf.append(c), orBuf, andBuf)
         else if (c == ',') {
-          val newOrBuf = orBuf :+ charBuf.toString.toLong
+          val newOrBuf = orBuf :+ strToData(charBuf.toString)
           charBuf.setLength(0)
           parse(idx + 1, charBuf, newOrBuf, andBuf)
         }
         else if (c == '&') {
           if (charBuf.length != 0) {
-            val newOrBuf = orBuf :+ charBuf.toString.toLong
+            val newOrBuf = orBuf :+ strToData(charBuf.toString)
             charBuf.setLength(0)
-            parse(idx + 1, charBuf, Vector[Long](), andBuf :+ newOrBuf)
+            parse(idx + 1, charBuf, Vector[T](), andBuf :+ newOrBuf)
           }
           else
             parse(idx + 1, charBuf, orBuf, andBuf)
@@ -72,8 +75,32 @@ object CategorySearchCondition {
       }
     }
 
-    parse(0, new StringBuilder, Vector[Long](), Vector[immutable.Seq[Long]]())
+    parse(0, new StringBuilder, Vector[T](), Vector[immutable.Seq[T]]())
   }
+}
+
+object CategoryIdSearchCondition {
+  val Null = CategoryIdSearchCondition(Vector[immutable.Seq[Long]]())
+
+  def apply(categoryIds: Long*): CategoryIdSearchCondition =
+    CategoryIdSearchCondition(Vector(categoryIds.toVector))
+
+  def apply(in: String): CategoryIdSearchCondition = 
+    CategoryIdSearchCondition(CategorySearchCondition.parseInput(in, _.toLong, isNum))
 
   def isNum(c: Char): Boolean = '0' <= c && c <= '9'
+}
+
+object CategoryCodeSearchCondition {
+  val Null = CategoryCodeSearchCondition(Vector[immutable.Seq[String]]())
+
+  def apply(categoryCodes: String*): CategoryCodeSearchCondition =
+    CategoryCodeSearchCondition(Vector(categoryCodes.toVector))
+
+  def apply(in: String): CategoryCodeSearchCondition = 
+    CategoryCodeSearchCondition(CategorySearchCondition.parseInput(in, identity, isIdentifier))
+
+  def isIdentifier(c: Char): Boolean = '0' <= c && c <= '9' ||
+    'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' ||
+    c == '_'
 }

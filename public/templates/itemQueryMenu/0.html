@@ -1,17 +1,17 @@
 <script>
     var itemQueryMenu = {
         applyCurrentCondition: function() {
-            if (currentCondition.cs) {
-                $.each(currentCondition.cs.split('&'), function(i, g) {
-                    $.each(g.split(','), function(j, cid) {
-                        var cb = $(".categoryConditionItem[value='" + cid + "']");
+            if (currentCondition.ccs) {
+                $.each(currentCondition.ccs.split('&'), function(i, g) {
+                    $.each(g.split(','), function(j, ccs) {
+                        var cb = $(".categoryConditionItem[value='" + ccs + "'] .categoryConditionCb");
                         cb.prop('checked', true);
                         cb.button("refresh");
                     });
                 });
             }
             else {
-                $(".categoryConditionItem").each(function(i, e) {
+                $(".categoryConditionCb").each(function(i, e) {
                     var cb = $(e);
                     cb.prop('checked', false);
                     cb.button("refresh");
@@ -26,11 +26,12 @@
             map[e.categoryCode] = e.categoryName;
         });
 
-        $(".categoryName").each(function(i, e) {
-            var l = $(e);
-            var cc = l.attr("data-category-code");
+        $(".categoryConditionItem").each(function(i, e) {
+            var p = $(e);
+            var cc = p.attr("data-category-code");
             var cn = map[cc];
-            l.text(cn ? cn : cc);
+            var lbl = p.find(".categoryName");
+            $(lbl).text(cn ? cn : cc);
         });        
     };
 
@@ -38,22 +39,22 @@
         $("#categoryCondition").accordion({
             heightStyle: "content"
         });
-        $(".categoryConditionItem").button();
+        $(".categoryConditionCb").button();
         itemQueryMenu.applyCurrentCondition();
         onConditionChanged = itemQueryMenu.applyCurrentCondition;
-        $(".categoryConditionItem").change(function() {
+        $(".categoryConditionCb").change(function() {
             var condGroups = "";
 
             $(".categoryConditionGroup").each(function(i, g) {
                 var conds = "";
 
-                $(g).find(".categoryConditionItem").each(function(j, e) {
+                $(g).find(".categoryConditionCb").each(function(j, e) {
                     var cb = $(e);
                     if (cb.prop('checked')) {
                         if (conds.length !== 0) {
                             conds += ",";
                         }
-                        conds += cb.val();
+                        conds += cb.parent().attr("data-category-code");
                     }
                 });
 
@@ -65,7 +66,7 @@
                 }
             });
   
-            currentCondition.cs = condGroups;
+            currentCondition.ccs = condGroups;
             applyCurrentCondition();
             pushCurrentState();
         });
@@ -73,9 +74,9 @@
 
     $(function() {
         var categoryCodes = [];
-        $(".categoryName").each(function(i, e) {
-            var l = $(e);
-            var cc = l.attr("data-category-code");
+        $(".categoryConditionItem").each(function(i, e) {
+            var p = $(e);
+            var cc = p.attr("data-category-code");
             categoryCodes.push(cc);
         });
         $.ajax({
@@ -100,27 +101,27 @@
 <div id="categoryCondition">
   <h3>カテゴリ</h3>
   <div class="categoryConditionGroup">
-    <div>
-      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem01" value="1004">
-      <label for="categoryConditionItem01" class="categoryName" data-category-code="11111111"></label>
+    <div class="categoryConditionItem" data-category-code="10000000">
+      <input type="checkbox" class="categoryConditionCb" id="categoryConditionItem10000000">
+      <label for="categoryConditionItem10000000" class="categoryName"></label>
     </div>
     
-    <div>
-      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem02" value="1006">
-      <label for="categoryConditionItem02">不動産</label>
+    <div class="categoryConditionItem" data-category-code="1000001">
+      <input type="checkbox" class="categoryConditionCb" id="categoryConditionItem1000001">
+      <label for="categoryConditionItem1000001" class="categoryName"></label>
     </div>
   </div>
   
   <h3>色</h3>
   <div class="categoryConditionGroup">
-    <div>
-      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem03" value="1014">
-      <label for="categoryConditionItem03">白</label>
+    <div class="categoryConditionItem" data-category-code="2000000">
+      <input type="checkbox" class="categoryConditionCb" id="categoryConditionItem2000000">
+      <label for="categoryConditionItem2000000" class="categoryName"></label>
     </div>
     
-    <div>
-      <input type="checkbox" class="categoryConditionItem" id="categoryConditionItem04" value="1015">
-      <label for="categoryConditionItem04">赤</label>
+    <div class="categoryConditionItem" data-category-code="2000001">
+      <input type="checkbox" class="categoryConditionCb" id="categoryConditionItem2000001">
+      <label for="categoryConditionItem2000001" class="categoryName"></label>
     </div>
   </div>
 </div>

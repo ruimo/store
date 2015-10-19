@@ -32,6 +32,7 @@
         var bodyUrl = jsRoutes.controllers.ItemQuery.queryAdvanced(
             currentCondition.qs,
             currentCondition.cs,
+            currentCondition.ccs,
             currentCondition.sid,
             currentCondition.page,
             currentCondition.pageSize,
@@ -49,6 +50,7 @@
         return jsRoutes.controllers.ItemQuery.queryAdvancedContent(
             currentCondition.qs,
             currentCondition.cs,
+            currentCondition.ccs,
             currentCondition.sid,
             currentCondition.page,
             currentCondition.pageSize,
@@ -65,6 +67,11 @@
         if (currentCondition.cs) {
             if (currentCondition.cs.length === 0) {
                 currentCondition.cs = undefind;
+            }
+        }
+        if (currentCondition.ccs) {
+            if (currentCondition.ccs.length === 0) {
+                currentCondition.ccs = undefind;
             }
         }
         if (currentCondition.qs && ! $.isArray(currentCondition.qs))

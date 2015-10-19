@@ -12,7 +12,7 @@ import play.api.data.Form
 import org.joda.time.DateTime
 import annotation.tailrec
 import helpers.QueryString
-import helpers.CategorySearchCondition
+import helpers.{CategoryIdSearchCondition, CategoryCodeSearchCondition}
 import play.api.Play
 
 case class ItemId(id: Long) extends AnyVal
@@ -180,7 +180,9 @@ object Item {
         )
       )
     """ +
-    createQueryConditionSql(queryString, CategorySearchCondition.Null, None)
+    createQueryConditionSql(
+      queryString, CategoryIdSearchCondition.Null, CategoryCodeSearchCondition.Null, None
+    )
 
     val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
@@ -225,7 +227,8 @@ object Item {
   def list(
     siteUser: Option[SiteUser] = None,
     locale: LocaleInfo, queryString: QueryString,
-    category: CategorySearchCondition = CategorySearchCondition.Null,
+    category: CategoryIdSearchCondition = CategoryIdSearchCondition.Null,
+    categoryCodes: CategoryCodeSearchCondition = CategoryCodeSearchCondition.Null,
     siteId: Option[Long] = None,
     page: Int = 0, pageSize: Int = 10,
     now: Long = System.currentTimeMillis,
@@ -270,7 +273,7 @@ object Item {
           limit 1
       )
     """ +
-    createQueryConditionSql(queryString, category, siteId)
+    createQueryConditionSql(queryString, category, categoryCodes, siteId)
 
     val columns = if (ItemListQueryColumnsToAdd.isEmpty) "*" else "*, " + ItemListQueryColumnsToAdd
 
@@ -312,38 +315,64 @@ object Item {
   }
 
   def createQueryConditionSql(
-    q: QueryString, category: CategorySearchCondition, siteId: Option[Long]
+    q: QueryString, category: CategoryIdSearchCondition, 
+    categoryCodes: CategoryCodeSearchCondition, siteId: Option[Long]
   ): String = {
     val buf = new StringBuilder
 
-    @tailrec def createQueryConditionSql(idx: Int): String =
+    @tailrec def createQueryByQueryString(idx: Int): String =
       if (idx < q.size) {
         buf.append(
           f"and (item_name.item_name like {query$idx%d} or item_description.description like {query$idx%d}) "
         )
-        createQueryConditionSql(idx + 1)
+        createQueryByQueryString(idx + 1)
       }
       else buf.toString
 
-    createQueryConditionSql(0) + category.condition.map {
+    createQueryByQueryString(0) +
+    category.condition.map {
       cids => {
-        val cs = cids.mkString(",")
+        val cid = cids.mkString(",")
         f"""
           and (
             item.category_id in (
-              select descendant from category_path where ancestor in ($cs)
+              select descendant from category_path where ancestor in ($cid)
             )
             or exists (
               select descendant from category_path
               where ancestor in (
                 select category_id from supplemental_category where item_id = item.item_id
               )
-              and descendant in ($cs)
+              and descendant in ($cid)
             )
           )
         """
       }
-    }.mkString("") + siteId.map {
+    }.mkString("") +
+    categoryCodes.condition.map {
+      ccs => {
+        val cc = ccs.map {"'" + _ + "'"}.mkString(",")
+        f"""
+          and (
+            item.category_id in (
+              select descendant from category_path where ancestor in (
+                select category_id from category where category_code in ($cc)
+              )
+            )
+            or exists (
+              select descendant from category_path
+              where ancestor in (
+                select category_id from supplemental_category where item_id = item.item_id
+              )
+              and descendant in (
+                select category_id from category where category_code in ($cc)
+              )
+            )
+          )
+        """
+      }
+    }.mkString("") +
+    siteId.map {
       sid => f"and site.site_id = $sid "
     }.getOrElse("")
   }
