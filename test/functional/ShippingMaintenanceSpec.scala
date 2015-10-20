@@ -32,7 +32,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.startCreateShippingBox().url + "?lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("createNewShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("createNewShippingBoxTitle"))
         browser.find("#createNewShippingBoxForm").find("input[type='submit']").click
         
         browser.await().atMost(5, TimeUnit.SECONDS).until(".globalErrorMessage").areDisplayed()
@@ -59,7 +59,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.startCreateShippingBox().url + "?lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("createNewShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("createNewShippingBoxTitle"))
         browser.webDriver
           .findElement(By.id("siteId"))
           .findElement(By.cssSelector("option[value=\"" + site1.id.get + "\"]")).getText === "商店1"
@@ -76,7 +76,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until(".message").areDisplayed()
         browser.find(".message").getText === Messages("shippingBoxIsCreated")
         
-        browser.title === Messages("commonTitle") + " " + Messages("createNewShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("createNewShippingBoxTitle"))
         DB.withConnection { implicit conn =>
           val list = ShippingBox.list(site2.id.get)
           list.size === 1
@@ -93,7 +93,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.startCreateShippingBox().url + "?lang=" + lang.code
         )
         
-        browser.title === Messages("commonTitle") + " " + Messages("createNewShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("createNewShippingBoxTitle"))
         browser.find("#siteId").find("option[value=\"" + site2.id.get + "\"]").click()
 
         browser.fill("#itemClass").`with`("1")
@@ -115,7 +115,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.editShippingBox().url + "?lang=" + lang.code
         )
-        browser.title === Messages("commonTitle") + " " + Messages("editShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("editShippingBoxTitle"))
         browser.find(".norecord").getText === Messages("no.records.found")
       }}
     }
@@ -134,7 +134,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.editShippingBox().url + "?lang=" + lang.code
         )
-        browser.title === Messages("commonTitle") + " " + Messages("editShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("editShippingBoxTitle"))
         browser.find(".shippingBoxTableBodyId", 0).getText === box1.id.get.toString
         browser.find(".shippingBoxTableBodySite", 0).getText === "商店1"
         browser.find(".shippingBoxTableBodyItemClass", 0).getText === "1"
@@ -168,7 +168,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingBoxMaintenance.startChangeShippingBox(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("changeShippingBoxTitle")
+        browser.title === Messages("commonTitle", Messages("changeShippingBoxTitle"))
         browser.webDriver
           .findElement(By.id("siteId"))
           .findElement(By.cssSelector("option[value=\"" + site1.id.get + "\"]")).getText === "商店1"
@@ -217,7 +217,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         browser.find("table.shippingFeeHeader").find(".body").find(".site").getText === "商店1"
         browser.find("table.shippingFeeHeader").find(".body").find(".boxName").getText === "box1"
 
@@ -240,7 +240,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         doWith(browser.find("table.shippingFeeHeader").find(".body")) { e =>
           e.find(".site").getText === "商店1"
           e.find(".boxName").getText === "box1"
@@ -275,7 +275,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         browser.find(".shippingFeeList").find(".body", 0).find(".delete").find("button").click
 
         // Dialog should be shown.
@@ -305,7 +305,7 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         browser.await().atMost(5, TimeUnit.SECONDS).until("#createShippingFeeEntryButton").areDisplayed()
         browser.find("#createShippingFeeEntryButton").click()
         
@@ -316,7 +316,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.find("input[type='checkbox'][value='" + JapanPrefecture.東京都.code + "']").click()
         browser.find("input[type='checkbox'][value='" + JapanPrefecture.神奈川県.code + "']").click()
         browser.find("#createShippingFeeForm").find("input[type='submit']").click
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
 
         doWith(browser.find(".shippingFeeList").find(".body", 0)) { e =>
           e.find(".country").getText === Messages("country.JPN")
@@ -351,11 +351,11 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         // Edit fee for tokyo.
         browser.find(".shippingFeeList").find(".body", 0).find(".edit").find("a").click
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         doWith(browser.find(".shippingFeeHistory").find(".body")) { rec =>
           rec.find(".boxName").getText === "box1"
           rec.find(".country").getText === "日本"
@@ -399,11 +399,11 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         // Edit fee for tokyo.
         browser.find(".shippingFeeList").find(".body", 0).find(".edit").find("a").click
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         doWith(browser.find(".shippingFeeHistory").find(".body")) { rec =>
           rec.find(".boxName").getText === "box1"
           rec.find(".country").getText === "日本"
@@ -418,7 +418,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.find("#addShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         browser.webDriver.findElement(By.id("histories_0_taxId")).findElement(
           By.cssSelector("option[value='" + tax2.id.get + "']")
         ).isSelected === true
@@ -440,7 +440,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.find("#addShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
 
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         browser.webDriver.findElement(By.id("histories_0_taxId")).findElement(
           By.cssSelector("option[value='" + tax2.id.get + "']")
         ).isSelected === true
@@ -455,7 +455,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.fill("#histories_0_validUntil").`with`("2016-01-23 22:33:44")
         browser.find("#updateShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         
         browser.webDriver.findElement(By.id("histories_0_taxId")).findElement(
           By.cssSelector("option[value='" + tax1.id.get + "']")
@@ -467,14 +467,14 @@ class ShippingMaintenanceSpec extends Specification {
         browser.fill("#histories_0_costFee").`with`("100")
         browser.find("#updateShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         browser.find("#histories_0_costFee").getAttribute("value") === "100.00"
 
         // Check fee history.
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.startFeeMaintenanceNow(box1.id.get).url + "&lang=" + lang.code
         )
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
         doWith(browser.find(".shippingFeeList").find(".body", 0)) { e =>
           e.find(".country").getText === Messages("country.JPN")
           e.find(".prefecture").getText === JapanPrefecture.北海道.toString
@@ -486,12 +486,12 @@ class ShippingMaintenanceSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ShippingFeeMaintenance.editHistory(fee1.id.get).url + "&lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         browser.find("button.removeHistoryButton").getTexts.size === 1
         browser.find("button.removeHistoryButton").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
-        browser.title === Messages("commonTitle") + " " + Messages("shippingFeeHistoryMaintenanceTitle")
+        browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
         browser.find("button.removeHistoryButton").getTexts.size === 0
       }}
     }

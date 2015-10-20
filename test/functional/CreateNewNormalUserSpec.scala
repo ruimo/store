@@ -24,7 +24,7 @@ class CreateNewNormalUserSpec extends Specification {
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
         
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.fill("#userName").`with`("01234567")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -38,7 +38,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.submit("#registerNormalUser")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         // Waiting next normal user to create.
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.find(".message").getText === Messages("userIsCreated")
         
         val newUser = StoreUser.findByUserName("01234567").get
@@ -63,7 +63,7 @@ class CreateNewNormalUserSpec extends Specification {
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
         
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.fill("#userName").`with`("01234567")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -78,7 +78,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.submit("#registerNormalUser")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         // Waiting next normal user to create.
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#email_field dd.error").getText === Messages("error.email")
@@ -94,7 +94,7 @@ class CreateNewNormalUserSpec extends Specification {
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.fill("#userName").`with`("01234567")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -106,7 +106,7 @@ class CreateNewNormalUserSpec extends Specification {
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         // Waiting next normal user to create.
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#password_confirm_field dd.error").getText === Messages("confirmPasswordDoesNotMatch")
@@ -124,7 +124,7 @@ class CreateNewNormalUserSpec extends Specification {
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
         
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.fill("#userName").`with`("abcdef")
         browser.fill("#firstName").`with`("firstname")
         browser.fill("#lastName").`with`("lastname")
@@ -139,7 +139,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         // User name is not in pattern.
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.find("#userName_field dd.error").getText === Messages("normalUserNamePatternError")
 
         browser.fill("#userName").`with`("12345")
@@ -147,7 +147,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.fill("#password_confirm").`with`("password")
         browser.submit("#registerNormalUser")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.find("#userName_field dd.error").getText === Messages("normalUserNamePatternError")
 
         browser.fill("#userName").`with`("1234567")
@@ -155,7 +155,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.fill("#password_confirm").`with`("password")
         browser.submit("#registerNormalUser")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.find("#userName_field dd.error").getText === Messages("normalUserNamePatternError")
 
         browser.fill("#userName").`with`("123456")
@@ -163,7 +163,7 @@ class CreateNewNormalUserSpec extends Specification {
         browser.fill("#password_confirm").`with`("password")
         browser.submit("#registerNormalUser")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("createNormalUserTitle")
+        browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.find(".message").getText === Messages("userIsCreated")
 
         val newUser = StoreUser.findByUserName("123456").get

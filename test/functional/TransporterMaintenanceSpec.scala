@@ -46,7 +46,7 @@ class TransporterMaintenanceSpec extends Specification {
         takeScreenShot(browser)
         browser.await().atMost(30, TimeUnit.SECONDS).until("#transporterName").areDisplayed()
 
-        browser.title === Messages("commonTitle") + " " + Messages("createNewTransporterTitle")
+        browser.title === Messages("commonTitle", Messages("createNewTransporterTitle"))
         browser.click("select[id='langId'] option[value='" + LocaleInfo.Ja.id + "']")
         browser.fill("#transporterName").`with`("Transporter01")
         browser.find("#createNewTransporterForm").find("input[type='submit']").click
@@ -111,7 +111,7 @@ class TransporterMaintenanceSpec extends Specification {
         )
         browser.await().atMost(30, TimeUnit.SECONDS).until(".transporterTableId").areDisplayed()
 
-        browser.title === Messages("commonTitle") + " " + Messages("editTransporterTitle")
+        browser.title === Messages("commonTitle", Messages("editTransporterTitle"))
         browser.find(".transporterTableId", 0).find("a").getText() === list(0)._1.id.get.toString
         browser.find(".transporterTableId", 1).find("a").getText() === list(1)._1.id.get.toString
 
@@ -147,14 +147,14 @@ class TransporterMaintenanceSpec extends Specification {
           )
           browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0_transporterName").getValue() === "Transporter01"
 
           browser.fill("#transporterNames_0_transporterName").`with`("Transporter02")
           browser.find("#changeTransporterName").click()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
           browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
           
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -191,14 +191,14 @@ class TransporterMaintenanceSpec extends Specification {
           )
           browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0_transporterName").getValue() === "Transporter01"
 
           browser.fill("#transporterNames_0_transporterName").`with`("")
           browser.find("#changeTransporterName").click()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
           browser.find("#transporterNames_0_transporterName_field").find(".error").getText() === Messages("error.required")
         }
       }}
@@ -232,7 +232,7 @@ class TransporterMaintenanceSpec extends Specification {
           )
           browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0_transporterName").getValue() === "Transporter01"
 
@@ -241,7 +241,7 @@ class TransporterMaintenanceSpec extends Specification {
           browser.webDriver
             .findElement(By.id("addTransporterName")).click()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
 //          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -280,7 +280,7 @@ class TransporterMaintenanceSpec extends Specification {
           )
           browser.await().atMost(30, TimeUnit.SECONDS).until(".langName").areDisplayed()
 
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
           browser.find(".langName").getText() === Messages("lang." + LocaleInfo.Ja.lang)
           browser.find("#transporterNames_0_transporterName").getValue() === "Transporter01"
 
@@ -289,7 +289,7 @@ class TransporterMaintenanceSpec extends Specification {
           browser.webDriver
             .findElement(By.id("addTransporterName")).click()
        
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
 //          browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
 
           browser.find(".langName", 0).getText() === Messages("lang." + LocaleInfo.Ja.lang)
@@ -298,7 +298,7 @@ class TransporterMaintenanceSpec extends Specification {
           browser.find("#transporterNames_1_transporterName").getValue() === "Transporter02"
 
           browser.find(".removeTransporterName", 0).click()
-          browser.title === Messages("commonTitle") + " " + Messages("changeTransporterTitle")
+          browser.title === Messages("commonTitle", Messages("changeTransporterTitle"))
 
           browser.await().atMost(30, TimeUnit.SECONDS).until(".message").containsText(Messages("transporterIsUpdated"))
        

@@ -43,7 +43,7 @@ class RegisterUserInformationSpec extends Specification {
         )
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("registerUserInformation")
+        browser.title === Messages("commonTitle", Messages("registerUserInformation"))
         
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
@@ -161,7 +161,7 @@ class RegisterUserInformationSpec extends Specification {
         )
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("registerUserInformation")
+        browser.title === Messages("commonTitle", Messages("registerUserInformation"))
 
         // User information should be registered.
         browser.fill("#currentPassword").`with`("Uno")
@@ -180,7 +180,7 @@ class RegisterUserInformationSpec extends Specification {
         browser.find(".submitButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("login")
+        browser.title === Messages("commonTitle", Messages("login"))
         doWith(StoreUser.findByUserName("002-Uno").get) { u =>
           u.userName === "002-Uno"
           u.firstName === "first name"
@@ -220,7 +220,7 @@ class RegisterUserInformationSpec extends Specification {
         )
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("registerUserInformation")
+        browser.title === Messages("commonTitle", Messages("registerUserInformation"))
 
         // User information should be registered.
         browser.fill("#currentPassword").`with`("Uno")
@@ -240,7 +240,7 @@ class RegisterUserInformationSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         // Should be automatically logged in.
-        browser.title !== Messages("commonTitle") + " " + Messages("login")
+        browser.title !== Messages("commonTitle", Messages("login"))
         doWith(StoreUser.findByUserName("002-Uno").get) { u =>
           u.userName === "002-Uno"
           u.firstName === "first name"

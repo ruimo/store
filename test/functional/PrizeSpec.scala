@@ -31,7 +31,7 @@ class PrizeSpec extends Specification {
           "http://localhost:3333" + controllers.routes.Prize.entry(itemName) + "&lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("prize")
+        browser.title === Messages("commonTitle", Messages("prize"))
 
         doWith(browser.find(".prizeInfo")) { e =>
           e.find(".itemName .body").getText === itemName
@@ -149,7 +149,7 @@ class PrizeSpec extends Specification {
         browser.find("button[value='amend']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("prize")
+        browser.title === Messages("commonTitle", Messages("prize"))
         doWith(browser.find(".prizeInfo")) { e =>
           e.find(".itemName .body").getText === itemName
           e.find(".companyName .body").getText === user.companyName.get

@@ -421,7 +421,7 @@ class ItemMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         ItemName.list(itemId).size === 2
-        browser.title === Messages("commonTitle") + " " + Messages("company.name")
+        browser.title === Messages("commonTitle", Messages("company.name"))
       }}
     }
 

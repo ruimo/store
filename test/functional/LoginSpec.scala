@@ -18,7 +18,7 @@ class LoginSpec extends Specification {
         val user = createTestUser()
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("commonTitle") + " " + Messages("loginTitle")
+        browser.title === Messages("commonTitle", Messages("loginTitle"))
         browser.find("#loginWelcomeMessage").size === 0
       }
     }
@@ -29,10 +29,10 @@ class LoginSpec extends Specification {
         val user = createTestUser()
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("commonTitle") + " " + Messages("loginTitle")
+        browser.title === Messages("commonTitle", Messages("loginTitle"))
 
         browser.$("#doLoginButton").click()
-        browser.title === Messages("commonTitle") + " " + Messages("loginTitle")
+        browser.title === Messages("commonTitle", Messages("loginTitle"))
 
         browser.$(".globalErrorMessage").getText === Messages("inputError")
         browser.$("#userName_field dd.error").getText === Messages("error.required")
@@ -46,12 +46,12 @@ class LoginSpec extends Specification {
         val user = createTestUser()
         implicit val lang = Lang("ja")
         browser.goTo("http://localhost:3333" + controllers.routes.Admin.index.url + "?lang=" + lang.code)
-        browser.title === Messages("commonTitle") + " " + Messages("loginTitle")
+        browser.title === Messages("commonTitle", Messages("loginTitle"))
 
         browser.fill("#userName").`with`("administrator")
         browser.fill("#password").`with`("password")
         browser.click("#doLoginButton")
-        browser.title === Messages("commonTitle") + " " + Messages("adminTitle")
+        browser.title === Messages("commonTitle", Messages("adminTitle"))
 
         browser.find("#loginWelcomeMessage").getText === 
           String.format(Messages("login.welcome"), "Admin", "", "Manager")

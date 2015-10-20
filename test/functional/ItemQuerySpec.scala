@@ -36,7 +36,7 @@ class ItemQuerySpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List(""), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         browser.$("table.queryItemTable").find("tr").size() === 1 // Since no item found, only header will be shown.
       }}
     }
@@ -73,7 +73,7 @@ class ItemQuerySpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List(""), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "かえで"
@@ -86,7 +86,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(""), Some(cat.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "かえで"
@@ -99,7 +99,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(""), Some(cat.id.get + 1), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         browser.$("tr.queryItemTableBody").size === 0
 
         // Search by item name
@@ -107,7 +107,7 @@ class ItemQuerySpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List("かえで"), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "かえで"
@@ -120,7 +120,7 @@ class ItemQuerySpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List("かえで説明"), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "かえで"
@@ -132,7 +132,7 @@ class ItemQuerySpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.query(List("もみじ"), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         browser.$("tr.queryItemTableBody").size === 0
 
         browser.goTo(
@@ -141,7 +141,7 @@ class ItemQuerySpec extends Specification {
           + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         browser.$("tr.queryItemTableBody").size === 0
       }}
     }
@@ -176,7 +176,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.query(List("松", "常緑"), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         val body2 = browser.$("tr.queryItemTableBody")
         body2.size() === 1
         body2.find("td.queryItemItemName").find("a").getText === "松"
@@ -189,7 +189,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.query(List("松", "常緑", "落葉"), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         val body4 = browser.$("tr.queryItemTableBody")
         body4.size() === 0
       }}
@@ -234,7 +234,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(), Some(cat1.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "松"
@@ -247,7 +247,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(), Some(cat2.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "梅"
@@ -296,7 +296,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryBySite(List(), Some(site1.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "松"
@@ -309,7 +309,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryBySite(List(), Some(site2.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "梅"
@@ -386,7 +386,7 @@ class ItemQuerySpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "松"
@@ -402,7 +402,7 @@ class ItemQuerySpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "桜"
@@ -418,7 +418,7 @@ class ItemQuerySpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "梅"
@@ -434,7 +434,7 @@ class ItemQuerySpec extends Specification {
           ).url.addParm("lang", lang.code)
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 2
           body.find("td.queryItemItemName", 0).find("a").getText === "あやめ"
@@ -478,7 +478,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(), Some(cat1.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "松"
@@ -491,7 +491,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(), Some(cat2.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         browser.find("tr.queryItemTableBody").getTexts.size === 0
 
         SupplementalCategory.createNew(item1.id.get, cat2.id.get)
@@ -502,7 +502,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(), Some(cat1.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "松"
@@ -515,7 +515,7 @@ class ItemQuerySpec extends Specification {
           controllers.routes.ItemQuery.queryByCategory(List(), Some(cat2.id.get), 0, 10).url + "&lang=" + lang.code
         )
 
-        browser.title === Messages("commonTitle") + " " + Messages("item.list")
+        browser.title === Messages("commonTitle", Messages("item.list"))
         doWith(browser.$("tr.queryItemTableBody")) { body =>
           body.size() === 1
           body.find("td.queryItemItemName").find("a").getText === "松"

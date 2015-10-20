@@ -43,7 +43,7 @@ class OrderHistorySpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
         )
-        browser.title === Messages("commonTitle") + " " + Messages("order.history.title")
+        browser.title === Messages("commonTitle", Messages("order.history.title"))
         browser.find(".orderHistoryInnerTable1").size === 2
         doWith(browser.find(".orderHistoryInnerTable1")) { b =>
           b.find(".transactionTime td").getText ===
@@ -209,7 +209,7 @@ class OrderHistorySpec extends Specification {
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistoryList() + "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("order.history.list.title")
+        browser.title === Messages("commonTitle", Messages("order.history.list.title"))
         doWith(browser.find(".orderHistoryTable")) { b =>
           b.find(".transactionId", 0).getText === tran.tranHeader.id.get.toString
           b.find(".transactionDate", 0).getText === "%1$tY/%1$tm/%1$td %1$tH:%1$tM".format(tran.now)
@@ -224,7 +224,7 @@ class OrderHistorySpec extends Specification {
 
         browser.find(".transactionId", 0).find("a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("order.history.title")
+        browser.title === Messages("commonTitle", Messages("order.history.title"))
         browser.find(".subtotal", 0).getText === "2,523円"
         browser.find(".subtotal", 1).getText === "1,468円"
       }}
@@ -242,7 +242,7 @@ class OrderHistorySpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
         )
-        browser.title === Messages("commonTitle") + " " + Messages("order.history.title")
+        browser.title === Messages("commonTitle", Messages("order.history.title"))
 
         browser.find(".orderHistoryInnerTable3").size === 2
 
@@ -337,7 +337,7 @@ class OrderHistorySpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.OrderHistory.showOrderHistory() + "?lang=" + lang.code
         )
-        browser.title === Messages("commonTitle") + " " + Messages("order.history.title")
+        browser.title === Messages("commonTitle", Messages("order.history.title"))
 
         browser.find(".orderHistoryInnerTable3").size === 2
 
@@ -357,7 +357,7 @@ class OrderHistorySpec extends Specification {
         }
 
         browser.await().atMost(30, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("itemExpiredTitle")
+        browser.title === Messages("commonTitle", Messages("itemExpiredTitle"))
         browser.find(".expiredItemRow").size === 1
         browser.find(".expiredItemRow .siteName").getText === "商店1"
         browser.find(".expiredItemRow .itemName").getText === "植木1"

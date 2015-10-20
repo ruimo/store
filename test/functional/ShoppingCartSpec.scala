@@ -110,7 +110,7 @@ class ShoppingCartSpec extends Specification {
         browser.find(".ui-dialog-buttonset button").get(1).click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded
-        browser.title() === Messages("commonTitle") + " " + Messages("shopping.cart")
+        browser.title() === Messages("commonTitle", Messages("shopping.cart"))
       }}
     }
   }

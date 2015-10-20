@@ -33,7 +33,7 @@ class UserMaintenanceSpec extends Specification {
           "&lang=" + lang.code
         )
 
-        browser.title() === Messages("commonTitle") + " " + Messages("modifyUserTitle")
+        browser.title() === Messages("commonTitle", Messages("modifyUserTitle"))
         browser.find("#userId").getAttribute("value") === user.id.get.toString
         browser.find("#userName").getAttribute("value") === user.userName
         browser.find("#firstName").getAttribute("value") === user.firstName
@@ -54,7 +54,7 @@ class UserMaintenanceSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345678")
         browser.find("#modifyUser").click()
 
-        browser.title() === Messages("commonTitle") + " " + Messages("editUserTitle")
+        browser.title() === Messages("commonTitle", Messages("editUserTitle"))
         val user2 = StoreUser(user.id.get)
         user2.userName === "userName2"
         user2.firstName === "firstName2"
@@ -69,7 +69,7 @@ class UserMaintenanceSpec extends Specification {
           "&lang=" + lang.code
         )
 
-        browser.title() === Messages("commonTitle") + " " + Messages("modifyUserTitle")
+        browser.title() === Messages("commonTitle", Messages("modifyUserTitle"))
         browser.find("#userId").getAttribute("value") === user2.id.get.toString
         browser.find("#userName").getAttribute("value") === user2.userName
         browser.find("#firstName").getAttribute("value") === user2.firstName
@@ -85,7 +85,7 @@ class UserMaintenanceSpec extends Specification {
         browser.fill("#password_confirm").`with`("12345678")
         browser.find("#modifyUser").click()
 
-        browser.title() === Messages("commonTitle") + " " + Messages("editUserTitle")
+        browser.title() === Messages("commonTitle", Messages("editUserTitle"))
         OrderNotification.getByUserId(user.id.get).isDefined === false
       }}
     }
@@ -169,7 +169,7 @@ class UserMaintenanceSpec extends Specification {
           controllers.routes.UserMaintenance.showRegisteredEmployeeCount().url.addParm("lang", lang.code)
         )
 
-        browser.title() === Messages("commonTitle") + " " + Messages("showRegisteredEmployeeCount")
+        browser.title() === Messages("commonTitle", Messages("showRegisteredEmployeeCount"))
 
         browser.find(".site.body").getTexts.size === 2
 
@@ -190,7 +190,7 @@ class UserMaintenanceSpec extends Specification {
           controllers.routes.UserMaintenance.showRegisteredEmployeeCount().url.addParm("lang", lang.code)
         )
 
-        browser.title() === Messages("commonTitle") + " " + Messages("showRegisteredEmployeeCount")
+        browser.title() === Messages("commonTitle", Messages("showRegisteredEmployeeCount"))
         browser.find(".site.body").getTexts.size === 1
         browser.find(".site.body", 0).getText === site1.name
         browser.find(".allCount.body", 0).getText === "2"
@@ -205,7 +205,7 @@ class UserMaintenanceSpec extends Specification {
           controllers.routes.UserMaintenance.showRegisteredEmployeeCount().url.addParm("lang", lang.code)
         )
 
-        browser.title() === Messages("commonTitle") + " " + Messages("showRegisteredEmployeeCount")
+        browser.title() === Messages("commonTitle", Messages("showRegisteredEmployeeCount"))
         browser.find(".site.body").getTexts.size === 1
         browser.find(".site.body", 0).getText === site2.name
         browser.find(".allCount.body", 0).getText === "3"

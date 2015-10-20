@@ -92,7 +92,7 @@ class ItemDetailSpec extends Specification {
         browser.fill("#itemPrices_0_listPrice").`with`("3000")
         browser.find("#changeItemPriceButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("changeItemTitle")
+        browser.title === Messages("commonTitle", Messages("changeItemTitle"))
 
         // add list price memo
         browser.goTo(

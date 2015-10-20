@@ -84,7 +84,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find("#enterShippingAddressForm input[type='submit']").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("cannot.ship.title")
+        browser.title === Messages("commonTitle", Messages("cannot.ship.title"))
         browser.find(".backToShippingLink").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
@@ -95,7 +95,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("confirm.shipping.address")
+        browser.title === Messages("commonTitle", Messages("confirm.shipping.address"))
         browser.find(".itemTableBody .itemName").getText === "かえで"
         browser.find(".itemTableBody .siteName").getText === "Store01"
         if (itemSizeExists)
@@ -125,7 +125,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find("#finalizeTransactionForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("end.transaction")
+        browser.title === Messages("commonTitle", Messages("end.transaction"))
 
         browser.find(".itemTableBody .itemNameBody").getText === "かえで"
         browser.find(".itemTableBody .siteName").getText === "Store01"
@@ -332,7 +332,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find(".ui-dialog-buttonset button").get(1).click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("itemExpiredTitle")
+        browser.title === Messages("commonTitle", Messages("itemExpiredTitle"))
         browser.find(".expiredItemRow").getTexts.size === 1
         browser.find(".expiredItemRow .siteName").getText === site.name
         browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
@@ -408,7 +408,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
 
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("itemExpiredTitle")
+        browser.title === Messages("commonTitle", Messages("itemExpiredTitle"))
         browser.find(".expiredItemRow").getTexts.size === 1
         browser.find(".expiredItemRow .siteName").getText === site.name
         browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name
@@ -479,7 +479,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title() === Messages("commonTitle") + " " + Messages("confirm.shipping.address")
+        browser.title() === Messages("commonTitle", Messages("confirm.shipping.address"))
 
         // Expire price history.
         ItemPriceHistory.update(
@@ -490,7 +490,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find("#finalizeTransactionForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("itemExpiredTitle")
+        browser.title === Messages("commonTitle", Messages("itemExpiredTitle"))
         browser.find(".expiredItemRow").getTexts.size === 1
         browser.find(".expiredItemRow .siteName").getText === site.name
         browser.find(".expiredItemRow .itemName").getText === itemName(Ja).name

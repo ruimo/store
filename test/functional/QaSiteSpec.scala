@@ -112,7 +112,7 @@ class QaSiteSpec extends Specification {
         browser.find("#submitQaSite").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("qaConfirmTitle")
+        browser.title === Messages("commonTitle", Messages("qaConfirmTitle"))
         browser.find(".qaSiteNameBody").getText === site.name
         browser.find(".companyName .body .value").getText === "companyName002"
         browser.find("input[name='companyName']").getAttribute("value") === "companyName002"
@@ -127,7 +127,7 @@ class QaSiteSpec extends Specification {
         browser.find("button[value='amend']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("qaTitle")
+        browser.title === Messages("commonTitle", Messages("qaTitle"))
         browser.find(".qaSiteNameBody").getText === site.name
         browser.find("#companyName").getAttribute("value") === "companyName002"
         browser.find("#name").getAttribute("value") === "name002"
@@ -159,7 +159,7 @@ class QaSiteSpec extends Specification {
         browser.find("#submitQaSite").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("qaConfirmTitle")
+        browser.title === Messages("commonTitle", Messages("qaConfirmTitle"))
         browser.find(".qaSiteNameBody").getText === site.name
         browser.find(".companyName .body .value").getText === "companyName003"
         browser.find("input[name='companyName']").getAttribute("value") === "companyName003"
@@ -174,7 +174,7 @@ class QaSiteSpec extends Specification {
         browser.find("button[value='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("qaCompletedTitle")
+        browser.title === Messages("commonTitle", Messages("qaCompletedTitle"))
 
         browser.find(".qaSiteNameBody").getText === site.name
         browser.find(".companyName .body .value").getText === "companyName003"

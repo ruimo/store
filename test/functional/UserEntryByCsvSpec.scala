@@ -59,7 +59,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".message").getText === Messages("usersAreUpdated", 0, 0)
 
         SQL(
@@ -97,7 +97,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".message").getText === Messages("usersAreUpdated", 2, 0)
 
         SQL(
@@ -164,7 +164,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".globalErrorMessage").getText === Messages("normalUserNamePatternError") + "'1234567'"
 
         SQL(
@@ -202,7 +202,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".message").getText === Messages("usersAreUpdated", 2, 0)
 
         SQL(
@@ -242,7 +242,7 @@ class UserEntryByCsvSpec extends Specification {
         )
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".message").getText === Messages("usersAreUpdated", 1, 1)
         
         SQL(
@@ -300,7 +300,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".message").getText === Messages("usersAreUpdated", 2, 1)
 
         SQL(
@@ -377,7 +377,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".message").getText === Messages("usersAreUpdated", 2, 0)
 
         SQL(
@@ -437,7 +437,7 @@ class UserEntryByCsvSpec extends Specification {
         browser.click("#submitUserScsv")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle") + " " + Messages("addUsersByCsv")
+        browser.title === Messages("commonTitle", Messages("addUsersByCsv"))
         browser.find(".globalErrorMessage").getText === Messages("userNameDuplicated", "01234567")
       }}      
     }
