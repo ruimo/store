@@ -146,6 +146,9 @@ class CategoryMaintenanceSpec extends Specification {
         browser.fill("#categoryName").`with`("カテゴリ001")
         browser.find("#createNewCategoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        val page: Page[(Category, CategoryName)] = Category.list(page = 0, pageSize = 10, locale = Ja)
+        page.total === 1
+        page.list.head._1.id.get.toString === page.list.head._1.categoryCode
 
         browser.goTo(
           "http://localhost:3333"
@@ -195,6 +198,60 @@ class CategoryMaintenanceSpec extends Specification {
 
         browser.find(".langName").getTexts.size === 1
         browser.find(".langName").getText == Messages("lang.en")
+      }}
+    }
+
+    "Can change category code." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        import models.LocaleInfo.{Ja, En}
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+
+        val cat01 = Category.createNew(Map(Ja -> "Cat01"))
+        val cat02 = Category.createNew(Map(Ja -> "Cat02"))
+
+        browser.goTo(
+          "http://localhost:3333"
+          + controllers.routes.CategoryMaintenance.editCategory(None).url + "?lang=" + lang.code
+        )
+
+        browser.find(".editCategoryNameLink", 0).getText === cat01.id.get.toString
+        browser.find(".editCategoryNameLink", 1).getText === cat02.id.get.toString
+
+        browser.find(".editCategoryCodeLink", 0).getText === cat01.categoryCode
+        browser.find(".editCategoryCodeLink", 1).getText === cat02.categoryCode
+
+        browser.find(".editCategoryCodeLink", 0).click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#categoryCode_field dd[class='info']", 0).getText === Messages("constraint.required")
+        browser.find("#categoryCode_field dd[class='info']", 1).getText === Messages("constraint.maxLength", 20)
+        browser.find("#categoryCode_field dd[class='info']", 2).getText === Messages("categoryCodePattern")
+
+        browser.find("#submitCategoryCodeUpdate").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#categoryCode_field dd[class='error']", 0).getText === Messages("error.required")
+        browser.find("#categoryCode_field dd[class='error']", 1).getText === Messages("categoryCodePatternError")
+
+        browser.fill("#categoryCode").`with`("#")
+        browser.find("#submitCategoryCodeUpdate").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#categoryCode_field dd[class='error']", 0).getText === Messages("categoryCodePatternError")
+
+        browser.fill("#categoryCode").`with`("123456789012345678901")
+        browser.find("#submitCategoryCodeUpdate").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#categoryCode_field dd[class='error']", 0).getText === Messages("error.maxLength", 20)
+
+        browser.fill("#categoryCode").`with`("ABCD")
+        browser.find("#submitCategoryCodeUpdate").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".editCategoryCodeLink", 0).getText === "ABCD"
       }}
     }
   }

@@ -26,7 +26,9 @@ object CategoryMaintenance extends Controller with I18nAware with NeedLogin with
 
   val updateCategoryCodeForm = Form(
     mapping(
-      "categoryCode" -> text.verifying(nonEmpty, maxLength(20), pattern("[a-zA-Z0-9_]+".r))
+      "categoryCode" -> text.verifying(
+        nonEmpty, maxLength(20), pattern("[a-zA-Z0-9_]+".r, "categoryCodePattern", "categoryCodePatternError")
+      )
     )(UpdateCategoryCode.apply)(UpdateCategoryCode.unapply)
   )
 

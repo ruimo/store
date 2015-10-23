@@ -449,3 +449,5 @@ commonTitle=Functional Store {0}
 advancedQuerySearchTitle=Search by word
 editCategoryCodeTitle=Update category code
 categoryCode=Category code
+categoryCodePattern=Alphabet, number, underscore can be used.
+categoryCodePatternError=Only alphabet, number, underscore can be used.
