@@ -175,7 +175,7 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
   }}
 
   def queryAdvancedContent(
-    qs: List[String], cs: String, ccs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String
+    qs: List[String], cs: String, ccs: String, sid: Option[Long], page: Int, pageSize: Int, orderBySpec: String, templateNo: Int
   ) = optIsAuthenticated { implicit optLogin => implicit request => DB.withConnection { implicit conn =>
     val queryString = if (qs.size == 1) QueryString(qs.head) else QueryString(qs.filter {! _.isEmpty})
     val list = Item.list(
@@ -189,7 +189,13 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       orderBy = OrderBy(orderBySpec)
     )
 
-    Ok(views.html.queryAdvancedContent(list))
+    Ok(
+      views.html.queryAdvancedContent(
+        list,
+        (newPage, newPageSize, newTemplateNo, newOrderBy) =>
+          routes.ItemQuery.queryAdvanced(qs, cs, ccs, sid, newPage, newPageSize, newOrderBy, templateNo)
+      )
+    )
   }}
 
   def categoryNameJson = optIsAuthenticatedJson { implicit optLogin => implicit request =>

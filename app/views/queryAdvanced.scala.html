@@ -80,7 +80,7 @@
 
     var renderResult = function(contentUrl) {
         if (@templateNo === 0) {
-            query(contentUrl, function() {
+            query(contentUrl, function(data, status) {
                 $("#queryTemplateBody").load('@routes.Assets.at("templates/itemQuery/0.html")');
             });
         }
@@ -108,6 +108,12 @@
         $("#searchTextBox").val(txt);
     }
 
+    var setPageNo = function() {
+        if (currentCondition) {
+            console.log(currentCondition.page);
+        }
+    }
+
     var search = function() {
         currentCondition.qs = [$("#searchTextBox").val()];
         applyCurrentCondition();
@@ -118,6 +124,7 @@
         var uri = new URI('@contentUrl'.replace(/&amp;/g, '&'));
         currentCondition = uri.search(true);
         setSearchText();
+        setPageNo();
         
         if (@templateNo == 0) {
             $("#advancedQueryMenu").load('@routes.Assets.at("templates/itemQueryMenu/0.html")');
@@ -132,6 +139,7 @@
                 var prevUri = new URI(e.state);
                 currentCondition = prevUri.search(true);
                 setSearchText();
+                setPageNo();
                 if (onConditionChanged)
                     onConditionChanged();
                 applyCurrentCondition();
@@ -157,10 +165,16 @@
       <div class="contents">
         <div id="queryTemplateBody">
         </div>
+        <div id="pagingPanel">
+          <span id="pageNo">
+          </span>
+        </div>
 
         <table style="display:none;" id="queryItemTable">
         </table>
       </div>
     </div>
   </div>
+
+  <div style="clear: both;"></div>
 }

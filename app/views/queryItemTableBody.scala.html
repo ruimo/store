@@ -22,7 +22,7 @@
 @list.records.map { e =>
   <tr class="queryItemTableBody">
     <td class="queryItemPhoto">
-      <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get.id, 0)">
+      <img class="itemPhoto" src="@routes.ItemPictures.getPicture(e._1.id.get.id, 0)"/>
     </td>
     <td class="queryItemItemName">
       <a href="@routes.ItemDetail.show(e._1.id.get.id, e._4.id.get)">
