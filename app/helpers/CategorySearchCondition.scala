@@ -100,6 +100,7 @@ object CategoryCodeSearchCondition {
   def apply(in: String): CategoryCodeSearchCondition = 
     CategoryCodeSearchCondition(CategorySearchCondition.parseInput(in, identity, isIdentifier))
 
+  // Just accept alphanumeic characters only to prevent sql injection.
   def isIdentifier(c: Char): Boolean = '0' <= c && c <= '9' ||
     'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' ||
     c == '_'

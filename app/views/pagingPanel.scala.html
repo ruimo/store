@@ -13,7 +13,7 @@
           onclick="location.href='@pageLink(list.currentPage - 1, list.pageSize, list.orderBy.toString)'">
     &lt;
   </button>
-  Page <span class="pageCount">@{list.currentPage + 1}/@list.pageCount</span>
+  Page <span class="pageCount"><span class="currentPage">@{list.currentPage + 1}</span>/<span class="totalpage">@list.pageCount</span></span>
   (@Html(
     pageSizeTable.map {e =>
       changePageSizeLink(list, e, pageLink)

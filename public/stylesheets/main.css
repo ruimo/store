@@ -760,3 +760,6 @@ tr.recommendationByAdminTable.body {
     margin: 0 300px;
 }
 
+#pagingPaneDestination {
+    clear: both;
+}

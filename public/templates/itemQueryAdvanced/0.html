@@ -48,10 +48,41 @@
       	        $(this).attr({title:(str)});
       	    };
         });
+
+        var pagingPanel = $("#pagingPaneDestination");
+        pagingPanel.find(".pageCount").text($(".pageCount").text());
+        var prevButton = $(".pagingPanel button.prevPageButton").clone();
+        prevButton.removeAttr("id");
+        prevButton.attr("onclick", "goPrevPage();");
+        pagingPanel.find(".prevPageButton").append(prevButton);
+        var nextButton = $(".pagingPanel button.nextPageButton").clone();
+        nextButton.removeAttr("id");
+        nextButton.attr("onclick", "goNextPage();");
+        pagingPanel.find(".nextPageButton").append(nextButton);
+
+        var pageSizes = pagingPanel.find(".pageSizes");
+        $.each([10, 25, 50], function(idx, i) {
+            if (idx != 0) pageSizes.append(", ");
+
+            if (i === currentCondition.pageSize - 0) {
+                pageSizes.append(i);
+            }
+            else {
+                pageSizes.append
+                    ("<a href='javascript:void(0);' onclick='changePageSize(" + i + ");'>" + i + "</a>");
+            }
+        });
     });
 </script>
 
 <div id="queryBody">
+</div>
+
+<div id="pagingPaneDestination">
+  <span class="prevPageButton"></span>
+  Page <span class="pageCount"></span>
+  (<span class="pageSizes"></span>)
+  <span class="nextPageButton"></span>
 </div>
 
 <div style="display:none;">
