@@ -72,8 +72,21 @@
                     ("<a href='javascript:void(0);' onclick='changePageSize(" + i + ");'>" + i + "</a>");
             }
         });
+
+        $("#orderBySelect option[value='" + currentCondition.orderBySpec + "']").attr("selected", true);
     });
 </script>
+
+<div id="orderByPanel">
+  <select id="orderBySelect" onchange="orderbyChanged(this.value);">
+    <option value="site_item.created ASC">古い順</option>
+    <option value="site_item.created DESC">新しい順</option>
+    <option value="item_name.item_name ASC">名前順</option>
+    <option value="item_name.item_name DESC">名前順(逆順)</option>
+    <option value="item_price_history.unit_price ASC">価格順(安い順)</option>
+    <option value="item_price_history.unit_price DESC">価格順(高い順)</option>
+  </select>
+</div>
 
 <div id="queryBody">
 </div>

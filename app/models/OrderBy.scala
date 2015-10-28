@@ -1,6 +1,7 @@
 package models
 
 import java.util.regex.Pattern
+import java.util.Locale
 
 case class OrderBy(
   columnName: String,
@@ -22,7 +23,7 @@ object OrderBy {
   def apply(columnNameSpec: String): OrderBy = {
     val s = columnNameSpec.split("[ ]+")
     if (s.length == 2)
-      OrderBy(s(0), Order(s(1)))
+      OrderBy(s(0).toLowerCase(Locale.ROOT), Order(s(1)))
     else
       OrderBy(s(0), Asc)
   }

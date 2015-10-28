@@ -169,7 +169,9 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
     Ok(
       views.html.queryAdvanced(
         templateNo,
-        routes.ItemQuery.queryAdvancedContent(qs, cs, ccs, sid, page, pageSize, orderBySpec).url
+        routes.ItemQuery.queryAdvancedContent(
+          qs, cs, ccs, sid, page, pageSize, OrderBy(orderBySpec).toString
+        ).url
       )
     )
   }}

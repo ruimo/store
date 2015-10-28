@@ -132,6 +132,12 @@
         pushCurrentState();
     };
 
+    var orderbyChanged = function(value) {
+        currentCondition.orderBySpec = value;
+        applyCurrentCondition();
+        pushCurrentState();
+    };
+
     $(function() {
         var uri = new URI('@contentUrl'.replace(/&amp;/g, '&'));
         currentCondition = uri.search(true);
