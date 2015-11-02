@@ -59,7 +59,8 @@ class ItemQueryAdvancedSpec extends Specification {
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemQuery.queryAdvanced(
-            qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10
+            qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10,
+            orderBySpec = "item.item_id", templateNo = 0
           ).url + "?lang=" + lang.code
         )
 
@@ -113,6 +114,7 @@ class ItemQueryAdvancedSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemQuery.queryAdvanced(
             qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10
+            orderBySpec = "item.item_id", templateNo = 0
           ).url + "?lang=" + lang.code
         )
 
@@ -206,6 +208,7 @@ class ItemQueryAdvancedSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ItemQuery.queryAdvanced(
             qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10
+            orderBySpec = "item.item_id", templateNo = 0
           ).url + "?lang=" + lang.code
         )
 
