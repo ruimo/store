@@ -65,7 +65,7 @@
             if (idx != 0) pageSizes.append(", ");
 
             if (i === currentCondition.pageSize - 0) {
-                pageSizes.append(i);
+                pageSizes.append("<span class='currentSize'>" + i + "</span>");
             }
             else {
                 pageSizes.append
