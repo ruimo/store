@@ -61,7 +61,7 @@ class ItemQueryAdvancedSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.queryAdvanced(
             qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10,
             orderBySpec = "item.item_id", templateNo = 0
-          ).url + "?lang=" + lang.code
+          ).url.addParm("lang", lang.code)
         )
 
         browser.await().atMost(10, TimeUnit.SECONDS).until(".qthumItem_name").isPresent
@@ -115,7 +115,7 @@ class ItemQueryAdvancedSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.queryAdvanced(
             qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10,
             orderBySpec = "item.item_id", templateNo = 0
-          ).url + "?lang=" + lang.code
+          ).url.addParm("lang", lang.code)
         )
 
         browser.await().atMost(10, TimeUnit.SECONDS).until(".qthumItem_name").isPresent
@@ -209,7 +209,7 @@ class ItemQueryAdvancedSpec extends Specification {
           "http://localhost:3333" + controllers.routes.ItemQuery.queryAdvanced(
             qs = List(), cs = "", ccs = "", sid = None, page = 0, pageSize = 10,
             orderBySpec = "item.item_id", templateNo = 0
-          ).url + "?lang=" + lang.code
+          ).url.addParm("lang", lang.code)
         )
 
         browser.await().atMost(10, TimeUnit.SECONDS).until(".qthumItem_name").isPresent
