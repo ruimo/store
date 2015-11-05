@@ -483,3 +483,4 @@ editCategoryCodeTitle=カテゴリコードの更新
 categoryCode=カテゴリコード
 categoryCodePattern=アルファベット、数字、アンダースコアで指定してください
 categoryCodePatternError=アルファベット、数字、アンダースコアで指定してください
+itemSearchPlaceHolder=商品名で検索

@@ -451,3 +451,4 @@ editCategoryCodeTitle=Update category code
 categoryCode=Category code
 categoryCodePattern=Alphabet, number, underscore can be used.
 categoryCodePatternError=Only alphabet, number, underscore can be used.
+itemSearchPlaceHolder=Search item by name
