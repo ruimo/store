@@ -27,7 +27,7 @@
         renderResult(currentContentUrl());
     };
 
-    var pushCurrentState = function() {
+    var changeHistory = function(f) {
         normalizeCondition();
         var bodyUrl = jsRoutes.controllers.ItemQuery.queryAdvanced(
             currentCondition.qs,
@@ -40,8 +40,17 @@
             @templateNo
         ).url
 
-        window.history.pushState(bodyUrl, null, bodyUrl);
+        f(bodyUrl, bodyUrl);
+    }
+
+    var pushCurrentState = function() {
+        changeHistory(function(id, url) {window.history.pushState(id, null, url);});
     };
+
+    var replaceCurrentState = function() {
+        changeHistory(function(id, url) {window.history.replaceState(id, null, url);});
+    };
+
 
     var currentCondition;
 
@@ -151,7 +160,7 @@
             $("#advancedQueryMenu").load("/static/templates/itemQueryMenu/" + @templateNo + ".html");
         }
         renderResult('@contentUrl');
-        pushCurrentState();
+        replaceCurrentState();
         window.onpopstate = function(e) {
             if (e.state) {
                 var prevUri = new URI(e.state);
