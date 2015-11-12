@@ -86,6 +86,10 @@ case class ShoppingCartTotal(
     ) { (map, e) =>
       map.updated(e.site, map(e.site) :+ e)
     }.mapValues(e => ShoppingCartTotal(e.toSeq))
+  val quantityByItem: Map[Long, Int] =
+    table.foldLeft(LongMap[Int]().withDefaultValue(0)) { (sum, e) =>
+      sum + (e.shoppingCartItem.itemId -> (sum(e.shoppingCartItem.itemId) + e.shoppingCartItem.quantity))
+    }
   def apply(index: Int): ShoppingCartTotalEntry = table(index)
 }
 
