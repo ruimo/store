@@ -471,7 +471,7 @@ class CategorySpec extends Specification {
     }
 
     "Can add supplemental categories." in {
-      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase() + ("maxSupplementalCategoryCountPerItem" -> 10))) {
         TestHelper.removePreloadedRecords()
         DB.withConnection { implicit conn => {
           val categories = (1 to 20) map { idx =>

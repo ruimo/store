@@ -1,5 +1,6 @@
 package models
 
+import helpers.Cache
 import play.api.Play
 import play.api.Play.current
 import anorm._
@@ -536,8 +537,8 @@ object CategoryPath {
 case class SupplementalCategory(itemId: ItemId, categoryId: Long)
 
 object SupplementalCategory {
-  val MaxSupplementalCategoryCountPerItem = 
-    Play.current.configuration.getInt("maxSupplementalCategoryCountPerItem").getOrElse(10)
+  def MaxSupplementalCategoryCountPerItem =
+    Cache.Conf.getInt("maxSupplementalCategoryCountPerItem").getOrElse(10)
 
   val simple = {
     SqlParser.get[Long]("supplemental_category.category_id") ~
