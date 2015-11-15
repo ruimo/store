@@ -908,5 +908,120 @@ class ShoppingCartSpec extends Specification {
         }}
       }
     }
+
+    "Can examine quantity by item" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          import models.LocaleInfo.{Ja, En}
+          TestHelper.removePreloadedRecords()
+          val site1 = Site.createNew(Ja, "商店1")
+          val site2 = Site.createNew(Ja, "商店2")
+          val site3 = Site.createNew(Ja, "商店3")
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+          val item3 = Item.createNew(cat1)
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉", En -> "Cedar"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅", En -> "Ume"))
+          val name3 = ItemName.createNew(item3, Map(Ja -> "松", En -> "Pine"))
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site2, item1)
+          SiteItem.createNew(site2, item2)
+          SiteItem.createNew(site3, item3)
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc21 = ItemDescription.createNew(item2, site1, "梅1説明")
+          val desc22 = ItemDescription.createNew(item2, site2, "梅2説明")
+          val desc3 = ItemDescription.createNew(item3, site1, "松説明")
+      
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price21 = ItemPrice.createNew(item1, site2)
+          val price22 = ItemPrice.createNew(item2, site2)
+          val price3 = ItemPrice.createNew(item3, site1)
+
+          val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph21 = ItemPriceHistory.createNew(
+            price21, tax, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
+          val ph22 = ItemPriceHistory.createNew(
+            price22, tax, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
+          val ph3 = ItemPriceHistory.createNew(
+            price3, tax, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
+          )
+
+          val e1 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = None,
+              storeUserId = user1.id.get,
+              sequenceNumber = 1,
+              siteId = site1.id.get,
+              itemId = item1.id.get.id,
+              quantity = 2
+            ),
+            name1(Ja), desc1, site1, ph1, taxHistory, Map(), Map(), Map()
+          )
+          val e21 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = None,
+              storeUserId = user1.id.get,
+              sequenceNumber = 2,
+              siteId = site2.id.get,
+              itemId = item1.id.get.id,
+              quantity = 4
+            ),
+            name1(Ja), desc21, site2, ph21, taxHistory, Map(), Map(), Map()
+          )
+          val e22 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = None,
+              storeUserId = user1.id.get,
+              sequenceNumber = 3,
+              siteId = site2.id.get,
+              itemId = item2.id.get.id,
+              quantity = 6
+            ),
+            name2(Ja), desc22, site2, ph22, taxHistory, Map(), Map(), Map()
+          )
+          val e3 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = None,
+              storeUserId = user1.id.get,
+              sequenceNumber = 4,
+              siteId = site3.id.get,
+              itemId = item3.id.get.id,
+              quantity = 8
+            ),
+            name3(Ja), desc3, site3, ph3, taxHistory, Map(), Map(), Map()
+          )
+          val e4 = ShoppingCartTotalEntry(
+            ShoppingCartItem(
+              id = None,
+              storeUserId = user1.id.get,
+              sequenceNumber = 5,
+              siteId = site3.id.get,
+              itemId = item3.id.get.id,
+              quantity = 12
+            ),
+            name3(Ja), desc3, site3, ph3, taxHistory, Map(), Map(), Map()
+          )
+
+          val total = ShoppingCartTotal(e1 :: e21 :: e22 :: e3 :: e4 :: Nil)
+          val q = total.quantityBySiteItem
+
+          q.size === 4
+          q(site1.id.get -> item1.id.get.id) === 2
+          q(site2.id.get -> item1.id.get.id) === 4
+          q(site2.id.get -> item2.id.get.id) === 6
+          q(site3.id.get -> item3.id.get.id) === 8 + 12
+        }}
+      }
+    }
   }
 }
