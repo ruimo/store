@@ -196,10 +196,10 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     currency: CurrencyInfo
   )(implicit request: Request[AnyContent], login: LoginSession): Result = {
     DB.withTransaction { implicit conn =>
-      val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
+      val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
         ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-      if (! errors.isEmpty) {
-        Ok(views.html.itemExpired(errors))
+      if (! expErrors.isEmpty) {
+        Ok(views.html.itemExpired(expErrors))
       }
       else {
         if (cart.isEmpty) {
@@ -207,6 +207,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
         }
         else {
+          itemsExceedStock(cart) match {
+            case Some(it) =>
+              logger.error("Item exceed stock.")
+              Ok("")
+            case None =>
+          }
           if (ShoppingCartItem.isAllCoupon(login.userId)) {
             val persister = new TransactionPersister()
             val tranId = persister.persist(
@@ -282,5 +288,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
 
     buf.toMap
+  }
+
+  def itemsExceedStock(cart: ShoppingCartTotal): Option[Any] = {
+    None
   }
 }
