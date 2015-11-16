@@ -374,19 +374,21 @@ object ShoppingCartItem {
     SqlParser.scalar[Int].single
   ) == 0
 
-  // Item id, site id, quantity, max quantity
+  // Key = Item id, site id
+  // Value = site name, item name, quantity, max quantity
   def itemsExceedStock(
     storeUserId: Long, locale: LocaleInfo
   )(
     implicit conn: Connection
-  ): immutable.Map[(ItemId, Long), (String, Int, Long)] = SQL(
+  ): immutable.Map[(ItemId, Long), (String, String, Int, Long)] = SQL(
     """
-    select coalesce(nm.item_name, '') itnm, ct.item_id itid, ct.site_id sid, ct.qtotal qtotal, md.metadata qmax
+    select site.site_name, coalesce(nm.item_name, '') itnm, ct.item_id itid, ct.site_id sid, ct.qtotal qtotal, md.metadata qmax
     from (
         select item_id, site_id, sum(quantity) qtotal
         from shopping_cart_item cart where cart.store_user_id={uid} group by item_id, site_id
     ) ct
     left join item_name nm on ct.item_id=nm.item_id and nm.locale_id={localeId}
+    inner join site on site.site_id=ct.site_id
     inner join site_item_numeric_metadata md
     on md.item_id=ct.item_id and md.site_id=ct.site_id and md.metadata_type=
     """ + SiteItemNumericMetadataType.STOCK.ordinal
@@ -394,13 +396,14 @@ object ShoppingCartItem {
     'uid -> storeUserId,
     'localeId -> locale.id
   ).as(
+    SqlParser.get[String]("site_name") ~
     SqlParser.get[String]("itnm") ~
     SqlParser.get[Long]("itid") ~
     SqlParser.get[Long]("sid") ~
     SqlParser.get[Int]("qtotal") ~
     SqlParser.get[Long]("qmax") map (SqlParser.flatten) *
-  ).foldLeft(immutable.HashMap[(ItemId, Long), (String, Int, Long)]()) { (sum, e) =>
-    sum + ((ItemId(e._2) -> e._3) -> ((e._1, e._4, e._5)))
+  ).foldLeft(immutable.HashMap[(ItemId, Long), (String, String, Int, Long)]()) { (sum, e) =>
+    sum + ((ItemId(e._3) -> e._4) -> ((e._1, e._2, e._5, e._6)))
   }
 }
 

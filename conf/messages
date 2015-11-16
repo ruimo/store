@@ -452,3 +452,6 @@ categoryCode=Category code
 categoryCodePattern=Alphabet, number, underscore can be used.
 categoryCodePatternError=Only alphabet, number, underscore can be used.
 itemSearchPlaceHolder=Search item by name
+itemStockExhaustedTitle=Item stock exhausted.
+itemStockExhaustedDescription=The following item(s) have no enough stock available. Please inspect your cart and decrease quantity to meet remaing stock count.
+remainingCount=Remaining stock count

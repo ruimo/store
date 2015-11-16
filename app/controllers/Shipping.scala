@@ -21,6 +21,7 @@ import helpers.{RecommendEngine, NotificationMail, Enums}
 import java.sql.Connection
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import scala.collection.immutable
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   import NeedLogin._
@@ -207,10 +208,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
         }
         else {
-          val exceedStock = itemsExceedStock(cart)
-          if (exceedStock.isDefined) {
-              logger.error("Item exceed stock.")
-              Ok("")
+          val exceedStock: immutable.Map[(ItemId, Long), (String, String, Int, Long)] =
+            ShoppingCartItem.itemsExceedStock(login.userId, LocaleInfo.getDefault)
+
+          if (! exceedStock.isEmpty) {
+              logger.error("Item exceed stock. " + exceedStock)
+              Ok(views.html.itemStockExhausted(exceedStock))
           }
           else if (ShoppingCartItem.isAllCoupon(login.userId)) {
             val persister = new TransactionPersister()
@@ -287,9 +290,5 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
 
     buf.toMap
-  }
-
-  def itemsExceedStock(cart: ShoppingCartTotal): Option[Any] = {
-    None
   }
 }

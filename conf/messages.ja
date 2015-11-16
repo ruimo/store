@@ -484,3 +484,6 @@ categoryCode=カテゴリコード
 categoryCodePattern=アルファベット、数字、アンダースコアで指定してください
 categoryCodePatternError=アルファベット、数字、アンダースコアで指定してください
 itemSearchPlaceHolder=商品名で検索
+itemStockExhaustedTitle=在庫数不足
+itemStockExhaustedDescription=以下の商品は在庫が不足しています。カートを参照して残り在庫数以下に減らしてください。
+remainingCount=残り在庫数

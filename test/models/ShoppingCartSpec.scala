@@ -1094,11 +1094,11 @@ class ShoppingCartSpec extends Specification {
           ShoppingCartItem.itemsExceedStock(user1.id.get, Ja).size === 0
 
           SiteItemNumericMetadata.createNew(site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 5)
-          val result: immutable.Map[(ItemId, Long), (String, Int, Long)] = 
+          val result: immutable.Map[(ItemId, Long), (String, String, Int, Long)] = 
             ShoppingCartItem.itemsExceedStock(user1.id.get, Ja)
 
           result.size === 1
-          result(item1.id.get -> site1.id.get) === (name1(Ja).name, 6, 5)
+          result(item1.id.get -> site1.id.get) === (site1.name, name1(Ja).name, 6, 5)
         }
       }}
     }
