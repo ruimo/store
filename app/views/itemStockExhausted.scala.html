@@ -1,0 +1,33 @@
+@(
+  errors: Map[(ItemId, Long), (String, String, Int, Long)]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("itemStockExhaustedTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("itemStockExhaustedTitle")</h1>
+
+  <div class="itemStockExhaustedDescription">
+    @Messages("itemStockExhaustedDescription")
+  </div>
+
+  <table class="stockExhaustedItem">
+    @errors.values.map { e =>
+      <tr class="stockExhaustedItemRow header">
+        <th class="siteName">@Messages("site")
+        <th class="itemName">@Messages("item")
+        <th class="remainingCount">@Messages("remainingCount")
+      </tr>
+      <tr class="stockExhaustedItemRow body">
+        <td class="siteName">@e._1</td>
+        <td class="itemName">@e._2</td>
+        <td class="remainingCount">@e._4</td>
+      </tr>
+    }
+  </table>
+}
