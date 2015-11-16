@@ -207,13 +207,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
         }
         else {
-          itemsExceedStock(cart) match {
-            case Some(it) =>
+          val exceedStock = itemsExceedStock(cart)
+          if (exceedStock.isDefined) {
               logger.error("Item exceed stock.")
               Ok("")
-            case None =>
           }
-          if (ShoppingCartItem.isAllCoupon(login.userId)) {
+          else if (ShoppingCartItem.isAllCoupon(login.userId)) {
             val persister = new TransactionPersister()
             val tranId = persister.persist(
               Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())

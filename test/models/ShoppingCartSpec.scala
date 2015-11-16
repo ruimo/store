@@ -12,6 +12,7 @@ import java.util.Locale
 import java.sql.Date.{valueOf => date}
 import java.sql.Timestamp.{valueOf => timestamp}
 import com.ruimo.scoins.Scoping._
+import scala.collection.immutable
 
 class ShoppingCartSpec extends Specification {
   implicit def date2milli(d: java.sql.Date): Long = d.getTime
@@ -1022,6 +1023,84 @@ class ShoppingCartSpec extends Specification {
           q(site3.id.get -> item3.id.get.id) === 8 + 12
         }}
       }
+    }
+
+    "Can detect items exceed stock" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn => {
+          import models.LocaleInfo.{Ja, En}
+          val site1 = Site.createNew(Ja, "商店1")
+          val site2 = Site.createNew(Ja, "商店2")
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉", En -> "Cedar"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅", En -> "Ume"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site2, item1)
+          SiteItem.createNew(site2, item2)
+      
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc21 = ItemDescription.createNew(item1, site2, "杉説明2")
+          val desc22 = ItemDescription.createNew(item2, site2, "梅説明2")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price21 = ItemPrice.createNew(item1, site2)
+          val price22 = ItemPrice.createNew(item2, site2)
+
+          val tax = Tax.createNew
+          val taxHistory = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph21 = ItemPriceHistory.createNew(
+            price21, tax, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph22 = ItemPriceHistory.createNew(
+            price22, tax, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
+          )
+          val user2 = StoreUser.create(
+            "name2", "first2", None, "last2", "email2", 123L, 234L, UserRole.NORMAL, Some("companyName")
+          )
+
+/*
+          |-------+-------+-------+----------+----------|
+          | user  | site  | item  | cart seq | quantity |
+          |-------+-------+-------+----------+----------|
+          | user1 | site1 | item1 | #1       |        2 |
+          | user1 | site1 | item1 | #2       |        4 |
+          | user1 | site2 | item1 | #3       |        6 |
+          | user1 | site2 | item2 | #4       |        8 |
+          | user2 | site1 | item1 | #1       |        8 |
+          |-------+-------+-------+----------+----------|
+
+          |-------+-------+-----------|
+          | site  | item  | max stock |
+          |-------+-------+-----------|
+          | site1 | item1 |         5 |
+          |-------+-------+-----------|
+*/
+
+          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 2)
+          ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 4)
+          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item1.id.get.id, 6)
+          ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 8)
+          ShoppingCartItem.addItem(user2.id.get, site1.id.get, item1.id.get.id, 8)
+
+          ShoppingCartItem.itemsExceedStock(user1.id.get, Ja).size === 0
+
+          SiteItemNumericMetadata.createNew(site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 5)
+          val result: immutable.Map[(ItemId, Long), (String, Int, Long)] = 
+            ShoppingCartItem.itemsExceedStock(user1.id.get, Ja)
+
+          result.size === 1
+          result(item1.id.get -> site1.id.get) === (name1(Ja).name, 6, 5)
+        }
+      }}
     }
   }
 }
