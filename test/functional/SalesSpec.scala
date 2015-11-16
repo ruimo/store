@@ -46,7 +46,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
           item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
         )
         SiteItemNumericMetadata.createNew(
-          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 20
         )
         SiteItemTextMetadata.createNew(
           site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
@@ -251,7 +251,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
                   mdTable.size === 2
                   doWith(mdTable(0)) { md =>
                     md.metadataType === SiteItemNumericMetadataType.STOCK
-                    md.metadata === 2
+                    md.metadata === 20
                   }
                   doWith(mdTable(1)) { md =>
                     md.metadataType === SiteItemNumericMetadataType.SHIPPING_SIZE
@@ -293,7 +293,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
           item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
         )
         SiteItemNumericMetadata.createNew(
-          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 20
         )
         SiteItemTextMetadata.createNew(
           site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
@@ -360,7 +360,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
           item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
         )
         SiteItemNumericMetadata.createNew(
-          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 20
         )
         SiteItemTextMetadata.createNew(
           site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
@@ -435,7 +435,7 @@ class SalesSpec extends Specification with SalesSpecBase  {
           item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
         )
         SiteItemNumericMetadata.createNew(
-          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 20
         )
         SiteItemTextMetadata.createNew(
           site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"

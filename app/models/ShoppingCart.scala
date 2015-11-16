@@ -391,7 +391,10 @@ object ShoppingCartItem {
     inner join site on site.site_id=ct.site_id
     inner join site_item_numeric_metadata md
     on md.item_id=ct.item_id and md.site_id=ct.site_id and md.metadata_type=
-    """ + SiteItemNumericMetadataType.STOCK.ordinal
+    """ + SiteItemNumericMetadataType.STOCK.ordinal +
+    """
+    where ct.qtotal > md.metadata
+    """
   ).on(
     'uid -> storeUserId,
     'localeId -> locale.id
