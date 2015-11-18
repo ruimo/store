@@ -4,7 +4,7 @@
             if (currentCondition.ccs) {
                 $.each(currentCondition.ccs.split('&'), function(i, g) {
                     $.each(g.split(','), function(j, ccs) {
-                        var cb = $(".categoryConditionItem[value='" + ccs + "'] .categoryConditionCb");
+                        var cb = $(".categoryConditionItem[data-category-code='" + ccs + "'] .categoryConditionCb");
                         cb.prop('checked', true);
                         cb.button("refresh");
                     });
