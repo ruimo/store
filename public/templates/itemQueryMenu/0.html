@@ -37,7 +37,8 @@
 
     var createMenu = function() {
         $("#categoryCondition").accordion({
-            heightStyle: "content"
+            heightStyle: "content",
+            collapsible: true
         });
         $(".categoryConditionCb").button();
         itemQueryMenu.applyCurrentCondition();
