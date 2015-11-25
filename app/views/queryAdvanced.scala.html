@@ -51,7 +51,6 @@
         changeHistory(function(id, url) {window.history.replaceState(id, null, url);});
     };
 
-
     var currentCondition;
 
     var currentContentUrl = function() {
@@ -119,6 +118,7 @@
     }
 
     var search = function() {
+        currentCondition.page = 1;
         currentCondition.qs = [$("#searchTextBox").val()];
         applyCurrentCondition();
         pushCurrentState();
@@ -137,16 +137,23 @@
     };
 
     var changePageSize = function(newPageSize) {
+        currentCondition.page = 1;
         currentCondition.pageSize = newPageSize;
         applyCurrentCondition();
         pushCurrentState();
     };
 
     var orderbyChanged = function(value) {
+        currentCondition.page = 1;
         currentCondition.orderBySpec = value;
         applyCurrentCondition();
         pushCurrentState();
     };
+
+    var changeCategories = function() {
+        currentCondition.page = 1;
+        applyCurrentCondition();
+    }
 
     $(function() {
         var uri = new URI('@contentUrl'.replace(/&amp;/g, '&'));
