@@ -30,6 +30,7 @@ class ItemQueryAdvancedSpec extends Specification {
     }
     catch {
       case e: StaleElementReferenceException => false
+      case e: IndexOutOfBoundsException => false
     }
   }
 
@@ -239,6 +240,7 @@ class ItemQueryAdvancedSpec extends Specification {
           "#categoryCondition .categoryConditionItem[data-category-code='10000000'] input"
         ).areDisplayed
         browser.find("#categoryCondition .categoryConditionItem[data-category-code='10000000'] input").click()
+        browser.await().atMost(10, TimeUnit.SECONDS).until("#pagingPaneDestination .pageCount").areDisplayed
         browser.await().atMost(10, TimeUnit.SECONDS).until("#pagingPaneDestination .pageCount").hasText("1/2")
 
         browser.find("#queryBody .qthumItem").size === 10
