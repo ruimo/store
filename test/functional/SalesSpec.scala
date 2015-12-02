@@ -498,5 +498,86 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.find(".shoppingCartEmpty").getText === Messages("shopping.cart.empty")
       }}
     }
+
+    "Stock exceeds." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        val adminUser = loginWithTestUser(browser)
+        
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val item = Item.createNew(cat)
+        ItemNumericMetadata.createNew(
+          item, ItemNumericMetadataType.HEIGHT, 1
+        )
+        ItemTextMetadata.createNew(
+          item, ItemTextMetadataType.ABOUT_HEIGHT, "Hello"
+        )
+        SiteItemNumericMetadata.createNew(
+          site.id.get, item.id.get, SiteItemNumericMetadataType.STOCK, 2
+        )
+        SiteItemTextMetadata.createNew(
+          site.id.get, item.id.get, SiteItemTextMetadataType.PRICE_MEMO, "World"
+        )
+        val siteItem = SiteItem.createNew(site, item)
+        val itemClass = 1L
+        SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.SHIPPING_SIZE, itemClass)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val iph = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+
+        browser.goTo("http://localhost:3333" + itemQueryUrl())
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
+        browser.find(".addToCartButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
+
+        val box = ShippingBox.createNew(site.id.get, itemClass, 3, "box01")
+        val fee = ShippingFee.createNew(box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
+        val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
+
+        // Goto cart button
+        browser.find(".ui-dialog-buttonset button").get(1).click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.fill("#changeItemQuantityInShoppingCart input[name='quantity']").`with`("3")
+        browser.find("#changeItemQuantityInShoppingCart input[type='submit']").click()
+
+        browser.find(".toEnterShippingAddressInner a").click()
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.fill("#firstName").`with`("firstName01")
+        browser.fill("#lastName").`with`("lastName01")
+        browser.fill("#firstNameKana").`with`("firstNameKana01")
+        browser.fill("#lastNameKana").`with`("lastNameKana01")
+        browser.fill("input[name='zip1']").`with`("146")
+        browser.fill("input[name='zip2']").`with`("0082")
+        browser.fill("#address1").`with`("address01")
+        browser.fill("#address2").`with`("address02")
+        browser.fill("#tel1").`with`("11111111")
+
+        browser.find("#enterShippingAddressForm input[type='submit']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("commonTitle", Messages("confirm.shipping.address"))
+
+        browser.find("#finalizeTransactionForm input[type='submit']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("itemStockExhaustedTitle"))
+        browser.find(".stockExhaustedItem .stockExhaustedItemRow.body .siteName").getText === "Store01"
+        browser.find(".stockExhaustedItem .stockExhaustedItemRow.body .itemName").getText === "かえで"
+        browser.find(".stockExhaustedItem .stockExhaustedItemRow.body .remainingCount").getText === "2"
+
+        browser.find("a.toSHoppingCart").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("commonTitle", Messages("shopping.cart"))
+      }}
+    }
   }
 }
