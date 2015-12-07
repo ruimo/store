@@ -43,12 +43,12 @@
           <td>@e.site.name</td>
           <td>@amount(e.itemPriceHistory.unitPrice)</td>
           <td>
-            <form action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
+            <form id="changeItemQuantityInShoppingCart" action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
               <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
               <input type="text" style="text-align: right;" name="quantity" value="@e.shoppingCartItem.quantity">
               <input type="submit" value="@Messages("update")">
             </form>
-            <form action="@routes.Purchase.deleteItemFromCart()" style="display: inline;">
+            <form id="removeItemInShoppingCart" action="@routes.Purchase.deleteItemFromCart()" style="display: inline;">
               <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
               <input type="submit" value="@Messages("remove")">
             </form>
