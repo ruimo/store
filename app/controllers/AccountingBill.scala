@@ -14,8 +14,8 @@ import play.api.mvc.{Controller, RequestHeader}
 import java.sql.Connection
 
 object AccountingBill extends Controller with NeedLogin with HasLogger with I18nAware {
-  val UseShippingDateForAccountingBill: () => Boolean = Cache.cacheOnProd(
-    Cache.Conf.getBoolean("useShippingDateForAccountingBill").getOrElse(false)
+  val UseShippingDateForAccountingBill: () => Boolean = Cache.config(
+    _.getBoolean("useShippingDateForAccountingBill").getOrElse(false)
   )
 
   val accountingBillForm = Form(

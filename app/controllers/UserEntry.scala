@@ -42,13 +42,9 @@ import helpers.Cache
 object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
 
-  def ResetPasswordTimeout: () => Long = Cache.cacheOnProd(
-    Cache.Conf.getMilliseconds("resetPassword.timeout").getOrElse {
-      (30 minutes).toMillis
-    }
-  )
+  def ResetPasswordTimeout: () => Long = Cache.config(_.getMilliseconds("resetPassword.timeout").getOrElse((30 minutes).toMillis))
   def AutoLoginAfterRegistration: () => Boolean = Cache.cacheOnProd(
-    Cache.Conf.getBoolean("auto.login.after.registration").getOrElse(false)
+    () => Cache.Conf.getBoolean("auto.login.after.registration").getOrElse(false)
   )
 
   def jaForm(implicit lang: Lang) = Form(
