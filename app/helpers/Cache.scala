@@ -7,16 +7,16 @@ import play.api.Mode
 import java.time.Duration
 
 object Cache {
-  trait CacheEntry
-
-  case object InitCacheEntry extends CacheEntry
-
-  case class ExpiringCacheEntry[+T](
-    currentValue: T,
-    lastUpdateInMillis: Long
-  ) extends CacheEntry
-
   def expiringCache[T](expirationInMillis: Long, gen: () => T, genTime: () => Long): () => T = {
+    trait CacheEntry
+
+    case object InitCacheEntry extends CacheEntry
+
+    case class ExpiringCacheEntry(
+      currentValue: T,
+      lastUpdateInMillis: Long
+    ) extends CacheEntry
+
     var current: CacheEntry = InitCacheEntry
 
     () => current match {
@@ -34,7 +34,7 @@ object Cache {
           newValue
         }
         else {
-          currentValue.asInstanceOf[T]
+          currentValue
         }
       }
     }
