@@ -19,7 +19,7 @@ class FacebookSpec extends Specification {
       )
 
       doWith(FacebookPostV25(json)) { post =>
-        post.messageBody === "Body message"
+        post.messageBody === Some("Body message")
         post.createdTime === Instant.parse("2015-12-09T13:30:00Z")
         post.pageId === 20531316728L
         post.postId === 10154243083616729L
@@ -49,10 +49,10 @@ class FacebookSpec extends Specification {
       doWith(Facebook.parsePostsV25(json)) { posts =>
         posts.size === 2
         posts(0) === FacebookPostV25(
-          "Message 01", Instant.parse("2015-12-09T19:00:49Z"), 20531316728L, 10154244454516729L
+          Some("Message 01"), None, Instant.parse("2015-12-09T19:00:49Z"), 20531316728L, 10154244454516729L
         )
         posts(1) === FacebookPostV25(
-          "Message 02", Instant.parse("2015-12-09T13:30:00Z"), 20531316728L, 10154243083616729L
+          Some("Message 02"), None, Instant.parse("2015-12-09T13:30:00Z"), 20531316728L, 10154243083616729L
         )
       }
     }
