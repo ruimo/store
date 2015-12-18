@@ -17,12 +17,24 @@ object Cache {
       lastUpdateInMillis: Long
     ) extends CacheEntry
 
-    var current: CacheEntry = InitCacheEntry
+    class CacheEntryHolder {
+      private var entry: CacheEntry = InitCacheEntry
 
-    () => current match {
+      def cacheEntry(e: CacheEntry): Unit = this.synchronized {
+        this.entry = e
+      }
+
+      def cacheEntry: CacheEntry = this.synchronized {
+        entry
+      }
+    }
+
+    var current: CacheEntryHolder = new CacheEntryHolder
+
+    () => current.cacheEntry match {
       case InitCacheEntry => {
         val newVal = gen()
-        current = ExpiringCacheEntry(newVal, genTime())
+        current.cacheEntry(ExpiringCacheEntry(newVal, genTime()))
         newVal
       }
 
@@ -30,7 +42,7 @@ object Cache {
         val now = genTime()
         if (now - lastUpdateInMillis > expirationInMillis) {
           val newValue = gen()
-          current = ExpiringCacheEntry(newValue, now)
+          current.cacheEntry(ExpiringCacheEntry(newValue, now))
           newValue
         }
         else {
@@ -41,7 +53,7 @@ object Cache {
   }
 
   def mayBeCached[T](
-    cacheOn: Boolean,
+    cacheOn: Boolean = true,
     gen: () => T,
     expirationInMillis: Option[Long] = None,
     currentTimeInMillis: () => Long = System.currentTimeMillis
