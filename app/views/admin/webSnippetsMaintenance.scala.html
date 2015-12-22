@@ -1,0 +1,29 @@
+@(
+  records: PagedRecords[(models.WebSnippet, Site)]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("webSnippetsMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <h1 class="title">@Messages("webSnippetsMaintenanceTitle")</h1>
+}
+
