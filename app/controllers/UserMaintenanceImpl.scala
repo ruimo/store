@@ -28,16 +28,16 @@ import helpers.Cache
 
 class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with HasLogger {
   import NeedLogin._
-  val EmployeeCsvRegistration: () => Boolean = Cache.cacheOnProd(
-    Cache.Conf.getBoolean("employee.csv.registration").getOrElse(false)
+  val EmployeeCsvRegistration: () => Boolean = Cache.config(
+    _.getBoolean("employee.csv.registration").getOrElse(false)
   )
-  val SiteOwnerCanEditEmployee: () => Boolean = Cache.cacheOnProd(
-    Cache.Conf.getBoolean("siteOwnerCanEditEmployee").getOrElse(false)
+  val SiteOwnerCanEditEmployee: () => Boolean = Cache.config(
+    _.getBoolean("siteOwnerCanEditEmployee").getOrElse(false)
   )
 
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
-  val SiteOwnerCanUploadUserCsv: () => Boolean = Cache.cacheOnProd(
-    Cache.Conf.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
+  val SiteOwnerCanUploadUserCsv: () => Boolean = Cache.config(
+    _.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
   )
 
   def createEmployeeForm(implicit lang: Lang) = Form(

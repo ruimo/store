@@ -7,15 +7,12 @@ import play.api.data.validation.{Invalid, Valid, ValidationError}
 import helpers.Cache
 
 trait FormConstraintsBase {
-  def passwordMinLength: () => Int = Cache.cacheOnProd(
-    Cache.Conf.getInt("password.min.length").getOrElse(6)
-  )
+  def passwordMinLength: () => Int = Cache.config(_.getInt("password.min.length").getOrElse(6))
   val userNameMinLength = 6
-  def userNameConstraint: () => Seq[Constraint[String]] = Cache.cacheOnProd(
-    Seq(minLength(userNameMinLength), maxLength(24))
-  )
-  def normalUserNameConstraint: () => Seq[Constraint[String]] = Cache.cacheOnProd(
-    Cache.Conf.getString("normalUserNamePattern").map { patStr =>
+  def userNameConstraint: () => Seq[Constraint[String]] =
+    () => Seq(minLength(userNameMinLength), maxLength(24))
+  def normalUserNameConstraint: () => Seq[Constraint[String]] = Cache.config(
+    _.getString("normalUserNamePattern").map { patStr =>
       Seq(pattern(patStr.r, "normalUserNamePatternRule", "normalUserNamePatternError"))
     }.getOrElse(
       Seq(minLength(userNameMinLength), maxLength(24))

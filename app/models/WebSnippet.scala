@@ -84,4 +84,34 @@ object WebSnippet {
   ).as(
     simple *
   )
+
+  val withSite = simple ~ Site.simple map {
+    case webSnippet~site => (webSnippet, site)
+  }
+
+  def list(
+    page: Int = 0, pageSize: Int = 50, orderBy: OrderBy = OrderBy("web_snippet.site_id")
+  )(
+    implicit conn: Connection
+  ): PagedRecords[(WebSnippet, Site)] = {
+    val records: Seq[(WebSnippet, Site)] = SQL(
+      """
+      select * from web_snippet w
+      inner join site s on s.site_id = w.site_id
+      oreder by """ + orderBy + """
+      limit {pageSize} offset {offset}
+      """
+    ).on(
+      'pageSize -> pageSize,
+      'offset -> page * pageSize
+    ).as(
+      withSite *
+    )
+
+    val count = SQL(
+      "select count(*) from web_snippet"
+    ).as(SqlParser.scalar[Long].single)
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, records)
+  }
 }

@@ -115,8 +115,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     supplementalCategories
   )
 
-  val ItemDescriptionSize: () => Int = Cache.cacheOnProd(
-    Cache.Conf.getInt("itemDescription.size").getOrElse(2048)
+  val ItemDescriptionSize: () => Int = Cache.config(
+    _.getInt("itemDescription.size").getOrElse(2048)
   )
 
   val createItemForm = Form(
