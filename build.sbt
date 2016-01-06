@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "com.ruimo" %% "recoengplugin4play23" % "1.0-SNAPSHOT",
   "com.ruimo" %% "csvparser" % "1.0-SNAPSHOT",
   "com.ruimo" %% "scoins" % "1.0",
+  "org.twitter4j" % "twitter4j-core" % "4.0.4",
   jdbc,
 //  anorm,
   "com.typesafe.play" %% "anorm" % "2.4.0",

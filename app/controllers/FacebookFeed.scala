@@ -10,12 +10,10 @@ import play.api.libs.json.{JsObject, Json, JsString, JsNumber}
 
 object FacebookFeed extends Controller with NeedLogin with HasLogger with I18nAware {
   val facebook: () => Facebook = Cache.cacheOnProd(
-    () => {
-      Facebook(
-        Play.maybeApplication.get.configuration.getString("facebook.appId").get,
-        Play.maybeApplication.get.configuration.getString("facebook.appSecret").get
-      )
-    }
+    () => Facebook(
+      Play.maybeApplication.get.configuration.getString("facebook.appId").get,
+      Play.maybeApplication.get.configuration.getString("facebook.appSecret").get
+    )
   )
 
   def latestPostId(pageId: String) = optIsAuthenticatedJson { implicit optLogin => implicit request =>
