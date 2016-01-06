@@ -33,6 +33,7 @@ class TwitterAdapter(
       val tweetId = st.getId
       val req = new OEmbedRequest(tweetId, "https://twitter.com/" + screenName + "/status/" + tweetId)
       req.setOmitScript(omitScript)
+      req.setHideMedia(false)
       twitter.getOEmbed(req).getHtml -> java.time.Instant.ofEpochMilli(st.getCreatedAt.getTime)
     },
     expirationInMillis = Some(cacheDurationInMilli)
