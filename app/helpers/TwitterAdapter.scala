@@ -28,12 +28,12 @@ class TwitterAdapter(
 
   def getLatestTweetEmbed(
     screenName: String, omitScript: Boolean = true
-  ): () => Option[String] = Cache.mayBeCached[Option[String]](
+  ): () => Option[(String, java.time.Instant)] = Cache.mayBeCached[Option[(String, java.time.Instant)]](
     gen = () => getLatestTweet(screenName)().map { st =>
       val tweetId = st.getId
       val req = new OEmbedRequest(tweetId, "https://twitter.com/" + screenName + "/status/" + tweetId)
       req.setOmitScript(omitScript)
-      twitter.getOEmbed(req).getHtml
+      twitter.getOEmbed(req).getHtml -> java.time.Instant.ofEpochMilli(st.getCreatedAt.getTime)
     },
     expirationInMillis = Some(cacheDurationInMilli)
   )

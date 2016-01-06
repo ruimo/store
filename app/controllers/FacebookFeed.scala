@@ -20,7 +20,7 @@ object FacebookFeed extends Controller with NeedLogin with HasLogger with I18nAw
     facebook().feedsV25(pageId).headOption.map {
       feed => (feed.postId.toString, feed.createdTime)
     } match {
-      case None => NotFound("No feed for page '" + pageId + "' found")
+      case None => NotFound("No feed for page '" + pageId + "' found.")
       case Some(t) => Ok(
         Json.toJson(
           JsObject(
