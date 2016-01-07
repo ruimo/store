@@ -238,7 +238,7 @@ POST    /removeExpiredItems              controllers.ShoppingCart.removeExpiredI
 
 GET     /facebook/latestPostId           controllers.FacebookFeed.latestPostId(pageId: String)
 GET     /twitter/latestTweet             controllers.TwitterFeed.latestTweet(screenName: String)
-GET     /twitter/latestTweetJson         controllers.TwitterFeed.latestTweetJson(screenName: String)
+GET     /twitter/latestTweetJson         controllers.TwitterFeed.latestTweetJson(screenName: String, omitScript: Boolean ?= true, maxWidth: Option[Int] ?= Some(300))
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

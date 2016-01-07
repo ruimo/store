@@ -23,8 +23,16 @@ object TwitterFeed extends Controller with NeedLogin with HasLogger with I18nAwa
     Ok(twitter().getLatestTweetEmbed(screenName)().map(_._1)getOrElse("NONE"))
   }
 
-  def latestTweetJson(screenName: String) = optIsAuthenticatedJson { implicit optLogin => implicit request =>
-    twitter().getLatestTweetEmbed(screenName)() match {
+  def latestTweetJson(
+    screenName: String,
+    omitScript: Boolean,
+    maxWidth: Option[Int]
+  ) = optIsAuthenticatedJson { implicit optLogin => implicit request =>
+    twitter().getLatestTweetEmbed(
+      screenName = screenName,
+      omitScript = omitScript,
+      maxWidth = maxWidth
+    )() match {
       case None => NotFound("No tweet for '" + screenName + "' found.")
       case Some(t) => Ok(
         Json.toJson(
