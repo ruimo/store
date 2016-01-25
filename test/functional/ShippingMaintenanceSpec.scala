@@ -1,5 +1,7 @@
 package functional
 
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
@@ -400,7 +402,7 @@ class ShippingMaintenanceSpec extends Specification {
         )
 
         browser.title === Messages("commonTitle", Messages("shippingFeeMaintenanceTitle"))
-        // Edit fee for tokyo.
+        // Edit fee for hokkaido.
         browser.find(".shippingFeeList").find(".body", 0).find(".edit").find("a").click
 
         browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
@@ -410,10 +412,14 @@ class ShippingMaintenanceSpec extends Specification {
           rec.find(".prefecture").getText === "北海道"
         }
         
+        val validDate = new DateTime().plusDays(10)
+        val formattedValidDate =
+          DateTimeFormat.forPattern(Messages("yyyy-MM-dd hh:mm:ss")).print(validDate)
+
         // without cost fee.
         browser.find("#taxId").find("option", 1).click()
         browser.fill("#fee").`with`("123")
-        browser.fill("#validUntil").`with`("2015-01-23 11:22:33")
+        browser.fill("#validUntil").`with`(formattedValidDate)
 
         browser.find("#addShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
@@ -424,7 +430,7 @@ class ShippingMaintenanceSpec extends Specification {
         ).isSelected === true
         browser.find("#histories_0_fee").getAttribute("value") === "123.00"
         browser.find("#histories_0_costFee").getAttribute("value") === ""
-        browser.find("#histories_0_validUntil").getAttribute("value") === "2015-01-23 11:22:33"
+        browser.find("#histories_0_validUntil").getAttribute("value") === formattedValidDate
 
         // Remove history.
         browser.find(".removeHistoryButton").click()
@@ -435,7 +441,7 @@ class ShippingMaintenanceSpec extends Specification {
         browser.find("#taxId").find("option", 1).click()
         browser.fill("#fee").`with`("123")
         browser.fill("#costFee").`with`("100")
-        browser.fill("#validUntil").`with`("2015-01-23 11:22:33")
+        browser.fill("#validUntil").`with`(formattedValidDate)
 
         browser.find("#addShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
@@ -446,13 +452,13 @@ class ShippingMaintenanceSpec extends Specification {
         ).isSelected === true
         browser.find("#histories_0_fee").getAttribute("value") === "123.00"
         browser.find("#histories_0_costFee").getAttribute("value") === "100.00"
-        browser.find("#histories_0_validUntil").getAttribute("value") === "2015-01-23 11:22:33"
+        browser.find("#histories_0_validUntil").getAttribute("value") === formattedValidDate
 
         // Can change history.
         browser.find("#histories_0_taxId").find("option[value='" + tax1.id.get + "']").click()
         browser.fill("#histories_0_fee").`with`("234")
         browser.fill("#histories_0_costFee").`with`("")
-        browser.fill("#histories_0_validUntil").`with`("2016-01-23 22:33:44")
+        browser.fill("#histories_0_validUntil").`with`(formattedValidDate)
         browser.find("#updateShippingFeeHistoryButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until(".title").areDisplayed()
         browser.title === Messages("commonTitle", Messages("shippingFeeHistoryMaintenanceTitle"))
@@ -462,7 +468,7 @@ class ShippingMaintenanceSpec extends Specification {
         ).isSelected === true
         browser.find("#histories_0_fee").getAttribute("value") === "234.00"
         browser.find("#histories_0_costFee").getAttribute("value") === ""
-        browser.find("#histories_0_validUntil").getAttribute("value") === "2016-01-23 22:33:44"
+        browser.find("#histories_0_validUntil").getAttribute("value") === formattedValidDate
 
         browser.fill("#histories_0_costFee").`with`("100")
         browser.find("#updateShippingFeeHistoryButton").click()
