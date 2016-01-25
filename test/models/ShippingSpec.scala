@@ -427,5 +427,25 @@ class ShippingSpec extends Specification {
         }
       }
     }
+
+    "Can create shopping cart shippping." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+
+          ShoppingCartShipping.updateOrInsert(user1.id.get, site1.id.get, date("2015-10-11").getTime)
+          ShoppingCartShipping.updateOrInsert(user1.id.get, site2.id.get, date("2015-10-11").getTime)
+
+          ShoppingCartShipping.find(user1.id.get) === Some(date("2015-10-11").getTime)
+        }
+      }
+    }
   }
 }

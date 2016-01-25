@@ -489,4 +489,12 @@ object ShoppingCartShipping {
     ).on(
       'userId -> userId
     ).executeUpdate()
+
+  def removeForUser(userId: Long)(implicit conn: Connection) {
+    SQL(
+      "delete from shopping_cart_shipping where store_user_id = {id}"
+    ).on(
+      'id -> userId
+    ).executeUpdate()
+  }
 }
