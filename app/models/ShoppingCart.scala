@@ -466,6 +466,20 @@ object ShoppingCartShipping {
       SqlParser.scalar[java.util.Date].single
     ).getTime
 
+  def find(userId: Long)(implicit conn: Connection): Option[Long] =
+    SQL(
+      """
+      select min(shipping_date) from shopping_cart_shipping
+      where store_user_id = {userId}
+      """
+    ).on(
+      'userId -> userId
+    ).as(
+      SqlParser.scalar[java.util.Date].singleOpt
+    ).map(
+      _.getTime
+    )
+
   def clear(userId: Long)(implicit conn: Connection): Unit =
     SQL(
       """

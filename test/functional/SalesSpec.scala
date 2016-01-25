@@ -1,6 +1,8 @@
 package functional
 
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTime
 import helpers.Helper.disableMailer
 import helpers.UrlHelper
 import helpers.UrlHelper._
@@ -92,10 +94,24 @@ class SalesSpec extends Specification with SalesSpecBase  {
         val box = ShippingBox.createNew(site.id.get, itemClass, 3, "box01")
         val fee = ShippingFee.createNew(box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
         val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
+
+        val shippingDate = new DateTime().plusDays(10)
+        val formattedShippingDate =
+          DateTimeFormat.forPattern(Messages("shipping.date.format")).print(shippingDate)
+
+        browser.fill("#shippingDateTextBox").`with`(formattedShippingDate)
+
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-
         browser.title === Messages("commonTitle", Messages("confirm.shipping.address"))
+
+        browser.find(".backToShippingLink").click()
+        browser.find("#shippingDateTextBox").getAttribute("value") === (formattedShippingDate)
+
+        browser.find("#enterShippingAddressForm input[type='submit']").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("commonTitle", Messages("confirm.shipping.address"))
+
         browser.find(".itemTableBody .itemName").getText === "かえで"
         browser.find(".itemTableBody .siteName").getText === "Store01"
         if (itemSizeExists)
