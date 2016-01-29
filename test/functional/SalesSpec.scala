@@ -99,14 +99,18 @@ class SalesSpec extends Specification with SalesSpecBase  {
         val formattedShippingDate =
           DateTimeFormat.forPattern(Messages("shipping.date.format")).print(shippingDate)
 
-        browser.fill("#shippingDateTextBox").`with`(formattedShippingDate)
+        if (browser.findFirst("#shippingDateTextBox").isDisplayed) {
+          browser.fill("#shippingDateTextBox").`with`(formattedShippingDate)
+        }
 
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("commonTitle", Messages("confirm.shipping.address"))
 
         browser.find(".backToShippingLink").click()
-        browser.find("#shippingDateTextBox").getAttribute("value") === (formattedShippingDate)
+        if (browser.findFirst("#shippingDateTextBox").isDisplayed) {
+          browser.find("#shippingDateTextBox").getAttribute("value") === (formattedShippingDate)
+        }
 
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
