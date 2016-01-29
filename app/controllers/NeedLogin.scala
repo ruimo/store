@@ -137,18 +137,11 @@ trait NeedLogin extends Controller with HasLogger {
     }
 
   object NeedAuthenticated extends AuthenticatedBuilder(req => retrieveLoginSession(req), onUnauthorized)
-  def assumeSuperUser(login: LoginSession)(result: => Result): Result = {
-    if (login.isSuperUser) result
-    else Redirect(routes.Application.index)
-  }
-  def assumeAdmin(login: LoginSession)(result: => Result): Result = {
-    if (login.isAdmin) result
-    else Redirect(routes.Application.index)
-  }
-  def assumeSiteOwner(login: LoginSession)(result: => Result): Result = {
-    if (login.isSiteOwner) result
-    else Redirect(routes.Application.index)
-  }
+  def assumeUser(permitted: Boolean)(result: => Result): Result =
+    if (permitted) result else Redirect(routes.Application.index)
+  def assumeSuperUser(login: LoginSession)(result: => Result): Result = assumeUser(login.isSuperUser)(result)
+  def assumeAdmin(login: LoginSession)(result: => Result): Result = assumeUser(login.isAdmin)(result)
+  def assumeSiteOwner(login: LoginSession)(result: => Result): Result = assumeUser(login.isSiteOwner)(result)
 
   object NeedAuthenticatedJson extends AuthenticatedBuilder(req => retrieveLoginSession(req), onUnauthorizedJson)
 

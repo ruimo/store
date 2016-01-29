@@ -119,6 +119,13 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     _.getInt("itemDescription.size").getOrElse(2048)
   )
 
+  val StoreOwnerCanModifyAllItemProperties: () => Boolean = Cache.config(
+    _.getBoolean("storeOwnerCanModifyAllItemProperties").getOrElse(false)
+  )
+
+  def isPermitted(login: LoginSession): Boolean =
+    login.isSuperUser || login.isSiteOwner && StoreOwnerCanModifyAllItemProperties()
+
   val createItemForm = Form(
     mapping(
       "langId" -> longNumber,
@@ -414,7 +421,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def changeItemName(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeUser(isPermitted(login)) {
       changeItemNameForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ItemMaintenance.changeItemName." + formWithErrors + ".")
@@ -442,7 +449,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def addItemName(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeUser(isPermitted(login)) {
       addItemNameForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ItemMaintenance.addItemName." + formWithErrors + ".")
@@ -484,7 +491,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemName(itemId: Long, localeId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeUser(isPermitted(login)) {
       DB.withConnection { implicit conn =>
         ItemName.remove(ItemId(itemId), localeId)
       }
@@ -497,7 +504,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeItemMetadata(itemId: Long, metadataType: Int) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeAdmin(login) {
+    assumeUser(isPermitted(login)) {
       DB.withConnection { implicit conn =>
         ItemNumericMetadata.remove(ItemId(itemId), metadataType)
       }
@@ -1214,7 +1221,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def addSiteItemTextMetadata(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeUser(isPermitted(login)) {
       addSiteItemTextMetadataForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ItemMaintenance.addSiteItemTextMetadata." + formWithErrors + ".")
@@ -1260,7 +1267,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def addSupplementalCategory(itemId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeUser(isPermitted(login)) {
       addSupplementalCategoryForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in ItemMaintenance.addSupplementalCategory " + formWithErrors + ".")
@@ -1305,7 +1312,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def removeSupplementalCategory(itemId: Long, categoryId: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeUser(isPermitted(login)) {
       DB.withConnection { implicit conn =>
         SupplementalCategory.remove(ItemId(itemId), categoryId)
       }
