@@ -335,7 +335,7 @@
   <h2 class="itemName">@Messages("itemName")</h2>
 
   @form(action = CSRF(routes.ItemMaintenance.changeItemName(c.id))) {
-    <table style="margin-left: 20px; width: 70%;">
+    <table class="changeItemName" style="margin-left: 20px; width: 70%;">
       <tr class="itemHeader">
         <th>@Messages("language")</th>
         <th>@Messages("itemName")</th>
@@ -343,9 +343,9 @@
 
       @repeat(c.itemNameTableForm("itemNames")) { name => @nameForm(name) }
 
-      <tr>
+      <tr class="itemBody">
         <td colspan="2">
-          <input style="float: right;" type="submit" value=@Messages("update")>
+          <input class="itemName" style="float: right;" type="submit" value='@Messages("update")'>
         </td>
       </tr>
     </table>

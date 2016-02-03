@@ -33,7 +33,7 @@ class ItemMaintenanceSpec extends Specification {
   "Item maintenance" should {
     "Create new item." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -77,7 +77,7 @@ class ItemMaintenanceSpec extends Specification {
 
     "Create new item and set list price." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -137,7 +137,7 @@ class ItemMaintenanceSpec extends Specification {
 
     "Create new item with list price." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -182,7 +182,7 @@ class ItemMaintenanceSpec extends Specification {
 
     "Create new item with price memo." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -247,7 +247,7 @@ class ItemMaintenanceSpec extends Specification {
 
     "Create new coupon item." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -291,7 +291,7 @@ class ItemMaintenanceSpec extends Specification {
 
     "Can edit item that has no handling stores." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit def date2milli(d: java.sql.Date) = d.getTime
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
@@ -520,6 +520,82 @@ class ItemMaintenanceSpec extends Specification {
         )
 
         1===1
+      }}
+    }
+
+    "Store owner cannot change item name if storeOwnerCanModifyAllItemProperties is false" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user01 = createNormalUser("user01")
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val siteOwner = SiteUser.createNew(user01.id.get, site.id.get)
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val item = Item.createNew(cat)
+        val siteItem = SiteItem.createNew(site, item)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val itemPriceHistory = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+
+        logoff(browser)
+        login(browser, "user01")
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(1000).url.addParm("lang", lang.code)
+        )
+        browser.fill("#itemNames_0_itemName").`with`("かえで2");
+        browser.click(".changeItemName .itemBody .itemName")
+
+        // By default, store owner cannot change item name. The attempt will transit the page to top.
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.title === Messages("commonTitle", Messages("company.name"))
+      }}
+    }
+
+    "Store owner can change item name if storeOwnerCanModifyAllItemProperties is true" in {
+      val conf = inMemoryDatabase() ++ Map("storeOwnerCanModifyAllItemProperties" -> true)
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user01 = createNormalUser("user01")
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val siteOwner = SiteUser.createNew(user01.id.get, site.id.get)
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val item = Item.createNew(cat)
+        val siteItem = SiteItem.createNew(site, item)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val itemPriceHistory = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+
+        logoff(browser)
+        login(browser, "user01")
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.ItemMaintenance.startChangeItem(1000).url.addParm("lang", lang.code)
+        )
+        browser.fill("#itemNames_0_itemName").`with`("かえで2");
+        browser.click(".changeItemName .itemBody .itemName")
+
+        // By default, store owner cannot change item name. The attempt will transit the page to top.
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("changeItemTitle"))
+        browser.find(".message").getText === Messages("itemIsUpdated")
+        browser.find("#itemNames_0_itemName").getAttribute("value") === "かえで2"
       }}
     }
   }
