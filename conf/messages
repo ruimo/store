@@ -456,3 +456,4 @@ itemStockExhaustedTitle=Item stock exhausted.
 itemStockExhaustedDescription=The following item(s) have no enough stock available. Please inspect your cart and decrease quantity to meet remaing stock count.
 remainingCount=Remaining stock count
 gotoShoppingCart=Go to shopping cart
+itemNotFound=Item not found

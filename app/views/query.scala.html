@@ -62,35 +62,41 @@
     </tr>
   </table>
 
-  <br>
-  <table class="queryItemTable">
-    <tr class="queryItemTableHeader">
-      <th></th>
-      <th id="itemNameHeader">
-        @orderMark(
-          Messages("itemName"),
-          query(_: Int, _: Int, 0, _: String),
-          "item_name.item_name", list
-        )
-      </th>
-      <th id="siteHeader">
-        @orderMark(
-          Messages("site"),
-          query(_: Int, _: Int, 0, _: String),
-          "site.site_name", list
-        )
-      </th>
-      <th id="unitPriceHeader">
-        @orderMark(
-          Messages("unitPrice"),
-          query(_: Int, _: Int, 0, _: String),
-          "item_price_history.unit_price", list
-        )
-      </th>
-      <th></th>
-    </tr>
-    @queryItemTableBody(list)
-  </table>
-  <br>
-  @pagingPanel(list, query(_, _, 0, _), 10, 25, 50)
+  @if(list.records.isEmpty) {
+    <div class="itemNotFound">
+      @Messages("itemNotFound")
+    </div>
+  } else {
+    <br>
+    <table class="queryItemTable">
+      <tr class="queryItemTableHeader">
+        <th></th>
+        <th id="itemNameHeader">
+          @orderMark(
+            Messages("itemName"),
+            query(_: Int, _: Int, 0, _: String),
+            "item_name.item_name", list
+          )
+        </th>
+        <th id="siteHeader">
+          @orderMark(
+            Messages("site"),
+            query(_: Int, _: Int, 0, _: String),
+            "site.site_name", list
+          )
+        </th>
+        <th id="unitPriceHeader">
+          @orderMark(
+            Messages("unitPrice"),
+            query(_: Int, _: Int, 0, _: String),
+            "item_price_history.unit_price", list
+          )
+        </th>
+        <th></th>
+      </tr>
+      @queryItemTableBody(list)
+    </table>
+    <br>
+    @pagingPanel(list, query(_, _, 0, _), 10, 25, 50)
+  }
 }

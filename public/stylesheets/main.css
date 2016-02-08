@@ -763,3 +763,8 @@ tr.recommendationByAdminTable.body {
 #pagingPaneDestination {
     clear: both;
 }
+
+.itemNotFound {
+  text-align: center;
+  padding: 30px;
+}

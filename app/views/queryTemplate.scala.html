@@ -101,5 +101,7 @@
     @queryItemTableBody(list)
   </table>
   <br>
-  @pagingPanel(list, query(_, _, templateNo, _), 10, 25, 50)
+  @if(! list.records.isEmpty) {
+    @pagingPanel(list, query(_, _, templateNo, _), 10, 25, 50)
+  }
 }
