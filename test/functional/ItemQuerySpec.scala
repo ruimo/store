@@ -28,7 +28,7 @@ class ItemQuerySpec extends Specification {
   "Query" should {
     "Item empty" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
       
@@ -37,7 +37,7 @@ class ItemQuerySpec extends Specification {
         )
 
         browser.title === Messages("commonTitle", Messages("item.list"))
-        browser.$("table.queryItemTable").find("tr").size() === 1 // Since no item found, only header will be shown.
+        browser.find(".itemNotFound").getText === Messages("itemNotFound")
       }}
     }
 
