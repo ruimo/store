@@ -768,3 +768,9 @@ tr.recommendationByAdminTable.body {
   text-align: center;
   padding: 30px;
 }
+
+.itemDetailNotFound {
+  font-size: 140%;
+  text-align: center;
+  padding: 30px;
+}

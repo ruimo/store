@@ -34,8 +34,7 @@ object ItemDetail {
 
   def show(
     siteId: Long, itemId: Long, locale: LocaleInfo, now: Long = System.currentTimeMillis
-  )(implicit conn: Connection): ItemDetail = {
-    val (name, description) = SQL(
+  )(implicit conn: Connection): Option[ItemDetail] = SQL(
       """
       select * from item
       inner join item_name
@@ -50,21 +49,20 @@ object ItemDetail {
       'itemId -> itemId,
       'localeId -> locale.id
     ).as(
-      nameDesc.single
-    )
+      nameDesc.singleOpt
+    ).map { t =>
+      val priceHistory = ItemPriceHistory.atBySiteAndItem(siteId, ItemId(itemId), now)
 
-    val priceHistory = ItemPriceHistory.atBySiteAndItem(siteId, ItemId(itemId), now)
-
-    ItemDetail(
-      siteId, itemId,
-      name, description,
-      ItemNumericMetadata.allById(ItemId(itemId)),
-      ItemTextMetadata.allById(ItemId(itemId)),
-      SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
-      SiteItemTextMetadata.all(siteId, ItemId(itemId)),
-      priceHistory.unitPrice,
-      priceHistory.listPrice,
-      Site(siteId).name
-    )
-  }
+      ItemDetail(
+        siteId, itemId,
+        t._1, t._2,
+        ItemNumericMetadata.allById(ItemId(itemId)),
+        ItemTextMetadata.allById(ItemId(itemId)),
+        SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
+        SiteItemTextMetadata.all(siteId, ItemId(itemId)),
+        priceHistory.unitPrice,
+        priceHistory.listPrice,
+        Site(siteId).name
+      )
+    }
 }

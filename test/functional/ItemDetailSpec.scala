@@ -120,5 +120,70 @@ class ItemDetailSpec extends Specification {
         browser.find(".itemDetailListPrice .value .memo").getText === "List price memo"
       }}
     }
+
+    "Can show not found error." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+        val item = Item.createNew(cat)
+        val siteItem = SiteItem.createNew(site, item)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val itemPriceHistory = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+
+        browser.goTo(
+          "http://localhost:3333"
+          + controllers.routes.ItemDetail.show(item.id.get.id + 1, site.id.get).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".itemDetailNotFound").getText === Messages("itemDetailNotFound")
+      }}
+    }
+
+    "Can show not found error for hidden item." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit def date2milli(d: java.sql.Date) = d.getTime
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val site = Site.createNew(LocaleInfo.Ja, "Store01")
+        val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
+        val tax = Tax.createNew
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+        val item = Item.createNew(cat)
+        val siteItem = SiteItem.createNew(site, item)
+        val itemName = ItemName.createNew(item, Map(LocaleInfo.Ja -> "かえで"))
+        val itemDesc = ItemDescription.createNew(item, site, "かえで説明")
+        val itemPrice = ItemPrice.createNew(item, site)
+        val itemPriceHistory = ItemPriceHistory.createNew(
+          itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
+        )
+        SiteItemNumericMetadata.createNew(
+          site.id.get, item.id.get, SiteItemNumericMetadataType.HIDE, 1
+        )
+
+        browser.goTo(
+          "http://localhost:3333"
+          + controllers.routes.ItemDetail.show(item.id.get.id, site.id.get).url + "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".itemDetailNotFound").getText === Messages("itemDetailNotFound")
+      }}
+    }
   }
 }
