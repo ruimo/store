@@ -48,6 +48,8 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
       shoppingCartItems
     ).map {
       it => models.ItemDetail.show(it.storeCode.toLong, it.itemCode.toLong, locale)
+    }.flatMap {
+      x => x
     }.filter {
       _.siteItemNumericMetadata.get(SiteItemNumericMetadataType.HIDE).map {
         _.metadata != 1
@@ -79,7 +81,7 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
     (maxRecordCount: Int) => RecommendByAdmin.listByScore(
       showDisabled = false, locale, page = 0, pageSize = maxRecordCount
     ),
-    (siteId: Long, itemId: Long) => models.ItemDetail.show(siteId, itemId, locale)
+    (siteId: Long, itemId: Long) => models.ItemDetail.show(siteId, itemId, locale).get
   )
 
   def calcByAdmin(

@@ -1,0 +1,12 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: Option[LoginSession]
+)
+
+@main(Messages("item.detail"), loginSession) {
+} {
+  <div class="itemDetailNotFound">
+    @Messages("itemDetailNotFound")
+  </div>
+}
