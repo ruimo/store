@@ -774,3 +774,8 @@ tr.recommendationByAdminTable.body {
   text-align: center;
   padding: 30px;
 }
+
+.gotoTopLink {
+  text-align: right;
+  margin-right: 20em;
+}
