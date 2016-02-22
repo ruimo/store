@@ -35,10 +35,9 @@ object NotificationMail extends HasLogger {
     status: TransactionShipStatus, transporters: immutable.LongMap[String]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
-    val supplementalEmails = SupplementalUserEmail.load(login.storeUser.id.get).map(_.email)
 
     sendShippingNotificationToBuyer(
-      login, siteId, tran, addr, metadata, status, transporters, supplementalEmails
+      login, siteId, tran, addr, metadata, status, transporters
     )
     sendShippingNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
     sendShippingNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
@@ -49,10 +48,9 @@ object NotificationMail extends HasLogger {
     status: TransactionShipStatus, transporters: immutable.LongMap[String]
   )(implicit conn: Connection) {
     val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
-    val supplementalEmails = SupplementalUserEmail.load(login.storeUser.id.get).map(_.email)
 
     sendCancelNotificationToBuyer(
-      login, siteId, tran, addr, metadata, status, transporters, supplementalEmails
+      login, siteId, tran, addr, metadata, status, transporters
     )
     sendCancelNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
     sendCancelNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
@@ -107,11 +105,11 @@ object NotificationMail extends HasLogger {
   def sendShippingNotificationToBuyer(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus, transporters: immutable.LongMap[String],
-    supplementalEmails: immutable.Set[String]
+    status: TransactionShipStatus, transporters: immutable.LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     val primaryEmail = if (addr.email.isEmpty) buyer.email else addr.email
+    val supplementalEmails = SupplementalUserEmail.load(tran.header.userId).map(_.email)
 
     (supplementalEmails + primaryEmail).foreach { email =>
       logger.info("Sending shipping notification for buyer sent to " + email)
@@ -137,11 +135,11 @@ object NotificationMail extends HasLogger {
   def sendCancelNotificationToBuyer(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
-    status: TransactionShipStatus, transporters: immutable.LongMap[String],
-    supplementalEmails: immutable.Set[String]
+    status: TransactionShipStatus, transporters: immutable.LongMap[String]
   )(implicit conn: Connection) {
     val buyer = StoreUser(tran.header.userId)
     val primaryEmail = if (addr.email.isEmpty) buyer.email else addr.email
+    val supplementalEmails = SupplementalUserEmail.load(tran.header.userId).map(_.email)
 
     (supplementalEmails + primaryEmail).foreach { email =>
       logger.info("Sending cancel notification for buyer sent to " + email)
