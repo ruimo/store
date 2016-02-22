@@ -12,7 +12,9 @@ class FirstSetupSpec extends Specification {
     "Salt and hash is created by create() method." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withConnection { implicit conn => {
-          val user = FirstSetup("userName", "firstName", Some("middleName"), "lastName", "email", "password", "companyName").save(
+          val user = FirstSetup(
+            "userName", "firstName", Some("middleName"), "lastName", "email", Seq(), "password", "companyName"
+          ).save(
             new TokenGenerator {
               def next = 0x1234567890123456L
             }, conn
