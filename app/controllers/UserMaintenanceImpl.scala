@@ -83,6 +83,7 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
       "middleName" -> optional(text),
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> email.verifying(emailConstraint: _*),
+      "supplementalEmails" -> seq(optional(email.verifying(optionalEmailConstraint))),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text

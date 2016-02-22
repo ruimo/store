@@ -20,8 +20,8 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
   def createUserForm[T <: CreateUser](
-    apply: (String, String, Option[String], String, String, (String, String), String) => T,
-    unapply: T => Option[(String, String, Option[String], String, String, (String, String), String)]
+    apply: (String, String, Option[String], String, String, Seq[Option[String]], (String, String), String) => T,
+    unapply: T => Option[(String, String, Option[String], String, String, Seq[Option[String]], (String, String), String)]
   )(implicit lang: Lang) = Form(
     mapping(
       "userName" -> text.verifying(userNameConstraint(): _*),
@@ -29,6 +29,7 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
       "middleName" -> optional(text),
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> email.verifying(emailConstraint: _*),
+      "supplementalEmails" -> seq(optional(email.verifying(optionalEmailConstraint))),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
@@ -40,8 +41,8 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   )
 
   def createNormalUserForm[T <: CreateUser](
-    apply: (String, String, Option[String], String, String, (String, String), String) => T,
-    unapply: T => Option[(String, String, Option[String], String, String, (String, String), String)]
+    apply: (String, String, Option[String], String, String, Seq[Option[String]], (String, String), String) => T,
+    unapply: T => Option[(String, String, Option[String], String, String, Seq[Option[String]], (String, String), String)]
   )(implicit lang: Lang) = Form(
     mapping(
       "userName" -> text.verifying(normalUserNameConstraint(): _*),
@@ -49,6 +50,7 @@ object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
       "middleName" -> optional(text),
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> email.verifying(emailConstraint: _*),
+      "supplementalEmails" -> seq(optional(email.verifying(optionalEmailConstraint))),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text

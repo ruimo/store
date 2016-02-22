@@ -6,6 +6,7 @@ trait CreateUserBase {
   val middleName: Option[String]
   val lastName: String
   val email: String
+  val supplementalEmails: Seq[String]
   val password: String
   val companyName: String
 }
