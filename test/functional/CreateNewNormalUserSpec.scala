@@ -1,5 +1,6 @@
 package functional
 
+import anorm._
 import helpers.PasswordHash
 import play.api.test._
 import play.api.test.Helpers._
@@ -56,7 +57,7 @@ class CreateNewNormalUserSpec extends Specification {
 
     "Email error" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         browser.goTo("http://localhost:3333" +
@@ -87,7 +88,7 @@ class CreateNewNormalUserSpec extends Specification {
 
     "Confirmation password does not match." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser =>
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         browser.goTo("http://localhost:3333" +
@@ -123,6 +124,8 @@ class CreateNewNormalUserSpec extends Specification {
         browser.goTo("http://localhost:3333" +
                      controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
         
+        browser.find("#supplementalEmails_0_field").size === 0
+
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("commonTitle", Messages("createNormalUserTitle"))
         browser.fill("#userName").`with`("abcdef")
@@ -176,6 +179,65 @@ class CreateNewNormalUserSpec extends Specification {
         newUser.deleted === false
         newUser.userRole === UserRole.NORMAL
         newUser.companyName === Some("site01")
+      }}
+    }
+
+    "Supplemental email fields should be shown." in {
+      // User name should be 6 digit string.
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("maxCountOfSupplementalEmail" -> 3))
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+
+        browser.goTo("http://localhost:3333" +
+                     controllers.routes.UserMaintenance.startCreateNewNormalUser.url + "?lang=" + lang.code)
+
+        browser.find("#supplementalEmails_0_field").size === 1
+        browser.find("#supplementalEmails_1_field").size === 1
+        browser.find("#supplementalEmails_2_field").size === 1
+        browser.find("#supplementalEmails_3_field").size === 0
+
+        browser.fill("#firstName").`with`("firstname")
+        browser.fill("#lastName").`with`("lastname")
+        browser.fill("#companyName").`with`("site01")
+        browser.fill("#email").`with`("ruimo@ruimo.com")
+        browser.fill("#userName").`with`("123456")
+        browser.fill("#password_main").`with`("password")
+        browser.fill("#password_confirm").`with`("password")
+
+        browser.fill("#supplementalEmails_0").`with`("null@ruimo.com")
+        browser.fill("#supplementalEmails_1").`with`("aaa")
+
+        browser.submit("#registerNormalUser")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.$(".globalErrorMessage").getText === Messages("inputError")
+        browser.find("#supplementalEmails_1_field dd.error").getText === Messages("error.email")
+
+        browser.fill("#password_main").`with`("password")
+        browser.fill("#password_confirm").`with`("password")
+        browser.fill("#supplementalEmails_0").`with`("null@ruimo.com")
+        browser.fill("#supplementalEmails_1").`with`("foo@ruimo.com")
+
+        browser.submit("#registerNormalUser")
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find(".message").getText === Messages("userIsCreated")
+
+        val recs = SQL(
+          """
+          select * from supplemental_user_email s
+          inner join store_user u on s.store_user_id = u.store_user_id
+          where u.user_name = {userName}
+          order by email
+          """
+        ).on(
+          'userName -> "123456"
+        ).as(
+          SqlParser.str("supplemental_user_email.email") *
+        )
+        recs.size === 2
+        recs(0) === "foo@ruimo.com"
+        recs(1) === "null@ruimo.com"
       }}
     }
   }

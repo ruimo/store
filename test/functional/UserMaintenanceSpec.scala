@@ -18,6 +18,7 @@ import play.api.test.FakeApplication
 import java.sql.Date.{valueOf => date}
 import org.openqa.selenium.By
 import models.{StoreUser, OrderNotification, UserRole, Site, LocaleInfo}
+import java.util.concurrent.TimeUnit
 
 class UserMaintenanceSpec extends Specification {
   "User maintenance" should {
@@ -70,6 +71,7 @@ class UserMaintenanceSpec extends Specification {
         )
 
         browser.title() === Messages("commonTitle", Messages("modifyUserTitle"))
+        browser.find("#supplementalEmails_0_field").size === 0
         browser.find("#userId").getAttribute("value") === user2.id.get.toString
         browser.find("#userName").getAttribute("value") === user2.userName
         browser.find("#firstName").getAttribute("value") === user2.firstName
@@ -210,6 +212,54 @@ class UserMaintenanceSpec extends Specification {
         browser.find(".site.body", 0).getText === site2.name
         browser.find(".allCount.body", 0).getText === "3"
         browser.find(".registeredCount.body", 0).getText === "1"
+      }}
+    }
+
+    "Can edit supplemental emails." in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("maxCountOfSupplementalEmail" -> 3))
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.modifyUserStart(user.id.get).url +
+          "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#supplementalEmails_0_field").size === 1
+        browser.find("#supplementalEmails_1_field").size === 1
+        browser.find("#supplementalEmails_2_field").size === 1
+        browser.find("#supplementalEmails_3_field").size === 0
+        browser.fill("#password_main").`with`("12345678")
+        browser.fill("#password_confirm").`with`("12345678")
+        browser.fill("#supplementalEmails_0").`with`("null@ruimo.com")
+        browser.fill("#supplementalEmails_1").`with`("aaa")
+        
+        browser.find("#modifyUser").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.$(".globalErrorMessage").getText === Messages("inputError")
+        browser.find("#supplementalEmails_1_field dd.error").getText === Messages("error.email")
+        browser.fill("#password_main").`with`("12345678")
+        browser.fill("#password_confirm").`with`("12345678")
+        browser.fill("#supplementalEmails_0").`with`("null@ruimo.com")
+        browser.fill("#supplementalEmails_1").`with`("foo@ruimo.com")
+        browser.find("#modifyUser").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.modifyUserStart(user.id.get).url +
+          "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("commonTitle", Messages("modifyUserTitle"))
+        browser.find("#supplementalEmails_0").getAttribute("value") === "foo@ruimo.com"
+        browser.find("#supplementalEmails_1").getAttribute("value") === "null@ruimo.com"
+        browser.find("#supplementalEmails_2").getAttribute("value") === ""
       }}
     }
   }
