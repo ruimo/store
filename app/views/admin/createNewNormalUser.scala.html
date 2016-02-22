@@ -1,5 +1,6 @@
 @(
-  myForm: Form[models.CreateNormalUser]
+  myForm: Form[models.CreateNormalUser],
+  countOfSupplementalEmail: Int
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -25,7 +26,7 @@
   }
 
   @helper.form(action = helper.CSRF(routes.UserMaintenance.createNewNormalUser()), 'id -> "createNewNormalUserForm") {
-    @userCommonFields(myForm)
+    @userCommonFields(myForm, countOfSupplementalEmail)
     <input type="submit" id="registerNormalUser" value=@Messages("register")>
   }
 

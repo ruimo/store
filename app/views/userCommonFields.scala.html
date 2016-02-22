@@ -1,5 +1,6 @@
 @(
-  myForm: Form[_]
+  myForm: Form[_],
+  countOfSupplementalEmail: Int
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -33,6 +34,12 @@
   myForm("email"),
   '_label -> Messages("email"), 'size -> 32, 'maxlength -> 255
 )
+
+@if(countOfSupplementalEmail > 0) {
+  @repeatWithIndex(myForm("supplementalEmails"), min = countOfSupplementalEmail) { (f, idx) =>
+    @inputText(f, '_label -> Messages("supplementalEmail", idx), 'size -> 32, 'maxlength -> 255)
+  }
+}
 
 @inputPassword(
   myForm("password.main"),

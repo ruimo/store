@@ -1,6 +1,7 @@
 @(
   user: ListUserEntry,
-  myForm: Form[ModifyUser]
+  myForm: Form[ModifyUser],
+  countOfSupplementalEmail: Int
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -24,7 +25,7 @@
     @inputText(myForm("userId"), 'type -> "hidden", '_showConstraints -> false)(
       helper.FieldConstructor(simpleField.f), implicitly
     )
-    @userCommonFields(myForm)
+    @userCommonFields(myForm, countOfSupplementalEmail)
 
     @if(user.user.userRole == UserRole.ADMIN || user.site.isDefined) {
       @checkbox(

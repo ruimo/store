@@ -1,5 +1,6 @@
 @(
-  myForm: Form[models.FirstSetup]
+  myForm: Form[models.FirstSetup],
+  countOfSupplementalEmail: Int
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -18,7 +19,7 @@
   }
 
   @helper.form(action = helper.CSRF(routes.UserMaintenance.createNewSuperUser()), 'id -> "createNewSuperUserForm") {
-    @userCommonFields(myForm)
+    @userCommonFields(myForm, countOfSupplementalEmail)
     <input type="submit" id="registerSuperUser" value=@Messages("register")>
   }
 

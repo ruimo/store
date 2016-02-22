@@ -1,5 +1,6 @@
 @(
-  myForm: Form[models.CreateSiteOwner], siteTable: Seq[(String, String)]
+  myForm: Form[models.CreateSiteOwner], siteTable: Seq[(String, String)],
+  countOfSupplementalEmail: Int
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -27,7 +28,7 @@
       '_showConstraints -> false
     )
 
-    @userCommonFields(myForm)
+    @userCommonFields(myForm, countOfSupplementalEmail)
     <input type="submit" id="registerSiteOwner" value=@Messages("register")>
   }
 
