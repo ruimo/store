@@ -6,7 +6,8 @@ import java.sql.Connection
 
 case class ModifyUser(
   userId: Long, userName: String, firstName: String, middleName: Option[String], lastName: String,
-  email: String, password: String, companyName: String, sendNoticeMail: Boolean
+  email: String, supplementalEmails: List[String], password: String, companyName: String, 
+  sendNoticeMail: Boolean
 ) extends CreateUserBase {
   def update(implicit tokenGenerator: TokenGenerator, conn: Connection) {
     val salt = tokenGenerator.next
@@ -29,6 +30,7 @@ object ModifyUser {
     user.user.middleName,
     user.user.lastName,
     user.user.email,
+    List(),
     "",
     user.user.companyName.getOrElse(""),
     user.sendNoticeMail
@@ -36,11 +38,16 @@ object ModifyUser {
 
   def fromForm(
     userId: Long, userName: String, firstName: String, middleName: Option[String], lastName: String,
-    email: String, passwords: (String, String), companyName: String, sendNoticeMail: Boolean
+    email: String, supplementalEmails: List[String], passwords: (String, String), companyName: String, 
+    sendNoticeMail: Boolean
   ): ModifyUser =
-    ModifyUser(userId, userName, firstName, middleName, lastName, email, passwords._1, companyName, sendNoticeMail)
+    ModifyUser(
+      userId, userName, firstName, middleName, lastName, email, supplementalEmails,
+      passwords._1, companyName, sendNoticeMail
+    )
 
   def toForm(m: ModifyUser) = Some(
-    m.userId, m.userName, m.firstName, m.middleName, m.lastName, m.email, (m.password, m.password), m.companyName, m.sendNoticeMail
+    m.userId, m.userName, m.firstName, m.middleName, m.lastName, m.email, m.supplementalEmails,
+    (m.password, m.password), m.companyName, m.sendNoticeMail
   )
 }

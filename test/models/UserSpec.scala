@@ -679,6 +679,34 @@ class UserSpec extends Specification {
         }
       }
     }
+
+    "Can save/load supllemental email" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          val user1 = StoreUser.create(
+            userName = "user01", // Not employee (n-mmmm)
+            firstName = "firstName", // registered
+            middleName = None,
+            lastName = "lastName",
+            email = "null@ruimo.com",
+            passwordHash = 0,
+            salt = 0,
+            userRole = UserRole.NORMAL, // Normal user
+            companyName = None
+          )
+
+          SupplementalUserEmail.load(user1.id.get).size === 0
+          SupplementalUserEmail.save(Set("email01", "email02"), user1.id.get)
+          doWith(SupplementalUserEmail.load(user1.id.get)) { tbl =>
+            tbl.size === 2
+            doWith(tbl.map {e => (e.email, e.storeUserId)}) { t =>
+              t.contains("email01" -> user1.id.get) === true
+              t.contains("email02" -> user1.id.get) === true
+            }
+          }
+        }
+      }
+    }
   }
 }
 

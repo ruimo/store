@@ -61,6 +61,14 @@ case class RegisteredEmployeeCount(
   allCount: Long
 )
 
+case class SupplementalUserEmailId(id: Long) extends AnyVal
+
+case class SupplementalUserEmail(
+  id: Option[SupplementalUserEmailId] = None,
+  email: String,
+  storeUserId: Long
+)
+
 object StoreUser {
   val EmployeeUserNamePattern = """(\d+)-(.+)""".r
 
@@ -557,4 +565,52 @@ object SiteUser {
     ).as(
       SiteUser.simple.singleOpt
     )
+}
+
+object SupplementalUserEmail {
+  val simple = {
+    SqlParser.get[Option[Long]]("supplemental_user_email.supplemental_user_email_id") ~
+    SqlParser.get[String]("supplemental_user_email.email") ~
+    SqlParser.get[Long]("supplemental_user_email.store_user_id") map {
+      case id~email~storeUserId => SupplementalUserEmail(
+        id.map{SupplementalUserEmailId.apply},
+        email, storeUserId
+      )
+    }
+  }
+
+  def save(emailTable: Set[String], storeUserId: Long)(implicit conn: Connection) {
+    if (! emailTable.isEmpty) {
+      val sql = BatchSql(
+        """
+      insert into supplemental_user_email (
+        supplemental_user_email_id,
+        email,
+        store_user_id
+      ) values (
+        (select nextval('supplemental_user_email_seq')),
+        {email}, {storeUserId}
+      )
+      """,
+        Seq[NamedParameter](
+          'email -> emailTable.head, 'storeUserId -> storeUserId
+        )
+      )
+
+      emailTable.tail.foldLeft(sql) { (sql, e) =>
+        sql.addBatchParams(e, storeUserId)
+      }.execute()
+    }
+  }
+
+  def load(storeUserId: Long)(implicit conn: Connection): immutable.Set[SupplementalUserEmail] = SQL(
+    """
+    select * from supplemental_user_email
+    where store_user_id = {storeUserId}
+    """
+  ).on(
+    'storeUserId -> storeUserId
+  ).as(
+    simple *
+  ).toSet
 }
