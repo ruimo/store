@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 class UserMaintenanceSpec extends Specification {
   "User maintenance" should {
     "Show current user's info." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("maxCountOfSupplementalEmail" -> 0))
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)

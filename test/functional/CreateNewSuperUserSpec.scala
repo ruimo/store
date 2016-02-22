@@ -103,7 +103,7 @@ class CreateNewSuperUserSpec extends Specification {
     }
 
     "Confirmation password does not match." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("maxCountOfSupplementalEmail" -> 0))
       running(TestServer(3333, app), Helpers.FIREFOX) { browser =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)

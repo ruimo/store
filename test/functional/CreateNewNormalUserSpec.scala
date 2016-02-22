@@ -116,7 +116,10 @@ class CreateNewNormalUserSpec extends Specification {
 
     "If normalUserNamePattern is set, user name should match the specified pattern." in {
       // User name should be 6 digit string.
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("normalUserNamePattern" -> "[0-9]{6}"))
+      val app = FakeApplication(
+        additionalConfiguration = 
+          inMemoryDatabase() + ("normalUserNamePattern" -> "[0-9]{6}") + ("maxCountOfSupplementalEmail" -> 0)
+      )
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
