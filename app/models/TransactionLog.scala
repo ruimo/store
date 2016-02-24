@@ -119,7 +119,9 @@ case class TransactionShipStatus(
   status: TransactionStatus,
   lastUpdate: Long,
   shippingInfo: Option[ShippingInfo],
-  mailSent: Boolean
+  mailSent: Boolean,
+  plannedShippingDate: Option[Long],
+  plannedDeliveryDate: Option[Long]
 )
 
 case class ShippingDateEntry(
@@ -785,17 +787,15 @@ object TransactionShipStatus {
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
     SqlParser.get[Boolean]("transaction_status.mail_sent") ~
-    SqlParser.get[java.util.Date]("transaction_status.last_update") map {
-      case id~tranSiteId~status~transporterId~slipCode~mailSent~lastUpdate =>
-        if (transporterId.isDefined)
-          TransactionShipStatus(
-            id, tranSiteId, TransactionStatus.byIndex(status),
-            lastUpdate.getTime, Some(ShippingInfo(transporterId.get, slipCode.get)), mailSent
-          )
-        else
-          TransactionShipStatus(
-            id, tranSiteId, TransactionStatus.byIndex(status), lastUpdate.getTime, None, mailSent
-          )
+    SqlParser.get[java.util.Date]("transaction_status.last_update") ~
+    SqlParser.get[Option[java.util.Date]]("transaction_status.planned_shipping_date") ~
+    SqlParser.get[Option[java.util.Date]]("transaction_status.planned_delivery_date") map {
+      case id~tranSiteId~status~transporterId~slipCode~mailSent~lastUpdate~plannedShippingDate~plannedDeliveryDate =>
+        TransactionShipStatus(
+          id, tranSiteId, TransactionStatus.byIndex(status), lastUpdate.getTime,
+          transporterId.map {tid => ShippingInfo(tid, slipCode.get)}, mailSent,
+          plannedShippingDate.map(_.getTime), plannedDeliveryDate.map(_.getTime)
+        )
     }
   }
   
@@ -834,7 +834,7 @@ object TransactionShipStatus {
 
     val id = SQL("select currval('transaction_status_seq')").as(SqlParser.scalar[Long].single)
 
-    TransactionShipStatus(Some(id), transactionSiteId, status, lastUpdate, shippingInfo, false)
+    TransactionShipStatus(Some(id), transactionSiteId, status, lastUpdate, shippingInfo, false, None, None)
   }
 
   def update(
@@ -872,6 +872,7 @@ object TransactionShipStatus {
     last_update = current_timestamp
     where transaction_site_id = {tranSiteId}
     """ + (
+      // Prevent a site owner changing transaction status of other sites.
       siteUser match {
         case None => ""
         case Some(u) => "and " + u.siteId + " = " +
@@ -887,6 +888,34 @@ object TransactionShipStatus {
     'tranSiteId -> transactionSiteId,
     'transporterId -> transporterId,
     'slipCode -> slipCode
+  ).executeUpdate()
+
+  def updateShippingDeliveryDate(
+    siteUser: Option[SiteUser], transactionSiteId: Long, shippingDate: Long, deliveryDate: Long
+  )(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_status
+    set planned_shipping_date = {plannedShippingDate},
+    planned_delivery_date = {plannedDeliveryDate},
+    last_update = current_timestamp
+    where transaction_site_id = {tranSiteId}
+    """ + (
+      // Prevent a site owner changing transaction status of other sites.
+      siteUser match {
+        case None => ""
+        case Some(u) => "and " + u.siteId + " = " +
+          """
+          (
+            select site_id from transaction_site
+            where transaction_site.transaction_site_id = transaction_status.transaction_site_id
+          )
+          """
+      }
+    )
+  ).on(
+    'tranSiteId -> transactionSiteId,
+    'plannedShippingDate -> new java.util.Date(shippingDate),
+    'plannedDeliveryDate -> new java.util.Date(deliveryDate)
   ).executeUpdate()
 
   def getByTransactionSiteId(tranSiteId: Long)(implicit conn: Connection): Option[TransactionShipStatus] =

@@ -1,7 +1,9 @@
 package models;
 
 public enum TransactionStatus {
-    ORDERED, SHIPPED, CANCELED;
+    ORDERED, SHIPPED, CANCELED
+    ,CONFIRMED // Shipping date and delivery date are recorded.
+    ;
 
     private static final TransactionStatus byIndex[] = TransactionStatus.class.getEnumConstants();
 

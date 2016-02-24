@@ -6,7 +6,8 @@
   statusTable: Seq[(String, String)],
   entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
   transporterTable: Seq[(String, String)],
-  transporters: scala.collection.immutable.LongMap[String]
+  transporters: scala.collection.immutable.LongMap[String],
+  shippingDeliveryDateForm: Form[ShippingDeliveryDate]
 )(implicit lang: Lang, request: RequestHeader)
 
 @import helper._
@@ -36,6 +37,29 @@
     </td>
   </tr>
 </table>
+@form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingDeliveryDate(entry.transactionId, entry.transactionSiteId))) {
+  <table class="shippingDeliveryDateTable">
+    <tr class="shippingDate">
+      <td>
+        @inputText(
+          shippingDeliveryDateForm("shippingDate"),
+          '_label -> Messages("shippingDate"), 'id -> "shippingDateTextBox"
+        )
+      </td>
+    </tr>
+    <tr class="deliveryDate">
+      <td>
+        @inputText(
+          shippingDeliveryDateForm("deliveryDate"),
+          '_label -> Messages("deliveryDate"), 'id -> "deliveryDateTextBox"
+        )
+      </td>
+    </tr>
+  </table>
+
+  <input class="entryShippingDeliveryDateButton" type="submit" value="@Messages("registerShippingDelivery")">
+}
+
 @if(entry.mailSent) {
   <table class="shippingStatusTable" id="shippingStatusTable@transactionSiteId">
     <tr>
@@ -63,7 +87,7 @@
     )
 
     <input id="changeShippingInfoButton@transactionSiteId" type="submit" value="@Messages("entryShippingInfo")">
-  }
+}
 
   @form(action = helper.CSRF(routes.TransactionMaintenance.cancelShipping(entry.transactionId, entry.transactionSiteId))) {
     <button class="cancelShippingButton" type="button" onclick="cancelTran(this);">@Messages("cancelShipping")</button>

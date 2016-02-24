@@ -822,6 +822,40 @@ class TransactionSpec extends Specification {
         }
       }
     }
+
+    "Can persist shipping/delivery date." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          val currency1 = CurrencyInfo.Jpy
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+          val tranSite1 = TransactionLogSite.createNew(
+            header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
+          )
+
+          val status: TransactionShipStatus = TransactionShipStatus.createNew(
+            tranSite1.id.get, TransactionStatus.ORDERED, System.currentTimeMillis, None
+          )
+
+          TransactionShipStatus.updateShippingDeliveryDate(
+            None, tranSite1.id.get, 123L, 234L
+          ) === 1
+
+          doWith(TransactionShipStatus.byId(status.id.get)) { updated =>
+            updated.plannedShippingDate === Some(123L)
+            updated.plannedDeliveryDate === Some(234L)
+          }
+        }
+      }
+    }
   }
 }
 

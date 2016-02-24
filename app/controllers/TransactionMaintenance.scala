@@ -27,6 +27,15 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     )(ChangeTransactionStatus.apply)(ChangeTransactionStatus.unapply)
   )
 
+  // Do not use val. More than one form is required.
+  def shippingDeliveryDateForm = Form(
+    mapping(
+      "shippingDate" -> jodaDate(Messages("shippingDateFormat")),
+      "deliveryDate" -> jodaDate(Messages("deliveryDateFormat"))
+    )(ShippingDeliveryDate.apply)(ShippingDeliveryDate.unapply)
+  )
+
+  // Do not use val. More than one form is required.
   def entryShippingInfoForm = Form(
     mapping(
       "transporterId" -> longNumber,
@@ -59,7 +68,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             Transporter.tableForDropDown,
             Transporter.listWithName.foldLeft(LongMap[String]()) {
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-            }
+            },
+            shippingDeliveryDateForm
           )
         )
       }
@@ -87,7 +97,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.tableForDropDown,
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-                }
+                },
+                shippingDeliveryDateForm
               )
             )
           }
@@ -134,9 +145,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
         formWithErrors => {
           logger.error("Validation error in TransactionMaintenance.entryShippingInfo. " + formWithErrors)
           DB.withTransaction { implicit conn =>
-            val pagedRecords = TransactionSummary.list(
-              login.siteUser.map(_.siteId)
-            )
+            val pagedRecords = TransactionSummary.list(login.siteUser.map(_.siteId))
 
             BadRequest(
               views.html.admin.transactionMaintenance(
@@ -148,17 +157,53 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.tableForDropDown,
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
-                }
+                },
+                shippingDeliveryDateForm
               )
             )
           }
         },
         newShippingInfo => {
-          DB.withConnection { implicit conn =>
+          DB.withTransaction { implicit conn =>
             newShippingInfo.save(login.siteUser, tranSiteId) {
               val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
               sendNotificationMail(tranId, tranSiteId, newShippingInfo, LocaleInfo.getDefault, status)
             }
+            Redirect(routes.TransactionMaintenance.index())
+          }
+        }
+      )
+    }
+  }
+
+  def entryShippingDeliveryDate(tranId: Long, tranSiteId: Long) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeAdmin(login) {
+      shippingDeliveryDateForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in TransactionMaintenance.entryShippingDeliveryDate. " + formWithErrors)
+          DB.withTransaction { implicit conn =>
+            val pagedRecords = TransactionSummary.list(login.siteUser.map(_.siteId))
+
+            BadRequest(
+              views.html.admin.transactionMaintenance(
+                pagedRecords,
+                changeStatusForm, statusDropDown,
+                pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
+                  (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
+                },
+                Transporter.tableForDropDown,
+                Transporter.listWithName.foldLeft(LongMap[String]()) {
+                  (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
+                },
+                formWithErrors
+              )
+            )
+          }
+        },
+        newShippingDeliveryDate => {
+          DB.withTransaction { implicit conn =>
+            newShippingDeliveryDate.save(login.siteUser, tranSiteId)
             Redirect(routes.TransactionMaintenance.index())
           }
         }

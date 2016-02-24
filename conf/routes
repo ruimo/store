@@ -117,6 +117,7 @@ GET     /admin/transactionDetail         controllers.TransactionMaintenance.deta
 POST    /admin/entryShippingInfo         controllers.TransactionMaintenance.entryShippingInfo(tranId: Long, tranSiteId: Long)
 POST    /admin/cancelShipping            controllers.TransactionMaintenance.cancelShipping(tranId: Long, tranSiteId: Long)
 GET     /admin/downloadCsv               controllers.TransactionMaintenance.downloadCsv(tranId: Long, tranSiteId: Long)
+POST    /admin/entryShippingDeliveryDate controllers.TransactionMaintenance.entryShippingDeliveryDate(tranId: Long, tranSiteId: Long)
 
 GET     /admin/shippingBoxMaintenance    controllers.ShippingBoxMaintenance.index
 GET     /admin/startCreateShippingBox    controllers.ShippingBoxMaintenance.startCreateShippingBox

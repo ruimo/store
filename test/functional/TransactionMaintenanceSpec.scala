@@ -258,6 +258,29 @@ class TransactionMaintenanceSpec extends Specification {
         )
       }
     }}
+
+    "Enter shipping/delivery date" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".entryShippingDeliveryDateButton").areDisplayed()
+
+        // If shipping date or delivery date is empty, error should be shown.
+        browser.find(".entryShippingDeliveryDateButton", 0).click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+//        browser.find("#shippingDateTextBox_field"
+
+        1 === 1
+        
+      }}
+    }
   }
 
   def createTransaction(lang: Lang, user: StoreUser, count: Int = 1)(implicit conn: Connection): Tran = {
