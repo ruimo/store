@@ -30,6 +30,19 @@ object NotificationMail extends HasLogger {
     sendToAdmin(login, tran, addr, metadata)
   }
 
+  def shipPrepared(
+    login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
+    status: TransactionShipStatus, transporters: immutable.LongMap[String]
+  )(implicit conn: Connection) {
+    val metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]] = retrieveMetadata(tran)
+
+    sendShippingPreparedNotificationToBuyer(
+      login, siteId, tran, addr, metadata, status, transporters
+    )
+    sendShippingPreparedNotificationToStoreOwner(login, siteId, tran, addr, metadata, status, transporters)
+    sendShippingPreparedNotificationToAdmin(login, siteId, tran, addr, metadata, status, transporters)
+  }
+
   def shipCompleted(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     status: TransactionShipStatus, transporters: immutable.LongMap[String]
@@ -97,6 +110,36 @@ object NotificationMail extends HasLogger {
           )
           MailerPlugin.send(mail)
           logger.info("Ordering confirmation for buyer sent to " + email)
+        }
+      }
+    }
+  }
+
+  def sendShippingPreparedNotificationToBuyer(
+    login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
+    metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+    status: TransactionShipStatus, transporters: immutable.LongMap[String]
+  )(implicit conn: Connection) {
+    val buyer = StoreUser(tran.header.userId)
+    val primaryEmail = if (addr.email.isEmpty) buyer.email else addr.email
+    val supplementalEmails = SupplementalUserEmail.load(tran.header.userId).map(_.email)
+
+    (supplementalEmails + primaryEmail).foreach { email =>
+      logger.info("Sending shipping prepared notification for buyer sent to " + email)
+      val body = views.html.mail.shippingPreparedNotificationForBuyer(
+        login, siteId, tran, addr, metadata, buyer, status, transporters
+      ).toString
+
+      if (! disableMailer) {
+        Akka.system.scheduler.scheduleOnce(0.microsecond) {
+          val mail = Email(
+            subject = Messages("mail.shipping.prepared.buyer.subject").format(tran.header.id.get),
+            to = Seq(email),
+            from = from,
+            bodyText = Some(body)
+          )
+          MailerPlugin.send(mail)
+          logger.info("Shipping prepared notification for buyer sent to " + email)
         }
       }
     }
@@ -186,6 +229,36 @@ object NotificationMail extends HasLogger {
     }
   }
 
+  def sendShippingPreparedNotificationToStoreOwner(
+    login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
+    metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+    status: TransactionShipStatus, transporters: immutable.LongMap[String]
+  )(implicit conn: Connection) {
+    val buyer = StoreUser(tran.header.userId)
+    tran.siteTable.foreach { site =>
+      if (site.id.get == siteId) {
+        OrderNotification.listBySite(site.id.get).foreach { owner =>
+          logger.info("Sending shipping prepared confirmation for site owner " + site + " sent to " + owner.email)
+          val body = views.html.mail.shippingPreparedNotificationForSiteOwner(
+            login, site, owner, tran, addr, metadata, buyer, status, transporters
+          ).toString
+          if (! disableMailer) {
+            Akka.system.scheduler.scheduleOnce(0.microsecond) {
+              val mail = Email(
+                subject = Messages("mail.shipping.prepared.site.owner.subject").format(tran.header.id.get),
+                to = Seq(owner.email),
+                from = from,
+                bodyText = Some(body)
+              )
+              MailerPlugin.send(mail)
+              logger.info("Shipping prepared confirmation for site owner " + site + " sent to " + owner.email)
+            }
+          }
+        }
+      }
+    }
+  }
+
   def sendShippingNotificationToStoreOwner(
     login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
     metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
@@ -263,6 +336,36 @@ object NotificationMail extends HasLogger {
           )
           MailerPlugin.send(mail)
           logger.info("Ordering confirmation for admin sent to " + admin.email)
+        }
+      }
+    }
+  }
+
+  def sendShippingPreparedNotificationToAdmin(
+    login: LoginSession, siteId: Long, tran: PersistedTransaction, addr: Address,
+    metadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+    status: TransactionShipStatus, transporters: immutable.LongMap[String]
+  )(implicit conn: Connection) {
+    val buyer = StoreUser(tran.header.userId)
+    tran.siteTable.foreach { site =>
+      if (site.id.get == siteId) {
+        OrderNotification.listAdmin.foreach { admin =>
+          logger.info("Sending shipping prepared notification for admin sent to " + admin.email)
+          val body = views.html.mail.shippingPreparedNotificationForAdmin(
+            login, site, admin, tran, addr, metadata, buyer, status, transporters
+          ).toString
+          if (! disableMailer) {
+            Akka.system.scheduler.scheduleOnce(0.microsecond) {
+              val mail = Email(
+                subject = Messages("mail.shipping.prepared.admin.subject").format(tran.header.id.get),
+                to = Seq(admin.email),
+                from = from,
+                bodyText = Some(body)
+              )
+              MailerPlugin.send(mail)
+              logger.info("Shipping prepared notification for admin sent to " + admin.email)
+            }
+          }
         }
       }
     }

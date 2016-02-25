@@ -3,7 +3,7 @@
   tran: Seq[TransactionDetail],
   myForm: Form[models.ChangeTransactionStatus],
   statusTable: Seq[(String, String)],
-  entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
+  entryShippingInfoForms: scala.collection.immutable.Map[Long, Form[ChangeShippingInfo]],
   transporterTable: Seq[(String, String)],
   transporters: scala.collection.immutable.LongMap[String],
   boxNameByItemSize: Map[Long, String]

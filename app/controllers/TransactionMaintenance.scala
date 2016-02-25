@@ -34,8 +34,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     )(ShippingDeliveryDate.apply)(ShippingDeliveryDate.unapply)
   )
 
-  // Do not use val. More than one form is required.
-  def entryShippingInfoForm = Form(
+  val entryShippingInfoForm = Form(
     mapping(
       "transporterId" -> longNumber,
       "slipCode" -> text.verifying(nonEmpty, maxLength(128))
@@ -61,9 +60,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
           views.html.admin.transactionMaintenance(
             pagedRecords,
             changeStatusForm, statusDropDown,
-            pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-              (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-            },
+            LongMap[Form[ChangeShippingInfo]]().withDefaultValue(entryShippingInfoForm),
             Transporter.tableForDropDown,
             Transporter.listWithName.foldLeft(LongMap[String]()) {
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
@@ -90,9 +87,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
               views.html.admin.transactionMaintenance(
                 pagedRecords,
                 changeStatusForm, statusDropDown,
-                pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-                  (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-                },
+                LongMap[Form[ChangeShippingInfo]]().withDefaultValue(entryShippingInfoForm),
                 Transporter.tableForDropDown,
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
@@ -125,7 +120,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             entry,
             TransactionDetail.show(tranSiteId, LocaleInfo.getDefault, login.siteUser),
             TransactionMaintenance.changeStatusForm, TransactionMaintenance.statusDropDown,
-            LongMap[Form[ChangeShippingInfo]](entry.transactionSiteId -> TransactionMaintenance.entryShippingInfoForm),
+            LongMap[Form[ChangeShippingInfo]]().withDefaultValue(entryShippingInfoForm),
             Transporter.tableForDropDown,
             Transporter.listWithName.foldLeft(LongMap[String]()) {
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
@@ -150,9 +145,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
               views.html.admin.transactionMaintenance(
                 pagedRecords,
                 changeStatusForm, statusDropDown,
-                pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-                  (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-                }.updated(tranSiteId, formWithErrors),
+                LongMap[Form[ChangeShippingInfo]]()
+                  .withDefaultValue(entryShippingInfoForm)
+                  .updated(tranSiteId, formWithErrors),
                 Transporter.tableForDropDown,
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
@@ -188,9 +183,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
               views.html.admin.transactionMaintenance(
                 pagedRecords,
                 changeStatusForm, statusDropDown,
-                pagedRecords.records.foldLeft(LongMap[Form[ChangeShippingInfo]]()) {
-                  (map, e) => map.updated(e.transactionSiteId, entryShippingInfoForm)
-                },
+                LongMap[Form[ChangeShippingInfo]]().withDefaultValue(entryShippingInfoForm),
                 Transporter.tableForDropDown,
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
