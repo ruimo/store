@@ -5,7 +5,7 @@
   entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
   transporterTable: Seq[(String, String)],
   transporters: scala.collection.immutable.LongMap[String],
-  shippingDeliveryDateForm: Form[ShippingDeliveryDate]
+  shippingDeliveryDateForms: scala.collection.immutable.Map[Long, Form[ShippingDeliveryDate]]
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -103,7 +103,7 @@
         </td>
         <td>
           @if(e.address.isDefined) {
-            @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters, shippingDeliveryDateForm)
+            @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters, shippingDeliveryDateForms)
             <a target="_blank" id="invoiceLink" href="@routes.Invoice.show(e.transactionSiteId)">@Messages("invoice")</a>
           }
         </td>

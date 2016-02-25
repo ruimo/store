@@ -7,7 +7,7 @@
   entryShippingInfoForms: scala.collection.immutable.LongMap[Form[ChangeShippingInfo]],
   transporterTable: Seq[(String, String)],
   transporters: scala.collection.immutable.LongMap[String],
-  shippingDeliveryDateForm: Form[ShippingDeliveryDate]
+  shippingDeliveryDateForms: scala.collection.immutable.Map[Long, Form[ShippingDeliveryDate]]
 )(implicit lang: Lang, request: RequestHeader)
 
 @import helper._
@@ -42,7 +42,7 @@
     <tr class="shippingDate">
       <td>
         @inputText(
-          shippingDeliveryDateForm("shippingDate"),
+          shippingDeliveryDateForms(entry.transactionSiteId)("shippingDate"),
           '_label -> Messages("shippingDate"), 'id -> "shippingDateTextBox"
         )
       </td>
@@ -50,7 +50,7 @@
     <tr class="deliveryDate">
       <td>
         @inputText(
-          shippingDeliveryDateForm("deliveryDate"),
+          shippingDeliveryDateForms(entry.transactionSiteId)("deliveryDate"),
           '_label -> Messages("deliveryDate"), 'id -> "deliveryDateTextBox"
         )
       </td>

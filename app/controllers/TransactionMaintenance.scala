@@ -27,8 +27,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
     )(ChangeTransactionStatus.apply)(ChangeTransactionStatus.unapply)
   )
 
-  // Do not use val. More than one form is required.
-  def shippingDeliveryDateForm = Form(
+  val shippingDeliveryDateForm = Form(
     mapping(
       "shippingDate" -> jodaDate(Messages("shippingDateFormat")),
       "deliveryDate" -> jodaDate(Messages("deliveryDateFormat"))
@@ -69,7 +68,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             Transporter.listWithName.foldLeft(LongMap[String]()) {
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
             },
-            shippingDeliveryDateForm
+            LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
           )
         )
       }
@@ -98,7 +97,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
                 },
-                shippingDeliveryDateForm
+                LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
               )
             )
           }
@@ -158,7 +157,7 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
                 },
-                shippingDeliveryDateForm
+                LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
               )
             )
           }
@@ -196,7 +195,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
                 },
-                formWithErrors
+                LongMap[Form[ShippingDeliveryDate]]()
+                  .withDefaultValue(shippingDeliveryDateForm)
+                  .updated(tranSiteId, formWithErrors)
               )
             )
           }
