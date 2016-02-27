@@ -6,7 +6,8 @@
   entryShippingInfoForms: scala.collection.immutable.Map[Long, Form[ChangeShippingInfo]],
   transporterTable: Seq[(String, String)],
   transporters: scala.collection.immutable.LongMap[String],
-  boxNameByItemSize: Map[Long, String]
+  boxNameByItemSize: Map[Long, String],
+  shippingDeliveryDateForms: scala.collection.immutable.Map[Long, Form[ShippingDeliveryDate]]
 )(
   implicit lang: Lang,
   request: RequestHeader,

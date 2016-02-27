@@ -125,7 +125,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             Transporter.listWithName.foldLeft(LongMap[String]()) {
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
             },
-            boxNameByItemSize
+            boxNameByItemSize,
+            LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
           )
         )
       }
