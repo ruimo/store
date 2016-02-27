@@ -65,7 +65,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
             Transporter.listWithName.foldLeft(LongMap[String]()) {
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
             },
-            LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
+            LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(
+              shippingDeliveryDateForm
+            )
           )
         )
       }
@@ -92,7 +94,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
                 },
-                LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
+                LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(
+                  shippingDeliveryDateForm
+                )
               )
             )
           }
@@ -126,7 +130,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
               (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
             },
             boxNameByItemSize,
-            LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
+            LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(
+              shippingDeliveryDateForm
+            )
           )
         )
       }
@@ -153,7 +159,9 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
                 Transporter.listWithName.foldLeft(LongMap[String]()) {
                   (sum, e) => sum.updated(e._1.id.get, e._2.map(_.transporterName).getOrElse("-"))
                 },
-                LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(shippingDeliveryDateForm)
+                LongMap[Form[ShippingDeliveryDate]]().withDefaultValue(
+                  shippingDeliveryDateForm
+                )
               )
             )
           }

@@ -21,7 +21,9 @@ case class TransactionSummaryEntry(
   shipStatus: Option[ShippingInfo],
   buyer: StoreUser,
   shippingDate: Option[Long],
-  mailSent: Boolean
+  mailSent: Boolean,
+  plannedShippingDate: Option[Long],
+  plannedDeliveryDate: Option[Long]
 ) {
   lazy val totalWithTax = totalAmount + totalTax
 }
@@ -50,13 +52,16 @@ object TransactionSummary {
     SqlParser.get[java.util.Date]("transaction_status.last_update") ~ 
     SqlParser.get[Option[Long]]("transaction_status.transporter_id") ~
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
-    SqlParser.get[Boolean]("transaction_status.mail_sent") map {
-      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent =>
+    SqlParser.get[Boolean]("transaction_status.mail_sent") ~
+    SqlParser.get[Option[java.util.Date]]("transaction_status.planned_shipping_date") ~
+    SqlParser.get[Option[java.util.Date]]("transaction_status.planned_delivery_date") map {
+      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent~plannedShippingDate~plannedDeliveryDate =>
         TransactionSummaryEntry(
           id, tranSiteId, time.getTime, amount, tax, address, siteId, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
-          user, shippingDate.map(_.getTime), mailSent
+          user, shippingDate.map(_.getTime), mailSent, 
+          plannedShippingDate.map(_.getTime), plannedDeliveryDate.map(_.getTime)
         )
     }
   }
@@ -76,6 +81,8 @@ object TransactionSummary {
       transaction_status.transporter_id,
       transaction_status.slip_code,
       transaction_status.mail_sent,
+      transaction_status.planned_shipping_date,
+      transaction_status.planned_delivery_date,
       store_user.*,
       base.shipping_date
   """

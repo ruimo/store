@@ -11,6 +11,7 @@
 )(implicit lang: Lang, request: RequestHeader)
 
 @import helper._
+@import org.joda.time.format.DateTimeFormat
 
 <table class="shippingStatusTable">
   <tr>
@@ -37,27 +38,40 @@
     </td>
   </tr>
 </table>
-@form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingDeliveryDate(entry.transactionId, entry.transactionSiteId))) {
+@if(entry.plannedShippingDate.isDefined && entry.plannedDeliveryDate.isDefined) {
   <table class="shippingDeliveryDateTable">
-    <tr class="shippingDate">
-      <td>
-        @inputText(
-          shippingDeliveryDateForms(entry.transactionSiteId)("shippingDate"),
-          '_label -> Messages("shippingDate"), 'id -> "shippingDateTextBox"
-        )
-      </td>
+    <tr>
+      <td class="shippingDate">@Messages("shippingDate")</td>
+      <td>@{DateTimeFormat.forPattern(Messages("shippingDateFormat")).print(entry.plannedShippingDate.get)}</td>
     </tr>
-    <tr class="deliveryDate">
-      <td>
-        @inputText(
-          shippingDeliveryDateForms(entry.transactionSiteId)("deliveryDate"),
-          '_label -> Messages("deliveryDate"), 'id -> "deliveryDateTextBox"
-        )
-      </td>
+    <tr>
+      <td class="deliveryDate">@Messages("deliveryDate")</td>
+      <td>@{DateTimeFormat.forPattern(Messages("deliveryDateFormat")).print(entry.plannedDeliveryDate.get)}</td>
     </tr>
   </table>
-
-  <input class="entryShippingDeliveryDateButton" type="submit" value="@Messages("registerShippingDelivery")">
+} else {
+  @form(action = helper.CSRF(routes.TransactionMaintenance.entryShippingDeliveryDate(entry.transactionId, entry.transactionSiteId))) {
+    <table class="shippingDeliveryDateTable">
+      <tr class="shippingDate">
+        <td>
+          @inputText(
+            shippingDeliveryDateForms(entry.transactionSiteId)("shippingDate"),
+            '_label -> Messages("shippingDate"), 'id -> "shippingDateTextBox"
+          )
+        </td>
+      </tr>
+      <tr class="deliveryDate">
+        <td>
+          @inputText(
+            shippingDeliveryDateForms(entry.transactionSiteId)("deliveryDate"),
+            '_label -> Messages("deliveryDate"), 'id -> "deliveryDateTextBox"
+          )
+        </td>
+      </tr>
+    </table>
+  
+    <input class="entryShippingDeliveryDateButton" type="submit" value="@Messages("registerShippingDelivery")">
+  }
 }
 
 @if(entry.mailSent) {
