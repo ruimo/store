@@ -260,6 +260,39 @@ class UserMaintenanceSpec extends Specification {
         browser.find("#supplementalEmails_0").getAttribute("value") === "foo@ruimo.com"
         browser.find("#supplementalEmails_1").getAttribute("value") === "null@ruimo.com"
         browser.find("#supplementalEmails_2").getAttribute("value") === ""
+
+        browser.fill("#supplementalEmails_1").`with`("")
+        browser.fill("#password_main").`with`("12345678")
+        browser.fill("#password_confirm").`with`("12345678")
+        browser.find("#modifyUser").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.modifyUserStart(user.id.get).url +
+          "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("commonTitle", Messages("modifyUserTitle"))
+        browser.find("#supplementalEmails_0").getAttribute("value") === "foo@ruimo.com"
+        browser.find("#supplementalEmails_1").getAttribute("value") === ""
+
+        browser.fill("#supplementalEmails_0").`with`("")
+        browser.fill("#password_main").`with`("12345678")
+        browser.fill("#password_confirm").`with`("12345678")
+        browser.find("#modifyUser").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.UserMaintenance.modifyUserStart(user.id.get).url +
+          "&lang=" + lang.code
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title() === Messages("commonTitle", Messages("modifyUserTitle"))
+        browser.find("#supplementalEmails_0").getAttribute("value") === ""
       }}
     }
   }

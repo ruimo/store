@@ -349,7 +349,6 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
         },
         newUser => DB.withTransaction { implicit conn =>
           if (login.isSuperUser || canEditEmployee(newUser.userId, login.siteUser.map(_.siteId).get)) {
-println("newUser = " + newUser)
             newUser.update
             Redirect(
               routes.UserMaintenance.editUser()

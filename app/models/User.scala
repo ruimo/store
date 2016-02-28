@@ -580,13 +580,13 @@ object SupplementalUserEmail {
   }
 
   def save(emailTable: Set[String], storeUserId: Long)(implicit conn: Connection) {
-    if (! emailTable.isEmpty) {
-      SQL(
-        "delete from supplemental_user_email where store_user_id = {id}"
-      ).on(
-        'id -> storeUserId
-      ).executeUpdate()
+    SQL(
+      "delete from supplemental_user_email where store_user_id = {id}"
+    ).on(
+      'id -> storeUserId
+    ).executeUpdate()
 
+    if (! emailTable.isEmpty) {
       val sql = BatchSql(
         """
         insert into supplemental_user_email (
