@@ -207,6 +207,8 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
         newShippingDeliveryDate => {
           DB.withTransaction { implicit conn =>
             newShippingDeliveryDate.save(login.siteUser, tranSiteId)
+            val status = TransactionShipStatus.byTransactionSiteId(tranSiteId)
+            sendShippingDeliveryNotificationMail(tranId, tranSiteId, newShippingDeliveryDate, LocaleInfo.getDefault, status)
             Redirect(routes.TransactionMaintenance.index())
           }
         }
@@ -239,6 +241,19 @@ object TransactionMaintenance extends Controller with I18nAware with NeedLogin w
       val siteId = TransactionLogSite.byId(tranSiteId).siteId
       val transporters = Transporter.mapWithName(locale)
       NotificationMail.shipCompleted(loginSession, siteId, tran, address, status, transporters)
+    }
+  }
+
+  def sendShippingDeliveryNotificationMail(
+    tranId: Long, tranSiteId: Long, newShippingDeliveryDate: ShippingDeliveryDate, locale: LocaleInfo, status: TransactionShipStatus
+  )(implicit loginSession: LoginSession) {
+    DB.withConnection { implicit conn =>
+      val persister = new TransactionPersister()
+      val tran = persister.load(tranId, locale)
+      val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+      val siteId = TransactionLogSite.byId(tranSiteId).siteId
+      val transporters = Transporter.mapWithName(locale)
+      NotificationMail.shipPrepared(loginSession, siteId, tran, address, status, transporters)
     }
   }
 
