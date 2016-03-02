@@ -16,9 +16,14 @@ import play.api.db.DB
 import play.api.Play.current
 import java.sql.Connection
 import play.api.libs.json.Json
+import helpers.Cache
 
 trait NeedLogin extends Controller with HasLogger {
   import NeedLogin._
+
+  val AnonymousCanPurchase: () => Boolean = Cache.config(
+    _.getBoolean("anonymousUserPurchase").getOrElse(false)
+  )
 
   val LoginUserKey = "loginUser"
   lazy val SessionTimeout = loginTimeoutInMinute * 60 * 1000
@@ -51,11 +56,11 @@ trait NeedLogin extends Controller with HasLogger {
 
   def onUnauthorized(request: RequestHeader): Result = DB.withConnection { implicit conn => {
     StoreUser.count match {
-      case 0 =>  {
+      case 0 =>
         logger.info("User table empty. Go to first setup page.")
         Redirect(routes.Admin.startFirstSetup)
-      }
-      case _ => {
+
+      case _ =>
         logger.info("User table is not empty. Go to login page.")
         Redirect(
           if (request.method.equalsIgnoreCase("get"))
@@ -63,7 +68,6 @@ trait NeedLogin extends Controller with HasLogger {
           else
             routes.Application.index
         )
-      }
     }
   }}
 
@@ -149,7 +153,7 @@ trait NeedLogin extends Controller with HasLogger {
     if (retrieveLoginSession(request).isDefined)
       Redirect(uriOnLoginSuccess)
     else
-      Ok(views.html.admin.login(loginForm, sanitize(uriOnLoginSuccess)))
+      Ok(views.html.admin.login(loginForm, AnonymousCanPurchase(), sanitize(uriOnLoginSuccess)))
   }
 
   def sanitize(url: String): String = 
@@ -172,7 +176,7 @@ trait NeedLogin extends Controller with HasLogger {
 
   def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
     logger.error("Validation error in NeedLogin.login.")
-    BadRequest(views.html.admin.login(form, form("uri").value.get))
+    BadRequest(views.html.admin.login(form, AnonymousCanPurchase(), form("uri").value.get))
   }
 
   def tryLogin(
@@ -204,6 +208,7 @@ trait NeedLogin extends Controller with HasLogger {
           logger.error("Password doesnot match '" + user.compoundUserName + "'")
           BadRequest(views.html.admin.login(
             form.withGlobalError(Messages("cannotLogin")),
+            AnonymousCanPurchase(),
             form("uri").value.get
           ))
         }
@@ -214,6 +219,7 @@ trait NeedLogin extends Controller with HasLogger {
     logger.error("User '" + form.data("userName") + "' not found.")
     BadRequest(views.html.admin.login(
       form.withGlobalError(Messages("cannotLogin")),
+      AnonymousCanPurchase(), 
       form("uri").value.get
     ))
   }

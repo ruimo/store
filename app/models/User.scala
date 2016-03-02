@@ -42,7 +42,7 @@ case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long)
 case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) {
   lazy val userType: UserType = storeUser.userRole match {
     case UserRole.ADMIN => SuperUser
-    case UserRole.NORMAL => siteUser match {
+    case _ => siteUser match {
       case None => Buyer
       case Some(u) => SiteOwner(u)
     }

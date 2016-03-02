@@ -13,6 +13,7 @@ import constraints.FormConstraints._
 import models.{CreateUser, FirstSetup}
 import controllers.I18n.I18nAware
 import play.api.Play.current
+import helpers.Cache
 
 object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   import NeedLogin._

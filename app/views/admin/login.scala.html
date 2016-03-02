@@ -1,5 +1,7 @@
 @(
-  myForm: Form[models.LoginUser], uri: String
+  myForm: Form[models.LoginUser],
+  anonymousCanPurchase: Boolean,
+  uri: String
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -35,7 +37,9 @@
 
     <input type="hidden" name="uri" value="@uri">
 
-    <input type="submit" id="doLoginButton" value='@Messages("login")'>
+    <input type="submit" id="doLoginButton" value='@Messages("login")' name="loginType" value="normal">
+
+    <input type="submit" id="doAnonymousLoginButton" value='@Messages("anonymousLogin")' name="loginType" value="anonymous">
 
     <a id="forgetPasword" href="@routes.UserEntry.resetPasswordStart()">
       @Messages("forgetPassword")
