@@ -7,7 +7,6 @@ import db.DB
 import i18n.{Lang, Messages}
 import play.api.mvc._
 import play.filters.csrf.CSRF.Token._
-import helpers.{RandomTokenGenerator, TokenGenerator}
 import play.api.data.validation.Constraints._
 import constraints.FormConstraints._
 import models.{CreateUser, FirstSetup}
@@ -17,8 +16,6 @@ import helpers.Cache
 
 object Admin extends Controller with I18nAware with NeedLogin with HasLogger {
   import NeedLogin._
-
-  implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
   def createUserForm[T <: CreateUser](
     apply: (String, String, Option[String], String, String, Seq[Option[String]], (String, String), String) => T,

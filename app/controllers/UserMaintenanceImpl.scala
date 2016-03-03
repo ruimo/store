@@ -37,8 +37,6 @@ class UserMaintenanceImpl extends Controller with I18nAware with NeedLogin with 
   val MaxCountOfSupplementalEmail: () => Int = Cache.config(
     _.getInt("maxCountOfSupplementalEmail").getOrElse(0)
   )
-
-  implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
   val SiteOwnerCanUploadUserCsv: () => Boolean = Cache.config(
     _.getBoolean("siteOwnerCanUploadUserCsv").getOrElse(false)
   )

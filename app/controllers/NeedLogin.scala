@@ -1,5 +1,7 @@
 package controllers
 
+import models.UserRole
+import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import play.api.mvc.Security.AuthenticatedBuilder
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -11,7 +13,6 @@ import play.api.data.validation.Constraints._
 import models.{LoginSession, StoreUser, FirstSetup, LoginUser}
 import play.api.i18n.Messages
 import play.api.templates.Html
-import helpers.PasswordHash
 import play.api.db.DB
 import play.api.Play.current
 import java.sql.Connection
@@ -20,6 +21,8 @@ import helpers.Cache
 
 trait NeedLogin extends Controller with HasLogger {
   import NeedLogin._
+
+  implicit val tokenGenerator: TokenGenerator = RandomTokenGenerator()
 
   val AnonymousCanPurchase: () => Boolean = Cache.config(
     _.getBoolean("anonymousUserPurchase").getOrElse(false)
@@ -177,6 +180,32 @@ trait NeedLogin extends Controller with HasLogger {
   def onValidationErrorInLogin(form: Form[LoginUser])(implicit request: Request[AnyContent]) = {
     logger.error("Validation error in NeedLogin.login.")
     BadRequest(views.html.admin.login(form, AnonymousCanPurchase(), form("uri").value.get))
+  }
+
+  def anonymousLogin = Action {
+    if (! AnonymousCanPurchase()) {
+      Redirect(routes.Application.index)
+    }
+    else {
+      DB.withConnection { implicit conn =>
+        val salt = tokenGenerator.next
+        val userNameSeed = tokenGenerator.next
+        val userName = f"anon$userNameSeed%08x"
+        val user = StoreUser.create(
+          userName = userName,
+          firstName = "",
+          middleName = None,
+          lastName = "",
+          email = "",
+          passwordHash = PasswordHash.generate(userName, salt),
+          salt = salt,
+          userRole = UserRole.ANONYMOUS,
+          companyName = None
+        )
+      }
+
+      Ok("")
+    }
   }
 
   def tryLogin(

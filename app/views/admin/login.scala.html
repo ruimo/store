@@ -37,13 +37,18 @@
 
     <input type="hidden" name="uri" value="@uri">
 
-    <input type="submit" id="doLoginButton" value='@Messages("login")' name="loginType" value="normal">
-
-    <input type="submit" id="doAnonymousLoginButton" value='@Messages("anonymousLogin")' name="loginType" value="anonymous">
-
-    <a id="forgetPasword" href="@routes.UserEntry.resetPasswordStart()">
-      @Messages("forgetPassword")
-    </a>
+    <input type="submit" id="doLoginButton" value='@Messages("login")'>
   }
+
+  @if(anonymousCanPurchase) {
+    <a id="doAnonymousLogin" href="@routes.Admin.anonymousLogin()">
+      @Messages("anonymousLogin")
+    </a>
+    <br>
+  }
+
+  <a id="forgetPasword" href="@routes.UserEntry.resetPasswordStart()">
+    @Messages("forgetPassword")
+  </a>
 }
 
