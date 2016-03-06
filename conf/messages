@@ -467,3 +467,4 @@ shippingDateFormat=yyyy-MM-dd
 deliveryDate=Shipping Date
 deliveryDateFormat=yyyy-MM-dd
 anonymousLogin=I'd like to purchase without user registration.
+guest=Guest

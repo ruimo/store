@@ -499,3 +499,4 @@ shippingDateFormat=yyyy年MM月dd日
 deliveryDate=配達日
 deliveryDateFormat=yyyy年MM月dd日
 anonymousLogin=ユーザ登録せずに購入
+guest=ゲスト

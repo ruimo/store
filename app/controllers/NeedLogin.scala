@@ -216,7 +216,7 @@ trait NeedLogin extends Controller with HasLogger {
             val userName = f"anon$userNameSeed%08x"
             val anonUser = StoreUser.create(
               userName = userName,
-              firstName = "",
+              firstName = Messages("guest"),
               middleName = None,
               lastName = "",
               email = "",
