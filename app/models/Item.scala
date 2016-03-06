@@ -858,7 +858,11 @@ object ItemPriceHistory {
       'siteId -> siteId,
       'now -> new java.sql.Timestamp(now)
     ).as(
-      ItemPriceHistory.simple.single
+      ItemPriceHistory.simple.singleOpt
+    ).getOrElse(
+      throw new RuntimeException(
+        "No rows are found in item_price. itemId = " + itemId + ", siteId = " + siteId + ", time = " + new java.sql.Date(now)
+      )
     )
 
   val withItemPrice = ItemPrice.simple~simple map {
