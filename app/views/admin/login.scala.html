@@ -44,7 +44,7 @@
     @helper.form(action = helper.CSRF(routes.Admin.anonymousLogin()), 'id -> "anonymousLoginForm") {
       <input type="hidden" name="uri" value="@uri">
 
-      <input type="submit" id="doLoginButton" value='@Messages("anonymousLogin")'>
+      <input type="submit" id="doAnonymousLoginButton" value='@Messages("anonymousLogin")'>
     }
     <br>
   }
