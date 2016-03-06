@@ -106,6 +106,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       newShippingAddress => {
         DB.withTransaction { implicit conn =>
           newShippingAddress.save(login.userId)
+          if (login.isAnonymousBuyer) {
+            login.update(newShippingAddress)
+          }
           Redirect(routes.Shipping.confirmShippingAddressJa())
         }
       }

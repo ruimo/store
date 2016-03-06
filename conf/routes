@@ -12,7 +12,7 @@ POST    /admin/firstSetup                controllers.Admin.firstSetup
 GET     /admin/startLogin                controllers.Admin.startLogin(uriOnLoginSuccess: String)
 POST    /admin/login                     controllers.Admin.login
 GET     /admin/logoff                    controllers.Admin.logoff(uriOnLogoffSuccess: String)
-GET     /admin/anonymousLogin            controllers.Admin.anonymousLogin
+POST    /admin/anonymousLogin            controllers.Admin.anonymousLogin
 
 GET     /admin/itemMaintenance           controllers.ItemMaintenance.index
 GET     /admin/startCreateNewItem        controllers.ItemMaintenance.startCreateNewItem

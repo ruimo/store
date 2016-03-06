@@ -5,3 +5,7 @@ case class LoginUser(
 ) {
   lazy val compoundUserName: String = companyId.map(_ + "-").getOrElse("") + userName
 }
+
+case class AnonymousLoginUser(
+  uri: String
+)

@@ -41,9 +41,11 @@
   }
 
   @if(anonymousCanPurchase) {
-    <a id="doAnonymousLogin" href="@routes.Admin.anonymousLogin()">
-      @Messages("anonymousLogin")
-    </a>
+    @helper.form(action = helper.CSRF(routes.Admin.anonymousLogin()), 'id -> "anonymousLoginForm") {
+      <input type="hidden" name="uri" value="@uri">
+
+      <input type="submit" id="doLoginButton" value='@Messages("anonymousLogin")'>
+    }
     <br>
   }
 
@@ -51,4 +53,3 @@
     @Messages("forgetPassword")
   </a>
 }
-

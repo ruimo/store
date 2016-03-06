@@ -15,3 +15,7 @@ case object SuperUser extends UserType {
 case class SiteOwner(siteUser: SiteUser) extends UserType {
   val typeCode = 2
 }
+
+case object AnonymousBuyer extends UserType {
+  val typeCode = 3
+}

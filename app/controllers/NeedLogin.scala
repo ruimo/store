@@ -10,7 +10,7 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import models.{LoginSession, StoreUser, FirstSetup, LoginUser}
+import models.{LoginSession, StoreUser, FirstSetup, LoginUser, AnonymousLoginUser}
 import play.api.i18n.Messages
 import play.api.templates.Html
 import play.api.db.DB
@@ -38,6 +38,12 @@ trait NeedLogin extends Controller with HasLogger {
       "password" -> text.verifying(nonEmpty),
       "uri" -> text
     )(LoginUser.apply)(LoginUser.unapply)
+  )
+
+  val anonymousLoginForm = Form(
+    mapping(
+      "uri" -> text
+    )(AnonymousLoginUser.apply)(AnonymousLoginUser.unapply)
   )
 
   def loginSession(implicit request: RequestHeader, conn: Connection): Option[LoginSession] =
@@ -182,29 +188,51 @@ trait NeedLogin extends Controller with HasLogger {
     BadRequest(views.html.admin.login(form, AnonymousCanPurchase(), form("uri").value.get))
   }
 
-  def anonymousLogin = Action {
+  def anonymousLogin = Action { implicit request =>
     if (! AnonymousCanPurchase()) {
       Redirect(routes.Application.index)
     }
     else {
-      DB.withConnection { implicit conn =>
-        val salt = tokenGenerator.next
-        val userNameSeed = tokenGenerator.next
-        val userName = f"anon$userNameSeed%08x"
-        val user = StoreUser.create(
-          userName = userName,
-          firstName = "",
-          middleName = None,
-          lastName = "",
-          email = "",
-          passwordHash = PasswordHash.generate(userName, salt),
-          salt = salt,
-          userRole = UserRole.ANONYMOUS,
-          companyName = None
-        )
-      }
+      anonymousLoginForm.bindFromRequest.fold(
+        errorForm => {
+          logger.error("Validation error in NeedLogin.anonymousLogin.")
+          BadRequest(
+            views.html.admin.login(
+              loginForm.fill(
+                LoginUser(
+                  None, "", "",
+                  errorForm("uri").value.get
+                )
+              ),
+              AnonymousCanPurchase(),
+              errorForm("uri").value.get
+            )
+          )
+        },
+        user => {
+          DB.withConnection { implicit conn =>
+            val salt = tokenGenerator.next
+            val userNameSeed = tokenGenerator.next
+            val userName = f"anon$userNameSeed%08x"
+            val anonUser = StoreUser.create(
+              userName = userName,
+              firstName = "",
+              middleName = None,
+              lastName = "",
+              email = "",
+              passwordHash = PasswordHash.generate(userName, salt),
+              salt = salt,
+              userRole = UserRole.ANONYMOUS,
+              companyName = None
+            )
 
-      Ok("")
+            logger.info("Anonymous login success '" + user + "'")
+            Redirect(user.uri).withSession {
+              (LoginUserKey, LoginSession.serialize(anonUser.id.get, System.currentTimeMillis + SessionTimeout))
+            }
+          }
+        }
+      )
     }
   }
 

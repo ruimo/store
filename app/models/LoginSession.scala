@@ -15,9 +15,23 @@ case class LoginSession(storeUser: StoreUser, siteUser: Option[SiteUser], expire
   lazy val isBuyer = role == Buyer
   lazy val isSuperUser = role == SuperUser
   lazy val isAdmin = role != Buyer
+  lazy val isAnonymousBuyer = role == AnonymousBuyer
   lazy val isSiteOwner = isAdmin && (! isSuperUser)
   def quantityInShoppingCart: Long = DB.withConnection { implicit conn =>
     ShoppingCartItem.quantityForUser(storeUser.id.get)
+  }
+  def update(addr: CreateAddress)(implicit conn: Connection) {
+    StoreUser.update(
+      storeUser.id.get,
+      storeUser.userName, 
+      addr.firstName,
+      if (addr.middleName.isEmpty) None else Some(addr.middleName),
+      addr.lastName,
+      addr.email,
+      storeUser.passwordHash,
+      storeUser.salt,
+      storeUser.companyName
+    )
   }
 }
 
