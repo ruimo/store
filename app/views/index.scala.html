@@ -13,6 +13,12 @@
     <input type="submit" id="searchsubmit" value="@Messages("search.button.title")">
   }
 
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
   @flash.get("message").map { message =>
     <div class="message">
       @message

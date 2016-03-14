@@ -8,4 +8,8 @@ public enum UserRole {
     public static UserRole byIndex(int index) {
         return byIndex[index];
     }
+
+    public static UserRole[] all() {
+        return byIndex.clone();
+    }
 }

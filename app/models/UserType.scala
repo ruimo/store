@@ -1,21 +1,11 @@
 package models
 
-sealed trait UserType {
-    val typeCode: Int
-}
+sealed abstract class UserType(val typeCode: UserTypeCode)
 
-case object Buyer extends UserType {
-  val typeCode = 0
-}
+case object Buyer extends UserType(UserTypeCode.BUYER)
 
-case object SuperUser extends UserType {
-  val typeCode = 1
-}
+case object SuperUser extends UserType(UserTypeCode.SUPER_USER)
 
-case class SiteOwner(siteUser: SiteUser) extends UserType {
-  val typeCode = 2
-}
+case class SiteOwner(siteUser: SiteUser) extends UserType(UserTypeCode.SITE_OWNER)
 
-case object AnonymousBuyer extends UserType {
-  val typeCode = 3
-}
+case object AnonymousBuyer extends UserType(UserTypeCode.ANONYMOUS_BUYER)

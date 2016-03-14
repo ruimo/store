@@ -10,6 +10,12 @@
 @import helpers.Formatter.yyyy_mm_dd
 
 @main(Messages("confirm.shipping.address"), Some(loginSession)) {
+<script>
+  var doPurchase = function(tenderType) {
+    $("#tenderType").val(tenderType);
+    $("#finalizeTransactionForm").submit();
+  };
+</script>
 } {
   <h1 class="itemsTitle">ご注文商品</h1>
   @if(tran.itemTotal.notEmpty) {
@@ -122,6 +128,18 @@
   <br>
   <br>
   @helper.form(action = helper.CSRF(routes.Shipping.finalizeTransactionJa()), 'id -> "finalizeTransactionForm") {
-    <input type="submit" value="@Messages("finalize.transaction")">
+    <input type="hidden" name="tenderType" value="" id="tenderType">
+  }
+
+  @if(AcceptableTender.AcceptableTender()(loginSession.role.typeCode).contains(TenderType.ACCOUNTING_BILL)) {
+    <button type="submit" name="tenderType" value="payByAccountingBill" class="payByAccountingBill"
+            onclick="doPurchase('payByAccountingBill');">
+      @Messages("finalize.transaction")
+    </button>
+  }
+
+  @if(AcceptableTender.AcceptableTender()(loginSession.role.typeCode).contains(TenderType.PAYPAL)) {
+    <img alt='@Messages("payBalPaypal")' src="https://www.paypal.com/ja_JP/i/btn/btn_xpressCheckout.gif"
+         onclick="doPurchase('payByPaypal');" id="paypalimg">
   }
 }

@@ -1,7 +1,6 @@
 package models
 
 import scala.collection.immutable
-import play.api.Logger
 import anorm._
 import play.api.Play.current
 import play.api.db._

@@ -1,5 +1,12 @@
 package controllers
 
+import java.net.URLDecoder
+import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.ws.{WSResponse, WS}
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import helpers.Cache
 import constraints.FormConstraints._
 import controllers.I18n.I18nAware
 import models.CreateAddress
@@ -22,9 +29,59 @@ import java.sql.Connection
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import scala.collection.immutable
+import java.util.regex.Pattern
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   import NeedLogin._
+  val NameValuePattern = Pattern.compile("=")
+
+  val tenderTypeForm = Form(
+    single(
+      "tenderType" -> text
+    )
+  )
+
+  val PaypalApiUrl: () => String = Cache.config(
+    _.getString("paypal.apiUrl").getOrElse(
+      throw new IllegalStateException("Specify paypal.apiUrl in configuration.")
+    )
+  )
+
+  val PaypalApiVersion: () => String = Cache.config(
+    _.getString("paypal.apiVersion").getOrElse(
+      throw new IllegalStateException("Specify paypal.apiVersion in configuration.")
+    )
+  )
+
+  val PaypalUser: () => String = Cache.config(
+    _.getString("paypal.user").getOrElse(
+      throw new IllegalStateException("Specify paypal.user in configuration.")
+    )
+  )
+
+  val PaypalPassword: () => String = Cache.config(
+    _.getString("paypal.password").getOrElse(
+      throw new IllegalStateException("Specify paypal.password in configuration.")
+    )
+  )
+
+  val PaypalSignature: () => String = Cache.config(
+    _.getString("paypal.signature").getOrElse(
+      throw new IllegalStateException("Specify paypal.signature in configuration.")
+    )
+  )
+
+  val PaypalRedirectUrl: () => String = Cache.config(
+    _.getString("paypal.redirectUrl").getOrElse(
+      throw new IllegalStateException("Specify paypal.redirectUrl in configuration.")
+    )
+  )
+
+  val PaypalLocaleCode: () => String = Cache.config(
+    _.getString("paypal.localeCode").getOrElse(
+      throw new IllegalStateException("Specify paypal.localeCode in configuration.")
+    )
+  )
 
   val firstNameKanaConstraint = List(nonEmpty, maxLength(64))
   val lastNameKanaConstraint = List(nonEmpty, maxLength(64))
@@ -191,71 +248,132 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   }
 
-  def finalizeTransactionJa = NeedAuthenticated { implicit request =>
+  def finalizeTransactionJa = NeedAuthenticated.async { implicit request =>
     implicit val login = request.user
     finalizeTransaction(CurrencyInfo.Jpy)
   }
 
   def finalizeTransaction(
     currency: CurrencyInfo
-  )(implicit request: Request[AnyContent], login: LoginSession): Result = {
-    DB.withTransaction { implicit conn =>
-      val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
-        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-      if (! expErrors.isEmpty) {
-        Ok(views.html.itemExpired(expErrors))
+  )(
+    implicit request: Request[AnyContent], login: LoginSession
+  ): Future[Result] = tenderTypeForm.bindFromRequest.fold(
+    formWithErrors => {
+      logger.error("Unknown error. Tender type is not specified? form: " + formWithErrors)
+      Future.successful(Redirect(routes.Shipping.confirmShippingAddressJa()))
+    },
+    _ match {
+      case "payByAccountingBill" => Future.successful(payByAccountingBill(currency))
+      case "payByPaypal" => payByPaypal(currency)
+    }
+  )
+
+  def payByAccountingBill(
+    currency:CurrencyInfo
+  )(
+    implicit request: Request[AnyContent], login: LoginSession
+  ): Result = DB.withTransaction { implicit conn =>
+    val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
+      ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+    if (! expErrors.isEmpty) {
+      Ok(views.html.itemExpired(expErrors))
+    }
+    else {
+      if (cart.isEmpty) {
+        logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
+        throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
       }
       else {
-        if (cart.isEmpty) {
-          logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
-          throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
+        val exceedStock: immutable.Map[(ItemId, Long), (String, String, Int, Long)] =
+          ShoppingCartItem.itemsExceedStock(login.userId, LocaleInfo.getDefault)
+
+        if (! exceedStock.isEmpty) {
+          logger.error("Item exceed stock. " + exceedStock)
+          Ok(views.html.itemStockExhausted(exceedStock))
+        }
+        else if (ShoppingCartItem.isAllCoupon(login.userId)) {
+          val persister = new TransactionPersister()
+          val tranId = persister.persist(
+            Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())
+          )
+          ShoppingCartItem.removeForUser(login.userId)
+          ShoppingCartShipping.removeForUser(login.userId)
+          val tran = persister.load(tranId, LocaleInfo.getDefault)
+          NotificationMail.orderCompleted(loginSession.get, tran, None)
+          RecommendEngine.onSales(loginSession.get, tran, None)
+          Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
         }
         else {
-          val exceedStock: immutable.Map[(ItemId, Long), (String, String, Int, Long)] =
-            ShoppingCartItem.itemsExceedStock(login.userId, LocaleInfo.getDefault)
-
-          if (! exceedStock.isEmpty) {
-              logger.error("Item exceed stock. " + exceedStock)
-              Ok(views.html.itemStockExhausted(exceedStock))
+          val his = ShippingAddressHistory.list(login.userId).head
+          val addr = Address.byId(his.addressId)
+          val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+            sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
           }
-          else if (ShoppingCartItem.isAllCoupon(login.userId)) {
+          try {
             val persister = new TransactionPersister()
             val tranId = persister.persist(
-              Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())
+              Transaction(login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping))
             )
             ShoppingCartItem.removeForUser(login.userId)
             ShoppingCartShipping.removeForUser(login.userId)
             val tran = persister.load(tranId, LocaleInfo.getDefault)
-            NotificationMail.orderCompleted(loginSession.get, tran, None)
-            RecommendEngine.onSales(loginSession.get, tran, None)
-            Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
+            val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+            NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
+            RecommendEngine.onSales(loginSession.get, tran, Some(address))
+            Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
           }
-          else {
-            val his = ShippingAddressHistory.list(login.userId).head
-            val addr = Address.byId(his.addressId)
-            val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
-              sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
-            }
-            try {
-              val persister = new TransactionPersister()
-              val tranId = persister.persist(
-                Transaction(login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping))
-              )
-              ShoppingCartItem.removeForUser(login.userId)
-              ShoppingCartShipping.removeForUser(login.userId)
-              val tran = persister.load(tranId, LocaleInfo.getDefault)
-              val address = Address.byId(tran.shippingTable.head._2.head.addressId)
-              NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
-              RecommendEngine.onSales(loginSession.get, tran, Some(address))
-              Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
-            }
-            catch {
-              case e: CannotShippingException => {
-                Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
-              }
+          catch {
+            case e: CannotShippingException => {
+              Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
             }
           }
         }
+      }
+    }
+  }
+
+  def payByPaypal(
+    currency:CurrencyInfo
+  )(
+    implicit request: Request[AnyContent], login: LoginSession
+  ): Future[Result] = DB.withConnection { implicit conn =>
+    val resp: Future[WSResponse] = WS.url(PaypalApiUrl()).post(
+      Map(
+        "USER" -> Seq(PaypalUser()),
+        "PWD" -> Seq(PaypalPassword()),
+        "SIGNATURE" -> Seq(PaypalSignature()),
+        "VERSION" -> Seq(PaypalApiVersion()),
+        "PAYMENTREQUEST_0_PAYMENTACTION" -> Seq("Sale"),
+        "PAYMENTREQUEST_0_AMT" -> Seq("123"),
+        "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq("JPY"),
+        "RETURNURL" -> Seq("http://ruimo.com"),
+        "CANCELURL" -> Seq("http://ruimo.com"),
+        "METHOD" -> Seq("SetExpressCheckout"),
+        "SOLUTIONTYPE" -> Seq("Sole"),
+        "LANDINGPAGE" -> Seq("Billing"),
+        "LOCALECODE" -> Seq(PaypalLocaleCode())
+      )
+    )
+
+    resp.map { resp => 
+      val body = URLDecoder.decode(resp.body, "UTF-8")
+      logger.info("Paypal response: '" + body + "'")
+      val values: immutable.Map[String, String] = immutable.Map[String, String]() ++ body.split("&").map { s =>
+        val a = NameValuePattern.split(s, 2)
+        a(0) -> a(1)
+      }
+      logger.info("Paypal response decoded: " + values)
+      values("ACK") match {
+        case "Success" =>
+          Redirect(
+            PaypalRedirectUrl(), 
+            Map(
+              "cmd" -> Seq("_express-checkout"),
+              "token" -> Seq(values("TOKEN"))
+            )
+          )
+        case _ =>
+          throw new Error("Cannot start paypal checkout: '" + body + "'")
       }
     }
   }

@@ -779,3 +779,7 @@ tr.recommendationByAdminTable.body {
   text-align: right;
   margin-right: 20em;
 }
+
+#paypalimg {
+  cursor: pointer;
+}
