@@ -109,7 +109,8 @@ class CouponSalesSpec extends Specification {
         )
 
         val now = System.currentTimeMillis
-        browser.find("#finalizeTransactionForm input").click()
+        browser.find("#paypalimg").size === 0
+        browser.find(".payByAccountingBill").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         doWith(browser.find(".itemTableBody", 0)) { b =>

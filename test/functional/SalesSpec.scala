@@ -142,7 +142,8 @@ class SalesSpec extends Specification with SalesSpecBase  {
           e.find(".address .address2").getText === "address02"
           e.find(".shippingTableBody .tel1").getText === "11111111"
         }
-        browser.find("#finalizeTransactionForm input[type='submit']").click()
+        browser.find("#paypalimg").size === 0
+        browser.find(".payByAccountingBill").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("end.transaction"))
@@ -507,7 +508,8 @@ class SalesSpec extends Specification with SalesSpecBase  {
           new DateTime(System.currentTimeMillis - 10000)
         )
         
-        browser.find("#finalizeTransactionForm input[type='submit']").click()
+        browser.find("#paypalimg").size === 0
+        browser.find(".payByAccountingBill").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("itemExpiredTitle"))
@@ -585,7 +587,8 @@ class SalesSpec extends Specification with SalesSpecBase  {
 
         browser.title() === Messages("commonTitle", Messages("confirm.shipping.address"))
 
-        browser.find("#finalizeTransactionForm input[type='submit']").click()
+        browser.find("#paypalimg").size === 0
+        browser.find(".payByAccountingBill").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("itemStockExhaustedTitle"))
