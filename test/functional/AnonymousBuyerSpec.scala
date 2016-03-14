@@ -103,6 +103,9 @@ class AnonymousBuyerSpec extends Specification with SalesSpecBase {
           u.companyName === None
         }
 
+        // Order history link should not be shown.
+        browser.find(".orderHistoryLink").size === 0
+
         browser.find(".toEnterShippingAddressInner a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.find("#loginWelcomeMessage").getText === Messages("login.welcome").format(Messages("guest"), "", "")

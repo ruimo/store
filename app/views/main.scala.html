@@ -29,7 +29,9 @@
           <li><a href="/showShoppingCart">
             @Messages("shopping.cart") @loginSession.map("(" + _.quantityInShoppingCart + ")").getOrElse("")
           </a></li>
-          <li><a href="@routes.OrderHistory.index()">@Messages("query.order.history")</a></li>
+          @if(! login.isAnonymousBuyer) {
+            <li><a class="orderHistoryLink" href="@routes.OrderHistory.index()">@Messages("query.order.history")</a></li>
+          }
         }
       }
     </ul>

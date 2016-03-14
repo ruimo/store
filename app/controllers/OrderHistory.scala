@@ -27,9 +27,10 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
 
   def index() = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    Ok(
-      views.html.orderHistory(orderHistoryForm)
-    )
+    if (login.isAnonymousBuyer)
+      Redirect(routes.Application.index)
+    else
+      Ok(views.html.orderHistory(orderHistoryForm))
   }
 
   type ShowOrderView = (
@@ -45,32 +46,38 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
     page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
   ) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    DB.withConnection { implicit conn =>
-      showOrderHistoryInternal(
-        page: Int, pageSize: Int, orderBySpec: String, tranId,
-        views.html.showOrderHistoryList.apply
-      )
-    }
+    if (login.isAnonymousBuyer)
+      Redirect(routes.Application.index)
+    else
+      DB.withConnection { implicit conn =>
+        showOrderHistoryInternal(
+          page: Int, pageSize: Int, orderBySpec: String, tranId,
+          views.html.showOrderHistoryList.apply
+        )
+      }
   }
 
   def showOrderHistory(
     page: Int, pageSize: Int, orderBySpec: String, tranId: Option[Long]
   ) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    DB.withConnection { implicit conn =>
-      val pagedRecords: PagedRecords[TransactionSummaryEntry] =
-        TransactionSummary.list(
-          storeUserId = Some(login.storeUser.id.get), tranId = tranId,
-          page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
-        )
-      val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
-        TransactionSummary.getSiteTranByTranId(pagedRecords.records, request2lang)
+    if (login.isAnonymousBuyer)
+      Redirect(routes.Application.index)
+    else
+      DB.withConnection { implicit conn =>
+        val pagedRecords: PagedRecords[TransactionSummaryEntry] =
+          TransactionSummary.list(
+            storeUserId = Some(login.storeUser.id.get), tranId = tranId,
+            page = page, pageSize = pageSize, orderBy = OrderBy(orderBySpec)
+          )
+        val siteTranByTranId: immutable.LongMap[PersistedTransaction] =
+          TransactionSummary.getSiteTranByTranId(pagedRecords.records, request2lang)
 
-      showOrderHistoryInternal(
-        page, pageSize, orderBySpec, tranId,
-        views.html.showOrderHistory.apply
-      )
-    }
+        showOrderHistoryInternal(
+          page, pageSize, orderBySpec, tranId,
+          views.html.showOrderHistory.apply
+        )
+      }
   }
 
   def showOrderHistoryInternal(
@@ -103,28 +110,31 @@ object OrderHistory extends Controller with NeedLogin with HasLogger with I18nAw
 
   def showMonthly() = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    orderHistoryForm.bindFromRequest.fold(
-      formWithErrors => {
-        BadRequest(
-          views.html.orderHistory(formWithErrors)
-        )
-      },
-      yearMonth => {
-        DB.withConnection { implicit conn =>
-          val summaries = TransactionSummary.listByPeriod(
-            storeUserId = Some(login.storeUser.id.get), yearMonth = yearMonth
+    if (login.isAnonymousBuyer)
+      Redirect(routes.Application.index)
+    else
+      orderHistoryForm.bindFromRequest.fold(
+        formWithErrors => {
+          BadRequest(
+            views.html.orderHistory(formWithErrors)
           )
-          val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
-          Ok(views.html.showMonthlyOrderHistory(
-            orderHistoryForm.fill(yearMonth),
-            summaries,
-            TransactionSummary.getDetailByTranSiteId(summaries),
-            AccountingBill.getBoxBySiteAndItemSize(summaries),
-            siteTranByTranId,
-            AccountingBill.getAddressTable(siteTranByTranId)
-          ))
+        },
+        yearMonth => {
+          DB.withConnection { implicit conn =>
+            val summaries = TransactionSummary.listByPeriod(
+              storeUserId = Some(login.storeUser.id.get), yearMonth = yearMonth
+            )
+            val siteTranByTranId = TransactionSummary.getSiteTranByTranId(summaries, request2lang)
+            Ok(views.html.showMonthlyOrderHistory(
+              orderHistoryForm.fill(yearMonth),
+              summaries,
+              TransactionSummary.getDetailByTranSiteId(summaries),
+              AccountingBill.getBoxBySiteAndItemSize(summaries),
+              siteTranByTranId,
+              AccountingBill.getAddressTable(siteTranByTranId)
+            ))
+          }
         }
-      }
-    )
+      )
   }
 }
