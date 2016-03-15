@@ -108,7 +108,7 @@ class AnonymousBuyerSpec extends Specification with SalesSpecBase {
 
         browser.find(".toEnterShippingAddressInner a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.find("#loginWelcomeMessage").getText === Messages("login.welcome").format("", Messages("guest"), "").replaceAll("  *", " ")
+        browser.find("#loginWelcomeMessage").getText === WelcomeMessage.welcomeMessage
 
         browser.title === Messages("commonTitle", Messages("enter.shipping.address"))
         browser.fill("#firstName").`with`("firstname")
