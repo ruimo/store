@@ -11,14 +11,7 @@
 }
 
 @logoffLink(login: LoginSession) = {
-  <span id="loginWelcomeMessage">
-    @String.format(
-      Messages("login.welcome"),
-      login.storeUser.firstName,
-      login.storeUser.middleName,
-      login.storeUser.lastName
-    )
-  </span>
+  @logoffMessage(login)
   <button type="button" id="loginButton"
           onclick="location.href='@routes.Admin.logoff(request.uri)';">
     @Messages("logoff")

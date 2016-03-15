@@ -1,0 +1,13 @@
+@(login: LoginSession)(
+  implicit lang: Lang,
+  request: RequestHeader
+)
+
+<span id="loginWelcomeMessage">
+  @String.format(
+    Messages("login.welcome"),
+    login.storeUser.firstName,
+    login.storeUser.middleName,
+    login.storeUser.lastName
+  )
+</span>
