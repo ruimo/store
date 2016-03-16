@@ -161,6 +161,7 @@ GET     /startEnterShippingAddress       controllers.Shipping.startEnterShipping
 POST    /enterShippingAddressJa          controllers.Shipping.enterShippingAddressJa()
 GET     /confirmShippingAddressJa        controllers.Shipping.confirmShippingAddressJa()
 POST    /finalizeTransactionJa           controllers.Shipping.finalizeTransactionJa()
+GET     /cancelPaypal                    controllers.Shipping.cancelPaypal()
 
 GET     /orderHistory                    controllers.OrderHistory.index()
 GET     /showOrderHistoryList            controllers.OrderHistory.showOrderHistoryList(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec ?= "base.transaction_time DESC", tranId: Option[Long] ?= None)

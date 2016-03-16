@@ -1,0 +1,14 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("cancelPayaplTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("cancelPayaplTitle")</h1>
+
+  <a href="@routes.Purchase.showShoppingCart()">
+    @Messages("gotoShoppingCart")
+  </a>
+}

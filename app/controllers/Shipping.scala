@@ -41,6 +41,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   )
 
+  val UrlBase: () => String = Cache.config(
+    _.getString("urlBase").getOrElse(
+      throw new IllegalStateException("Specify urlBase in configuration.")
+    )
+  )
+
   val PaypalApiUrl: () => String = Cache.config(
     _.getString("paypal.apiUrl").getOrElse(
       throw new IllegalStateException("Specify paypal.apiUrl in configuration.")
@@ -337,6 +343,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
   )(
     implicit request: Request[AnyContent], login: LoginSession
   ): Future[Result] = DB.withConnection { implicit conn =>
+    val cancelUrl = UrlBase() + routes.Shipping.cancelPaypal().url
     val resp: Future[WSResponse] = WS.url(PaypalApiUrl()).post(
       Map(
         "USER" -> Seq(PaypalUser()),
@@ -347,7 +354,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         "PAYMENTREQUEST_0_AMT" -> Seq("123"),
         "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq("JPY"),
         "RETURNURL" -> Seq("http://ruimo.com"),
-        "CANCELURL" -> Seq("http://ruimo.com"),
+        "CANCELURL" -> Seq(cancelUrl),
         "METHOD" -> Seq("SetExpressCheckout"),
         "SOLUTIONTYPE" -> Seq("Sole"),
         "LANDINGPAGE" -> Seq("Billing"),
@@ -376,6 +383,11 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           throw new Error("Cannot start paypal checkout: '" + body + "'")
       }
     }
+  }
+
+  def cancelPaypal = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    Ok(views.html.cancelPaypal())
   }
 
   def textMetadata(

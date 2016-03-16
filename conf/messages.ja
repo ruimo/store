@@ -502,3 +502,4 @@ anonymousLogin=ユーザ登録せずに購入
 guest=ゲスト
 payByAccountingBill=請求書払いで購入
 payBalPaypal=Paypalで支払う
+cancelPayaplTitle=Paypalでの支払いがキャンセルされました
