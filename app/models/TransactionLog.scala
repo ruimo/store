@@ -113,6 +113,14 @@ case class ShippingInfo(
   slipCode: String
 )
 
+case class TransactionLogCreditTenderId(id: Long) extends AnyVal
+
+case class TransactionLogCreditTender(
+  id: Option[TransactionLogCreditTenderId] = None,
+  transactionId: Long,
+  amount: BigDecimal
+)
+
 case class TransactionShipStatus(
   id: Option[Long] = None,
   transactionSiteId: Long,
@@ -532,6 +540,59 @@ object TransactionLogItem {
       """
     ).on(
       'tranSiteId -> tranSiteId
+    ).as(
+      simple *
+    )
+}
+
+object TransactionLogCreditTender {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_credit_tender") ~
+    SqlParser.get[Long]("transaction_credit_tender.transaction_id") ~
+    SqlParser.get[java.math.BigDecimal]("transaction_credit_tender.amount") map {
+      case id~transactionId~amount =>
+        TransactionLogCreditTender(
+          id.map(TransactionLogCreditTenderId.apply),
+          transactionId,
+          amount
+        )
+    }
+  }
+
+  def createNew(
+    transactionId: Long, amount: BigDecimal
+  )(implicit conn: Connection) : TransactionLogCreditTender = {
+    SQL(
+      """
+      insert into transaction_credit_tender (
+        transaction_credit_tender_id, transaction_id, amount
+      ) values (
+        (select nextval('transaction_credit_tender_seq')),
+        {transactionId}, {amount}
+      )
+      """
+    ).on(
+      'transactionId -> transactionId,
+      'amount -> amount
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_credit_tender_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogCreditTender(
+      Some(TransactionLogCreditTenderId(id)), transactionId, amount
+    )
+  }
+
+  def list(limit: Int = 10, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogCreditTender] =
+    SQL(
+      """
+      select * from transaction_credit_tender
+      order by transaction_credit_tender_id
+      limit {limit} offset {offset}
+      """
+    ).on(
+      'limit -> limit,
+      'offset -> offset
     ).as(
       simple *
     )
