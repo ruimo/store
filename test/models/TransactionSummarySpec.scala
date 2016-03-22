@@ -1,5 +1,6 @@
 package models
 
+import scala.collection.immutable
 import org.specs2.mutable.Specification
 import play.api.test.FakeApplication
 import play.api.db.DB
@@ -116,10 +117,11 @@ class TransactionSummarySpec extends Specification {
             )
           )
           val persister = new TransactionPersister
-          val tranNo1 = persister.persist(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
-                        controllers.Shipping.shippingFee(addr1, cart1), shippingDate1)
-          )
+          val (tranNo1: Long, taxesBySite1: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+            = persister.persist(
+              Transaction(user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
+                controllers.Shipping.shippingFee(addr1, cart1), shippingDate1)
+            )
 
           val ptran1 = persister.load(tranNo1, Ja)
           val siteUser1 = SiteUser.createNew(user1.id.get, site1.id.get)
@@ -137,10 +139,11 @@ class TransactionSummarySpec extends Specification {
           val sum1 = TransactionSummary.get(Some(siteUser1.siteId), entry1.transactionSiteId)
           sum1.isDefined === true
 
-          val tranNo2 = persister.persist(
-            Transaction(user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
-                        controllers.Shipping.shippingFee(addr2, cart2), shippingDate2)
-          )
+          val (tranNo2: Long, taxesBySite2: immutable.Map[Site, immutable.Seq[TransactionLogTax]]) =
+            persister.persist(
+              Transaction(user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
+                controllers.Shipping.shippingFee(addr2, cart2), shippingDate2)
+            )
 
           val ptran2 = persister.load(tranNo2, Ja)
           val siteUser2 = SiteUser.createNew(user1.id.get, site2.id.get)
@@ -362,21 +365,23 @@ class TransactionSummarySpec extends Specification {
             )
           )
           val persister = new TransactionPersister
-          val tranNo1 = persister.persist(
-            Transaction(
-              user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
-              controllers.Shipping.shippingFee(addr1, cart1), shippingDate1,
-              now = date("2013-01-31")
+          val (tranNo1: Long, taxesBySite1: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+            = persister.persist(
+              Transaction(
+                user1.id.get, CurrencyInfo.Jpy, cart1, Some(addr1),
+                controllers.Shipping.shippingFee(addr1, cart1), shippingDate1,
+                now = date("2013-01-31")
+              )
             )
-          )
 
-          val tranNo2 = persister.persist(
-            Transaction(
-              user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
-              controllers.Shipping.shippingFee(addr2, cart2), shippingDate2,
-              now = date("2013-03-01")
+          val (tranNo2: Long, taxesBySite2: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+            = persister.persist(
+              Transaction(
+                user2.id.get, CurrencyInfo.Jpy, cart2, Some(addr2),
+                controllers.Shipping.shippingFee(addr2, cart2), shippingDate2,
+                now = date("2013-03-01")
+              )
             )
-          )
 
           val ptran1 = persister.load(tranNo1, Ja)
           val ptran2 = persister.load(tranNo2, Ja)

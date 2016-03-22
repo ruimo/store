@@ -1,7 +1,7 @@
 package models;
 
 public enum TransactionType {
-    NORMAL;
+    NORMAL, PAYPAL;
 
     private static final TransactionType byIndex[] = TransactionType.class.getEnumConstants();
 

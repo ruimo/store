@@ -6,6 +6,7 @@ import play.api.Play.current
 import scala.language.postfixOps
 import collection.immutable
 import java.sql.Connection
+import helpers.RandomTokenGenerator
 
 case class TransactionLogHeader(
   id: Option[Long] = None,
@@ -14,7 +15,7 @@ case class TransactionLogHeader(
   currencyId: Long,
   // Item total and shipping total. Excluding outer tax, including inner tax.
   totalAmount: BigDecimal,
-  // Outer tax.
+  // Outer tax + Inner tax.
   taxAmount: BigDecimal,
   transactionType: TransactionType
 )
@@ -119,6 +120,15 @@ case class TransactionLogCreditTender(
   id: Option[TransactionLogCreditTenderId] = None,
   transactionId: Long,
   amount: BigDecimal
+)
+
+case class TransactionLogPaypalStatusId(id: Long) extends AnyVal
+
+case class TransactionLogPaypalStatus(
+  id: Option[TransactionLogPaypalStatusId] = None,
+  transactionId: Long,
+  status: PaypalStatus,
+  token: Long
 )
 
 case class TransactionShipStatus(
@@ -547,7 +557,7 @@ object TransactionLogItem {
 
 object TransactionLogCreditTender {
   val simple = {
-    SqlParser.get[Option[Long]]("transaction_credit_tender") ~
+    SqlParser.get[Option[Long]]("transaction_credit_tender.transaction_credit_tender_id") ~
     SqlParser.get[Long]("transaction_credit_tender.transaction_id") ~
     SqlParser.get[java.math.BigDecimal]("transaction_credit_tender.amount") map {
       case id~transactionId~amount =>
@@ -583,6 +593,18 @@ object TransactionLogCreditTender {
     )
   }
 
+  def byTransactionId(tranId: Long)(implicit conn: Connection): TransactionLogCreditTender =
+    SQL(
+      """
+      select * from transaction_credit_tender
+      where transaction_id = {tranId}
+      """
+    ).on(
+      'tranId -> tranId
+    ).as(
+      simple.single
+    )
+
   def list(limit: Int = 10, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogCreditTender] =
     SQL(
       """
@@ -596,6 +618,61 @@ object TransactionLogCreditTender {
     ).as(
       simple *
     )
+}
+
+object TransactionLogPaypalStatus {
+  val simple = {
+    SqlParser.get[Option[Long]]("transaction_paypal_status.transaction_payapl_status_id") ~
+    SqlParser.get[Long]("transaction_paypal_status.transaction_id") ~
+    SqlParser.get[Int]("transaction_paypal_status.status") ~
+    SqlParser.get[Long]("transaction_paypal_status.token") map {
+      case id~transactionId~status~token =>
+        TransactionLogPaypalStatus(
+          id.map(TransactionLogPaypalStatusId.apply),
+          transactionId,
+          PaypalStatus.byIndex(status),
+          token
+        )
+    }
+  }
+
+  def createNew(
+    transactionId: Long, status: PaypalStatus, token: Long
+  )(implicit conn: Connection): TransactionLogPaypalStatus = {
+    SQL(
+      """
+      insert into transaction_paypal_status (
+        transaction_paypal_status_id,
+        transaction_id, status, token
+      ) values (
+        (select nextval('transaction_paypal_status_seq')),
+        {transactionId}, {status}, {token}
+      )
+      """
+    ).on(
+      'transactionId -> transactionId,
+      'status -> status.ordinal,
+      'token -> token
+    ).executeUpdate()
+
+    val id = SQL("select currval('transaction_paypal_status_seq')").as(SqlParser.scalar[Long].single)
+
+    TransactionLogPaypalStatus(
+      Some(TransactionLogPaypalStatusId(id)),
+      transactionId, status, token
+    )
+  }
+
+  def update(transactionId: Long, status: PaypalStatus)(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_paypal_status
+    set status = {status}
+    where transaction_id = {transactionId}
+    """
+  ).on(
+    'status -> status.ordinal,
+    'transactionId -> transactionId
+  ).executeUpdate()
 }
 
 object TransactionLogCoupon {
@@ -747,7 +824,8 @@ case class PersistedTransaction(
   siteTable: Seq[Site],
   shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
-  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]] // First key = siteId
+  itemTable: Map[Long, Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]], // First key = siteId
+  creditTable: Option[TransactionLogCreditTender] = None
 ) {
   lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
     var result = immutable.LongMap[BigDecimal]()
@@ -1279,26 +1357,57 @@ object TransactionDetail {
 }
 
 class TransactionPersister {
-  def persist(tran: Transaction)(implicit conn: Connection): Long = {
+  def persistPaypal(
+    tran: Transaction
+  )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
+    val (transactionId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+      = persist(tran, TransactionType.PAYPAL)
+
+    val outerTax: BigDecimal = taxesBySite.values.foldLeft(BigDecimal(0)) { (sum, e) =>
+      sum + e.foldLeft(BigDecimal(0)) { (sum2, e2) =>
+        sum2 + (
+          if (e2.taxType == TaxType.OUTER_TAX) e2.amount else BigDecimal(0)
+        )
+      }
+    }
+    val creditLog: TransactionLogCreditTender = TransactionLogCreditTender.createNew(
+      transactionId, tran.total + outerTax
+    )
+
+    val paypalToken: Long = RandomTokenGenerator().next
+
+    val paypalStatus: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(
+      transactionId, PaypalStatus.START, paypalToken
+    )
+
+    (transactionId, taxesBySite)
+  }
+
+  def persist(
+    tran: Transaction, transactionType: TransactionType = TransactionType.NORMAL
+  )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
     val header = TransactionLogHeader.createNew(
       tran.userId, tran.currency.id,
       tran.total, tran.taxAmount,
-      TransactionType.NORMAL,
+      transactionType,
       tran.now
     )
 
-    tran.itemTotal.bySite.keys.foreach { site =>
-      saveSiteTotal(header, site, tran)
-    }
+    val taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]] =
+      tran.itemTotal.bySite.keys.foldLeft(immutable.HashMap[Site, immutable.Seq[TransactionLogTax]]()) { (map, site) =>
+        map.updated(
+          site, saveSiteTotal(header, site, tran)
+        )
+      }
 
-    header.id.get
+    (header.id.get, taxesBySite)
   }
 
   def saveSiteTotal(
     header: TransactionLogHeader,
     site: Site,
     tran: Transaction
-  )(implicit conn: Connection) {
+  )(implicit conn: Connection): immutable.Seq[TransactionLogTax] = {
     val siteLog = TransactionLogSite.createNew(
       header.id.get, site.id.get,
       tran.bySite(site).total,
@@ -1307,8 +1416,10 @@ class TransactionPersister {
 
     TransactionShipStatus.createNew(siteLog.id.get, TransactionStatus.ORDERED, System.currentTimeMillis, None)
     saveShippingTotal(siteLog, tran.bySite(site))
-    saveTax(siteLog, tran.bySite(site))
+    val taxes: immutable.Seq[TransactionLogTax] = saveTax(siteLog, tran.bySite(site))
     saveItem(siteLog, tran.bySite(site))
+
+    taxes
   }
 
   def saveShippingTotal(
@@ -1326,10 +1437,10 @@ class TransactionPersister {
 
   def saveTax(
     siteLog: TransactionLogSite, tran: Transaction
-  )(implicit conn: Connection) {
+  )(implicit conn: Connection): immutable.Seq[TransactionLogTax] = {
     val taxTable = tran.shippingTotal.taxHistoryById ++ tran.itemTotal.taxHistoryById
 
-    taxTable.foreach { e =>
+    taxTable.map { e =>
       val taxId = e._1
       val taxHistory = e._2
 
@@ -1340,7 +1451,7 @@ class TransactionPersister {
         siteLog.id.get, taxHistory.id.get, taxId, taxHistory.taxType,
         taxHistory.rate, targetAmount, taxAmount
       )
-    }
+    }.toVector
   }
 
   def saveItem(
@@ -1460,8 +1571,14 @@ class TransactionPersister {
       map.updated(siteId, ((e._1, e._3, e._4)) :: map(siteId))
     }.mapValues(_.reverse)
 
+    val credit: Option[TransactionLogCreditTender] = 
+      if (header.transactionType == TransactionType.PAYPAL)
+        Some(TransactionLogCreditTender.byTransactionId(tranId))
+      else
+        None
+
     PersistedTransaction(
-      header, tranSiteLog.map {e => (e.siteId -> e)}.toMap, siteLog, shippingLog, taxLog, itemLog
+      header, tranSiteLog.map {e => (e.siteId -> e)}.toMap, siteLog, shippingLog, taxLog, itemLog, credit
     )
   }
 }

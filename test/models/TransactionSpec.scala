@@ -241,10 +241,11 @@ class TransactionSpec extends Specification {
             )
           )
           val persister = new TransactionPersister
-          val tranNo = persister.persist(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr), 
-                        controllers.Shipping.shippingFee(addr, cart), shippingDate)
-          )
+          val (tranNo: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+            = persister.persist(
+              Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr),
+                controllers.Shipping.shippingFee(addr, cart), shippingDate)
+            )
 
           val ptran = persister.load(tranNo, Ja)
           ptran.header.id.get === tranNo
@@ -331,6 +332,185 @@ class TransactionSpec extends Specification {
           itemTable2(item2.id.get)._2.itemPriceHistoryId === ph2.id.get
           itemTable2(item2.id.get)._2.quantity === 1
           itemTable2(item2.id.get)._2.amount === BigDecimal(59)
+        }
+      }
+    }
+
+    "Can persist paypal transaction." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          val tax1 = Tax.createNew
+          val tax2 = Tax.createNew
+          val taxHistory1 = TaxHistory.createNew(tax1, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+          val taxHistory2 = TaxHistory.createNew(tax2, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+
+          val user1 = StoreUser.create(
+            "name1", "first1", None, "last1", "email1", 123L, 234L, UserRole.NORMAL, Some("companyName")
+          )
+          import models.LocaleInfo.{Ja}
+          val site1 = Site.createNew(Ja, "商店1")
+          val site2 = Site.createNew(Ja, "商店2")
+
+          val cat1 = Category.createNew(Map(Ja -> "植木"))
+
+          val item1 = Item.createNew(cat1)
+          val item2 = Item.createNew(cat1)
+
+          val name1 = ItemName.createNew(item1, Map(Ja -> "杉"))
+          val name2 = ItemName.createNew(item2, Map(Ja -> "梅"))
+
+          SiteItem.createNew(site1, item1)
+          SiteItem.createNew(site2, item2)
+
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
+          val desc2 = ItemDescription.createNew(item2, site1, "梅説明")
+
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item2, site2)
+
+          val ph1 = ItemPriceHistory.createNew(
+            price1, tax1, CurrencyInfo.Jpy, BigDecimal(119), None, BigDecimal(100), date("9999-12-31")
+          )
+          val ph2 = ItemPriceHistory.createNew(
+            price2, tax1, CurrencyInfo.Jpy, BigDecimal(59), None, BigDecimal(50), date("9999-12-31")
+          )
+
+          val cart1 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 1)
+          val cart2 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item2.id.get.id, 1)
+
+          val itemClass1 = 1L
+
+          val box1 = ShippingBox.createNew(site1.id.get, itemClass1, 10, "小箱")
+          val box2 = ShippingBox.createNew(site2.id.get, itemClass1, 3, "小箱")
+          val shipping1 = ShippingFee.createNew(box1.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+          val shipping2 = ShippingFee.createNew(box2.id.get, CountryCode.JPN, JapanPrefecture.東京都.code)
+          val shipHis1 = ShippingFeeHistory.createNew(
+            shipping1.id.get, tax2.id.get, BigDecimal(1234), Some(BigDecimal(1000)), date("9999-12-31")
+          )
+          val shipHis2 = ShippingFeeHistory.createNew(
+            shipping2.id.get, tax2.id.get, BigDecimal(2345), None, date("9999-12-31")
+          )
+
+          val shippingTotal = ShippingFeeHistory.feeBySiteAndItemClass(
+            CountryCode.JPN, JapanPrefecture.東京都.code,
+            ShippingFeeEntries()
+              .add(site1, itemClass1, 3)
+              .add(site2, itemClass1, 5)
+          )
+
+          val cart = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)._1
+          val addr = Address.createNew(
+            countryCode = CountryCode.JPN,
+            firstName = "FirstName",
+            lastName = "LastName",
+            zip1 = "123",
+            prefecture = JapanPrefecture.東京都,
+            address1 = "Address1",
+            address2 = "Address2",
+            tel1 = "12345678"
+          )
+
+          val shippingDate = ShippingDate(
+            Map(
+              site1.id.get -> ShippingDateEntry(site1.id.get, date("2013-02-03")),
+              site2.id.get -> ShippingDateEntry(site2.id.get, date("2013-05-03"))
+            )
+          )
+          val persister = new TransactionPersister
+          val (tranNo: Long, taxexBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = persister.persistPaypal(
+            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr), 
+                        controllers.Shipping.shippingFee(addr, cart), shippingDate)
+          )
+
+          val ptran: PersistedTransaction = persister.load(tranNo, Ja)
+          ptran.header.id.get === tranNo
+          ptran.header.userId === user1.id.get
+          ptran.header.currencyId === CurrencyInfo.Jpy.id
+          ptran.header.totalAmount === BigDecimal(119 + 59 + 1234 + 2345)
+          ptran.header.taxAmount === BigDecimal(
+            (119 + 59) * 5 / 100 +
+            (1234 + 2345) * 5 / 105
+          )
+          ptran.header.transactionType === TransactionType.PAYPAL
+          ptran.siteTable.size == 2
+          ptran.siteTable.contains(site1) === true
+          ptran.siteTable.contains(site2) === true
+          ptran.shippingTable.size === 2
+          ptran.shippingTable(site1.id.get).size === 1
+          val tranShipping1 = ptran.shippingTable(site1.id.get).head
+          tranShipping1.amount === 1234
+          tranShipping1.addressId === addr.id.get
+          tranShipping1.itemClass === itemClass1
+          tranShipping1.boxSize === 10
+          tranShipping1.taxId === tax2.id.get
+          tranShipping1.shippingDate === date("2013-02-03").getTime
+
+          ptran.shippingTable(site2.id.get).size === 1
+          val tranShipping2 = ptran.shippingTable(site2.id.get).head
+          tranShipping2.amount === 2345
+          tranShipping2.addressId === addr.id.get
+          tranShipping2.itemClass === itemClass1
+          tranShipping2.boxSize === 3
+          tranShipping2.taxId === tax2.id.get
+          tranShipping2.shippingDate === date("2013-05-03").getTime
+
+          ptran.taxTable.size === 2
+          val taxTable1 = ptran.taxTable(site1.id.get).foldLeft(immutable.LongMap[TransactionLogTax]()) {
+            (map, e) => map.updated(e.taxId, e)
+          }
+          taxTable1.size === 2
+          taxTable1(tax1.id.get).taxType === TaxType.OUTER_TAX
+          taxTable1(tax1.id.get).rate === BigDecimal(5)
+          taxTable1(tax1.id.get).targetAmount === BigDecimal(119)
+          taxTable1(tax1.id.get).amount === BigDecimal(119 * 5 / 100)
+
+          taxTable1(tax2.id.get).taxType === TaxType.INNER_TAX
+          taxTable1(tax2.id.get).rate === BigDecimal(5)
+          taxTable1(tax2.id.get).targetAmount === BigDecimal(1234)
+          taxTable1(tax2.id.get).amount === BigDecimal(1234 * 5 / 105)
+
+          val taxTable2 = ptran.taxTable(site2.id.get).foldLeft(immutable.LongMap[TransactionLogTax]()) {
+            (map, e) => map.updated(e.taxId, e)
+          }
+          taxTable2.size === 2
+          taxTable2(tax1.id.get).taxType === TaxType.OUTER_TAX
+          taxTable2(tax1.id.get).rate === BigDecimal(5)
+          taxTable2(tax1.id.get).targetAmount === BigDecimal(59)
+          taxTable2(tax1.id.get).amount === BigDecimal(59 * 5 / 100)
+
+          taxTable2(tax2.id.get).taxType === TaxType.INNER_TAX
+          taxTable2(tax2.id.get).rate === BigDecimal(5)
+          taxTable2(tax2.id.get).targetAmount === BigDecimal(2345)
+          taxTable2(tax2.id.get).amount === BigDecimal(2345 * 5 / 105)
+
+          ptran.itemTable.size === 2
+          val itemTable1 = ptran.itemTable(site1.id.get)
+            .foldLeft(
+              immutable.HashMap[ItemId, (ItemName, TransactionLogItem, Option[TransactionLogCoupon])]()
+            ) {
+              (map, e) => map.updated(e._1.itemId, e)
+            }
+          itemTable1(item1.id.get)._1.name === "杉"
+          itemTable1(item1.id.get)._2.itemId === item1.id.get.id
+          itemTable1(item1.id.get)._2.itemPriceHistoryId === ph1.id.get
+          itemTable1(item1.id.get)._2.quantity === 1
+          itemTable1(item1.id.get)._2.amount === BigDecimal(119)
+          
+          val itemTable2 = ptran.itemTable(site2.id.get)
+            .foldLeft(
+              immutable.HashMap[ItemId, (ItemName, TransactionLogItem, Option[TransactionLogCoupon])]()
+            ) {
+              (map, e) => map.updated(e._1.itemId, e)
+            }
+          itemTable2(item2.id.get)._1.name === "梅"
+          itemTable2(item2.id.get)._2.itemId === item2.id.get.id
+          itemTable2(item2.id.get)._2.itemPriceHistoryId === ph2.id.get
+          itemTable2(item2.id.get)._2.quantity === 1
+          itemTable2(item2.id.get)._2.amount === BigDecimal(59)
+
+          val credit: TransactionLogCreditTender = ptran.creditTable.get
+          credit.transactionId === tranNo
+          credit.amount === ptran.header.totalAmount + ptran.outerTaxGrandTotal
         }
       }
     }

@@ -1,5 +1,6 @@
 package controllers
 
+import scala.util.{Try, Success, Failure}
 import java.net.URLDecoder
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.ws.{WSResponse, WS}
@@ -268,26 +269,16 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       logger.error("Unknown error. Tender type is not specified? form: " + formWithErrors)
       Future.successful(Redirect(routes.Shipping.confirmShippingAddressJa()))
     },
-    _ match {
-      case "payByAccountingBill" => Future.successful(payByAccountingBill(currency))
-      case "payByPaypal" => payByPaypal(currency)
-    }
-  )
+    transactionType => DB.withTransaction { implicit conn =>
+      val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
+        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
 
-  def payByAccountingBill(
-    currency:CurrencyInfo
-  )(
-    implicit request: Request[AnyContent], login: LoginSession
-  ): Result = DB.withTransaction { implicit conn =>
-    val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
-      ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
-    if (! expErrors.isEmpty) {
-      Ok(views.html.itemExpired(expErrors))
-    }
-    else {
       if (cart.isEmpty) {
         logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
         throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
+      }
+      else if (! expErrors.isEmpty) {
+        Future.successful(Ok(views.html.itemExpired(expErrors)))
       }
       else {
         val exceedStock: immutable.Map[(ItemId, Long), (String, String, Int, Long)] =
@@ -295,92 +286,136 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
 
         if (! exceedStock.isEmpty) {
           logger.error("Item exceed stock. " + exceedStock)
-          Ok(views.html.itemStockExhausted(exceedStock))
+          Future.successful(Ok(views.html.itemStockExhausted(exceedStock)))
         }
         else if (ShoppingCartItem.isAllCoupon(login.userId)) {
           val persister = new TransactionPersister()
-          val tranId = persister.persist(
-            Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())
-          )
+          val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]]) =
+            persister.persist(
+              Transaction(login.userId, currency, cart, None, ShippingTotal(), ShippingDate())
+            )
           ShoppingCartItem.removeForUser(login.userId)
           ShoppingCartShipping.removeForUser(login.userId)
           val tran = persister.load(tranId, LocaleInfo.getDefault)
           NotificationMail.orderCompleted(loginSession.get, tran, None)
           RecommendEngine.onSales(loginSession.get, tran, None)
-          Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
+          Future.successful(
+            Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
+          )
         }
         else {
-          val his = ShippingAddressHistory.list(login.userId).head
-          val addr = Address.byId(his.addressId)
-          val shipping = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
-            sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
-          }
-          try {
-            val persister = new TransactionPersister()
-            val tranId = persister.persist(
-              Transaction(login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shipping))
-            )
-            ShoppingCartItem.removeForUser(login.userId)
-            ShoppingCartShipping.removeForUser(login.userId)
-            val tran = persister.load(tranId, LocaleInfo.getDefault)
-            val address = Address.byId(tran.shippingTable.head._2.head.addressId)
-            NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
-            RecommendEngine.onSales(loginSession.get, tran, Some(address))
-            Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
-          }
-          catch {
-            case e: CannotShippingException => {
-              Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
-            }
+          transactionType match {
+            case "payByAccountingBill" => Future.successful(payByAccountingBill(currency, cart))
+            case "payByPaypal" => payByPaypal(currency, cart)
           }
         }
+      }
+    }
+  )
+
+  def payByAccountingBill(
+    currency:CurrencyInfo, cart: ShoppingCartTotal
+  )(
+    implicit request: Request[AnyContent], login: LoginSession, conn: Connection
+  ): Result = {
+    val his = ShippingAddressHistory.list(login.userId).head
+    val addr = Address.byId(his.addressId)
+    val shippingDateBySite = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+      sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
+    }
+    try {
+      val persister = new TransactionPersister()
+      val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+        = persister.persist(
+          Transaction(
+            login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shippingDateBySite)
+          )
+        )
+      ShoppingCartItem.removeForUser(login.userId)
+      ShoppingCartShipping.removeForUser(login.userId)
+      val tran = persister.load(tranId, LocaleInfo.getDefault)
+      val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+      NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
+      RecommendEngine.onSales(loginSession.get, tran, Some(address))
+      Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
+    }
+    catch {
+      case e: CannotShippingException => {
+        Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
       }
     }
   }
 
   def payByPaypal(
-    currency:CurrencyInfo
+    currency:CurrencyInfo, cart: ShoppingCartTotal
   )(
     implicit request: Request[AnyContent], login: LoginSession
   ): Future[Result] = DB.withConnection { implicit conn =>
-    val cancelUrl = UrlBase() + routes.Shipping.cancelPaypal().url
-    val resp: Future[WSResponse] = WS.url(PaypalApiUrl()).post(
-      Map(
-        "USER" -> Seq(PaypalUser()),
-        "PWD" -> Seq(PaypalPassword()),
-        "SIGNATURE" -> Seq(PaypalSignature()),
-        "VERSION" -> Seq(PaypalApiVersion()),
-        "PAYMENTREQUEST_0_PAYMENTACTION" -> Seq("Sale"),
-        "PAYMENTREQUEST_0_AMT" -> Seq("123"),
-        "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq("JPY"),
-        "RETURNURL" -> Seq("http://ruimo.com"),
-        "CANCELURL" -> Seq(cancelUrl),
-        "METHOD" -> Seq("SetExpressCheckout"),
-        "SOLUTIONTYPE" -> Seq("Sole"),
-        "LANDINGPAGE" -> Seq("Billing"),
-        "LOCALECODE" -> Seq(PaypalLocaleCode())
-      )
-    )
+    val his = ShippingAddressHistory.list(login.userId).head
+    val addr = Address.byId(his.addressId)
+    val shippingDateBySite = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+      sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
+    }
 
-    resp.map { resp => 
-      val body = URLDecoder.decode(resp.body, "UTF-8")
-      logger.info("Paypal response: '" + body + "'")
-      val values: immutable.Map[String, String] = immutable.Map[String, String]() ++ body.split("&").map { s =>
-        val a = NameValuePattern.split(s, 2)
-        a(0) -> a(1)
-      }
-      logger.info("Paypal response decoded: " + values)
-      values("ACK") match {
-        case "Success" =>
-          Redirect(
-            PaypalRedirectUrl(), 
-            Map(
-              "cmd" -> Seq("_express-checkout"),
-              "token" -> Seq(values("TOKEN"))
-            )
+    try {
+      val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
+        val persister = new TransactionPersister()
+        persister.persistPaypal(
+          Transaction(
+            login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shippingDateBySite)
           )
-        case _ =>
-          throw new Error("Cannot start paypal checkout: '" + body + "'")
+        )
+      }
+
+      val cancelUrl = UrlBase() + routes.Shipping.cancelPaypal().url
+      val resp: Future[WSResponse] = WS.url(PaypalApiUrl()).post(
+        Map(
+          "USER" -> Seq(PaypalUser()),
+          "PWD" -> Seq(PaypalPassword()),
+          "SIGNATURE" -> Seq(PaypalSignature()),
+          "VERSION" -> Seq(PaypalApiVersion()),
+          "PAYMENTREQUEST_0_PAYMENTACTION" -> Seq("Sale"),
+          "PAYMENTREQUEST_0_AMT" -> Seq((cart.total + cart.outerTaxTotal).toString),
+          "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq(currency.currencyCode),
+          "PAYMENTREQUEST_0_INVNUM" -> Seq(tranId.toString),
+          "RETURNURL" -> Seq("http://ruimo.com"),
+          "CANCELURL" -> Seq(cancelUrl),
+          "METHOD" -> Seq("SetExpressCheckout"),
+          "SOLUTIONTYPE" -> Seq("Sole"),
+          "LANDINGPAGE" -> Seq("Billing"),
+          "LOCALECODE" -> Seq(PaypalLocaleCode())
+        )
+      )
+
+      resp.map { resp =>
+        val body = URLDecoder.decode(resp.body, "UTF-8")
+        logger.info("Paypal response: '" + body + "'")
+        val values: immutable.Map[String, String] = immutable.Map[String, String]() ++ body.split("&").map { s =>
+          val a = NameValuePattern.split(s, 2)
+          a(0) -> a(1)
+        }
+        logger.info("Paypal response decoded: " + values)
+        values("ACK") match {
+          case "Success" =>
+            TransactionLogPaypalStatus.update(tranId, PaypalStatus.PREPARED)
+            Redirect(
+              PaypalRedirectUrl(),
+              Map(
+                "cmd" -> Seq("_express-checkout"),
+                "token" -> Seq(values("TOKEN"))
+              )
+            )
+          case _ =>
+            TransactionLogPaypalStatus.update(tranId, PaypalStatus.ERROR)
+            throw new Error("Cannot start paypal checkout: '" + body + "'")
+        }
+      }
+    }
+    catch {
+      case e: CannotShippingException => {
+        Future.successful(
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+        )
       }
     }
   }

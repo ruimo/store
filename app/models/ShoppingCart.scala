@@ -69,6 +69,7 @@ case class ShoppingCartTotal(
       e.itemPriceHistory.unitPrice * e.shoppingCartItem.quantity + sum(e.taxHistory.taxId)
     )
   }
+  lazy val outerTaxTotal: BigDecimal = taxByType.get(TaxType.OUTER_TAX).getOrElse(BigDecimal(0))
   lazy val taxByType: Map[TaxType, BigDecimal] = {
     sumByTaxId.foldLeft(HashMap[TaxType, BigDecimal]().withDefaultValue(BigDecimal(0))) {
       (sum, e) => {
