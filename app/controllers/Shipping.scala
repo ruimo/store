@@ -273,12 +273,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
         ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
 
-      if (cart.isEmpty) {
+      if (! expErrors.isEmpty) {
+        Future.successful(Ok(views.html.itemExpired(expErrors)))
+      }
+      else if (cart.isEmpty) {
         logger.error("Shipping.finalizeTransaction(): shopping cart is empty.")
         throw new Error("Shipping.finalizeTransaction(): shopping cart is empty.")
-      }
-      else if (! expErrors.isEmpty) {
-        Future.successful(Ok(views.html.itemExpired(expErrors)))
       }
       else {
         val exceedStock: immutable.Map[(ItemId, Long), (String, String, Int, Long)] =

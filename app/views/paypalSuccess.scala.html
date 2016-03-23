@@ -1,0 +1,10 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("paypalSuccessTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("paypalSuccessTitle")</h1>
+}

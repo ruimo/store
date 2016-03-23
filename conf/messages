@@ -471,3 +471,4 @@ guest=Guest
 payByAccountingBill=Pay by accounting bill
 payBalPaypal=Pay by paypal
 cancelPayaplTitle=Paypal canceled
+paypalSuccessTitle=Paypal payment succeeded
