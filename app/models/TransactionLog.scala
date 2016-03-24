@@ -1359,7 +1359,7 @@ object TransactionDetail {
 class TransactionPersister {
   def persistPaypal(
     tran: Transaction
-  )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
+  )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]], Long) = {
     val (transactionId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
       = persist(tran, TransactionType.PAYPAL)
 
@@ -1380,7 +1380,7 @@ class TransactionPersister {
       transactionId, PaypalStatus.START, paypalToken
     )
 
-    (transactionId, taxesBySite)
+    (transactionId, taxesBySite, paypalToken)
   }
 
   def persist(

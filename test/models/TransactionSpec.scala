@@ -417,10 +417,11 @@ class TransactionSpec extends Specification {
             )
           )
           val persister = new TransactionPersister
-          val (tranNo: Long, taxexBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = persister.persistPaypal(
-            Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr), 
-                        controllers.Shipping.shippingFee(addr, cart), shippingDate)
-          )
+          val (tranNo: Long, taxexBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]], token: Long) =
+            persister.persistPaypal(
+              Transaction(user1.id.get, CurrencyInfo.Jpy, cart, Some(addr),
+                controllers.Shipping.shippingFee(addr, cart), shippingDate)
+            )
 
           val ptran: PersistedTransaction = persister.load(tranNo, Ja)
           ptran.header.id.get === tranNo

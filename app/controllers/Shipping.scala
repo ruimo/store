@@ -358,7 +358,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
 
     try {
-      val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
+      val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]], token: Long) = {
         val persister = new TransactionPersister()
         persister.persistPaypal(
           Transaction(
@@ -367,6 +367,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         )
       }
 
+      val successUrl = UrlBase() + routes.Paypal.onSuccess(tranId, token).url
       val cancelUrl = UrlBase() + routes.Shipping.cancelPaypal().url
       val resp: Future[WSResponse] = WS.url(PaypalApiUrl()).post(
         Map(
