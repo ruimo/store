@@ -407,7 +407,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         logger.info("Paypal response decoded: " + values)
         values("ACK") match {
           case "Success" =>
-            TransactionLogPaypalStatus.update(tranId, PaypalStatus.PREPARED)
+            DB.withConnection { implicit conn =>
+              TransactionLogPaypalStatus.update(tranId, PaypalStatus.PREPARED)
+            }
             Redirect(
               PaypalRedirectUrl(),
               Map(
@@ -416,7 +418,9 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
               )
             )
           case _ =>
-            TransactionLogPaypalStatus.update(tranId, PaypalStatus.ERROR)
+            DB.withConnection { implicit conn =>
+              TransactionLogPaypalStatus.update(tranId, PaypalStatus.ERROR)
+            }
             throw new Error("Cannot start paypal checkout: '" + body + "'")
         }
       }

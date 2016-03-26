@@ -622,7 +622,7 @@ object TransactionLogCreditTender {
 
 object TransactionLogPaypalStatus {
   val simple = {
-    SqlParser.get[Option[Long]]("transaction_paypal_status.transaction_payapl_status_id") ~
+    SqlParser.get[Option[Long]]("transaction_paypal_status.transaction_paypal_status_id") ~
     SqlParser.get[Long]("transaction_paypal_status.transaction_id") ~
     SqlParser.get[Int]("transaction_paypal_status.status") ~
     SqlParser.get[Long]("transaction_paypal_status.token") map {
@@ -662,6 +662,17 @@ object TransactionLogPaypalStatus {
       transactionId, status, token
     )
   }
+
+  def byId(id: TransactionLogPaypalStatusId)(implicit conn: Connection): TransactionLogPaypalStatus = SQL(
+    """
+    select * from transaction_paypal_status
+    where transaction_paypal_status_id = {id}
+    """
+  ).on(
+    'id -> id.id
+  ).as(
+    simple.single
+  )
 
   def update(transactionId: Long, status: PaypalStatus)(implicit conn: Connection): Int = SQL(
     """
