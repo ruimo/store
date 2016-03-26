@@ -1,0 +1,16 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("paypalErrorTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("paypalErrorTitle")</h1>
+
+  <div class="description">@Messages("paypalErrorDescription")</div>
+
+  <a href="@routes.Purchase.showShoppingCart()">
+    @Messages("gotoShoppingCart")
+  </a>
+}

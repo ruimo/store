@@ -373,7 +373,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       }
 
       val successUrl = UrlBase() + routes.Paypal.onSuccess(tranId, token).url
-      val cancelUrl = UrlBase() + routes.Shipping.cancelPaypal().url
+      val cancelUrl = UrlBase() + routes.Paypal.onCancel().url
       val resp: Future[WSResponse] = if (IsFakePaypalResponseEnabled()) {
         Future.successful(FakePaypalResponse())
       } else {
@@ -387,7 +387,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
             "PAYMENTREQUEST_0_AMT" -> Seq((cart.total + cart.outerTaxTotal).toString),
             "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq(currency.currencyCode),
             "PAYMENTREQUEST_0_INVNUM" -> Seq(tranId.toString),
-            "RETURNURL" -> Seq("http://ruimo.com"),
+            "RETURNURL" -> Seq(successUrl),
             "CANCELURL" -> Seq(cancelUrl),
             "METHOD" -> Seq("SetExpressCheckout"),
             "SOLUTIONTYPE" -> Seq("Sole"),
@@ -421,7 +421,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
             DB.withConnection { implicit conn =>
               TransactionLogPaypalStatus.update(tranId, PaypalStatus.ERROR)
             }
-            throw new Error("Cannot start paypal checkout: '" + body + "'")
+            logger.error("Cannot start paypal checkout: '" + body + "'")
+            Ok(views.html.paypalError())
         }
       }
     }
@@ -432,11 +433,6 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
         )
       }
     }
-  }
-
-  def cancelPaypal = NeedAuthenticated { implicit request =>
-    implicit val login = request.user
-    Ok(views.html.cancelPaypal())
   }
 
   def textMetadata(

@@ -161,7 +161,6 @@ GET     /startEnterShippingAddress       controllers.Shipping.startEnterShipping
 POST    /enterShippingAddressJa          controllers.Shipping.enterShippingAddressJa()
 GET     /confirmShippingAddressJa        controllers.Shipping.confirmShippingAddressJa()
 POST    /finalizeTransactionJa           controllers.Shipping.finalizeTransactionJa()
-GET     /cancelPaypal                    controllers.Shipping.cancelPaypal()
 
 GET     /orderHistory                    controllers.OrderHistory.index()
 GET     /showOrderHistoryList            controllers.OrderHistory.showOrderHistoryList(page: Int ?= 0, pageSize: Int ?= 10, orderBySpec ?= "base.transaction_time DESC", tranId: Option[Long] ?= None)
@@ -244,6 +243,7 @@ GET     /twitter/latestTweet             controllers.TwitterFeed.latestTweet(scr
 GET     /twitter/latestTweetJson         controllers.TwitterFeed.latestTweetJson(screenName: String, omitScript: Boolean ?= true, maxWidth: Option[Int] ?= Some(300))
 
 GET     /paypalSuccess                   controllers.Paypal.onSuccess(transactionId: Long, token: Long)
+GET     /paypalCancel                    controllers.Paypal.onCancel()
 GET     /fakePaypal                      controllers.Paypal.fakePaypal(cmd: String, token: String)
 
 # Map static resources from the /public folder to the /assets URL path

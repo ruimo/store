@@ -504,3 +504,5 @@ payByAccountingBill=請求書払いで購入
 payBalPaypal=Paypalで支払う
 cancelPayaplTitle=Paypalでの支払いがキャンセルされました
 paypalSuccessTitle=Paypalでの支払いが完了しました
+paypalErrorTitle=Paypalエラー
+paypalErrorDescription=Paypalの支払いに失敗しました。しばらく時間をおいてお試しください。

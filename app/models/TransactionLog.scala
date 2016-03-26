@@ -674,6 +674,17 @@ object TransactionLogPaypalStatus {
     simple.single
   )
 
+  def byTransactionId(transactionId: Long)(implicit conn: Connection): TransactionLogPaypalStatus = SQL(
+    """
+    select * from transaction_paypal_status
+    where transaction_id = {id}
+    """
+  ).on(
+    'id -> transactionId
+  ).as(
+    simple.single
+  )
+
   def update(transactionId: Long, status: PaypalStatus)(implicit conn: Connection): Int = SQL(
     """
     update transaction_paypal_status
@@ -683,6 +694,16 @@ object TransactionLogPaypalStatus {
   ).on(
     'status -> status.ordinal,
     'transactionId -> transactionId
+  ).executeUpdate()
+
+  def onSuccess(transactionId: Long, token: Long)(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_paypal_status
+    set status = """ + PaypalStatus.COMPLETED.ordinal + """
+    where transaction_id = {transactionId} and token = {token} and status = """ + PaypalStatus.PREPARED.ordinal
+  ).on(
+    'transactionId -> transactionId,
+    'token -> token
   ).executeUpdate()
 }
 
