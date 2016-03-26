@@ -1037,6 +1037,36 @@ class TransactionSpec extends Specification {
         }
       }
     }
+
+    "Can update transaction log paypal status." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        DB.withConnection { implicit conn =>
+          TestHelper.removePreloadedRecords()
+
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val user1 = StoreUser.create(
+            "userName", "firstName", Some("middleName"), "lastName", "email",
+            1L, 2L, UserRole.ADMIN, Some("companyName")
+          )
+          val currency1 = CurrencyInfo.Jpy
+          val now = 1234L
+
+          val header = TransactionLogHeader.createNew(
+            user1.id.get, currency1.id,
+            BigDecimal(234), BigDecimal(345),
+            TransactionType.NORMAL
+          )
+
+          val ps: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(
+            header.id.get, PaypalStatus.START, 123L
+          )
+
+          ps === TransactionLogPaypalStatus.byId(ps.id.get)
+          TransactionLogPaypalStatus.update(header.id.get, PaypalStatus.COMPLETED)
+          ps.copy(status = PaypalStatus.COMPLETED) === TransactionLogPaypalStatus.byId(ps.id.get)
+        }
+      }
+    }
   }
 }
 
