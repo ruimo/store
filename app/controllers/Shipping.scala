@@ -31,6 +31,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import scala.collection.immutable
 import java.util.regex.Pattern
+import helpers.FakePaypalResponse
 
 object Shipping extends Controller with NeedLogin with HasLogger with I18nAware {
   import NeedLogin._
@@ -88,6 +89,10 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     _.getString("paypal.localeCode").getOrElse(
       throw new IllegalStateException("Specify paypal.localeCode in configuration.")
     )
+  )
+
+  val IsFakePaypalResponseEnabled: () => Boolean = Cache.config(
+    _.getBoolean("fakePaypalRespons.enabled").getOrElse(false)
   )
 
   val firstNameKanaConstraint = List(nonEmpty, maxLength(64))
@@ -369,24 +374,28 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
 
       val successUrl = UrlBase() + routes.Paypal.onSuccess(tranId, token).url
       val cancelUrl = UrlBase() + routes.Shipping.cancelPaypal().url
-      val resp: Future[WSResponse] = WS.url(PaypalApiUrl()).post(
-        Map(
-          "USER" -> Seq(PaypalUser()),
-          "PWD" -> Seq(PaypalPassword()),
-          "SIGNATURE" -> Seq(PaypalSignature()),
-          "VERSION" -> Seq(PaypalApiVersion()),
-          "PAYMENTREQUEST_0_PAYMENTACTION" -> Seq("Sale"),
-          "PAYMENTREQUEST_0_AMT" -> Seq((cart.total + cart.outerTaxTotal).toString),
-          "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq(currency.currencyCode),
-          "PAYMENTREQUEST_0_INVNUM" -> Seq(tranId.toString),
-          "RETURNURL" -> Seq("http://ruimo.com"),
-          "CANCELURL" -> Seq(cancelUrl),
-          "METHOD" -> Seq("SetExpressCheckout"),
-          "SOLUTIONTYPE" -> Seq("Sole"),
-          "LANDINGPAGE" -> Seq("Billing"),
-          "LOCALECODE" -> Seq(PaypalLocaleCode())
+      val resp: Future[WSResponse] = if (IsFakePaypalResponseEnabled()) {
+        Future.successful(FakePaypalResponse())
+      } else {
+        WS.url(PaypalApiUrl()).post(
+          Map(
+            "USER" -> Seq(PaypalUser()),
+            "PWD" -> Seq(PaypalPassword()),
+            "SIGNATURE" -> Seq(PaypalSignature()),
+            "VERSION" -> Seq(PaypalApiVersion()),
+            "PAYMENTREQUEST_0_PAYMENTACTION" -> Seq("Sale"),
+            "PAYMENTREQUEST_0_AMT" -> Seq((cart.total + cart.outerTaxTotal).toString),
+            "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq(currency.currencyCode),
+            "PAYMENTREQUEST_0_INVNUM" -> Seq(tranId.toString),
+            "RETURNURL" -> Seq("http://ruimo.com"),
+            "CANCELURL" -> Seq(cancelUrl),
+            "METHOD" -> Seq("SetExpressCheckout"),
+            "SOLUTIONTYPE" -> Seq("Sole"),
+            "LANDINGPAGE" -> Seq("Billing"),
+            "LOCALECODE" -> Seq(PaypalLocaleCode())
+          )
         )
-      )
+      }
 
       resp.map { resp =>
         val body = URLDecoder.decode(resp.body, "UTF-8")
