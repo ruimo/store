@@ -28,11 +28,18 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
     }
   }
 
-  def onCancel = NeedAuthenticated { implicit request =>
+  def onCancel(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    Ok(views.html.cancelPaypal())
-  }
 
+    DB.withConnection { implicit conn =>
+      if (TransactionLogPaypalStatus.onCancel(transactionId, token) == 0) {
+        Redirect(routes.Application.index())
+      }
+      else {
+        Ok(views.html.cancelPaypal())
+      }
+    }
+  }
 
   def fakePaypal(cmd: String, token: String) = Action { implicit request =>
     Ok(

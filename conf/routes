@@ -243,7 +243,7 @@ GET     /twitter/latestTweet             controllers.TwitterFeed.latestTweet(scr
 GET     /twitter/latestTweetJson         controllers.TwitterFeed.latestTweetJson(screenName: String, omitScript: Boolean ?= true, maxWidth: Option[Int] ?= Some(300))
 
 GET     /paypalSuccess                   controllers.Paypal.onSuccess(transactionId: Long, token: Long)
-GET     /paypalCancel                    controllers.Paypal.onCancel()
+GET     /paypalCancel                    controllers.Paypal.onCancel(transactionId: Long, token: Long)
 GET     /fakePaypal                      controllers.Paypal.fakePaypal(cmd: String, token: String)
 
 # Map static resources from the /public folder to the /assets URL path

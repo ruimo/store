@@ -373,7 +373,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       }
 
       val successUrl = UrlBase() + routes.Paypal.onSuccess(tranId, token).url
-      val cancelUrl = UrlBase() + routes.Paypal.onCancel().url
+      val cancelUrl = UrlBase() + routes.Paypal.onCancel(tranId, token).url
       val resp: Future[WSResponse] = if (IsFakePaypalResponseEnabled()) {
         Future.successful(FakePaypalResponse())
       } else {
