@@ -14,6 +14,8 @@ import play.api.data.Form
 import org.joda.time.DateTime
 import collection.immutable
 import com.ruimo.recoeng.json.SalesItem
+import helpers.Cache
+import ItemPriceStrategy.ItemPriceStrategy
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -25,7 +27,8 @@ case class ShoppingCartTotalEntry(
   itemNumericMetadata: Map[ItemNumericMetadataType, ItemNumericMetadata] = Map(),
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = Map(),
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata] = Map(),
-  siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata] = Map()
+  siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata] = Map(),
+  itemPriceStrategy: ItemPriceHistory => BigDecimal = _.unitPrice
 ) {
   lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
   lazy val quantity: Int = shoppingCartItem.quantity
@@ -263,10 +266,13 @@ object ShoppingCartItem {
     }
 
   def listItemsForUser(
-    locale: LocaleInfo, userId: Long, page: Int = 0, pageSize: Int = 100, now: Long = System.currentTimeMillis
+    locale: LocaleInfo, loginSession: LoginSession,
+    page: Int = 0, pageSize: Int = 100, now: Long = System.currentTimeMillis
   )(
     implicit conn: Connection
   ): (ShoppingCartTotal, Seq[ItemExpiredException]) = {
+    val itemPriceStrategy: ItemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(loginSession))
+
     var error = new VectorBuilder[ItemExpiredException]()
     var total = new VectorBuilder[ShoppingCartTotalEntry]()
     SQL(
@@ -285,7 +291,7 @@ object ShoppingCartItem {
       """
     ).on(
       'localeId -> locale.id,
-      'userId -> userId,
+      'userId -> loginSession.userId,
       'pageSize -> pageSize,
       'offset -> page * pageSize
     ).as(

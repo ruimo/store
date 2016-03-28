@@ -20,8 +20,7 @@ object Purchase extends Controller with NeedLogin with HasLogger with I18nAware 
     implicit val login = request.user
     val (total: ShoppingCartTotal, errors: Seq[ItemExpiredException]) = DB.withConnection { implicit conn =>
       ShoppingCartItem.listItemsForUser(
-        LocaleInfo.getDefault,
-        login.userId
+        LocaleInfo.getDefault, login
       )
     }
 

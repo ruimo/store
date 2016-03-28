@@ -392,7 +392,7 @@ class TransactionMaintenanceSpec extends Specification {
     )
 
     val (cartTotal: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
-      ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)
+      ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, LoginSession(user, None, 0))
     (1 to count) foreach {
       i => (new TransactionPersister).persist(
         Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(addr1), shippingTotal1, shippingDate1, now)

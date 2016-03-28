@@ -222,7 +222,10 @@ class TransactionSpec extends Specification {
               .add(site2, itemClass1, 5)
           )
 
-          val cart = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)._1
+          val cart = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0L)
+          )._1
           val addr = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "FirstName",
@@ -398,7 +401,10 @@ class TransactionSpec extends Specification {
               .add(site2, itemClass1, 5)
           )
 
-          val cart = ShoppingCartItem.listItemsForUser(Ja, user1.id.get)._1
+          val cart = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0L)
+          )._1
           val addr = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "FirstName",

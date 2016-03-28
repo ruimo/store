@@ -37,8 +37,7 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
       DB.withConnection { implicit conn => {
         ShoppingCartItem.addItem(login.userId, siteId, itemId, quantity)
         val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) = ShoppingCartItem.listItemsForUser(
-          LocaleInfo.getDefault, 
-          login.userId
+          LocaleInfo.getDefault, login
         )
 
         Ok(
@@ -68,8 +67,7 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
         }
 
         val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) = ShoppingCartItem.listItemsForUser(
-          LocaleInfo.getDefault, 
-          login.userId
+          LocaleInfo.getDefault, login
         )
 
         Ok(

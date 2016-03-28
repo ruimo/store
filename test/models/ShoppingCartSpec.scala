@@ -94,7 +94,11 @@ class ShoppingCartSpec extends Specification {
           cart3.quantity === 10
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja, 
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -109,7 +113,11 @@ class ShoppingCartSpec extends Specification {
           list1(1).itemPriceHistory === ph4
 
           val time2 = date("2013-01-01").getTime
-          val list2 = ShoppingCartItem.listItemsForUser(Ja, user2.id.get, 0, 10, time2)._1
+          val list2 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user2, None, 0),
+            0, 10, time2
+          )._1
           list2.size === 1
           list2(0).shoppingCartItem === cart3
           list2(0).itemName === name1(Ja)
@@ -191,7 +199,11 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 3
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -274,7 +286,11 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 3
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja, 
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -359,7 +375,11 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 3
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -433,7 +453,11 @@ class ShoppingCartSpec extends Specification {
           cart2.quantity === 10
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja, 
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
           list1.size === 2
           list1(0).shoppingCartItem === cart1
           list1(0).itemName === name1(Ja)
@@ -450,7 +474,11 @@ class ShoppingCartSpec extends Specification {
           // Add same id as cart1. Will increase quantity.
           val cart3 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item1.id.get.id, 3)
 
-          val list2 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list2 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
           list2.size === 2
           cart3.quantity === 5
           list2(0).shoppingCartItem === cart3
@@ -544,7 +572,11 @@ class ShoppingCartSpec extends Specification {
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 3)
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
 
           list1.size === 2
           list1.taxTotal === BigDecimal((101 * 2 + 301 * 3) * 5 / 100)
@@ -599,7 +631,11 @@ class ShoppingCartSpec extends Specification {
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 1)
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
 
           list1.size === 2
           list1.taxTotal === BigDecimal((119 * 5 / 100) + (59 * 5 /100))
@@ -654,7 +690,11 @@ class ShoppingCartSpec extends Specification {
           val cart2 = ShoppingCartItem.addItem(user1.id.get, site1.id.get, item2.id.get.id, 1)
 
           val time = date("2013-01-04").getTime
-          val list1 = ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 10, time)._1
+          val list1 = ShoppingCartItem.listItemsForUser(
+            Ja,
+            LoginSession(user1, None, 0),
+            0, 10, time
+          )._1
 
           list1.size === 2
           list1.taxTotal === BigDecimal((59 * 5 / 105) + (119 * 5 / 100))
@@ -843,19 +883,31 @@ class ShoppingCartSpec extends Specification {
           val cart4 = ShoppingCartItem.addItem(user1.id.get, site2.id.get, item4.id.get.id, 1)
 
           doWith(
-            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:01"))
+            ShoppingCartItem.listItemsForUser(
+              Ja, 
+              LoginSession(user1, None, 0),
+              0, 100, timestamp("2013-01-02 00:00:01")
+            )
           ) { t =>
             t._2.size === 2
           }
           doWith(
-            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:00"))
+            ShoppingCartItem.listItemsForUser(
+              Ja, 
+              LoginSession(user1, None, 0),
+              0, 100, timestamp("2013-01-02 00:00:00")
+            )
           ) { t =>
             t._2.size === 1
           }
 
           ShoppingCartItem.removeExpiredItems(user1.id.get, timestamp("2013-01-02 00:00:00")) === 1
           doWith(
-            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:00"))
+            ShoppingCartItem.listItemsForUser(
+              Ja, 
+              LoginSession(user1, None, 0),
+              0, 100, timestamp("2013-01-02 00:00:00")
+            )
           ) { t =>
             t._2.size === 0
             doWith(t._1.table) { total =>
@@ -868,7 +920,11 @@ class ShoppingCartSpec extends Specification {
 
           ShoppingCartItem.removeExpiredItems(user1.id.get, timestamp("2013-01-02 00:00:02")) === 2
           doWith(
-            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-02 00:00:00"))
+            ShoppingCartItem.listItemsForUser(
+              Ja,
+              LoginSession(user1, None, 0),
+              0, 100, timestamp("2013-01-02 00:00:00")
+            )
           ) { t =>
             t._2.size === 0
             doWith(t._1.table) { total =>
@@ -882,7 +938,11 @@ class ShoppingCartSpec extends Specification {
           ShoppingCartItem.addItem(user1.id.get, site1.id.get, item3.id.get.id, 1)
 
           doWith(
-            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-01 23:59:59"))
+            ShoppingCartItem.listItemsForUser(
+              Ja,
+              LoginSession(user1, None, 0),
+              0, 100, timestamp("2013-01-01 23:59:59")
+            )
           ) { t =>
             t._2.size === 0
             t._1.table.size === 4
@@ -896,7 +956,11 @@ class ShoppingCartSpec extends Specification {
           ).executeUpdate() === 1
 
           doWith(
-            ShoppingCartItem.listItemsForUser(Ja, user1.id.get, 0, 100, timestamp("2013-01-01 23:59:59"))
+            ShoppingCartItem.listItemsForUser(
+              Ja,
+              LoginSession(user1, None, 0),
+              0, 100, timestamp("2013-01-01 23:59:59")
+            )
           ) { t =>
             t._2.size === 1
             doWith(t._1.table) { total =>

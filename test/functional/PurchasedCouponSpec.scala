@@ -202,7 +202,7 @@ class PurchasedCouponSpec extends Specification {
     )
 
     val (cartTotal: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
-      ShoppingCartItem.listItemsForUser(Ja, user.id.get)
+      ShoppingCartItem.listItemsForUser(Ja, LoginSession(user, None, 0))
     val tranId = (new TransactionPersister).persist(
       Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(addr1), shippingTotal1, shippingDate1, now)
     )

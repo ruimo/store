@@ -188,7 +188,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     implicit val login = request.user
     DB.withConnection { implicit conn =>
       val (cart: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
-        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login)
 
       if (! errors.isEmpty) {
         Ok(views.html.itemExpired(errors))
@@ -276,7 +276,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     },
     transactionType => DB.withTransaction { implicit conn =>
       val (cart: ShoppingCartTotal, expErrors: Seq[ItemExpiredException]) =
-        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login.userId)
+        ShoppingCartItem.listItemsForUser(LocaleInfo.getDefault, login)
 
       if (! expErrors.isEmpty) {
         Future.successful(Ok(views.html.itemExpired(expErrors)))

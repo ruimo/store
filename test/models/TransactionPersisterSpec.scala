@@ -39,7 +39,10 @@ class TransactionPersisterSpec extends Specification {
           val shoppingCartItem = ShoppingCartItem.addItem(
             user.id.get, site.id.get, item.id.get.id, 2
           )
-          val cartTotal = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)._1
+          val cartTotal = ShoppingCartItem.listItemsForUser(
+            LocaleInfo.Ja,
+            LoginSession(user, None, 0)
+          )._1
           val address = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "First Name",
@@ -133,7 +136,10 @@ class TransactionPersisterSpec extends Specification {
           val shoppingCartItem = ShoppingCartItem.addItem(
             user.id.get, site.id.get, item.id.get.id, 2
           )
-          val cartTotal = ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, user.id.get)._1
+          val cartTotal = ShoppingCartItem.listItemsForUser(
+            LocaleInfo.Ja,
+            LoginSession(user, None, 0)
+          )._1
           val address = Address.createNew(
             countryCode = CountryCode.JPN,
             firstName = "First Name",
