@@ -35,7 +35,7 @@ object UnitPriceStrategy extends ItemPriceStrategy {
 
 object ListPriceStrategy extends ItemPriceStrategy {
   def price(in: ItemPriceStrategyInput): BigDecimal = in.itemPriceHistory.listPrice.getOrElse(
-    in.itemPriceHistory.unitPrice
+    in.itemPriceHistory.listPrice.getOrElse(in.itemPriceHistory.unitPrice)
   )
   val columnName = "list_price"
 }
