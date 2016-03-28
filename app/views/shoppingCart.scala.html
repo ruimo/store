@@ -24,7 +24,7 @@
 
   @if(! list.table.isEmpty) {
     <table class="shoppingCartTable">
-      <tr>
+      <tr class="tableHeader">
         <th>@Messages("itemName")</th>
         <th>@Messages("site")</th>
         <th>@Messages("unitPrice")</th>
@@ -38,11 +38,11 @@
       </tr>
 
       @list.table.map { e =>
-        <tr>
-          <td>@e.itemName.name</td>
-          <td>@e.site.name</td>
-          <td>@amount(e.unitPrice)</td>
-          <td>
+        <tr class="tableBody">
+          <td class="itemName">@e.itemName.name</td>
+          <td class="siteName">@e.site.name</td>
+          <td class="unitPrice">@amount(e.unitPrice)</td>
+          <td class="changeQuantity">
             <form id="changeItemQuantityInShoppingCart" action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
               <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">
               <input type="text" style="text-align: right;" name="quantity" value="@e.shoppingCartItem.quantity">
@@ -53,7 +53,7 @@
               <input type="submit" value="@Messages("remove")">
             </form>
           </td>
-          <td>
+          <td class="price">
             @amount(e.itemPrice)
           </td>
         </tr>
