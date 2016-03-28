@@ -112,7 +112,7 @@ object ShoppingCart extends Controller with I18nAware with NeedLogin with HasLog
         Seq(
           "itemName" -> JsString(e.itemName.name),
           "siteName" -> JsString(e.site.name),
-          "unitPrice" -> JsString(ViewHelpers.toAmount(e.itemPriceHistory.unitPrice)),
+          "unitPrice" -> JsString(ViewHelpers.toAmount(e.unitPrice)),
           "quantity" -> JsString(e.shoppingCartItem.quantity.toString),
           "price" -> JsString(ViewHelpers.toAmount(e.itemPrice))
         )

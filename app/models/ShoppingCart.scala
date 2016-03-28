@@ -15,7 +15,6 @@ import org.joda.time.DateTime
 import collection.immutable
 import com.ruimo.recoeng.json.SalesItem
 import helpers.Cache
-import ItemPriceStrategy.ItemPriceStrategy
 
 case class ShoppingCartTotalEntry(
   shoppingCartItem: ShoppingCartItem,
@@ -28,9 +27,9 @@ case class ShoppingCartTotalEntry(
   siteItemNumericMetadata: Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = Map(),
   itemTextMetadata: Map[ItemTextMetadataType, ItemTextMetadata] = Map(),
   siteItemTextMetadata: Map[SiteItemTextMetadataType, SiteItemTextMetadata] = Map(),
-  itemPriceStrategy: ItemPriceHistory => BigDecimal = _.unitPrice
+  itemPriceStrategy: ItemPriceStrategy
 ) {
-  lazy val unitPrice: BigDecimal = itemPriceHistory.unitPrice
+  lazy val unitPrice: BigDecimal = itemPriceStrategy.price(ItemPriceStrategyInput(itemPriceHistory))
   lazy val quantity: Int = shoppingCartItem.quantity
   lazy val itemPrice: BigDecimal = unitPrice * quantity
   lazy val costUnitPrice: BigDecimal = itemPriceHistory.costPrice
@@ -48,7 +47,8 @@ case class ShoppingCartTotalEntry(
     itemNumericMetadata,
     siteItemNumericMetadata,
     itemTextMetadata,
-    siteItemTextMetadata
+    siteItemTextMetadata,
+    itemPriceStrategy
   )
 }
 
@@ -69,7 +69,7 @@ case class ShoppingCartTotal(
   lazy val sumByTaxId = table.foldLeft(LongMap().withDefaultValue(BigDecimal(0))) {
     (sum, e) => sum.updated(
       e.taxHistory.taxId,
-      e.itemPriceHistory.unitPrice * e.shoppingCartItem.quantity + sum(e.taxHistory.taxId)
+      e.unitPrice * e.shoppingCartItem.quantity + sum(e.taxHistory.taxId)
     )
   }
   lazy val outerTaxTotal: BigDecimal = taxByType.get(TaxType.OUTER_TAX).getOrElse(BigDecimal(0))
@@ -307,7 +307,9 @@ object ShoppingCartItem {
           val siteMetadata = SiteItemNumericMetadata.all(e._5.id.get, itemId)
           val siteTextMetadata = SiteItemTextMetadata.all(e._5.id.get, itemId)
           total += ShoppingCartTotalEntry(
-            e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata, textMetadata, siteTextMetadata
+            e._1, e._2, e._3, e._5, priceHistory, taxHistory, metadata, siteMetadata,
+            textMetadata, siteTextMetadata,
+            itemPriceStrategy
           )
         case None =>
           error += new ItemExpiredException(e._1, e._2, e._5)

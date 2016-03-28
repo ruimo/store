@@ -24,7 +24,8 @@ class ShoppingCartSpec extends Specification with Mockito {
           itemDescription = mock[ItemDescription],
           site = Site(Some(1L), 0L, "site1"),
           itemPriceHistory = mock[ItemPriceHistory],
-          taxHistory = mock[TaxHistory]
+          taxHistory = mock[TaxHistory],
+          itemPriceStrategy = UnitPriceStrategy
         ),
 
         ShoppingCartTotalEntry(
@@ -40,7 +41,8 @@ class ShoppingCartSpec extends Specification with Mockito {
           itemDescription = mock[ItemDescription],
           site = Site(Some(1L), 0L, "site1"),
           itemPriceHistory = mock[ItemPriceHistory],
-          taxHistory = mock[TaxHistory]
+          taxHistory = mock[TaxHistory],
+          itemPriceStrategy = UnitPriceStrategy
         )
       )
 

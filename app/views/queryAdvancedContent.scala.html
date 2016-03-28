@@ -10,7 +10,8 @@
     Map[ItemTextMetadataType, ItemTextMetadata],
     Map[SiteItemTextMetadataType, SiteItemTextMetadata]
   )],
-  query: (Int, Int, Int, String) => Call
+  query: (Int, Int, Int, String) => Call,
+  itemPriceStrategy: ItemPriceStrategy
 )(
   implicit lang: Lang,
   token: play.filters.csrf.CSRF.Token,
@@ -21,6 +22,6 @@
 @import helper._
 
 <table>
-@queryItemTableBody(list)
+@queryItemTableBody(list, itemPriceStrategy)
 </table>
 @pagingPanel(list, query(_, _, 0, _), 10, 25, 50)

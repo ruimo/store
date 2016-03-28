@@ -7,7 +7,7 @@ import controllers.I18n.I18nAware
 import helpers.RecommendEngine
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.Json
-import models.LocaleInfo
+import models.{LocaleInfo, LoginSession, ItemPriceStrategy, ItemPriceStrategyContext}
 import models.SiteItemNumericMetadataType
 import play.api.libs.json.{JsValue, Json}
 import helpers.ViewHelpers
@@ -27,11 +27,13 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   def maxRecommendCount: Int = config.getInt("recommend.maxCount").getOrElse(5)
 
   def byItemJson(siteId: Long, itemId: Long) = NeedAuthenticated.async { implicit request =>
+    val login = request.user
+
     scala.concurrent.Future {
       DB.withConnection { implicit conn =>
         val items = byItems(
           Seq(SalesItem(siteId.toString, itemId.toString, 1)),
-          LocaleInfo.getDefault
+          LocaleInfo.getDefault, login
         )
 
         Ok(Json.toJson(Map("recommended" -> items)))
@@ -40,14 +42,17 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   }
 
   def byItems(
-    shoppingCartItems: Seq[SalesItem], locale: LocaleInfo
+    shoppingCartItems: Seq[SalesItem], locale: LocaleInfo, loginSession: LoginSession
   )(
     implicit conn: Connection, lang: Lang
   ): Seq[JsValue] = {
     val byTransaction: Seq[models.ItemDetail] = RecommendEngine.recommendByItem(
       shoppingCartItems
     ).map {
-      it => models.ItemDetail.show(it.storeCode.toLong, it.itemCode.toLong, locale)
+      it => models.ItemDetail.show(
+        it.storeCode.toLong, it.itemCode.toLong, locale, 
+        itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(loginSession))
+      )
     }.flatMap {
       x => x
     }.filter {
@@ -57,7 +62,7 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
     }
 
     val byBoth = if (byTransaction.size < maxRecommendCount) {
-      byTransaction ++ byAdmin(shoppingCartItems, maxRecommendCount - byTransaction.size, locale)
+      byTransaction ++ byAdmin(shoppingCartItems, maxRecommendCount - byTransaction.size, locale, loginSession)
     }
     else {
       byTransaction
@@ -74,14 +79,19 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
     }
   }
 
-  def byAdmin(shoppingCartItems: Seq[SalesItem], maxCount: Int, locale: LocaleInfo)(
+  def byAdmin(
+    shoppingCartItems: Seq[SalesItem], maxCount: Int, locale: LocaleInfo, loginSession: LoginSession
+  )(
     implicit conn: Connection, lang: Lang
   ): Seq[models.ItemDetail] = calcByAdmin(
     shoppingCartItems, maxCount, 
     (maxRecordCount: Int) => RecommendByAdmin.listByScore(
       showDisabled = false, locale, page = 0, pageSize = maxRecordCount
     ),
-    (siteId: Long, itemId: Long) => models.ItemDetail.show(siteId, itemId, locale).get
+    (siteId: Long, itemId: Long) => models.ItemDetail.show(
+      siteId, itemId, locale,
+      itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(loginSession))
+    ).get
   )
 
   def calcByAdmin(
@@ -99,11 +109,13 @@ object Recommendation extends Controller with NeedLogin with HasLogger with I18n
   }
 
   def byShoppingCartJson() = NeedAuthenticated.async { implicit request =>
+    val login = request.user
+
     scala.concurrent.Future {
       DB.withConnection { implicit conn =>
         val items = byItems(
           ShoppingCartItem.listAllItemsForUser(request.user.storeUser.id.get),
-          LocaleInfo.getDefault
+          LocaleInfo.getDefault, login
         )
           
         Ok(Json.toJson(Map("recommended" -> items)))

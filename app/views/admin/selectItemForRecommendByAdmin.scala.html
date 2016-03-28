@@ -9,7 +9,8 @@
     Map[ItemNumericMetadataType, ItemNumericMetadata],
     Option[Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
     Map[ItemTextMetadataType, ItemTextMetadata]
-  )]
+  )],
+  itemPriceStrategy: ItemPriceStrategy
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
@@ -70,7 +71,7 @@
           @orderMark(
             Messages("unitPrice"),
             routes.RecommendationByAdmin.selectItem(queryString.toList, _: Int, _: Int, _: String),
-            "item_price_history.unit_price", list
+            "item_price_history." + itemPriceStrategy.columnName, list
           )
         </th>
       }
@@ -87,7 +88,7 @@
         <span class="itemName">@e._2.map(_.name).getOrElse("-")</span>
       </td>
       <td class="itemTableSiteName">@e._4.map(_.name).getOrElse("-")</td>
-      <td class="itemTablePrice">@e._5.map {p => @amount(p.unitPrice)}.getOrElse("-")</td>
+      <td class="itemTablePrice">@e._5.map {p => @amount(itemPriceStrategy.price(ItemPriceStrategyInput(p)))}.getOrElse("-")</td>
     </tr>
     }
   </table>

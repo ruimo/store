@@ -1,7 +1,8 @@
 @(
   query: (Int, Int, Int, String) => Call,
   list: PagedRecords[_],
-  templateNo: Int
+  templateNo: Int,
+  itemPriceStrategy: ItemPriceStrategy
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -13,8 +14,8 @@ var links = {
   'older': '@query(0, list.pageSize, templateNo, "site_item.created")',
   'name': '@query(0, list.pageSize, templateNo, "item_name.item_name")',
   'nameReverse': '@query(0, list.pageSize, templateNo, "item_name.item_name desc")',
-  'price': '@query(0, list.pageSize, templateNo, "item_price_history.unit_price")',
-  'priceReverse': '@query(0, list.pageSize, templateNo, "item_price_history.unit_price desc")',
+  'price': '@query(0, list.pageSize, templateNo, "item_price_history." + itemPriceStrategy.columnName)',
+  'priceReverse': '@query(0, list.pageSize, templateNo, "item_price_history." + itemPriceStrategy.columnName + " desc")',
 }
 var onSortOrderChanged = function(o) {
   location.href = links[o.value];

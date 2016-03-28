@@ -12,25 +12,35 @@ import com.typesafe.config.ConfigValue
 import play.api.Logger
 
 case class ItemPriceStrategyContext(
-  loginSession: LoginSession
+  loginSession: Option[LoginSession]
 )
+
+object ItemPriceStrategyContext {
+  def apply(ls: LoginSession): ItemPriceStrategyContext = ItemPriceStrategyContext(Some(ls))
+}
 
 case class ItemPriceStrategyInput(
   itemPriceHistory: ItemPriceHistory
 )
 
-object UnitPriceStrategy extends ItemPriceStrategy.ItemPriceStrategy {
-  def apply(in: ItemPriceStrategyInput): BigDecimal = in.itemPriceHistory.unitPrice
+trait ItemPriceStrategy {
+  def price(in: ItemPriceStrategyInput): BigDecimal
+  def columnName: String
 }
 
-object ListPriceStrategy extends ItemPriceStrategy.ItemPriceStrategy {
-  def apply(in: ItemPriceStrategyInput): BigDecimal = in.itemPriceHistory.listPrice.getOrElse(
+object UnitPriceStrategy extends ItemPriceStrategy {
+  def price(in: ItemPriceStrategyInput): BigDecimal = in.itemPriceHistory.unitPrice
+  val columnName = "unit_price"
+}
+
+object ListPriceStrategy extends ItemPriceStrategy {
+  def price(in: ItemPriceStrategyInput): BigDecimal = in.itemPriceHistory.listPrice.getOrElse(
     in.itemPriceHistory.unitPrice
   )
+  val columnName = "list_price"
 }
 
 object ItemPriceStrategy {
-  type ItemPriceStrategy = ItemPriceStrategyInput => BigDecimal
   val logger = Logger(getClass)
   private var ObjectCache: mutable.Map[String, ItemPriceStrategy] = TrieMap()
 
@@ -57,5 +67,5 @@ object ItemPriceStrategy {
     }
 
   def apply(ctx: ItemPriceStrategyContext): ItemPriceStrategy =
-    ItemPriceStrategyConf()(ctx.loginSession.role.typeCode)
+    ItemPriceStrategyConf()(ctx.loginSession.map {_.role.typeCode}.getOrElse(UserTypeCode.GUEST))
 }

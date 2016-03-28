@@ -12,7 +12,6 @@ import controllers.I18n.I18nAware
 import helpers.RecommendEngine
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.Json
-import models.LocaleInfo
 import models.SiteItemNumericMetadataType
 import play.api.libs.json.{JsValue, Json}
 import helpers.ViewHelpers
@@ -53,7 +52,12 @@ object RecommendationByAdmin extends Controller with NeedLogin with HasLogger wi
           pageSize = pgSize, orderBy = OrderBy(orderBySpec)
         )
 
-        Ok(views.html.admin.selectItemForRecommendByAdmin(queryStr, list))
+        Ok(
+          views.html.admin.selectItemForRecommendByAdmin(
+            queryStr, list,
+            ItemPriceStrategy(ItemPriceStrategyContext(login))
+          )
+        )
       }
     }
   }

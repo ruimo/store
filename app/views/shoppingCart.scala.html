@@ -41,7 +41,7 @@
         <tr>
           <td>@e.itemName.name</td>
           <td>@e.site.name</td>
-          <td>@amount(e.itemPriceHistory.unitPrice)</td>
+          <td>@amount(e.unitPrice)</td>
           <td>
             <form id="changeItemQuantityInShoppingCart" action="@routes.Purchase.changeItemQuantity()" style="display: inline;">
               <input type="hidden" name="cartId" value="@e.shoppingCartItem.id.get">

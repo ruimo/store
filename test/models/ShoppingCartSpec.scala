@@ -758,7 +758,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item1.id.get.id,
               quantity = 4
             ),
-            name1(Ja), desc1, site1, ph1, taxHistory1, Map(), Map(), Map()
+            name1(Ja), desc1, site1, ph1, taxHistory1, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
 
           val e2 = ShoppingCartTotalEntry(
@@ -770,7 +771,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item2.id.get.id,
               quantity = 4
             ),
-            name2(Ja), desc2, site2, ph2, taxHistory1, Map(), Map(), Map()
+            name2(Ja), desc2, site2, ph2, taxHistory1, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
 
           val total = ShoppingCartTotal(
@@ -1030,7 +1032,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item1.id.get.id,
               quantity = 2
             ),
-            name1(Ja), desc1, site1, ph1, taxHistory, Map(), Map(), Map()
+            name1(Ja), desc1, site1, ph1, taxHistory, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
           val e21 = ShoppingCartTotalEntry(
             ShoppingCartItem(
@@ -1041,7 +1044,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item1.id.get.id,
               quantity = 4
             ),
-            name1(Ja), desc21, site2, ph21, taxHistory, Map(), Map(), Map()
+            name1(Ja), desc21, site2, ph21, taxHistory, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
           val e22 = ShoppingCartTotalEntry(
             ShoppingCartItem(
@@ -1052,7 +1056,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item2.id.get.id,
               quantity = 6
             ),
-            name2(Ja), desc22, site2, ph22, taxHistory, Map(), Map(), Map()
+            name2(Ja), desc22, site2, ph22, taxHistory, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
           val e3 = ShoppingCartTotalEntry(
             ShoppingCartItem(
@@ -1063,7 +1068,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item3.id.get.id,
               quantity = 8
             ),
-            name3(Ja), desc3, site3, ph3, taxHistory, Map(), Map(), Map()
+            name3(Ja), desc3, site3, ph3, taxHistory, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
           val e4 = ShoppingCartTotalEntry(
             ShoppingCartItem(
@@ -1074,7 +1080,8 @@ class ShoppingCartSpec extends Specification {
               itemId = item3.id.get.id,
               quantity = 12
             ),
-            name3(Ja), desc3, site3, ph3, taxHistory, Map(), Map(), Map()
+            name3(Ja), desc3, site3, ph3, taxHistory, Map(), Map(), Map(),
+            itemPriceStrategy = UnitPriceStrategy
           )
 
           val total = ShoppingCartTotal(e1 :: e21 :: e22 :: e3 :: e4 :: Nil)

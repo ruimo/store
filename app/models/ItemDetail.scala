@@ -33,7 +33,8 @@ object ItemDetail {
   }
 
   def show(
-    siteId: Long, itemId: Long, locale: LocaleInfo, now: Long = System.currentTimeMillis
+    siteId: Long, itemId: Long, locale: LocaleInfo, now: Long = System.currentTimeMillis,
+    itemPriceStrategy: ItemPriceStrategy
   )(implicit conn: Connection): Option[ItemDetail] = SQL(
       """
       select * from item
@@ -60,7 +61,7 @@ object ItemDetail {
         ItemTextMetadata.allById(ItemId(itemId)),
         SiteItemNumericMetadata.all(siteId, ItemId(itemId)),
         SiteItemTextMetadata.all(siteId, ItemId(itemId)),
-        priceHistory.unitPrice,
+        itemPriceStrategy.price(ItemPriceStrategyInput(priceHistory)),
         priceHistory.listPrice,
         Site(siteId).name
       )

@@ -6,7 +6,7 @@ import db.DB
 import libs.json.{JsObject, Json, JsString, JsArray}
 import play.api.mvc._
 
-import models.{OrderBy, Item, LocaleInfo, CategoryName}
+import models.{OrderBy, Item, LocaleInfo, CategoryName, ItemPriceStrategy, ItemPriceStrategyContext}
 import play.api.Play.current
 import controllers.I18n.I18nAware
 import helpers.QueryString
@@ -24,18 +24,21 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       pageSize = pageSize,
       orderBy = OrderBy(orderBySpec)
     )
+    val itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(optLogin))
     Ok(
       if (templateNo == 0)
         views.html.query(
           "", queryString, list,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.query(qs, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.query(qs, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
       else
         views.html.queryTemplate(
           "", queryString, list, templateNo,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.query(qs, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.query(qs, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
     )
   }}}
@@ -53,18 +56,21 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       pageSize = pageSize,
       orderBy = OrderBy(orderBySpec)
     )
+    val itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(optLogin))
     Ok(
       if (templateNo == 0)
         views.html.query(
           "", queryString, list,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.queryByCategory(qs, c, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.queryByCategory(qs, c, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
       else
         views.html.queryTemplate(
           "", queryString, list, templateNo,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.queryByCategory(qs, c, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.queryByCategory(qs, c, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
     )
   }}}
@@ -82,18 +88,21 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       pageSize = pageSize,
       orderBy = OrderBy(orderBySpec)
     )
+    val itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(optLogin))
     Ok(
       if (templateNo == 0)
         views.html.query(
           "", queryString, list,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.queryBySite(qs, sid, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.queryBySite(qs, sid, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
       else
         views.html.queryTemplate(
           "", queryString, list, templateNo,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.queryBySite(qs, sid, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.queryBySite(qs, sid, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
     )
   }}}
@@ -113,18 +122,21 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       pageSize = pageSize,
       orderBy = OrderBy(orderBySpec)
     )
+    val itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(optLogin))
     Ok(
       if (templateNo == 0)
         views.html.query(
           "", queryString, list,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.queryBySiteAndCategory(qs, sid, c, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.queryBySiteAndCategory(qs, sid, c, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
       else
         views.html.queryTemplate(
           "", queryString, list, templateNo,
           (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-            routes.ItemQuery.queryBySiteAndCategory(qs, sid, c, newPage, newPageSize, newOrderBy, newTemplateNo)
+            routes.ItemQuery.queryBySiteAndCategory(qs, sid, c, newPage, newPageSize, newOrderBy, newTemplateNo),
+          itemPriceStrategy
         )
     )
   }}}
@@ -191,11 +203,13 @@ object ItemQuery extends Controller with I18nAware with NeedLogin {
       orderBy = OrderBy(orderBySpec)
     )
 
+    val itemPriceStrategy = ItemPriceStrategy(ItemPriceStrategyContext(optLogin))
     Ok(
       views.html.queryAdvancedContent(
         list,
         (newPage, newPageSize, newTemplateNo, newOrderBy) =>
-          routes.ItemQuery.queryAdvanced(qs, cs, ccs, sid, newPage, newPageSize, newOrderBy, templateNo)
+          routes.ItemQuery.queryAdvanced(qs, cs, ccs, sid, newPage, newPageSize, newOrderBy, templateNo),
+        itemPriceStrategy
       )
     )
   }}

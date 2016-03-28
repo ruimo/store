@@ -12,7 +12,8 @@
     Map[ItemTextMetadataType, ItemTextMetadata],
     Map[SiteItemTextMetadataType, SiteItemTextMetadata]
   )],
-  query: (Int, Int, Int, String) => Call
+  query: (Int, Int, Int, String) => Call,
+  itemPriceStrategy: ItemPriceStrategy
 )(
   implicit lang: Lang,
   token: play.filters.csrf.CSRF.Token,
@@ -24,7 +25,7 @@
 
 @main(Messages("item.list"), loginSession) {
   @shoppingCartDialogDeclaration()
-  @itemQueryOrderDropDown(query, list, 0)
+  @itemQueryOrderDropDown(query, list, 0, itemPriceStrategy)
 } {
   @shoppingCartDialogImplementation()
 
@@ -51,10 +52,10 @@
           <option value="nameReverse" @{if(list.orderBy == OrderBy("item_name.item_name", Desc)) "selected" else ""}>
             名前順(逆順)
           </option>
-          <option value="price" @{if(list.orderBy == OrderBy("item_price_history.unit_price", Asc)) "selected" else ""}>
+          <option value="price" @{if(list.orderBy == OrderBy("item_price_history." + itemPriceStrategy.columnName, Asc)) "selected" else ""}>
             価格順(安い順)
           </option>
-          <option value="priceReverse" @{if(list.orderBy == OrderBy("item_price_history.unit_price", Desc)) "selected" else ""}>
+          <option value="priceReverse" @{if(list.orderBy == OrderBy("item_price_history." + itemPriceStrategy.columnName, Desc)) "selected" else ""}>
             価格順(高い順)
           </option>
         </select>
@@ -89,12 +90,12 @@
           @orderMark(
             Messages("unitPrice"),
             query(_: Int, _: Int, 0, _: String),
-            "item_price_history.unit_price", list
+            "item_price_history." + itemPriceStrategy.columnName, list
           )
         </th>
         <th></th>
       </tr>
-      @queryItemTableBody(list)
+      @queryItemTableBody(list, itemPriceStrategy)
     </table>
     <br>
     @pagingPanel(list, query(_, _, 0, _), 10, 25, 50)
