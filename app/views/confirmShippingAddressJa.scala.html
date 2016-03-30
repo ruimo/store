@@ -139,7 +139,13 @@
   }
 
   @if(AcceptableTender.AcceptableTender()(loginSession.role.typeCode).contains(TenderType.PAYPAL)) {
-    <img alt='@Messages("payBalPaypal")' src="https://www.paypal.com/ja_JP/i/btn/btn_xpressCheckout.gif"
+    <img alt='@Messages("payByPaypal")' src="https://www.paypal.com/ja_JP/i/btn/btn_xpressCheckout.gif"
          onclick="doPurchase('payByPaypal');" id="paypalimg">
+  }
+
+  @if(AcceptableTender.AcceptableTender()(loginSession.role.typeCode).contains(TenderType.PAYPAL_WEB_PAYMENT_PLUS)) {
+    <button onclick="doPurchase('payByPaypalWebPaymentPlus');" id="paypalWebPaymentImg">
+      @Messages("payByPaypalCredit")
+    </button>
   }
 }

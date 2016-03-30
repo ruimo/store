@@ -95,6 +95,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     _.getBoolean("fakePaypalRespons.enabled").getOrElse(false)
   )
 
+  val PaypalId: () => String = Cache.config(
+    _.getString("paypalWebPaymentPlus.paypalId").getOrElse(
+      throw new IllegalStateException("Specify paypalWebPaymentPlus.paypalId to use paypal web payment plus.")
+    )
+  )
+
   val firstNameKanaConstraint = List(nonEmpty, maxLength(64))
   val lastNameKanaConstraint = List(nonEmpty, maxLength(64))
 
@@ -312,6 +318,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           transactionType match {
             case "payByAccountingBill" => Future.successful(payByAccountingBill(currency, cart))
             case "payByPaypal" => payByPaypal(currency, cart)
+            case "payByPaypalWebPaymentPlus" => payByPaypalWebPeymentPlus(currency, cart)
           }
         }
       }
@@ -425,6 +432,44 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
             Ok(views.html.paypalError())
         }
       }
+    }
+    catch {
+      case e: CannotShippingException => {
+        Future.successful(
+          Ok(views.html.cannotShipJa(cannotShip(cart, e, addr), addr, e.itemClass))
+        )
+      }
+    }
+  }
+
+  def payByPaypalWebPeymentPlus(
+    currency:CurrencyInfo, cart: ShoppingCartTotal
+  )(
+    implicit request: Request[AnyContent], login: LoginSession
+  ): Future[Result] = DB.withConnection { implicit conn =>
+    val his = ShippingAddressHistory.list(login.userId).head
+    val addr = Address.byId(his.addressId)
+    val shippingDateBySite = cart.sites.foldLeft(LongMap[ShippingDateEntry]()) { (sum, e) =>
+      sum.updated(e.id.get, ShippingDateEntry(e.id.get, ShoppingCartShipping.find(login.userId, e.id.get)))
+    }
+
+    try {
+      val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]], token: Long) = {
+        val persister = new TransactionPersister()
+        persister.persistPaypalWebPaymentPlus(
+          Transaction(
+            login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shippingDateBySite)
+          )
+        )
+      }
+
+      val subTotal = cart.total + cart.outerTaxTotal
+      val paypalId = PaypalId()
+      val successUrl = UrlBase() + routes.Paypal.onWebPaymentSuccess(tranId, token).url
+      val cancelUrl = UrlBase() + routes.Paypal.onWebPaymentCancel(tranId, token).url
+      Future.successful(
+        Ok(views.html.paypalWebPaymentPlusStart(subTotal, paypalId, successUrl, cancelUrl))
+      )
     }
     catch {
       case e: CannotShippingException => {

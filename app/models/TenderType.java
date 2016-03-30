@@ -6,7 +6,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Arrays;
 
 public enum TenderType {
-    PAYPAL, ACCOUNTING_BILL;
+    PAYPAL, ACCOUNTING_BILL, PAYPAL_WEB_PAYMENT_PLUS;
 
     private static final TenderType byIndex[] = TenderType.class.getEnumConstants();
     private static final Map<String, TenderType> byString;

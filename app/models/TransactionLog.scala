@@ -1425,6 +1425,32 @@ class TransactionPersister {
     (transactionId, taxesBySite, paypalToken)
   }
 
+  def persistPaypalWebPaymentPlus(
+    tran: Transaction
+  )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]], Long) = {
+    val (transactionId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
+      = persist(tran, TransactionType.PAYPAL_WEB_PAYMENT_PLUS)
+
+    val outerTax: BigDecimal = taxesBySite.values.foldLeft(BigDecimal(0)) { (sum, e) =>
+      sum + e.foldLeft(BigDecimal(0)) { (sum2, e2) =>
+        sum2 + (
+          if (e2.taxType == TaxType.OUTER_TAX) e2.amount else BigDecimal(0)
+        )
+      }
+    }
+    val creditLog: TransactionLogCreditTender = TransactionLogCreditTender.createNew(
+      transactionId, tran.total + outerTax
+    )
+
+    val paypalToken: Long = RandomTokenGenerator().next
+
+    val paypalStatus: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(
+      transactionId, PaypalStatus.START, paypalToken
+    )
+
+    (transactionId, taxesBySite, paypalToken)
+  }
+
   def persist(
     tran: Transaction, transactionType: TransactionType = TransactionType.NORMAL
   )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
