@@ -3,7 +3,8 @@
   paypalId: String,
   paypalWebPaymentPlusUrl: String,
   successUrl: String,
-  cancelUrl: String
+  cancelUrl: String,
+  noAutoSubmit: Boolean
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -12,9 +13,11 @@
 
 @main(Messages("paypalWebPaymentStartTitle"), Some(loginSession)) {
   <script>
-//    $(function() {
-//      $("#startWebPaymentPlusForm").submit();
-//    });
+      @if(! noAutoSubmit) {
+        $(function() {
+          $("#startWebPaymentPlusForm").submit();
+        });
+      }
   </script>
 } {
   <h1 class="title">@Messages("paypalWebPaymentStartTitle")</h1>
@@ -27,6 +30,8 @@
     <input type="hidden" name="return" value="@successUrl">
     <input type="hidden" name="cancel_return" value="@cancelUrl">
     <input type="hidden" name="currency_code" value="JPY">
-    <input type="submit" name="METHOD" value="Pay">
+    @if(! noAutoSubmit) {
+      <input type="submit" name="METHOD" value="Pay">
+    }
   </form>
 }

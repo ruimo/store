@@ -107,6 +107,10 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     )
   )
 
+  val PaypalWebPaymentPlusNoAutoSubmit: () => Boolean = Cache.config(
+    _.getBoolean("paypalWebPaymentPlus.noAutoSubmit").getOrElse(false)
+  )
+
   val firstNameKanaConstraint = List(nonEmpty, maxLength(64))
   val lastNameKanaConstraint = List(nonEmpty, maxLength(64))
 
@@ -476,7 +480,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       Future.successful(
         Ok(
           views.html.paypalWebPaymentPlusStart(
-            subTotal, paypalId, PaypalWebPaymentPlusUrl(), successUrl, cancelUrl
+            subTotal, paypalId, PaypalWebPaymentPlusUrl(), successUrl, cancelUrl, PaypalWebPaymentPlusNoAutoSubmit()
           )
         )
       )
