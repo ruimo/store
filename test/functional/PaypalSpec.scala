@@ -29,7 +29,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
           inMemoryDatabase() ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("fakePaypalRespons.enabled" -> true) +
-          ("acceptableTenders.ANONYMOUS_BUYER" -> Array("PAYPAL_PAYMENT")) +
+          ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL")) +
           ("fakePaypalRespons.body" -> "TOKEN=PAYPALTOKEN&CORRELATIONID=AAA&ACK=Success&VERSION=124.0&BUILD=18316154") +
           ("fakePaypalRespons.statusCode" -> "200") +
           (
@@ -157,7 +157,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
           inMemoryDatabase() ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("fakePaypalRespons.enabled" -> true) +
-          ("acceptableTenders.ANONYMOUS_BUYER" -> Array("PAYPAL_PAYMENT")) +
+          ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL")) +
           ("fakePaypalRespons.body" -> "ACK=Fail&VERSION=124.0&BUILD=18316154") +
           ("fakePaypalRespons.statusCode" -> "200") +
           (
@@ -264,7 +264,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
           ("anonymousUserPurchase" -> true) +
           ("fakePaypalRespons.enabled" -> true) +
           ("fakePaypalRespons.body" -> "TOKEN=PAYPALTOKEN&CORRELATIONID=AAA&ACK=Success&VERSION=124.0&BUILD=18316154") +
-          ("acceptableTenders.ANONYMOUS_BUYER" -> Array("PAYPAL_PAYMENT")) +
+          ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL")) +
           ("fakePaypalRespons.statusCode" -> "200") +
           (
             "paypal.redirectUrl" -> (
