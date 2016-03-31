@@ -1,0 +1,32 @@
+@(
+  subTotal: BigDecimal,
+  paypalId: String,
+  paypalWebPaymentPlusUrl: String,
+  successUrl: String,
+  cancelUrl: String
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@main(Messages("paypalWebPaymentStartTitle"), Some(loginSession)) {
+  <script>
+//    $(function() {
+//      $("#startWebPaymentPlusForm").submit();
+//    });
+  </script>
+} {
+  <h1 class="title">@Messages("paypalWebPaymentStartTitle")</h1>
+
+  <form action="@paypalWebPaymentPlusUrl" method="post" id="startWebPaymentPlusForm">
+    <input type="hidden" name="cmd" value="_hosted-payment">
+    <input type="hidden" name="subtotal" value="@subTotal">
+    <input type="hidden" name="business" value="@paypalId">
+    <input type="hidden" name="paymentaction" value="sale">
+    <input type="hidden" name="return" value="@successUrl">
+    <input type="hidden" name="cancel_return" value="@cancelUrl">
+    <input type="hidden" name="currency_code" value="JPY">
+    <input type="submit" name="METHOD" value="Pay">
+  </form>
+}

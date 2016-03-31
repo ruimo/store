@@ -95,6 +95,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     _.getBoolean("fakePaypalRespons.enabled").getOrElse(false)
   )
 
+  val PaypalWebPaymentPlusUrl: () => String = Cache.config(
+    _.getString("paypalWebPaymentPlus.requestUrl").getOrElse(
+      throw new IllegalStateException("Specify paypalWebPaymentPlus.requestUrl to use paypal web payment plus.")
+    )
+  )
+
   val PaypalId: () => String = Cache.config(
     _.getString("paypalWebPaymentPlus.paypalId").getOrElse(
       throw new IllegalStateException("Specify paypalWebPaymentPlus.paypalId to use paypal web payment plus.")
@@ -468,7 +474,11 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val successUrl = UrlBase() + routes.Paypal.onWebPaymentSuccess(tranId, token).url
       val cancelUrl = UrlBase() + routes.Paypal.onWebPaymentCancel(tranId, token).url
       Future.successful(
-        Ok(views.html.paypalWebPaymentPlusStart(subTotal, paypalId, successUrl, cancelUrl))
+        Ok(
+          views.html.paypalWebPaymentPlusStart(
+            subTotal, paypalId, PaypalWebPaymentPlusUrl(), successUrl, cancelUrl
+          )
+        )
       )
     }
     catch {
