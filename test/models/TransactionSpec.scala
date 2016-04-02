@@ -1064,7 +1064,7 @@ class TransactionSpec extends Specification {
           )
 
           val ps: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(
-            header.id.get, PaypalStatus.START, 123L
+            header.id.get, PaypalStatus.START, PaypalPaymentType.EXPRESS_CHECKOUT, 123L
           )
 
           ps === TransactionLogPaypalStatus.byId(ps.id.get)

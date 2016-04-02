@@ -128,6 +128,7 @@ case class TransactionLogPaypalStatus(
   id: Option[TransactionLogPaypalStatusId] = None,
   transactionId: Long,
   status: PaypalStatus,
+  paymentType: PaypalPaymentType,
   token: Long
 )
 
@@ -625,33 +626,36 @@ object TransactionLogPaypalStatus {
     SqlParser.get[Option[Long]]("transaction_paypal_status.transaction_paypal_status_id") ~
     SqlParser.get[Long]("transaction_paypal_status.transaction_id") ~
     SqlParser.get[Int]("transaction_paypal_status.status") ~
+    SqlParser.get[Int]("transaction_paypal_status.payment_Type") ~
     SqlParser.get[Long]("transaction_paypal_status.token") map {
-      case id~transactionId~status~token =>
+      case id~transactionId~status~paymentType~token =>
         TransactionLogPaypalStatus(
           id.map(TransactionLogPaypalStatusId.apply),
           transactionId,
           PaypalStatus.byIndex(status),
+          PaypalPaymentType.byIndex(paymentType),
           token
         )
     }
   }
 
   def createNew(
-    transactionId: Long, status: PaypalStatus, token: Long
+    transactionId: Long, status: PaypalStatus, paymentType: PaypalPaymentType, token: Long
   )(implicit conn: Connection): TransactionLogPaypalStatus = {
     SQL(
       """
       insert into transaction_paypal_status (
         transaction_paypal_status_id,
-        transaction_id, status, token
+        transaction_id, status, payment_type, token
       ) values (
         (select nextval('transaction_paypal_status_seq')),
-        {transactionId}, {status}, {token}
+        {transactionId}, {status}, {paymentType}, {token}
       )
       """
     ).on(
       'transactionId -> transactionId,
       'status -> status.ordinal,
+      'paymentType -> paymentType.ordinal,
       'token -> token
     ).executeUpdate()
 
@@ -659,7 +663,7 @@ object TransactionLogPaypalStatus {
 
     TransactionLogPaypalStatus(
       Some(TransactionLogPaypalStatusId(id)),
-      transactionId, status, token
+      transactionId, status, paymentType, token
     )
   }
 
@@ -701,6 +705,16 @@ object TransactionLogPaypalStatus {
     update transaction_paypal_status
     set status = """ + PaypalStatus.COMPLETED.ordinal + """
     where transaction_id = {transactionId} and token = {token} and status = """ + PaypalStatus.PREPARED.ordinal
+  ).on(
+    'transactionId -> transactionId,
+    'token -> token
+  ).executeUpdate()
+
+  def onWebPaymentPlusSuccess(transactionId: Long, token: Long)(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_paypal_status
+    set status = """ + PaypalStatus.COMPLETED.ordinal + """
+    where transaction_id = {transactionId} and token = {token} and status = """ + PaypalStatus.START.ordinal
   ).on(
     'transactionId -> transactionId,
     'token -> token
@@ -1419,7 +1433,7 @@ class TransactionPersister {
     val paypalToken: Long = RandomTokenGenerator().next
 
     val paypalStatus: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(
-      transactionId, PaypalStatus.START, paypalToken
+      transactionId, PaypalStatus.START, PaypalPaymentType.EXPRESS_CHECKOUT, paypalToken
     )
 
     (transactionId, taxesBySite, paypalToken)
@@ -1445,7 +1459,7 @@ class TransactionPersister {
     val paypalToken: Long = RandomTokenGenerator().next
 
     val paypalStatus: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(
-      transactionId, PaypalStatus.START, paypalToken
+      transactionId, PaypalStatus.START, PaypalPaymentType.WEB_PAYMENT_PLUS, paypalToken
     )
 
     (transactionId, taxesBySite, paypalToken)

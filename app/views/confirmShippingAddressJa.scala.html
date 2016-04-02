@@ -144,7 +144,7 @@
   }
 
   @if(AcceptableTender.AcceptableTender()(loginSession.role.typeCode).contains(TenderType.PAYPAL_WEB_PAYMENT_PLUS)) {
-    <button onclick="doPurchase('payByPaypalWebPaymentPlus');" id="paypalWebPaymentImg">
+    <button onclick="doPurchase('payByPaypalWebPaymentPlus');" id="doPaypalWebPayment">
       @Messages("payByPaypalCredit")
     </button>
   }

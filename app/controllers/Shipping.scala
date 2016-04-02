@@ -475,8 +475,8 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
 
       val subTotal = cart.total + cart.outerTaxTotal
       val paypalId = PaypalId()
-      val successUrl = UrlBase() + routes.Paypal.onWebPaymentSuccess(tranId, token).url
-      val cancelUrl = UrlBase() + routes.Paypal.onWebPaymentCancel(tranId, token).url
+      val successUrl = UrlBase() + routes.Paypal.onWebPaymentPlusSuccess(tranId, token).url
+      val cancelUrl = UrlBase() + routes.Paypal.onWebPaymentPlusCancel(tranId, token).url
       Future.successful(
         Ok(
           views.html.paypalWebPaymentPlusStart(
