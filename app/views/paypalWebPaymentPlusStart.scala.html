@@ -30,7 +30,7 @@
     <input type="hidden" name="return" value="@successUrl">
     <input type="hidden" name="cancel_return" value="@cancelUrl">
     <input type="hidden" name="currency_code" value="JPY">
-    @if(! noAutoSubmit) {
+    @if(noAutoSubmit) {
       <input type="submit" name="METHOD" value="Pay">
     }
   </form>
