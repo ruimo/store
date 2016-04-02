@@ -729,6 +729,16 @@ object TransactionLogPaypalStatus {
     'transactionId -> transactionId,
     'token -> token
   ).executeUpdate()
+
+  def onWebPaymentPlusCancel(transactionId: Long, token: Long)(implicit conn: Connection): Int = SQL(
+    """
+    update transaction_paypal_status
+    set status = """ + PaypalStatus.CANCELED.ordinal + """
+    where transaction_id = {transactionId} and token = {token} and status = """ + PaypalStatus.START.ordinal
+  ).on(
+    'transactionId -> transactionId,
+    'token -> token
+  ).executeUpdate()
 }
 
 object TransactionLogCoupon {

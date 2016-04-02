@@ -62,6 +62,14 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
 
   def onWebPaymentPlusCancel(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    Ok("")
+
+    DB.withConnection { implicit conn =>
+      if (TransactionLogPaypalStatus.onWebPaymentPlusCancel(transactionId, token) == 0) {
+        Redirect(routes.Application.index())
+      }
+      else {
+        Ok(views.html.cancelPaypal())
+      }
+    }
   }
 }
