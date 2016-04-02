@@ -4,7 +4,7 @@
   paypalWebPaymentPlusUrl: String,
   successUrl: String,
   cancelUrl: String,
-  noAutoSubmit: Boolean
+  debug: Boolean
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -13,7 +13,7 @@
 
 @main(Messages("paypalWebPaymentStartTitle"), Some(loginSession)) {
   <script>
-      @if(! noAutoSubmit) {
+      @if(! debug) {
         $(function() {
           $("#startWebPaymentPlusForm").submit();
         });
@@ -30,8 +30,13 @@
     <input type="hidden" name="return" value="@successUrl">
     <input type="hidden" name="cancel_return" value="@cancelUrl">
     <input type="hidden" name="currency_code" value="JPY">
-    @if(noAutoSubmit) {
+    @if(debug) {
       <input type="submit" name="METHOD" value="Pay">
     }
   </form>
+
+  @if(debug) {
+    <a href="@successUrl">Skip paypal</a>
+    <a href="@cancelUrl">Cancel paypal</a>
+  }
 }
