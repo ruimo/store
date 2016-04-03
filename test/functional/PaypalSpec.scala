@@ -1,5 +1,6 @@
 package functional
 
+import views.Titles
 import helpers.UrlHelper
 import helpers.UrlHelper._
 import play.api.test._
@@ -125,7 +126,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
               paypalTran.transactionId + 1, paypalTran.token
             ).url.addParm("lang", lang.code)
           )
-          browser.title === Messages("commonTitle", Messages("company.name"))
+          browser.title === Messages("commonTitle", Titles.top)
           doWith(TransactionLogPaypalStatus.byTransactionId(headers(0).id.get)) { paypal =>
             paypal.status === PaypalStatus.PREPARED
           }
@@ -135,7 +136,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
               paypalTran.transactionId, paypalTran.token + 1
             ).url.addParm("lang", lang.code)
           )
-          browser.title === Messages("commonTitle", Messages("company.name"))
+          browser.title === Messages("commonTitle", Titles.top)
           doWith(TransactionLogPaypalStatus.byTransactionId(headers(0).id.get)) { paypal =>
             paypal.status === PaypalStatus.PREPARED
           }
@@ -279,7 +280,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
               paypalTran.transactionId, paypalTran.token
             ).url.addParm("lang", lang.code)
           )
-          browser.title === Messages("commonTitle", Messages("company.name"))
+          browser.title === Messages("commonTitle", Titles.top)
           doWith(TransactionLogPaypalStatus.byTransactionId(headers(0).id.get)) { paypal =>
             paypal.status === PaypalStatus.ERROR
           }
