@@ -101,8 +101,6 @@ class PriceControlSpec extends Specification with SalesSpecBase {
         browser.find(".salesTotal .salesTotalBody", 0).find(".itemPrice").getText === "1,048円"
         browser.find(".salesTotal .salesTotalBody", 1).find(".itemPrice").getText === "123円"
         browser.find(".salesTotal .salesTotalBody", 2).find(".itemPrice").getText === "1,171円"
-Thread.sleep(20000)
-1 === 1
       }}
     }
   }
