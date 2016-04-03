@@ -7,6 +7,7 @@ import play.api.test.Helpers._
 import play.api.Play.current
 import java.sql.Connection
 import models._
+import helpers.ViewHelpers
 
 import org.specs2.mutable.Specification
 import play.api.test.{Helpers, TestServer, FakeApplication}
@@ -40,8 +41,11 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
-        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
-        val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "外税")
+        val taxHis = TaxHistory.createNew(tax, TaxType.OUTER_TAX, BigDecimal("5"), date("9999-12-31"))
+        val tax2 = Tax.createNew
+        val taxName2 = TaxName.createNew(tax2, LocaleInfo.Ja, "内税")
+        val taxHis2 = TaxHistory.createNew(tax2, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
         val item = Item.createNew(cat)
         ItemNumericMetadata.createNew(
           item, ItemNumericMetadataType.HEIGHT, 1
@@ -78,7 +82,7 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
 
         val box = ShippingBox.createNew(site.id.get, itemClass, 3, "box01")
         val fee = ShippingFee.createNew(box.id.get, CountryCode.JPN, JapanPrefecture.東京都.code())
-        val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
+        val feeHistory = ShippingFeeHistory.createNew(fee.id.get, tax2.id.get, BigDecimal(123), Some(100), date("9999-12-31"))
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.fill("#firstName").`with`("firstName01")
@@ -113,7 +117,7 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
         browser.title === Messages("commonTitle", Messages("paypalWebPaymentStartTitle"))
         doWith(browser.find("#startWebPaymentPlusForm")) { f =>
           f.find("input[name='cmd']").getAttribute("value") === "_hosted-payment"
-          f.find("input[name='subtotal']").getAttribute("value") === "999.00"
+          f.find("input[name='subtotal']").getAttribute("value") === "1048.00"
           f.find("input[name='business']").getAttribute("value") === "paypal_id"
           f.find("input[name='paymentaction']").getAttribute("value") === "sale"
           f.find("input[name='currency_code']").getAttribute("value") === "JPY"
@@ -144,7 +148,33 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
             paypalTran.transactionId, paypalTran.token
           ).url.addParm("lang", lang.code)
         )
-        browser.title === Messages("commonTitle", Messages("paypalSuccessTitle"))
+        browser.title === Messages("commonTitle", Messages("end.transaction"))
+
+        browser.find(".itemTableBody", 0).find(".itemNameBody").getText === "かえで"
+        browser.find(".itemTableBody", 0).find(".siteName").getText === "Store01"
+        browser.find(".itemTableBody", 0).find(".quantity").getText === "1"
+        browser.find(".itemTableBody", 0).find(".itemPrice").getText === "999円"
+        browser.find(".itemTableBody", 1).find(".subtotal").getText === "999円"
+
+        browser.find(".itemTableBody", 2).find(".outerTaxAmount").getText ===
+            ViewHelpers.toAmount(BigDecimal((999 * 0.05).asInstanceOf[Int]))
+        browser.find(".itemTableBody", 3).find(".grandTotal").getText ===
+            ViewHelpers.toAmount(BigDecimal((999 * 1.05).asInstanceOf[Int]))
+
+        browser.find(".salesTotalBody", 0).find(".itemQuantity").getText === "1"
+        browser.find(".salesTotalBody", 0).find(".itemPrice").getText === "1,048円"
+        browser.find(".salesTotalBody", 1).find(".itemQuantity").getText === "1 箱"
+        browser.find(".salesTotalBody", 1).find(".itemPrice").getText === "123円"
+        browser.find(".salesTotalBody", 2).find(".itemPrice").getText === "1,171円"
+
+        browser.find(".shippingAddress").find(".name").getText === "firstName01 lastName01"
+        browser.find(".shippingAddress").find(".nameKana").getText === "firstNameKana01 lastNameKana01"
+        browser.find(".shippingAddress").find(".shippingTableBody .email").getText === "foo@bar.com"
+        browser.find(".shippingAddress").find(".zip").getText === "146 - 0082"
+        browser.find(".shippingAddress").find(".prefecture").getText === "東京都"
+        browser.find(".shippingAddress").find(".address1").getText === "address01"
+        browser.find(".shippingAddress").find(".address2").getText === "address02"
+        browser.find(".shippingAddress").find(".tel1").getText === "11111111"
 
         doWith(TransactionLogPaypalStatus.byTransactionId(tranHeader.id.get)) { paypal =>
           paypal.transactionId === tranHeader.id.get

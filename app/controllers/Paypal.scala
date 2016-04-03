@@ -21,6 +21,9 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
 
     DB.withConnection { implicit conn =>
       if (TransactionLogPaypalStatus.onSuccess(transactionId, token) == 0) {
+        Redirect(routes.Application.index())
+      }
+      else {
         val persister = new TransactionPersister()
         ShoppingCartItem.removeForUser(login.userId)
         ShoppingCartShipping.removeForUser(login.userId)
@@ -29,9 +32,6 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
         NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
         RecommendEngine.onSales(loginSession.get, tran, Some(address))
         Ok(views.html.showTransactionJa(tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran)))
-      }
-      else {
-        Ok(views.html.paypalSuccess())
       }
     }
   }
@@ -60,6 +60,9 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
 
     DB.withConnection { implicit conn =>
       if (TransactionLogPaypalStatus.onWebPaymentPlusSuccess(transactionId, token) == 0) {
+        Redirect(routes.Application.index())
+      }
+      else {
         val persister = new TransactionPersister()
         ShoppingCartItem.removeForUser(login.userId)
         ShoppingCartShipping.removeForUser(login.userId)
@@ -68,9 +71,6 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
         NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
         RecommendEngine.onSales(loginSession.get, tran, Some(address))
         Ok(views.html.showTransactionJa(tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran)))
-      }
-      else {
-        Ok(views.html.paypalSuccess())
       }
     }
   }
