@@ -167,7 +167,6 @@ class PaypalSpec extends Specification with SalesSpecBase {
 
           browser.find(".shippingAddress").find(".name").getText === "firstName01 lastName01"
           browser.find(".shippingAddress").find(".nameKana").getText === "firstNameKana01 lastNameKana01"
-          browser.find(".shippingAddress").find(".shippingTableBody .email").getText === "foo@bar.com"
           browser.find(".shippingAddress").find(".zip").getText === "146 - 0082"
           browser.find(".shippingAddress").find(".prefecture").getText === "東京都"
           browser.find(".shippingAddress").find(".address1").getText === "address01"
