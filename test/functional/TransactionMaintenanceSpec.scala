@@ -332,17 +332,6 @@ class TransactionMaintenanceSpec extends Specification {
     val shoppingCartItem2 = ShoppingCartItem.addItem(user.id.get, site2.id.get, item2.id.get.id, 5)
     val shoppingCartItem3 = ShoppingCartItem.addItem(user.id.get, site1.id.get, item3.id.get.id, 7)
     
-    // val shoppingCartTotal1 = List(
-    //   ShoppingCartTotalEntry(
-    //     shoppingCartItem1,
-    //     itemName1(Ja),
-    //     itemDesc1,
-    //     site1,
-    //     itemPriceHis1,
-    //     taxHis
-    //   )
-    // )
-    
     val addr1 = Address.createNew(
       countryCode = CountryCode.JPN,
       firstName = "firstName1",

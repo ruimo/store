@@ -1,5 +1,6 @@
 package functional
 
+import views.Titles
 import helpers.Formatter
 import helpers.UrlHelper
 import helpers.UrlHelper._
@@ -64,7 +65,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         
         // Since employee maintenance is disabled, redirected to top.
-        browser.title() === Messages("commonTitle", Messages("company.name"))
+        browser.title() === Messages("commonTitle", Titles.top).trim
       }}
     }
 
@@ -208,7 +209,7 @@ class EmployeeUserMaintenanceSpec extends Specification {
           "?lang=" + lang.code
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("commonTitle", Messages("company.name"))
+        browser.title() === Messages("commonTitle", Titles.top).trim
       }}
     }
 
@@ -231,14 +232,14 @@ class EmployeeUserMaintenanceSpec extends Specification {
           controllers.routes.UserMaintenance.editUser().url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("commonTitle", Messages("company.name"))
+        browser.title() === Messages("commonTitle", Titles.top).trim
 
         browser.goTo(
           "http://localhost:3333" + 
           controllers.routes.UserMaintenance.modifyUserStart(employee01.id.get).url.addParm("lang", lang.code)
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.title() === Messages("commonTitle", Messages("company.name"))
+        browser.title() === Messages("commonTitle", Titles.top).trim
       }}
     }
 
