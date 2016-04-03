@@ -13,6 +13,7 @@ import collection.immutable.LongMap
 import play.api.mvc.{Controller, RequestHeader}
 import java.sql.Connection
 import play.api.mvc._
+import helpers.{RecommendEngine, NotificationMail, Enums}
 
 object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
   def onSuccess(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
@@ -20,7 +21,14 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
 
     DB.withConnection { implicit conn =>
       if (TransactionLogPaypalStatus.onSuccess(transactionId, token) == 0) {
-        Redirect(routes.Application.index())
+        val persister = new TransactionPersister()
+        ShoppingCartItem.removeForUser(login.userId)
+        ShoppingCartShipping.removeForUser(login.userId)
+        val tran = persister.load(transactionId, LocaleInfo.getDefault)
+        val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+        NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
+        RecommendEngine.onSales(loginSession.get, tran, Some(address))
+        Ok(views.html.showTransactionJa(tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran)))
       }
       else {
         Ok(views.html.paypalSuccess())
@@ -52,7 +60,14 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
 
     DB.withConnection { implicit conn =>
       if (TransactionLogPaypalStatus.onWebPaymentPlusSuccess(transactionId, token) == 0) {
-        Redirect(routes.Application.index())
+        val persister = new TransactionPersister()
+        ShoppingCartItem.removeForUser(login.userId)
+        ShoppingCartShipping.removeForUser(login.userId)
+        val tran = persister.load(transactionId, LocaleInfo.getDefault)
+        val address = Address.byId(tran.shippingTable.head._2.head.addressId)
+        NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
+        RecommendEngine.onSales(loginSession.get, tran, Some(address))
+        Ok(views.html.showTransactionJa(tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran)))
       }
       else {
         Ok(views.html.paypalSuccess())

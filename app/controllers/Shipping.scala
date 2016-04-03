@@ -480,7 +480,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       Future.successful(
         Ok(
           views.html.paypalWebPaymentPlusStart(
-            subTotal, paypalId, PaypalWebPaymentPlusUrl(), successUrl, cancelUrl, PaypalWebPaymentPlusDebug()
+            currency, subTotal, paypalId, PaypalWebPaymentPlusUrl(), successUrl, cancelUrl, PaypalWebPaymentPlusDebug()
           )
         )
       )
