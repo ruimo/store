@@ -16,7 +16,7 @@ import play.api.mvc._
 import helpers.{RecommendEngine, NotificationMail, Enums}
 
 object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
-  def onSuccess(transactionId: Long, token: Long) = Action { implicit request =>
+  def onSuccess(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     DB.withConnection { implicit conn =>
@@ -36,7 +36,7 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
     }
   }
 
-  def onCancel(transactionId: Long, token: Long) = Action { implicit request =>
+  def onCancel(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     DB.withConnection { implicit conn =>
@@ -55,7 +55,7 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
     )
   }
 
-  def onWebPaymentPlusSuccess(transactionId: Long, token: Long) = Action { implicit request =>
+  def onWebPaymentPlusSuccess(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     DB.withConnection { implicit conn =>
@@ -75,7 +75,7 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
     }
   }
 
-  def onWebPaymentPlusCancel(transactionId: Long, token: Long) = Action { implicit request =>
+  def onWebPaymentPlusCancel(transactionId: Long, token: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
 
     DB.withConnection { implicit conn =>
