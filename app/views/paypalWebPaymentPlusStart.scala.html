@@ -1,4 +1,5 @@
 @(
+  addr: Address,
   currency: CurrencyInfo,
   subTotal: BigDecimal,
   paypalId: String,
@@ -32,17 +33,16 @@
       <label for="return">return</label><input id="return" type="text" name="return" value="@successUrl"><br>
       <label for="cancel_return">cancel_return</label><input id="cancel_return" type="text" name="cancel_return" value="@cancelUrl"><br>
       <label for="currency_code">currency_code</label><input id="currency_code" type="text" name="currency_code" value="@currency.currencyCode"><br>
-      <label for="billing_address1">billing_address1</label><input id="billing_address1" type="text" name="billing_address1" value="1-1-1"><br>
-      <label for="billing_address2">billing_address2</label><input id="billing_address2" type="text" name="billing_address2" value="billing_address2"><br>
-      <label for="billing_city">billing_city</label><input id="billing_city" type="text" name="billing_city" value="大田区"><br>
-      <label for="billing_country">billing_country</label><input id="billing_country" type="text" name="billing_country" value="JP"><br>
-      <label for="billing_first_name">billing_first_name</label><input id="billing_first_name" type="text" name="billing_first_name" value="るいも"><br>
-      <label for="billing_last_name">billing_last_name</label><input id="billing_last_name" type="text" name="billing_last_name" value="花井"><br>
-      <label for="billing_state">billing_state</label><input id="billing_state" type="text" name="billing_state" value="東京"><br>
-      <label for="billing_zip">billing_zip</label><input id="billing_zip" type="text" name="billing_zip" value="1460082"><br>
-      <label for="buyer_email">buyer_email</label><input id="buyer_email" type="text" name="buyer_email" value="null@@ruimo.com"><br>
-      <label for="night_phone_c">night_phone_b</label><input id="night_phone_c" type="text" name="night_phone_c" value="123456789"><br>
-      <label for="notify_url">notify_url</label><input id="notify_url" type="text" name="notify_url" value="@successUrl"><br>
+      <label for="address1">address1</label><input id="address1" type="text" name="address1" value="@addr.address2"><br>
+      <label for="address2">address2</label><input id="address2" type="text" name="address2" value="@addr.address3"><br>
+      <label for="first_name">first_name</label><input id="first_name" type="text" name="first_name" value="@addr.lastName"><br>
+      <label for="last_name">last_name</label><input id="last_name" type="text" name="last_name" value="@addr.firstName"><br>
+      <label for="country">country</label><input id="country" type="text" name="country" value='@PaypalCountry(addr.countryCode)'><br>
+      <label for="city">city</label><input id="city" type="text" name="city" value='@addr.address1'><br>
+      <label for="state">state</label><input id="state" type="text" name="state" value='@PaypalPrefecture(addr.prefecture).getOrElse("")'><br>
+      <label for="zip">zip</label><input id="zip" type="text" name="zip" value="@{addr.zip1+addr.zip2+addr.zip3}"><br>
+      <label for="buyer_email">buyer_email</label><input id="buyer_email" type="text" name="buyer_email" value="@addr.email"><br>
+      <label for="night_phone_c">night_phone_b</label><input id="night_phone_c" type="text" name="night_phone_c" value="@addr.tel1"><br>
       <input type="submit" name="METHOD" value="Pay">
     } else {
       <input type="hidden" name="cmd" value="_hosted-payment">
