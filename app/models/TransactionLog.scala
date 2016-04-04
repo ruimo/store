@@ -606,6 +606,18 @@ object TransactionLogCreditTender {
       simple.single
     )
 
+  def getByTransactionId(tranId: Long)(implicit conn: Connection): Option[TransactionLogCreditTender] =
+    SQL(
+      """
+      select * from transaction_credit_tender
+      where transaction_id = {tranId}
+      """
+    ).on(
+      'tranId -> tranId
+    ).as(
+      simple.singleOpt
+    )
+
   def list(limit: Int = 10, offset: Int = 0)(implicit conn: Connection): Seq[TransactionLogCreditTender] =
     SQL(
       """
@@ -687,6 +699,19 @@ object TransactionLogPaypalStatus {
     'id -> transactionId
   ).as(
     simple.single
+  )
+
+  def getByTransactionId(
+    transactionId: Long
+  )(implicit conn: Connection): Option[TransactionLogPaypalStatus] = SQL(
+    """
+    select * from transaction_paypal_status
+    where transaction_id = {id}
+    """
+  ).on(
+    'id -> transactionId
+  ).as(
+    simple.singleOpt
   )
 
   def update(transactionId: Long, status: PaypalStatus)(implicit conn: Connection): Int = SQL(
@@ -891,7 +916,8 @@ case class PersistedTransaction(
   shippingTable: Map[Long, Seq[TransactionLogShipping]], // First key = siteId
   taxTable: Map[Long, Seq[TransactionLogTax]], // First key = siteId
   itemTable: Map[Long, Seq[(ItemName, TransactionLogItem, Option[TransactionLogCoupon])]], // First key = siteId
-  creditTable: Option[TransactionLogCreditTender] = None
+  creditTable: Option[TransactionLogCreditTender] = None,
+  paypalStatus: Option[TransactionLogPaypalStatus] = None
 ) {
   lazy val outerTaxWhenCostPrice: Map[Long, BigDecimal] = {
     var result = immutable.LongMap[BigDecimal]()
@@ -1663,14 +1689,14 @@ class TransactionPersister {
       map.updated(siteId, ((e._1, e._3, e._4)) :: map(siteId))
     }.mapValues(_.reverse)
 
-    val credit: Option[TransactionLogCreditTender] = 
-      if (header.transactionType == TransactionType.PAYPAL)
-        Some(TransactionLogCreditTender.byTransactionId(tranId))
-      else
-        None
+    val credit: Option[TransactionLogCreditTender] = TransactionLogCreditTender.getByTransactionId(tranId)
+
+    val paypalStatus: Option[TransactionLogPaypalStatus] =
+      TransactionLogPaypalStatus.getByTransactionId(tranId)
 
     PersistedTransaction(
-      header, tranSiteLog.map {e => (e.siteId -> e)}.toMap, siteLog, shippingLog, taxLog, itemLog, credit
+      header, tranSiteLog.map {e => (e.siteId -> e)}.toMap, siteLog, shippingLog, taxLog, itemLog, 
+      credit, paypalStatus
     )
   }
 }
