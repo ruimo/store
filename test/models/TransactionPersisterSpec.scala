@@ -76,7 +76,7 @@ class TransactionPersisterSpec extends Specification {
           header(0).currencyId === CurrencyInfo.Jpy.id
           header(0).totalAmount === BigDecimal(999 * 2 + 123)
           header(0).taxAmount === BigDecimal((999 * 2 + 123) * 5 / 105)
-          header(0).transactionType === TransactionType.NORMAL
+          header(0).transactionType === TransactionTypeCode.ACCOUNTING_BILL
 
           val siteLog = TransactionLogSite.list()
           siteLog.size === 1
@@ -173,7 +173,7 @@ class TransactionPersisterSpec extends Specification {
           header(0).currencyId === CurrencyInfo.Jpy.id
           header(0).totalAmount === BigDecimal(999 * 2 + 123)
           header(0).taxAmount === BigDecimal((999 * 2 + 123) * 5 / 105)
-          header(0).transactionType === TransactionType.NORMAL
+          header(0).transactionType === TransactionTypeCode.ACCOUNTING_BILL
 
           val siteLog = TransactionLogSite.list()
           siteLog.size === 1

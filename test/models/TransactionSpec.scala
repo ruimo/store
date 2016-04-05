@@ -31,7 +31,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val list = TransactionLogHeader.list()
@@ -56,7 +56,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val addr1 = Address.createNew(
@@ -101,7 +101,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
           
           val tranSite = TransactionLogSite.createNew(
@@ -137,7 +137,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val tranSite = TransactionLogSite.createNew(
@@ -259,7 +259,7 @@ class TransactionSpec extends Specification {
             (119 + 59) * 5 / 100 +
             (1234 + 2345) * 5 / 105
           )
-          ptran.header.transactionType === TransactionType.NORMAL
+          ptran.header.transactionType === TransactionTypeCode.ACCOUNTING_BILL
           ptran.siteTable.size == 2
           ptran.siteTable.contains(site1) === true
           ptran.siteTable.contains(site2) === true
@@ -438,7 +438,7 @@ class TransactionSpec extends Specification {
             (119 + 59) * 5 / 100 +
             (1234 + 2345) * 5 / 105
           )
-          ptran.header.transactionType === TransactionType.PAYPAL
+          ptran.header.transactionType === TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT
           ptran.siteTable.size == 2
           ptran.siteTable.contains(site1) === true
           ptran.siteTable.contains(site2) === true
@@ -544,7 +544,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val tranSite1 = TransactionLogSite.createNew(
@@ -598,7 +598,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val tranSite1 = TransactionLogSite.createNew(
@@ -709,7 +709,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val tranSite1 = TransactionLogSite.createNew(
@@ -781,7 +781,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val tranSite1 = TransactionLogSite.createNew(
@@ -902,7 +902,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
           val tranSite1 = TransactionLogSite.createNew(
             header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
@@ -1022,7 +1022,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
           val tranSite1 = TransactionLogSite.createNew(
             header.id.get, site1.id.get, BigDecimal(234), BigDecimal(345)
@@ -1060,7 +1060,7 @@ class TransactionSpec extends Specification {
           val header = TransactionLogHeader.createNew(
             user1.id.get, currency1.id,
             BigDecimal(234), BigDecimal(345),
-            TransactionType.NORMAL
+            TransactionTypeCode.ACCOUNTING_BILL
           )
 
           val ps: TransactionLogPaypalStatus = TransactionLogPaypalStatus.createNew(

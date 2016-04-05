@@ -115,7 +115,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
         DB.withConnection { implicit conn =>
           val headers: Seq[TransactionLogHeader] = TransactionLogHeader.list()
           headers.size === 1
-          headers(0).transactionType === TransactionType.PAYPAL
+          headers(0).transactionType === TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT
 
           val paypalTran: TransactionLogPaypalStatus = TransactionLogPaypalStatus.byTransactionId(headers(0).id.get)
           paypalTran.transactionId === headers(0).id.get
@@ -267,7 +267,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
         DB.withConnection { implicit conn =>
           val headers: Seq[TransactionLogHeader] = TransactionLogHeader.list()
           headers.size === 1
-          headers(0).transactionType === TransactionType.PAYPAL
+          headers(0).transactionType === TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT
 
           val paypalTran: TransactionLogPaypalStatus = TransactionLogPaypalStatus.byTransactionId(headers(0).id.get)
           paypalTran.transactionId === headers(0).id.get
@@ -374,7 +374,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
         DB.withConnection { implicit conn =>
           val headers: Seq[TransactionLogHeader] = TransactionLogHeader.list()
           headers.size === 1
-          headers(0).transactionType === TransactionType.PAYPAL
+          headers(0).transactionType === TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT
 
           val paypalTran: TransactionLogPaypalStatus = TransactionLogPaypalStatus.byTransactionId(headers(0).id.get)
           paypalTran.transactionId === headers(0).id.get

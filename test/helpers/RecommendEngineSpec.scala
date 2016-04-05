@@ -11,7 +11,7 @@ import models.PersistedTransaction
 import models.TransactionLogItem
 import models.TransactionLogCoupon
 import models.TransactionLogHeader
-import models.TransactionType
+import models.TransactionTypeCode
 import models.Address
 import models.ItemName
 import helpers.Helper._
@@ -63,7 +63,7 @@ class RecommendEngineSpec extends Specification {
           currencyId = 111L,
           totalAmount = BigDecimal(1234),
           taxAmount = BigDecimal(20),
-          transactionType = TransactionType.NORMAL
+          transactionType = TransactionTypeCode.ACCOUNTING_BILL
         ),
         tranSiteLog = Map(),
         siteTable = Seq(),
