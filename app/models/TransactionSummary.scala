@@ -23,7 +23,8 @@ case class TransactionSummaryEntry(
   shippingDate: Option[Long],
   mailSent: Boolean,
   plannedShippingDate: Option[Long],
-  plannedDeliveryDate: Option[Long]
+  plannedDeliveryDate: Option[Long],
+  transactionType: TransactionType
 ) {
   lazy val totalWithTax = totalAmount + totalTax
 }
@@ -54,16 +55,28 @@ object TransactionSummary {
     SqlParser.get[Option[String]]("transaction_status.slip_code") ~
     SqlParser.get[Boolean]("transaction_status.mail_sent") ~
     SqlParser.get[Option[java.util.Date]]("transaction_status.planned_shipping_date") ~
-    SqlParser.get[Option[java.util.Date]]("transaction_status.planned_delivery_date") map {
-      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent~plannedShippingDate~plannedDeliveryDate =>
+    SqlParser.get[Option[java.util.Date]]("transaction_status.planned_delivery_date") ~
+    SqlParser.get[Int]("transaction_type") ~
+    SqlParser.get[Int]("transaction_paypal_status.status") ~
+    SqlParser.get[Int]("transaction_paypal_status.payment_type") map {
+      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent~plannedShippingDate~plannedDeliveryDate~transactionType~paypalStatus~paypalType =>
         TransactionSummaryEntry(
           id, tranSiteId, time.getTime, amount, tax, address, siteId, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
           user, shippingDate.map(_.getTime), mailSent, 
-          plannedShippingDate.map(_.getTime), plannedDeliveryDate.map(_.getTime)
+          plannedShippingDate.map(_.getTime), plannedDeliveryDate.map(_.getTime),
+          toTransactionType(TransactionTypeCode.byIndex(transactionType), paypalStatus, paypalType)
         )
     }
+  }
+
+  def toTransactionType(
+    transactionType: TransactionTypeCode, paypalStatus: Int, paypalType: Int
+  ): TransactionType = transactionType match {
+    case TransactionTypeCode.ACCOUNTING_BILL => AccountingBillTransactionType
+    case TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT => PaypalExpressCheckoutTransactionType(PaypalStatus.byIndex(paypalStatus))
+    case TransactionTypeCode.PAYPAL_WEB_PAYMENT_PLUS => PaypalWebPaymentPlusTransactionType(PaypalStatus.byIndex(paypalStatus))
   }
 
   val baseColumns = """
@@ -84,7 +97,9 @@ object TransactionSummary {
       transaction_status.planned_shipping_date,
       transaction_status.planned_delivery_date,
       store_user.*,
-      base.shipping_date
+      base.shipping_date,
+      transaction_paypal_status.*,
+      transaction_type
   """
 
   def baseSql(
@@ -121,8 +136,10 @@ object TransactionSummary {
         transaction_shipping.transaction_site_id = transaction_site.transaction_site_id
       left join transaction_tax on
         transaction_tax.transaction_site_id = transaction_site.transaction_site_id and
-        transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal +
-    " where 1 = 1" +
+        transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal + """
+      left join transaction_paypal_status on
+        transaction_paypal_status.transaction_id = transaction_header.transaction_id
+      where 1 = 1""" +
     siteId.map {id => " and transaction_site.site_id = " + id}.getOrElse("") +
     storeUserId.map {uid => " and transaction_header.store_user_id = " + uid}.getOrElse("") +
     tranId.map {id => " and transaction_header.transaction_id = " + id}.getOrElse("") +

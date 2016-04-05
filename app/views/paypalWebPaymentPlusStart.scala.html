@@ -31,8 +31,17 @@
       <label for="business">business</label><input id="business" type="text" name="business" value="@paypalId"><br>
       <label for="paymentaction">paymentaction</label><input id="paymentaction" type="text" name="paymentaction" value="sale"><br>
       <label for="return">return</label><input id="return" type="text" name="return" value="@successUrl"><br>
+      <label for="cbt">cbt</label><input id="cbt" type="text" name="cbt" value="ショッピングカートへ戻る"><br>
       <label for="cancel_return">cancel_return</label><input id="cancel_return" type="text" name="cancel_return" value="@cancelUrl"><br>
       <label for="currency_code">currency_code</label><input id="currency_code" type="text" name="currency_code" value="@currency.currencyCode"><br>
+
+<!--
+<input type="hidden" name="showCustomerName" value="false">
+<input type="hidden" name="showBillingAddress" value="false">
+<input type="hidden" name="showBillingPhone" value="false">
+<input type="hidden" name="showBillingEmail" value="false">
+-->
+
       <label for="address1">address1</label><input id="address1" type="text" name="address1" value="@addr.address2"><br>
       <label for="address2">address2</label><input id="address2" type="text" name="address2" value="@addr.address3"><br>
       <label for="first_name">first_name</label><input id="first_name" type="text" name="first_name" value="@addr.lastName"><br>

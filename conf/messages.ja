@@ -508,3 +508,4 @@ paypalErrorTitle=Paypalエラー
 paypalErrorDescription=Paypalの支払いに失敗しました。しばらく時間をおいてお試しください。
 payByPaypalCredit=クレジットで支払う
 paypalWebPaymentStartTitle=クレジット支払い画面を用意しています。しばらくお待ちください。
+transactionType=取引種別

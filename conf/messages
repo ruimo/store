@@ -476,3 +476,4 @@ paypalErrorTitle=Paypal error
 paypalErrorDescription=Cannot launch Paypal payment. Please try later.
 payByPaypalCredit=Pay by credit card
 paypalWebPaymentStartTitle=Preparing credit card entry form. Please be patient.
+transactionType=Transaction type

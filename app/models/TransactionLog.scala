@@ -17,7 +17,7 @@ case class TransactionLogHeader(
   totalAmount: BigDecimal,
   // Outer tax + Inner tax.
   taxAmount: BigDecimal,
-  transactionType: TransactionType
+  transactionType: TransactionTypeCode
 )
 
 case class TransactionLogSite(
@@ -220,14 +220,14 @@ object TransactionLogHeader {
     SqlParser.get[Int]("transaction_header.transaction_type") map {
       case transactionId~userId~transactionTime~currencyId~totalAmount~taxAmount~transactionType =>
         TransactionLogHeader(transactionId, userId, transactionTime.getTime, currencyId, totalAmount,
-                             taxAmount, TransactionType.byIndex(transactionType))
+                             taxAmount, TransactionTypeCode.byIndex(transactionType))
     }
   }
 
   def createNew(
     userId: Long, currencyId: Long,
     totalAmount: BigDecimal, taxAmount: BigDecimal,
-    transactionType: TransactionType,
+    transactionType: TransactionTypeCode,
     now: Long = System.currentTimeMillis
   )(implicit conn: Connection): TransactionLogHeader = {
     SQL(
@@ -1453,7 +1453,7 @@ class TransactionPersister {
     tran: Transaction
   )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]], Long) = {
     val (transactionId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
-      = persist(tran, TransactionType.PAYPAL)
+      = persist(tran, TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT)
 
     val outerTax: BigDecimal = taxesBySite.values.foldLeft(BigDecimal(0)) { (sum, e) =>
       sum + e.foldLeft(BigDecimal(0)) { (sum2, e2) =>
@@ -1479,7 +1479,7 @@ class TransactionPersister {
     tran: Transaction
   )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]], Long) = {
     val (transactionId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]])
-      = persist(tran, TransactionType.PAYPAL_WEB_PAYMENT_PLUS)
+      = persist(tran, TransactionTypeCode.PAYPAL_WEB_PAYMENT_PLUS)
 
     val outerTax: BigDecimal = taxesBySite.values.foldLeft(BigDecimal(0)) { (sum, e) =>
       sum + e.foldLeft(BigDecimal(0)) { (sum2, e2) =>
@@ -1502,7 +1502,7 @@ class TransactionPersister {
   }
 
   def persist(
-    tran: Transaction, transactionType: TransactionType = TransactionType.NORMAL
+    tran: Transaction, transactionType: TransactionTypeCode = TransactionTypeCode.ACCOUNTING_BILL
   )(implicit conn: Connection): (Long, immutable.Map[Site, immutable.Seq[TransactionLogTax]]) = {
     val header = TransactionLogHeader.createNew(
       tran.userId, tran.currency.id,
