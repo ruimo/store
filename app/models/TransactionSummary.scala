@@ -38,7 +38,7 @@ case class AccountingBillTable(
 object TransactionSummary {
   val ListDefaultOrderBy = OrderBy("base.transaction_time", Desc)
   val parser = {
-    SqlParser.get[Long]("transaction_id") ~
+    SqlParser.get[Long]("tranid") ~
     SqlParser.get[Long]("transaction_site_id") ~
     SqlParser.get[java.util.Date]("transaction_time") ~
     SqlParser.get[java.math.BigDecimal]("total_amount") ~
@@ -47,7 +47,7 @@ object TransactionSummary {
     SqlParser.get[Long]("site_id") ~
     SqlParser.get[String]("site_name") ~
     SqlParser.get[java.math.BigDecimal]("shipping") ~
-    SqlParser.get[Int]("status") ~
+    SqlParser.get[Int]("transtatus") ~
     StoreUser.simple ~
     SqlParser.get[Option[java.util.Date]]("shipping_date") ~
     SqlParser.get[java.util.Date]("transaction_status.last_update") ~ 
@@ -57,30 +57,29 @@ object TransactionSummary {
     SqlParser.get[Option[java.util.Date]]("transaction_status.planned_shipping_date") ~
     SqlParser.get[Option[java.util.Date]]("transaction_status.planned_delivery_date") ~
     SqlParser.get[Int]("transaction_type") ~
-    SqlParser.get[Int]("transaction_paypal_status.status") ~
-    SqlParser.get[Int]("transaction_paypal_status.payment_type") map {
-      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent~plannedShippingDate~plannedDeliveryDate~transactionType~paypalStatus~paypalType =>
+    (TransactionLogPaypalStatus.simple ?) map {
+      case id~tranSiteId~time~amount~tax~address~siteId~siteName~shippingFee~status~user~shippingDate~lastUpdate~transporterId~slipCode~mailSent~plannedShippingDate~plannedDeliveryDate~transactionType~paypalStatus =>
         TransactionSummaryEntry(
           id, tranSiteId, time.getTime, amount, tax, address, siteId, siteName,
           shippingFee, TransactionStatus.byIndex(status), lastUpdate.getTime,
           if (transporterId.isDefined) Some(ShippingInfo(transporterId.get, slipCode.get)) else None,
           user, shippingDate.map(_.getTime), mailSent, 
           plannedShippingDate.map(_.getTime), plannedDeliveryDate.map(_.getTime),
-          toTransactionType(TransactionTypeCode.byIndex(transactionType), paypalStatus, paypalType)
+          toTransactionType(TransactionTypeCode.byIndex(transactionType), paypalStatus)
         )
     }
   }
 
   def toTransactionType(
-    transactionType: TransactionTypeCode, paypalStatus: Int, paypalType: Int
+    transactionType: TransactionTypeCode, paypalStatus: Option[TransactionLogPaypalStatus]
   ): TransactionType = transactionType match {
     case TransactionTypeCode.ACCOUNTING_BILL => AccountingBillTransactionType
-    case TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT => PaypalExpressCheckoutTransactionType(PaypalStatus.byIndex(paypalStatus))
-    case TransactionTypeCode.PAYPAL_WEB_PAYMENT_PLUS => PaypalWebPaymentPlusTransactionType(PaypalStatus.byIndex(paypalStatus))
+    case TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT => 
+      PaypalExpressCheckoutTransactionType(paypalStatus.get.status)
   }
 
   val baseColumns = """
-      transaction_id,
+      base.transaction_id tranid,
       base.transaction_site_id,
       transaction_time,
       total_amount,
@@ -89,7 +88,7 @@ object TransactionSummary {
       site.site_id,
       site.site_name,
       shipping,
-      coalesce(transaction_status.status, 0) status,
+      coalesce(transaction_status.status, 0) transtatus,
       transaction_status.last_update,
       transaction_status.transporter_id,
       transaction_status.slip_code,
@@ -99,7 +98,7 @@ object TransactionSummary {
       store_user.*,
       base.shipping_date,
       transaction_paypal_status.*,
-      transaction_type
+      base.transaction_type
   """
 
   def baseSql(
@@ -121,6 +120,7 @@ object TransactionSummary {
       select            
         transaction_header.transaction_id,
         transaction_header.transaction_time,
+        transaction_header.transaction_type,
         transaction_site.total_amount,
         transaction_site.site_id,
         transaction_site.transaction_site_id,
