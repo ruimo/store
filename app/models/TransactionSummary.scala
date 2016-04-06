@@ -137,8 +137,6 @@ object TransactionSummary {
       left join transaction_tax on
         transaction_tax.transaction_site_id = transaction_site.transaction_site_id and
         transaction_tax.tax_type = """ + TaxType.OUTER_TAX.ordinal + """
-      left join transaction_paypal_status on
-        transaction_paypal_status.transaction_id = transaction_header.transaction_id
       where 1 = 1""" +
     siteId.map {id => " and transaction_site.site_id = " + id}.getOrElse("") +
     storeUserId.map {uid => " and transaction_header.store_user_id = " + uid}.getOrElse("") +
@@ -158,6 +156,8 @@ object TransactionSummary {
     inner join store_user on base.store_user_id = store_user.store_user_id
     left join transaction_status
       on transaction_status.transaction_site_id = base.transaction_site_id
+    left join transaction_paypal_status on
+      transaction_paypal_status.transaction_id = base.transaction_id
     """ +
     additionalWhere +
     (if (forCount) ""
