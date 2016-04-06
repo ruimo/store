@@ -74,7 +74,7 @@ object TransactionSummary {
     transactionType: TransactionTypeCode, paypalStatus: Option[TransactionLogPaypalStatus]
   ): TransactionType = transactionType match {
     case TransactionTypeCode.ACCOUNTING_BILL => AccountingBillTransactionType
-    case TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT => 
+    case TransactionTypeCode.PAYPAL_EXPRESS_CHECKOUT | TransactionTypeCode.PAYPAL_WEB_PAYMENT_PLUS => 
       PaypalExpressCheckoutTransactionType(paypalStatus.get.status)
   }
 

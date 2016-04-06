@@ -103,7 +103,21 @@
           }
         </td>
         <td>
-          
+          @e.transactionType match {
+            case AccountingBillTransactionType => {
+              <div class="transactionType">
+                @Messages("transactionType.accountingBill")
+              </div>
+            }
+            case pp: PaypalTransactionType => {
+              <div class="transactionType">
+                @Messages("transactionType.paypal")
+              </div>
+              <div class="creditStatus">
+                @Messages("paypalStatus." + pp.status)
+              </div>
+            }
+          }
         </td>
         <td>
           @if(e.address.isDefined) {
