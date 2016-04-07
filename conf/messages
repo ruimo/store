@@ -479,6 +479,7 @@ paypalWebPaymentStartTitle=Preparing credit card entry form. Please be patient.
 transactionType=Transaction type
 transactionType.accountingBill=Accounting bill
 transactionType.paypal=Paypal
+transactionType.unknown=-
 paypalStatus.START=Started
 paypalStatus.PREPARED=Prepared
 paypalStatus.COMPLETED=Completed

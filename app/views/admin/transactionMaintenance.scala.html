@@ -67,7 +67,7 @@
       <th>@Messages("shipping.fee")</th>
       <th>@Messages("buyer")</th>
       <th>@Messages("shipping.address")</th>
-      <th>@Messages("transactionType")</th>b
+      <th>@Messages("transactionType")</th>
       <th>@Messages("transaction.status")</th>
     </tr>
     @tran.records.map { e =>
@@ -115,6 +115,11 @@
               </div>
               <div class="creditStatus">
                 @Messages("paypalStatus." + pp.status)
+              </div>
+            }
+            case _ => {
+              <div class="transactionType">
+                @Messages("transactionType.unknown")
               </div>
             }
           }

@@ -26,6 +26,7 @@ import controllers.TransactionMaintenance
 import java.io.{StringReader, BufferedReader}
 import helpers.Helper.disableMailer
 import com.ruimo.scoins.Scoping._
+import scala.collection.immutable
 
 class TransactionMaintenanceSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
@@ -281,9 +282,141 @@ class TransactionMaintenanceSpec extends Specification {
         
       }}
     }
+
+    "Transaction type 'accounting bill' is shown" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.accountingBill")
+      }}
+    }
+
+    "Transaction type 'paypal express checkout' is shown" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createPaypalEpressCheckoutTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.START")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.PREPARED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.PREPARED")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.COMPLETED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.COMPLETED")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.CANCELED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.CANCELED")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.ERROR)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.ERROR")
+      }}
+    }
+
+    "Transaction type 'paypal web payment plus checkout' is shown" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createPaypalWebPaymentPlusTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.START")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.PREPARED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.PREPARED")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.COMPLETED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.COMPLETED")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.CANCELED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.CANCELED")
+
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.ERROR)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.ERROR")
+      }}
+    }
   }
 
-  def createTransaction(lang: Lang, user: StoreUser, count: Int = 1)(implicit conn: Connection): Tran = {
+  def createTransactionItems(user: StoreUser)(implicit conn: Connection): (
+    Address, ShippingTotal, ShippingDate, Transporter, Transporter, TransporterName, TransporterName
+  ) = {
     val tax = Tax.createNew
     val taxHis = TaxHistory.createNew(tax, TaxType.INNER_TAX, BigDecimal("5"), date("9999-12-31"))
 
@@ -380,10 +513,73 @@ class TransactionMaintenanceSpec extends Specification {
       )
     )
 
+    (addr1, shippingTotal1, shippingDate1, trans1, trans2, transName1, transName2)
+  }
+
+  def createTransaction(
+    lang: Lang, user: StoreUser, count: Int = 1
+  )(implicit conn: Connection): Tran = {
+    val now = System.currentTimeMillis
+    val (addr1, shippingTotal1, shippingDate1, trans1, trans2, transName1, transName2) = createTransactionItems(user)
+
     val (cartTotal: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
       ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, LoginSession(user, None, 0))
     (1 to count) foreach {
       i => (new TransactionPersister).persist(
+        Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(addr1), shippingTotal1, shippingDate1, now)
+      )
+    }
+
+    val tranList = TransactionLogHeader.list()
+    val tranSiteList = TransactionLogSite.list()
+
+    Tran(
+      tranList(0),
+      tranSiteList,
+      transporter1 = trans1,
+      transporter2 = trans2,
+      transporterName1 = transName1,
+      transporterName2 = transName2
+    )
+  }
+
+  def createPaypalEpressCheckoutTransaction(
+    lang: Lang, user: StoreUser, count: Int = 1
+  )(implicit conn: Connection): Tran = {
+    val now = System.currentTimeMillis
+    val (addr1, shippingTotal1, shippingDate1, trans1, trans2, transName1, transName2) = createTransactionItems(user)
+
+    val (cartTotal: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
+      ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, LoginSession(user, None, 0))
+    (1 to count) foreach {
+      i => (new TransactionPersister).persistPaypal(
+        Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(addr1), shippingTotal1, shippingDate1, now)
+      )
+    }
+
+    val tranList = TransactionLogHeader.list()
+    val tranSiteList = TransactionLogSite.list()
+
+    Tran(
+      tranList(0),
+      tranSiteList,
+      transporter1 = trans1,
+      transporter2 = trans2,
+      transporterName1 = transName1,
+      transporterName2 = transName2
+    )
+  }
+
+  def createPaypalWebPaymentPlusTransaction(
+    lang: Lang, user: StoreUser, count: Int = 1
+  )(implicit conn: Connection): Tran = {
+    val now = System.currentTimeMillis
+    val (addr1, shippingTotal1, shippingDate1, trans1, trans2, transName1, transName2) = createTransactionItems(user)
+
+    val (cartTotal: ShoppingCartTotal, errors: Seq[ItemExpiredException]) =
+      ShoppingCartItem.listItemsForUser(LocaleInfo.Ja, LoginSession(user, None, 0))
+    (1 to count) foreach {
+      i => (new TransactionPersister).persistPaypalWebPaymentPlus(
         Transaction(user.id.get, CurrencyInfo.Jpy, cartTotal, Some(addr1), shippingTotal1, shippingDate1, now)
       )
     }
