@@ -217,7 +217,7 @@ object TransactionSummary {
         ) + (
           if (onlyShipped) " and transaction_status.status = " + TransactionStatus.SHIPPED.ordinal else ""
         ) + (
-          if (onlyAccountingBill) " and transaction_header.transaction_type = " + AccountingBillTransactionType.typeCode.ordinal else ""
+          if (onlyAccountingBill) " and transaction_type = " + AccountingBillTransactionType.typeCode.ordinal else ""
         ),
         orderByOpt = List(OrderBy("base.store_user_id", Asc), ListDefaultOrderBy),
         withLimit = false
