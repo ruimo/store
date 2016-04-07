@@ -200,7 +200,8 @@ object TransactionSummary {
     storeUserId: Option[Long] = None,
     yearMonth: HasYearMonth,
     onlyShipped: Boolean = false,
-    useShippedDate:Boolean = false
+    useShippedDate: Boolean = false,
+    onlyAccountingBill: Boolean = true
   )(implicit conn: Connection): Seq[TransactionSummaryEntry] = {
     val nextYearMonth = yearMonth.next
     val dateCol = if (useShippedDate) "transaction_status.last_update" else "transaction_time"
@@ -215,6 +216,8 @@ object TransactionSummary {
           yearMonth.year, yearMonth.month, nextYearMonth.year, nextYearMonth.month
         ) + (
           if (onlyShipped) " and transaction_status.status = " + TransactionStatus.SHIPPED.ordinal else ""
+        ) + (
+          if (onlyAccountingBill) " and transaction_header.transaction_type = " + AccountingBillTransactionType.typeCode.ordinal else ""
         ),
         orderByOpt = List(OrderBy("base.store_user_id", Asc), ListDefaultOrderBy),
         withLimit = false
