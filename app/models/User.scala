@@ -1,5 +1,6 @@
 package models
 
+import scala.concurrent.duration._
 import play.api.data.validation.Invalid
 import constraints.FormConstraints
 import play.api.data.validation.ValidationError
@@ -15,7 +16,6 @@ import com.ruimo.csv.CsvRecord
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import java.sql.SQLException
 import scala.collection.{mutable, immutable}
-
 
 case class StoreUser(
   id: Option[Long] = None,
@@ -526,6 +526,21 @@ object StoreUser {
       sum + (e._1 -> RegisteredEmployeeCount(e._2.registered, e._2.all))
     }
   }
+
+  def removeObsoleteAnonymousUser(
+    durationToPreserveAnonymousUser: FiniteDuration
+  )(implicit conn: Connection): Int = SQL(
+    """
+    delete from store_user
+    where user_role = {userRole}
+    and created_time < {createdTime}
+    """
+  ).on(
+    'userRole -> UserRole.ANONYMOUS.ordinal,
+    'createdTime -> java.time.Instant.ofEpochMilli(
+      System.currentTimeMillis - durationToPreserveAnonymousUser.toMillis
+    )
+  ).executeUpdate()
 }
 
 object SiteUser {

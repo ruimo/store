@@ -14,12 +14,19 @@
 @main(Messages("end.transaction"), Some(loginSession)) {
 } {
   <div class="transactionEndMessage">
-  ご注文ありがとうございました。<br>
-  ご登録のメールアドレス宛にご注文の内容を送付いたしました。<br>
-  商品の発送をもってご請求させていただきます。<br>
-  <span id="transactionNumber">ご注文番号は「@{tran.header.id.get}」です。</span><br>
-  内容確認のためお控えください。<br>
-  発送が終了しましたら発送元より再度メールにてご連絡をさせていただきます。
+  @if(tran.header.transactionType == TransactionTypeCode.ACCOUNTING_BILL) {
+    ご注文ありがとうございました。<br>
+    ご登録のメールアドレス宛にご注文の内容を送付いたしました。<br>
+    商品の発送をもってご請求させていただきます。<br>
+    <span id="transactionNumber">ご注文番号は「@{tran.header.id.get}」です。</span><br>
+    内容確認のためお控えください。<br>
+    発送が終了しましたら発送元より再度メールにてご連絡をさせていただきます。
+  } else {
+    ご注文ありがとうございました。<br>
+    ご登録のメールアドレス宛にご注文の内容を送付いたしました。<br>
+    <span id="transactionNumber">ご注文番号は「@{tran.header.id.get}」です。</span><br>
+    内容確認のためお控えください。<br>
+  }
   </div>
 
   <h1 class="items">ご注文商品</h1>
