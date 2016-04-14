@@ -518,3 +518,6 @@ paypalStatus.COMPLETED=完了
 paypalStatus.CANCELED=キャンセル
 paypalStatus.ERROR=エラー
 goBackToShoppingCart=ショッピングカートへ戻る
+agreementToUseTitle=利用規約
+agreementForPrivacyTitle=個人情報保護方針
+agreementCheckTitle=上記の規約に同意します。

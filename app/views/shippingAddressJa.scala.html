@@ -123,6 +123,13 @@
     <input type="hidden" name="tel2" value="">
     <input type="hidden" name="tel3" value="">
 
+    <p>@Messages("agreementToUseTitle")</p>
+    <iframe id="agreementToUse" src='@routes.Assets.at("html/agreementToUse.html")'></iframe><br>
+    <p>@Messages("agreementForPrivacyTitle")</p>
+    <iframe id="agreementForPrivacy" src='@routes.Assets.at("html/agreeentForPrivacy.html")'></iframe><br>
+    <input type="checkbox" id="agreeCheck">
+    <label for="agreeCheck">@Messages("agreementCheckTitle")</label><br>
+
     <input type="submit" value="@Messages("register.shipping")">
   }
 }

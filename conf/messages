@@ -486,3 +486,6 @@ paypalStatus.COMPLETED=Completed
 paypalStatus.CANCELED=Canceled
 paypalStatus.ERROR=Error
 goBackToShoppingCart=Go back to shopping cart
+agreementToUseTitle=Agreement to use
+agreementForPrivacyTitle=Agreement for privacy
+agreementCheckTitle=Accept these agreement
