@@ -41,263 +41,263 @@ class TransactionMaintenanceSpec extends Specification {
     transporterName2: TransporterName
   )
 
-//   "Transaction maitenance" should {
-//     "Validation error will shown" in {
-//       val app = FakeApplication(additionalConfiguration = conf)
-//       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
-//         implicit val lang = Lang("ja")
-//         val user = loginWithTestUser(browser)
-//         val tran = createTransaction(lang, user)
-//         browser.goTo(
-//           "http://localhost:3333" + 
-//           controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-//         )
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
-//         browser.title === Messages("commonTitle", Messages("transactionMaintenanceTitle"))
-//         browser.find(".site").getText === "商店1"
-//         browser.find(".shippingDate").getText === "2013年02月03日"
-//         browser.find(".transactionAmount").getText === "2,400円"
-//         browser.find(".transactionShipping").getText === "123円"
-//         browser.find(".buyer").find(".companyName").getText === user.companyName.get
-//         browser.find(".buyer").find(".name").getText === user.firstName + " " + user.lastName
-//         browser.find(".buyer").find(".email").getText === user.email
-//         browser.find(".shippingTableBody").find(".zip").getText === "zip1 - zip2"
-//         browser.find(".shippingTableBody").find(".prefecture").getText === JapanPrefecture.東京都.toString
-//         browser.find(".shippingTableBody").find(".address1").getText === "address1-1"
-//         browser.find(".shippingTableBody").find(".address2").getText === "address1-2"
-//         browser.find(".shippingTableBody").find(".tel1").getText === "tel1-1"
-//         browser.find(".shippingTableBody").find(".comment").getText === "comment1"
-//         val tranSiteId = tran.tranSiteHeader(0).id.get
-//         browser.webDriver
-//           .findElement(By.id("status" + tranSiteId))
-//           .findElement(By.cssSelector("option[value=\"0\"]")).isSelected === true
+  "Transaction maitenance" should {
+    "Validation error will shown" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+        browser.title === Messages("commonTitle", Messages("transactionMaintenanceTitle"))
+        browser.find(".site").getText === "商店1"
+        browser.find(".shippingDate").getText === "2013年02月03日"
+        browser.find(".transactionAmount").getText === "2,400円"
+        browser.find(".transactionShipping").getText === "123円"
+        browser.find(".buyer").find(".companyName").getText === user.companyName.get
+        browser.find(".buyer").find(".name").getText === user.firstName + " " + user.lastName
+        browser.find(".buyer").find(".email").getText === user.email
+        browser.find(".shippingTableBody").find(".zip").getText === "zip1 - zip2"
+        browser.find(".shippingTableBody").find(".prefecture").getText === JapanPrefecture.東京都.toString
+        browser.find(".shippingTableBody").find(".address1").getText === "address1-1"
+        browser.find(".shippingTableBody").find(".address2").getText === "address1-2"
+        browser.find(".shippingTableBody").find(".tel1").getText === "tel1-1"
+        browser.find(".shippingTableBody").find(".comment").getText === "comment1"
+        val tranSiteId = tran.tranSiteHeader(0).id.get
+        browser.webDriver
+          .findElement(By.id("status" + tranSiteId))
+          .findElement(By.cssSelector("option[value=\"0\"]")).isSelected === true
 
-//         browser
-//           .find("#transporter" + tranSiteId)
-//           .find("option[value=\"" + tran.transporter1.id.get + "\"]").getText === tran.transporterName1.transporterName
-//         browser
-//           .find("#transporter" + tranSiteId)
-//           .find("option[value=\"" + tran.transporter2.id.get + "\"]").getText === tran.transporterName2.transporterName
+        browser
+          .find("#transporter" + tranSiteId)
+          .find("option[value=\"" + tran.transporter1.id.get + "\"]").getText === tran.transporterName1.transporterName
+        browser
+          .find("#transporter" + tranSiteId)
+          .find("option[value=\"" + tran.transporter2.id.get + "\"]").getText === tran.transporterName2.transporterName
 
-//         browser
-//           .find("#transporter" + tranSiteId)
-//           .find("option[value=\"" + tran.transporter2.id.get + "\"]").click()
+        browser
+          .find("#transporter" + tranSiteId)
+          .find("option[value=\"" + tran.transporter2.id.get + "\"]").click()
 
-//         // Input error(slip code is not filled).
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(
-//           "#changeShippingInfoButton" + tranSiteId
-//         ).areDisplayed()
-//         browser.find("#changeShippingInfoButton" + tranSiteId).click()
+        // Input error(slip code is not filled).
+        browser.await().atMost(5, TimeUnit.SECONDS).until(
+          "#changeShippingInfoButton" + tranSiteId
+        ).areDisplayed()
+        browser.find("#changeShippingInfoButton" + tranSiteId).click()
 
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(
-//           "#changeShippingInfoButton" + tranSiteId
-//         ).areDisplayed()
-//         browser.find("#slipCode" + tranSiteId + "_field").find(".error").getText === Messages("error.required")
+        browser.await().atMost(5, TimeUnit.SECONDS).until(
+          "#changeShippingInfoButton" + tranSiteId
+        ).areDisplayed()
+        browser.find("#slipCode" + tranSiteId + "_field").find(".error").getText === Messages("error.required")
 
-//         browser.fill("#slipCode" + tranSiteId).`with`("12345678")
-//         browser.find(
-//           "#changeShippingInfoButton" + tranSiteId
-//         ).click()
+        browser.fill("#slipCode" + tranSiteId).`with`("12345678")
+        browser.find(
+          "#changeShippingInfoButton" + tranSiteId
+        ).click()
 
-//         browser.title === Messages("commonTitle", Messages("transactionMaintenanceTitle"))
-//         browser.webDriver
-//           .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"1\"]")).isSelected === true
+        browser.title === Messages("commonTitle", Messages("transactionMaintenanceTitle"))
+        browser.webDriver
+          .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"1\"]")).isSelected === true
 
-//         doWith(browser.find("#shippingStatusTable" + tranSiteId)) { tbl =>
-//           tbl.find(".transporter").getText === tran.transporterName2.transporterName
-//           tbl.find(".slipCode").getText === "12345678"
-//         }
+        doWith(browser.find("#shippingStatusTable" + tranSiteId)) { tbl =>
+          tbl.find(".transporter").getText === tran.transporterName2.transporterName
+          tbl.find(".slipCode").getText === "12345678"
+        }
 
-//         // Cancel
-//         browser.webDriver
-//           .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"2\"]")).click()
-//         browser.find("#changeShippingStatusButton" + tranSiteId).click();
-//         browser.await().atMost(5, TimeUnit.SECONDS).until("#status" + tranSiteId).areDisplayed()
+        // Cancel
+        browser.webDriver
+          .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"2\"]")).click()
+        browser.find("#changeShippingStatusButton" + tranSiteId).click();
+        browser.await().atMost(5, TimeUnit.SECONDS).until("#status" + tranSiteId).areDisplayed()
 
-//         browser.webDriver
-//           .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"2\"]")).isSelected === true
-//       }}
-//     }
+        browser.webDriver
+          .findElement(By.id("status" + tranSiteId)).findElement(By.cssSelector("option[value=\"2\"]")).isSelected === true
+      }}
+    }
 
-//     "Transaction cancelation" in {
-//       val app = FakeApplication(additionalConfiguration = conf)
-//       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
-//         implicit val lang = Lang("ja")
-//         val user = loginWithTestUser(browser)
-//         val tran = createTransaction(lang, user)
-//         browser.goTo(
-//           "http://localhost:3333" + 
-//           controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-//         )
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+    "Transaction cancelation" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-//         // Cancel transaction.
-//         browser.find(".cancelShippingButton").click()
+        // Cancel transaction.
+        browser.find(".cancelShippingButton").click()
 
-//         // Dialog should be shown.
-//         browser.await().atMost(65, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
-//         browser.find(".ui-dialog-buttonset").find("button", 0).click()
+        // Dialog should be shown.
+        browser.await().atMost(65, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-buttonset").find("button", 0).click()
 
-//         browser.find(".shippingStatusTable").find(".transporter").getText === "-"
-//         browser.find(".shippingStatusTable").find(".slipCode").getText === "-"
-//       }}
-//     }
+        browser.find(".shippingStatusTable").find(".transporter").getText === "-"
+        browser.find(".shippingStatusTable").find(".slipCode").getText === "-"
+      }}
+    }
 
-//     "Abort transaction cancelation" in {
-//       val app = FakeApplication(additionalConfiguration = conf)
-//       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
-//         implicit val lang = Lang("ja")
-//         val user = loginWithTestUser(browser)
-//         val tran = createTransaction(lang, user)
-//         browser.goTo(
-//           "http://localhost:3333" + 
-//           controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-//         )
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+    "Abort transaction cancelation" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-//         // Cancel transaction.
-//         browser.find(".cancelShippingButton").click()
+        // Cancel transaction.
+        browser.find(".cancelShippingButton").click()
 
-//         // Dialog should be shown.
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
-//         browser.find(".ui-dialog-buttonset").find("button", 1).click()
+        // Dialog should be shown.
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
+        browser.find(".ui-dialog-buttonset").find("button", 1).click()
 
-//         // Aborted. Transporter/slip code form are still shown.
-//         find("#transporterId_field") must be_!=(null)
-//         find("#slipCode_field") must be_!=(null)
-//       }}
-//     }
+        // Aborted. Transporter/slip code form are still shown.
+        find("#transporterId_field") must be_!=(null)
+        find("#slipCode_field") must be_!=(null)
+      }}
+    }
 
-//     "Download csv" in {
-//       val app = FakeApplication(additionalConfiguration = conf)
-//       running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
-//         implicit val lang = Lang("ja")
-//         val user = loginWithTestUser(browser)
-//         implicit val loginSession = LoginSession(user, None, System.currentTimeMillis() + 10000)
-//         val tran = createTransaction(lang, user)
-//         val csv1 = TransactionMaintenance.createCsv(tran.tranHeader.id.get, tran.tranSiteHeader(0).id.get)
-//         val csv2 = TransactionMaintenance.createCsv(tran.tranHeader.id.get, tran.tranSiteHeader(1).id.get)
-//         val csvLines1 = new BufferedReader(new StringReader(csv1))
-//         val csvLines2 = new BufferedReader(new StringReader(csv2))
-//         csvLines1.readLine === "%s,%s,%s,%s,%s,%s,%s,%s".format(
-//           Messages("csv.tran.detail.id"),
-//           Messages("csv.tran.detail.date"),
-//           Messages("csv.tran.detail.shippingDate"),
-//           Messages("csv.tran.detail.type"),
-//           Messages("csv.tran.detail.itemName"),
-//           Messages("csv.tran.detail.quantity"),
-//           Messages("csv.tran.detail.amount"),
-//           Messages("csv.tran.detail.costPrice")
-//         )
-//         csvLines2.readLine === "%s,%s,%s,%s,%s,%s,%s,%s".format(
-//           Messages("csv.tran.detail.id"),
-//           Messages("csv.tran.detail.date"),
-//           Messages("csv.tran.detail.shippingDate"),
-//           Messages("csv.tran.detail.type"),
-//           Messages("csv.tran.detail.itemName"),
-//           Messages("csv.tran.detail.quantity"),
-//           Messages("csv.tran.detail.amount"),
-//           Messages("csv.tran.detail.costPrice")
-//         )
+    "Download csv" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.HTMLUNIT) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        implicit val loginSession = LoginSession(user, None, System.currentTimeMillis() + 10000)
+        val tran = createTransaction(lang, user)
+        val csv1 = TransactionMaintenance.createCsv(tran.tranHeader.id.get, tran.tranSiteHeader(0).id.get)
+        val csv2 = TransactionMaintenance.createCsv(tran.tranHeader.id.get, tran.tranSiteHeader(1).id.get)
+        val csvLines1 = new BufferedReader(new StringReader(csv1))
+        val csvLines2 = new BufferedReader(new StringReader(csv2))
+        csvLines1.readLine === "%s,%s,%s,%s,%s,%s,%s,%s".format(
+          Messages("csv.tran.detail.id"),
+          Messages("csv.tran.detail.date"),
+          Messages("csv.tran.detail.shippingDate"),
+          Messages("csv.tran.detail.type"),
+          Messages("csv.tran.detail.itemName"),
+          Messages("csv.tran.detail.quantity"),
+          Messages("csv.tran.detail.amount"),
+          Messages("csv.tran.detail.costPrice")
+        )
+        csvLines2.readLine === "%s,%s,%s,%s,%s,%s,%s,%s".format(
+          Messages("csv.tran.detail.id"),
+          Messages("csv.tran.detail.date"),
+          Messages("csv.tran.detail.shippingDate"),
+          Messages("csv.tran.detail.type"),
+          Messages("csv.tran.detail.itemName"),
+          Messages("csv.tran.detail.quantity"),
+          Messages("csv.tran.detail.amount"),
+          Messages("csv.tran.detail.costPrice")
+        )
 
-//         val lines1 = readFully(csvLines1).sorted
-//         lines1.size === 3
+        val lines1 = readFully(csvLines1).sorted
+        lines1.size === 3
 
-//         lines1(0) === (
-//           "%1$d,".format(tran.tranHeader.id.get) +
-//           Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
-//           "2013/02/03," +
-//           Messages("csv.tran.detail.type.item") + "," +
-//           "植木1," +
-//           "3," +
-//           "100.00," +
-//           "90.00"
-//         )
-//         lines1(1) === (
-//           "%1$d,".format(tran.tranHeader.id.get) +
-//           Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
-//           "2013/02/03," +
-//           Messages("csv.tran.detail.type.item") + "," +
-//           "植木3," +
-//           "7," +
-//           "300.00," +
-//           "290.00"
-//         )
-//         lines1(2) === (
-//           "%1$d,".format(tran.tranHeader.id.get) +
-//           Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
-//           "2013/02/03," +
-//           Messages("csv.tran.detail.type.shipping") + "," +
-//           "site-box1," +
-//           "1," +
-//           "123.00," +
-//           "0"
-//         )
+        lines1(0) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.item") + "," +
+          "植木1," +
+          "3," +
+          "100.00," +
+          "90.00"
+        )
+        lines1(1) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.item") + "," +
+          "植木3," +
+          "7," +
+          "300.00," +
+          "290.00"
+        )
+        lines1(2) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.shipping") + "," +
+          "site-box1," +
+          "1," +
+          "123.00," +
+          "0"
+        )
 
-//         val lines2 = readFully(csvLines2).sorted
-//         lines2.size === 2
+        val lines2 = readFully(csvLines2).sorted
+        lines2.size === 2
 
-//         lines2(0) === (
-//           "%1$d,".format(tran.tranHeader.id.get) +
-//           Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
-//           "2013/02/03," +
-//           Messages("csv.tran.detail.type.item") + "," +
-//           "植木2," +
-//           "5," +
-//           "200.00," +
-//           "190.00"
-//         )
-//         lines2(1) === (
-//           "%1$d,".format(tran.tranHeader.id.get) +
-//           Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
-//           "2013/02/03," +
-//           Messages("csv.tran.detail.type.shipping") + "," +
-//           "site-box2," +
-//           "2," +
-//           "234.00," +
-//           "0"
-//         )
-//       }
-//     }}
+        lines2(0) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.item") + "," +
+          "植木2," +
+          "5," +
+          "200.00," +
+          "190.00"
+        )
+        lines2(1) === (
+          "%1$d,".format(tran.tranHeader.id.get) +
+          Messages("csv.tran.detail.shippingDate.format").format(tran.tranHeader.transactionTime) + "," +
+          "2013/02/03," +
+          Messages("csv.tran.detail.type.shipping") + "," +
+          "site-box2," +
+          "2," +
+          "234.00," +
+          "0"
+        )
+      }
+    }}
 
-//     "Enter shipping/delivery date" in {
-//       val app = FakeApplication(additionalConfiguration = conf)
-//       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
-//         implicit val lang = Lang("ja")
-//         val user = loginWithTestUser(browser)
-//         val tran = createTransaction(lang, user)
-//         browser.goTo(
-//           "http://localhost:3333" + 
-//           controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-//         )
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(".entryShippingDeliveryDateButton").areDisplayed()
+    "Enter shipping/delivery date" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".entryShippingDeliveryDateButton").areDisplayed()
 
-//         // If shipping date or delivery date is empty, error should be shown.
-//         browser.find(".entryShippingDeliveryDateButton", 0).click()
-//         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        // If shipping date or delivery date is empty, error should be shown.
+        browser.find(".entryShippingDeliveryDateButton", 0).click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-// //        browser.find("#shippingDateTextBox_field"
+//        browser.find("#shippingDateTextBox_field"
 
-//         1 === 1
+        1 === 1
         
-//       }}
-//     }
+      }}
+    }
 
-//     "Transaction type 'accounting bill' is shown" in {
-//       val app = FakeApplication(additionalConfiguration = conf)
-//       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
-//         implicit val lang = Lang("ja")
-//         val user = loginWithTestUser(browser)
-//         val tran = createTransaction(lang, user)
-//         browser.goTo(
-//           "http://localhost:3333" + 
-//           controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-//         )
-//         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+    "Transaction type 'accounting bill' is shown" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-//         browser.find(".transactionType").getText === Messages("transactionType.accountingBill")
-//       }}
-//     }
+        browser.find(".transactionType").getText === Messages("transactionType.accountingBill")
+      }}
+    }
 
     "Transaction type 'paypal express checkout' is shown" in {
       val app = FakeApplication(additionalConfiguration = conf)
@@ -366,63 +366,63 @@ class TransactionMaintenanceSpec extends Specification {
       }}
     }
 
-    // "Transaction type 'paypal web payment plus checkout' is shown" in {
-    //   val app = FakeApplication(additionalConfiguration = conf)
-    //   running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
-    //     implicit val lang = Lang("ja")
-    //     val user = loginWithTestUser(browser)
-    //     val tran = createPaypalWebPaymentPlusTransaction(lang, user)
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+    "Transaction type 'paypal web payment plus checkout' is shown" in {
+      val app = FakeApplication(additionalConfiguration = conf)
+      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val user = loginWithTestUser(browser)
+        val tran = createPaypalWebPaymentPlusTransaction(lang, user)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-    //     browser.find(".transactionType").getText === Messages("transactionType.paypal")
-    //     browser.find(".creditStatus").getText === Messages("paypalStatus.START")
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.START")
 
-    //     TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.PREPARED)
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.PREPARED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-    //     browser.find(".transactionType").getText === Messages("transactionType.paypal")
-    //     browser.find(".creditStatus").getText === Messages("paypalStatus.PREPARED")
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.PREPARED")
 
-    //     TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.COMPLETED)
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.COMPLETED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-    //     browser.find(".transactionType").getText === Messages("transactionType.paypal")
-    //     browser.find(".creditStatus").getText === Messages("paypalStatus.COMPLETED")
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.COMPLETED")
 
-    //     TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.CANCELED)
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.CANCELED)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-    //     browser.find(".transactionType").getText === Messages("transactionType.paypal")
-    //     browser.find(".creditStatus").getText === Messages("paypalStatus.CANCELED")
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.CANCELED")
 
-    //     TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.ERROR)
-    //     browser.goTo(
-    //       "http://localhost:3333" + 
-    //       controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
-    //     )
-    //     browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
+        TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.ERROR)
+        browser.goTo(
+          "http://localhost:3333" + 
+          controllers.routes.TransactionMaintenance.index(orderBySpec = "transaction_site_id").url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
-    //     browser.find(".transactionType").getText === Messages("transactionType.paypal")
-    //     browser.find(".creditStatus").getText === Messages("paypalStatus.ERROR")
-    //   }}
-//   }
-// }
+        browser.find(".transactionType").getText === Messages("transactionType.paypal")
+        browser.find(".creditStatus").getText === Messages("paypalStatus.ERROR")
+      }}
+    }
+  }
 
   def createTransactionItems(user: StoreUser)(implicit conn: Connection): (
     Address, ShippingTotal, ShippingDate, Transporter, Transporter, TransporterName, TransporterName
