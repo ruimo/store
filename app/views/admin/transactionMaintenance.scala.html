@@ -15,6 +15,22 @@
 @import helper._
 
 @main(Messages("transactionMaintenanceTitle"), Some(loginSession), contentCssClass = "adminContents") {
+  <script src="@routes.Assets.at("javascripts/jquery.blockUI.js")"></script>
+  <script type="text/javascript">
+    $(function() {
+      @tran.records.map { e =>
+        @e.transactionType match {
+          case pp: PaypalTransactionType => {
+            @if(pp.status != PaypalStatus.COMPLETED) {
+              $('.status.@e.transactionSiteId').block(({message: '@Messages("paypalNotCompleted")'}));
+            }
+          }
+          case _ => {}
+        }
+      }
+    });
+  </script>
+
   <script type="text/javascript">
     $(function() {
       $("#submitDialog").dialog({
@@ -124,7 +140,7 @@
             }
           }
         </td>
-        <td>
+        <td class="status @e.transactionSiteId">
           @if(e.address.isDefined) {
             @transactionStatusForm(e, e.transactionSiteId, e.status.ordinal, myForm, statusTable, entryShippingInfoForms, transporterTable, transporters, shippingDeliveryDateForms)
             <a target="_blank" id="invoiceLink" href="@routes.Invoice.show(e.transactionSiteId)">@Messages("invoice")</a>
