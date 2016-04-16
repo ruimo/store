@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 
 object Retry {
   @tailrec def doRetry[T](
-    t: Throwable,
+    t: Class[_ <: Throwable],
     waitPeriodMillis: Long = 5,
     retryCount: Int = 3
   )(
@@ -15,7 +15,7 @@ object Retry {
     }
     catch {
       case error: Throwable =>
-        if (t.getClass.isAssignableFrom(error.getClass)) {
+        if (t.isAssignableFrom(error.getClass)) {
           if (retryCount == 0) throw error
           else {
             Thread.sleep(waitPeriodMillis)
