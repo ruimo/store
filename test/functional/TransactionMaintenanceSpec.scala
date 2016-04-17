@@ -380,6 +380,8 @@ class TransactionMaintenanceSpec extends Specification {
 
         browser.find(".transactionType").getText === Messages("transactionType.paypal")
         browser.find(".creditStatus").getText === Messages("paypalStatus.START")
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1000 .blockOverlay").isPresent()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1001 .blockOverlay").isPresent()
 
         TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.PREPARED)
         browser.goTo(
@@ -390,6 +392,8 @@ class TransactionMaintenanceSpec extends Specification {
 
         browser.find(".transactionType").getText === Messages("transactionType.paypal")
         browser.find(".creditStatus").getText === Messages("paypalStatus.PREPARED")
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1000 .blockOverlay").isPresent()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1001 .blockOverlay").isPresent()
 
         TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.COMPLETED)
         browser.goTo(
@@ -400,6 +404,8 @@ class TransactionMaintenanceSpec extends Specification {
 
         browser.find(".transactionType").getText === Messages("transactionType.paypal")
         browser.find(".creditStatus").getText === Messages("paypalStatus.COMPLETED")
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1000 .blockOverlay").isNotPresent()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1001 .blockOverlay").isNotPresent()
 
         TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.CANCELED)
         browser.goTo(
@@ -410,6 +416,8 @@ class TransactionMaintenanceSpec extends Specification {
 
         browser.find(".transactionType").getText === Messages("transactionType.paypal")
         browser.find(".creditStatus").getText === Messages("paypalStatus.CANCELED")
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1000 .blockOverlay").isPresent()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1001 .blockOverlay").isPresent()
 
         TransactionLogPaypalStatus.update(tran.tranHeader.id.get, PaypalStatus.ERROR)
         browser.goTo(
@@ -418,6 +426,8 @@ class TransactionMaintenanceSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1000 .blockOverlay").isPresent()
+        browser.await().atMost(30, TimeUnit.SECONDS).until("td.status.t1001 .blockOverlay").isPresent()
         browser.find(".transactionType").getText === Messages("transactionType.paypal")
         browser.find(".creditStatus").getText === Messages("paypalStatus.ERROR")
       }}
