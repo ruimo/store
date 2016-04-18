@@ -128,6 +128,7 @@ class AnonymousBuyerSpec extends Specification with SalesSpecBase {
         browser.fill("#address3").`with`("address03")
         browser.fill("#tel1").`with`("12345678")
 
+        browser.find("#agreeCheck").click()
         browser.find("input[type='submit']").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
