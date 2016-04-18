@@ -26,6 +26,19 @@
       });
     });
   </script>
+  <script type="text/javascript">
+    function doCheckAgreement() {
+      var checked = $("#agreeCheck").prop("checked");
+      if (checked) {
+        return true;
+      }
+      else {
+        alert("規約への同意をお願いいたします。");
+        $('#agreeCheckLabel').css('background-color', 'red').fadeOut(500,function(){$(this).fadeIn(500)});
+        return false;
+      }
+    };
+  </script>
 
   <h1 class="enterShippingAddress">@Messages("enter.shipping.address")</h1>
 
@@ -41,7 +54,7 @@
     </div>
   }
 
-  @helper.form(action = helper.CSRF(routes.Shipping.enterShippingAddressJa()), 'id -> "enterShippingAddressForm") {
+  @helper.form(action = helper.CSRF(routes.Shipping.enterShippingAddressJa()), 'id -> "enterShippingAddressForm", 'onsubmit -> "return doCheckAgreement();") {
     @helper.inputText(
       myForm("firstName"),
       '_label -> Messages("firstName"), 'size -> 24, 'maxlength -> 64
@@ -128,8 +141,8 @@
     <p>@Messages("agreementForPrivacyTitle")</p>
     <iframe id="agreementForPrivacy" src='@routes.Assets.at("html/agreeentForPrivacy.html")'></iframe><br>
     <input type="checkbox" id="agreeCheck">
-    <label for="agreeCheck">@Messages("agreementCheckTitle")</label><br>
+    <label id="agreeCheckLabel" for="agreeCheck">@Messages("agreementCheckTitle")</label><br>
 
-    <input type="submit" value="@Messages("register.shipping")">
+    <input type="submit" id="submitBtn" value="@Messages("register.shipping")">
   }
 }
