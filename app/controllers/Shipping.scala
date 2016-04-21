@@ -380,11 +380,13 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
 
     try {
+      val shippingTotal: ShippingTotal = shippingFee(addr, cart)
+
       val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]], token: Long) = {
         val persister = new TransactionPersister()
         persister.persistPaypal(
           Transaction(
-            login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shippingDateBySite)
+            login.userId, currency, cart, Some(addr), shippingTotal, ShippingDate(shippingDateBySite)
           )
         )
       }
@@ -401,7 +403,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
             "SIGNATURE" -> Seq(PaypalSignature()),
             "VERSION" -> Seq(PaypalApiVersion()),
             "PAYMENTREQUEST_0_PAYMENTACTION" -> Seq("Sale"),
-            "PAYMENTREQUEST_0_AMT" -> Seq((cart.total + cart.outerTaxTotal).toString),
+            "PAYMENTREQUEST_0_AMT" -> Seq((cart.total + cart.outerTaxTotal + shippingTotal.boxTotal).toString),
             "PAYMENTREQUEST_0_CURRENCYCODE" -> Seq(currency.currencyCode),
             "PAYMENTREQUEST_0_INVNUM" -> Seq(tranId.toString),
             "RETURNURL" -> Seq(successUrl),
@@ -464,16 +466,18 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     }
 
     try {
+      val shippingTotal: ShippingTotal = shippingFee(addr, cart)
+
       val (tranId: Long, taxesBySite: immutable.Map[Site, immutable.Seq[TransactionLogTax]], token: Long) = {
         val persister = new TransactionPersister()
         persister.persistPaypalWebPaymentPlus(
           Transaction(
-            login.userId, currency, cart, Some(addr), shippingFee(addr, cart), ShippingDate(shippingDateBySite)
+            login.userId, currency, cart, Some(addr), shippingTotal, ShippingDate(shippingDateBySite)
           )
         )
       }
 
-      val subTotal = cart.total + cart.outerTaxTotal
+      val subTotal = cart.total + cart.outerTaxTotal + shippingTotal.boxTotal
       val paypalId = PaypalId()
       val successUrl = UrlBase() + routes.Paypal.onWebPaymentPlusSuccess(tranId, token).url
       val cancelUrl = UrlBase() + routes.Paypal.onWebPaymentPlusCancel(tranId, token).url
