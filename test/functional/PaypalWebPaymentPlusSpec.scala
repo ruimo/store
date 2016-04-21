@@ -119,7 +119,7 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
         browser.title === Messages("commonTitle", Messages("paypalWebPaymentStartTitle"))
         doWith(browser.find("#startWebPaymentPlusForm")) { f =>
           f.find("input[name='cmd']").getAttribute("value") === "_hosted-payment"
-          f.find("input[name='subtotal']").getAttribute("value") === "1048.00"
+          f.find("input[name='subtotal']").getAttribute("value") === "1171.00"
           f.find("input[name='business']").getAttribute("value") === "paypal_id"
           f.find("input[name='paymentaction']").getAttribute("value") === "sale"
           f.find("input[name='currency_code']").getAttribute("value") === "JPY"
