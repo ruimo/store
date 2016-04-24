@@ -1,7 +1,7 @@
 package models;
 
 public enum UserRole {
-    ADMIN, NORMAL, ANONYMOUS;
+    ADMIN, NORMAL, ANONYMOUS, ENTRY_USER;
 
     private static final UserRole byIndex[] = UserRole.class.getEnumConstants();
 

@@ -236,6 +236,10 @@ trait NeedLogin extends Controller with HasLogger {
     }
   }
 
+  def registerAsEntryUser = Action { implicit request =>
+    Ok("")
+  }
+
   def tryLogin(
     user: LoginUser, form: Form[LoginUser]
   )(implicit request: Request[AnyContent]): Result = DB.withConnection { implicit conn => {
