@@ -236,7 +236,7 @@ trait NeedLogin extends Controller with HasLogger {
     }
   }
 
-  def registerAsEntryUser = Action { implicit request =>
+  def registerAsEntryUser(url: String) = Action { implicit request =>
     Ok("")
   }
 

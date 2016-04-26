@@ -97,7 +97,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     )(ResetWithNewPassword.apply)(ResetWithNewPassword.unapply)
   )
 
-  def index() = Action { implicit request => DB.withConnection { implicit conn => {
+  def index = Action { implicit request => DB.withConnection { implicit conn => {
     implicit val login = loginSession(request, conn)
     request2lang.toLocale match {
       case Locale.JAPANESE =>
@@ -110,7 +110,7 @@ object UserEntry extends Controller with HasLogger with I18nAware with NeedLogin
     }
   }}}
 
-  def submitUserJa() = Action { implicit request => DB.withConnection { implicit conn => {
+  def submitUserJa = Action { implicit request => DB.withConnection { implicit conn => {
     implicit val login = loginSession(request, conn)
     jaForm.bindFromRequest.fold(
       formWithErrors => {
