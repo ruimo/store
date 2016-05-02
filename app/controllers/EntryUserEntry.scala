@@ -82,8 +82,4 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
       }
     )
   }}}
-
-  def completed = Action { implicit request =>
-    Ok(views.html.entryUserEntryCompleted())
-  }
 }
