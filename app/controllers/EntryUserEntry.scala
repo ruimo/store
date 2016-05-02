@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.Sanitize.{forUrl => sanitize}
 import play.api.Play
 import helpers.PasswordHash
 import constraints.FormConstraints._
@@ -44,7 +45,6 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
 
   def jaForm(implicit lang: Lang) = Form(
     mapping(
-      "companyName" -> optional(text.verifying(maxLength(64))),
       "zip1" -> text.verifying(z => Shipping.Zip1Pattern.matcher(z).matches),
       "zip2" -> text.verifying(z => Shipping.Zip2Pattern.matcher(z).matches),
       "prefecture" -> number,
@@ -53,23 +53,37 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
       "address3" -> text.verifying(maxLength(256)),
       "tel" -> text.verifying(Messages("error.number"), z => Shipping.TelPattern.matcher(z).matches),
       "fax" -> text.verifying(Messages("error.number"), z => Shipping.TelOptionPattern.matcher(z).matches),
-      "title" -> text.verifying(maxLength(256)),
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "lastName" -> text.verifying(lastNameConstraint: _*),
       "email" -> text.verifying(emailConstraint: _*)
     )(EntryUserRegistration.apply4Japan)(EntryUserRegistration.unapply4Japan)
   )
 
-  def index = Action { implicit request => DB.withConnection { implicit conn => {
-    implicit val login = loginSession(request, conn)
+  def startRegistrationAsEntryUser(url: String) = Action { implicit request =>
     request2lang.toLocale match {
       case Locale.JAPANESE =>
-        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures))
+        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
       case Locale.JAPAN =>
-        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures))
+        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
         
       case _ =>
-        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures))
+        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
     }
+  }
+
+  def submitUserJa(url: String) = Action { implicit request => DB.withConnection { implicit conn => {
+    jaForm.bindFromRequest.fold(
+      formWithErrors => {
+        BadRequest(views.html.entryUserEntryJa(formWithErrors, Address.JapanPrefectures, sanitize(url)))
+      },
+      newUser => {
+// TODO        UserEntryMail.sendUserRegistration(newUser)
+        Redirect(url)
+      }
+    )
   }}}
+
+  def completed = Action { implicit request =>
+    Ok(views.html.entryUserEntryCompleted())
+  }
 }

@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.Sanitize.{forUrl => sanitize}
 import java.util.Locale
 import play.api.i18n.{Lang, Messages}
 import play.api.db.DB

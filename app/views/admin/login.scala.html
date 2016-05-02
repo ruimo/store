@@ -47,7 +47,7 @@
       <input type="submit" id="doAnonymousLoginButton" value='@Messages("anonymousLogin")'>
     }
     <br>
-    @helper.form(action = helper.CSRF(routes.Admin.registerAsEntryUser(uri)), 'id -> "registerAsEntryUserForm") {
+    @helper.form(action = helper.CSRF(routes.EntryUserEntry.startRegistrationAsEntryUser(uri)), 'id -> "registerAsEntryUserForm") {
       <input type="submit" id="registerAsEntryUserButton" value='@Messages("registerAsEntryUser")'>
     }
     <br>

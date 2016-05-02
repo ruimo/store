@@ -18,6 +18,7 @@ import play.api.Play.current
 import java.sql.Connection
 import play.api.libs.json.Json
 import helpers.Cache
+import helpers.Sanitize.{forUrl => sanitize}
 
 trait NeedLogin extends Controller with HasLogger {
   import NeedLogin._
@@ -165,12 +166,6 @@ trait NeedLogin extends Controller with HasLogger {
       Ok(views.html.admin.login(loginForm, AnonymousCanPurchase(), sanitize(uriOnLoginSuccess)))
   }
 
-  def sanitize(url: String): String = 
-    if (url.trim.startsWith("//")) "/"
-    else if (url.indexOf("://") != -1) "/"
-    else if (url.indexOf("csrfToken=") != -1) "/"
-    else url
-
   def login = Action { implicit request =>
     val form = loginForm.bindFromRequest
     form.fold(
@@ -234,10 +229,6 @@ trait NeedLogin extends Controller with HasLogger {
         }
       )
     }
-  }
-
-  def registerAsEntryUser(url: String) = Action { implicit request =>
-    Ok("")
   }
 
   def tryLogin(

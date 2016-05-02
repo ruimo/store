@@ -1,10 +1,11 @@
 @(
-  myForm: Form[EntryUserRegistration], prefectureTable: Seq[(String, String)]
+  myForm: Form[EntryUserRegistration],
+  prefectureTable: Seq[(String, String)],
+  uri: String
 )(
   implicit lang: Lang,
   flash: play.api.mvc.Flash,
-  request: RequestHeader,
-  loginSession: Option[LoginSession]
+  request: RequestHeader
 )
 
 @import helper._
@@ -14,7 +15,7 @@
   f("zip1").error.isDefined || f("zip2").error.isDefined
 }
 
-@main(Messages("userEntryTitle"), loginSession) {
+@main(Messages("userEntryTitle"), None) {
   <script src="https://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3-https.js" charset="UTF-8"></script>
 } {
   <h1 class="title">@Messages("userEntryTitle")</h1>
@@ -31,12 +32,7 @@
     </div>
   }
 
-  @form(action = CSRF(routes.UserEntry.submitUserJa), 'id -> "enterShippingAddressForm") {
-    @inputText(
-      myForm("companyName"),
-      '_label -> Messages("companyName"), 'size -> 24, 'maxlength -> 64
-    )
-
+  @form(action = CSRF(routes.EntryUserEntry.submitUserJa(uri)), 'id -> "enterShippingAddressForm") {
     <div id="zipPanel" class="@{if (zipError(myForm)) {"error"} else {""}}">
       <label for="zip1">郵便番号</label>
       <div class="input">

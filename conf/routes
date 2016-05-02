@@ -13,7 +13,9 @@ GET     /admin/startLogin                controllers.Admin.startLogin(uriOnLogin
 POST    /admin/login                     controllers.Admin.login
 GET     /admin/logoff                    controllers.Admin.logoff(uriOnLogoffSuccess: String)
 POST    /admin/anonymousLogin            controllers.Admin.anonymousLogin
-POST    /admin/registerAsEntryUser       controllers.Admin.registerAsEntryUser(url: String)
+POST    /admin/registerAsEntryUser       controllers.EntryUserEntry.startRegistrationAsEntryUser(url: String)
+GET     /admin/entryUserEntryCompleted   controllers.EntryUserEntry.completed
+POST    /admin/entryUserSubmitUserJa     controllers.EntryUserEntry.submitUserJa(url: String)
 
 GET     /admin/itemMaintenance           controllers.ItemMaintenance.index
 GET     /admin/startCreateNewItem        controllers.ItemMaintenance.startCreateNewItem
