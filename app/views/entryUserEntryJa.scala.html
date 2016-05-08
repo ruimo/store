@@ -33,6 +33,22 @@
   }
 
   @form(action = CSRF(routes.EntryUserEntry.submitUserJa(uri)), 'id -> "enterShippingAddressForm") {
+    @inputText(
+    myForm("userName"),
+    '_label -> Messages("userName"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.main"),
+      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.confirm"),
+      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
+      '_error -> myForm.error("password")
+    )
+
     <div id="zipPanel" class="@{if (zipError(myForm)) {"error"} else {""}}">
       <label for="zip1">郵便番号</label>
       <div class="input">

@@ -1,5 +1,6 @@
 package controllers
 
+import helpers.Cache
 import helpers.Sanitize.{forUrl => sanitize}
 import play.api.Play
 import helpers.PasswordHash
@@ -43,8 +44,19 @@ import helpers.Cache
 object EntryUserEntry extends Controller with HasLogger with I18nAware with NeedLogin {
   import NeedLogin._
 
+  val PasswordHashStretchCount: () => Int = Cache.config(
+    _.getInt("passwordHashStretchCount").getOrElse(1000)
+  )
+
   def jaForm(implicit lang: Lang) = Form(
     mapping(
+      "userName" -> text.verifying(normalUserNameConstraint(): _*),
+      "password" -> tuple(
+        "main" -> text.verifying(passwordConstraint: _*),
+        "confirm" -> text
+      ).verifying(
+        Messages("confirmPasswordDoesNotMatch"), passwords => passwords._1 == passwords._2
+      ),
       "zip1" -> text.verifying(z => Shipping.Zip1Pattern.matcher(z).matches),
       "zip2" -> text.verifying(z => Shipping.Zip2Pattern.matcher(z).matches),
       "prefecture" -> number,
@@ -77,6 +89,7 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
         BadRequest(views.html.entryUserEntryJa(formWithErrors, Address.JapanPrefectures, sanitize(url)))
       },
       newUser => {
+        newUser.save(PasswordHashStretchCount())
 // TODO        UserEntryMail.sendUserRegistration(newUser)
         Redirect(url)
       }

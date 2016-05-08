@@ -28,10 +28,11 @@ case class StoreUser(
   salt: Long,
   deleted: Boolean,
   userRole: UserRole,
-  companyName: Option[String]
+  companyName: Option[String],
+  stretchCount: Int
 ) {
   def passwordMatch(password: String): Boolean =
-    PasswordHash.generate(password, salt) == passwordHash
+    PasswordHash.generate(password, salt, stretchCount) == passwordHash
   lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
   lazy val fullName = firstName + middleName.map(n => " " + n).getOrElse("") + " " + lastName
   def isEmployeeOf(siteId: Long) = userName.startsWith(siteId + "-")
@@ -87,11 +88,12 @@ object StoreUser {
     SqlParser.get[Long]("store_user.salt") ~
     SqlParser.get[Boolean]("store_user.deleted") ~
     SqlParser.get[Int]("store_user.user_role") ~
-    SqlParser.get[Option[String]]("store_user.company_name") map {
-      case id~userName~firstName~middleName~lastName~email~passwordHash~salt~deleted~userRole~companyName =>
+    SqlParser.get[Option[String]]("store_user.company_name") ~
+    SqlParser.get[Int]("store_user.stretch_count") map {
+      case id~userName~firstName~middleName~lastName~email~passwordHash~salt~deleted~userRole~companyName~stretchCount =>
         StoreUser(
           id, userName, firstName, middleName, lastName, email, passwordHash, 
-          salt, deleted, UserRole.byIndex(userRole), companyName
+          salt, deleted, UserRole.byIndex(userRole), companyName, stretchCount
         )
     }
   }
@@ -128,17 +130,18 @@ object StoreUser {
 
   def create(
     userName: String, firstName: String, middleName: Option[String], lastName: String,
-    email: String, passwordHash: Long, salt: Long, userRole: UserRole, companyName: Option[String]
+    email: String, passwordHash: Long, salt: Long, userRole: UserRole, companyName: Option[String],
+    stretchCount: Int = 1
   )(implicit conn: Connection): StoreUser = {
     SQL(
       """
       insert into store_user (
         store_user_id, user_name, first_name, middle_name, last_name, email, password_hash, 
-        salt, deleted, user_role, company_name
+        salt, deleted, user_role, company_name, stretch_count
       ) values (
         (select nextval('store_user_seq')),
         {user_name}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash},
-        {salt}, FALSE, {user_role}, {company_name}
+        {salt}, FALSE, {user_role}, {company_name}, {stretch_count}
       )
       """
     ).on(
@@ -150,12 +153,13 @@ object StoreUser {
       'password_hash -> passwordHash,
       'salt -> salt,
       'user_role -> userRole.ordinal,
-      'company_name -> companyName
+      'company_name -> companyName,
+      'stretch_count -> stretchCount
     ).executeUpdate()
 
     val storeUserId = SQL("select currval('store_user_seq')").as(SqlParser.scalar[Long].single)
     StoreUser(Some(storeUserId), userName, firstName, middleName, lastName, email, passwordHash,
-              salt, deleted = false, userRole, companyName)
+              salt, deleted = false, userRole, companyName, stretchCount)
   }
 
   def withSite(userId: Long)(implicit conn: Connection): ListUserEntry = {
