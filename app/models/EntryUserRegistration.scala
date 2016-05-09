@@ -55,6 +55,7 @@ case class EntryUserRegistration(
       address2 = address2,
       address3 = address3,
       tel1 = tel,
+      tel2 = fax,
       email = email
     )
 

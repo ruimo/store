@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   "com.ruimo" %% "csvparser" % "1.0-SNAPSHOT",
   "com.ruimo" %% "scoins" % "1.0",
   "org.twitter4j" % "twitter4j-core" % "4.0.4",
+  "org.seleniumhq.selenium" % "selenium-java" % "2.52.0" % "test",
   jdbc,
 //  anorm,
   "com.typesafe.play" %% "anorm" % "2.4.0",
