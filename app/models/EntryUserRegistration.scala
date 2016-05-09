@@ -26,6 +26,9 @@ case class EntryUserRegistration(
 ) {
   import EntryUserRegistration.tokenGenerator
 
+  def isNaivePassword(implicit conn: Connection): Boolean =
+    PasswordDictionary.isNaivePassword(passwords._1)
+
   def save(cc: CountryCode, stretchCount: Int)(implicit conn: Connection): StoreUser = {
     val salt = tokenGenerator.next
     val passwordHash = PasswordHash.generate(passwords._1, salt, stretchCount)

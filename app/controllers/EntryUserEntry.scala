@@ -75,41 +75,63 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
   )
 
   def startRegistrationAsEntryUser(url: String) = Action { implicit request =>
-    request2lang.toLocale match {
-      case Locale.JAPANESE =>
-        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
-      case Locale.JAPAN =>
-        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
+    DB.withConnection { implicit conn =>
+      if (retrieveLoginSession(request).isDefined) {
+        Redirect(url)
+      }
+      else {
+        request2lang.toLocale match {
+          case Locale.JAPANESE =>
+            Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
+          case Locale.JAPAN =>
+            Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
         
-      case _ =>
-        Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
+          case _ =>
+            Ok(views.html.entryUserEntryJa(jaForm, Address.JapanPrefectures, sanitize(url)))
+        }
+      }
     }
   }
 
   def submitUserJa(url: String) = Action { implicit request => DB.withConnection { implicit conn => {
-    jaForm.bindFromRequest.fold(
-      formWithErrors => {
-        BadRequest(views.html.entryUserEntryJa(formWithErrors, Address.JapanPrefectures, sanitize(url)))
-      },
-      newUser => DB.withConnection { implicit conn: Connection =>
-        try {
-          val user = newUser.save(CountryCode.JPN, PasswordHashStretchCount())
-          Redirect(url).flashing(
-            "message" -> Messages("welcome")
-          ).withSession {
-            (LoginUserKey,LoginSession.serialize(user.id.get, System.currentTimeMillis + SessionTimeout))
-          }
-        }
-        catch {
-          case e: UniqueConstraintException =>
+    if (retrieveLoginSession(request).isDefined) {
+      Redirect(url)
+    }
+    else {
+      jaForm.bindFromRequest.fold(
+        formWithErrors => {
+          BadRequest(views.html.entryUserEntryJa(formWithErrors, Address.JapanPrefectures, sanitize(url)))
+        },
+        newUser => DB.withConnection { implicit conn: Connection =>
+          if (newUser.isNaivePassword) {
             BadRequest(
               views.html.entryUserEntryJa(
-                jaForm.fill(newUser).withError("userName", "userNameIsTaken"),
+                jaForm.fill(newUser).withError("password.main", "naivePassword"),
                 Address.JapanPrefectures, sanitize(url)
               )
             )
+          }
+          else {
+            try {
+              val user = newUser.save(CountryCode.JPN, PasswordHashStretchCount())
+              Redirect(url).flashing(
+                "message" -> Messages("welcome")
+              ).withSession {
+                (LoginUserKey,LoginSession.serialize(user.id.get, System.currentTimeMillis + SessionTimeout))
+              }
+            }
+            catch {
+              case e: UniqueConstraintException =>
+                BadRequest(
+                  views.html.entryUserEntryJa(
+                    jaForm.fill(newUser).withError("userName", "userNameIsTaken"),
+                    Address.JapanPrefectures, sanitize(url)
+                  )
+                )
+            }
+          }
         }
-      }
-    )
+      )
+    }
   }}}
 }
