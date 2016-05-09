@@ -525,3 +525,4 @@ agreementForPrivacyTitle=個人情報保護方針
 agreementCheckTitle=上記の規約に同意します。
 paypalNotCompleted=Paypal支払いが未完了です
 registerAsEntryUser=新規ユーザ登録
+userNameIsTaken=このユーザ名は既に使用されています。

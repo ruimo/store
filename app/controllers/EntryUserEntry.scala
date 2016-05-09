@@ -1,5 +1,6 @@
 package controllers
 
+import models.UniqueConstraintException
 import helpers.Cache
 import helpers.Sanitize.{forUrl => sanitize}
 import play.api.Play
@@ -67,6 +68,8 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
       "fax" -> text.verifying(Messages("error.number"), z => Shipping.TelOptionPattern.matcher(z).matches),
       "firstName" -> text.verifying(firstNameConstraint: _*),
       "lastName" -> text.verifying(lastNameConstraint: _*),
+      "firstNameKana" -> text.verifying(firstNameConstraint: _*),
+      "lastNameKana" -> text.verifying(lastNameConstraint: _*),
       "email" -> text.verifying(emailConstraint: _*)
     )(EntryUserRegistration.apply4Japan)(EntryUserRegistration.unapply4Japan)
   )
@@ -88,10 +91,24 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
       formWithErrors => {
         BadRequest(views.html.entryUserEntryJa(formWithErrors, Address.JapanPrefectures, sanitize(url)))
       },
-      newUser => {
-        newUser.save(PasswordHashStretchCount())
-// TODO        UserEntryMail.sendUserRegistration(newUser)
-        Redirect(url)
+      newUser => DB.withConnection { implicit conn: Connection =>
+        try {
+          val user = newUser.save(CountryCode.JPN, PasswordHashStretchCount())
+          Redirect(url).flashing(
+            "message" -> Messages("welcome")
+          ).withSession {
+            (LoginUserKey,LoginSession.serialize(user.id.get, System.currentTimeMillis + SessionTimeout))
+          }
+        }
+        catch {
+          case e: UniqueConstraintException =>
+            BadRequest(
+              views.html.entryUserEntryJa(
+                jaForm.fill(newUser).withError("userName", "userNameIsTaken"),
+                Address.JapanPrefectures, sanitize(url)
+              )
+            )
+        }
       }
     )
   }}}

@@ -1,5 +1,6 @@
 package models
 
+import java.sql.Connection
 import play.api.db.DB
 import helpers.{PasswordHash, TokenGenerator, RandomTokenGenerator}
 import play.api.Play.current
@@ -19,19 +20,44 @@ case class EntryUserRegistration(
   firstName: String,
   middleName: String,
   lastName: String,
+  firstNameKana: String,
+  lastNameKana: String,
   email: String
 ) {
   import EntryUserRegistration.tokenGenerator
 
-  def save(stretchCount: Int): Unit = DB.withConnection { implicit conn =>
+  def save(cc: CountryCode, stretchCount: Int)(implicit conn: Connection): StoreUser = {
     val salt = tokenGenerator.next
-    val passwordHash = PasswordHash.generate(passwords._1, salt)
+    val passwordHash = PasswordHash.generate(passwords._1, salt, stretchCount)
 
-    val user = StoreUser.create(
-      userName, firstName, None, lastName,
-      email, passwordHash, salt, UserRole.ENTRY_USER, None, stretchCount
+    val user = ExceptionMapper.mapException {
+      StoreUser.create(
+        userName, firstName, None, lastName,
+        email, passwordHash, salt, UserRole.ENTRY_USER, None, stretchCount
+      )
+    }
+
+    val addr = Address.createNew(
+      countryCode = cc,
+      firstName = firstName,
+      middleName = middleName,
+      lastName = lastName,
+      firstNameKana = firstNameKana,
+      lastNameKana = lastNameKana,
+      zip1 = zip1,
+      zip2 = zip2,
+      zip3 = zip3,
+      prefecture = prefecture,
+      address1 = address1,
+      address2 = address2,
+      address3 = address3,
+      tel1 = tel,
+      email = email
     )
-    // TODO address
+
+    UserAddress.createNew(user.id.get, addr.id.get)
+
+    user
   }
 }
 
@@ -51,6 +77,8 @@ object EntryUserRegistration {
     fax: String,
     firstName: String,
     lastName: String,
+    firstNameKana: String,
+    lastNameKana: String,
     email: String
   ) = EntryUserRegistration(
     userName,
@@ -67,6 +95,8 @@ object EntryUserRegistration {
     firstName,
     "",
     lastName,
+    firstNameKana,
+    lastNameKana,
     email
   )
 
@@ -83,6 +113,8 @@ object EntryUserRegistration {
     String, // fax
     String, // firstName
     String, // lastName
+    String, // firstName
+    String, // lastName
     String  // email
   )] = Some((ue.userName, ue.passwords,
              ue.zip1, ue.zip2,
@@ -90,6 +122,7 @@ object EntryUserRegistration {
              ue.address1, ue.address2, ue.address3,
              ue.tel, ue.fax,
              ue.firstName, ue.lastName,
+             ue.firstNameKana, ue.lastNameKana,
              ue.email
            ))
 }

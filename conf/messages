@@ -493,3 +493,4 @@ agreementForPrivacyTitle=Agreement for privacy
 agreementCheckTitle=Accept these agreement
 paypalNotCompleted=Paypal transaction not completed
 registerAsEntryUser=Register
+userNameIsTaken=This user name is already taken

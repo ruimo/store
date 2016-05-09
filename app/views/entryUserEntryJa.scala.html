@@ -94,11 +94,6 @@
       '_label -> Messages("fax"), 'size -> 16, 'maxlength -> 16
     )
 
-    @inputText(
-      myForm("title"),
-      '_label -> Messages("title"), 'size -> 16, 'maxlength -> 256
-    )
-
     @Messages("entryName")      
     <table>
       <tr>
@@ -112,6 +107,20 @@
           @inputText(
             myForm("lastName"),
             '_label -> Messages("lastName"), 'size -> 16, 'maxlength -> 64
+          )
+        </td>
+      </tr>
+      <tr>
+        <td>
+          @inputText(
+            myForm("firstNameKana"),
+            '_label -> Messages("firstNameKana"), 'size -> 16, 'maxlength -> 64
+          )
+        </td>
+        <td>
+          @inputText(
+            myForm("lastNameKana"),
+            '_label -> Messages("lastNameKana"), 'size -> 16, 'maxlength -> 64
           )
         </td>
       </tr>

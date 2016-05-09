@@ -152,6 +152,10 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       else {
         val addr: Option[Address] = ShippingAddressHistory.list(login.userId).headOption.map {
           h => Address.byId(h.addressId)
+        }.orElse {
+          UserAddress.getByUserId(login.userId).map { ua =>
+            Address.byId(ua.addressId)
+          }
         }
         val shippingDate = ShoppingCartShipping.find(login.userId).map(t => new DateTime(t)).getOrElse(new DateTime().plusDays(5))
         val form = addr match {
