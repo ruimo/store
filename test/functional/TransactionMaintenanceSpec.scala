@@ -1,5 +1,7 @@
 package functional
 
+import org.openqa.selenium.interactions.Actions
+import org.openqa.selenium.By
 import helpers.UrlHelper
 import helpers.UrlHelper._
 import anorm._
@@ -132,7 +134,9 @@ class TransactionMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
         // Cancel transaction.
-        browser.find(".cancelShippingButton").click()
+        (new Actions(browser.webDriver)).moveToElement(
+          browser.webDriver.findElements(By.cssSelector(".cancelShippingButton")).get(0)
+        ).click().perform()
 
         // Dialog should be shown.
         browser.await().atMost(65, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()
@@ -156,7 +160,9 @@ class TransactionMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).until(".site").areDisplayed()
 
         // Cancel transaction.
-        browser.find(".cancelShippingButton").click()
+        (new Actions(browser.webDriver)).moveToElement(
+          browser.webDriver.findElements(By.cssSelector(".cancelShippingButton")).get(0)
+        ).click().perform()
 
         // Dialog should be shown.
         browser.await().atMost(5, TimeUnit.SECONDS).until(".ui-dialog-buttonset").areDisplayed()

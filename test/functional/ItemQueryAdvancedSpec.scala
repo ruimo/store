@@ -1,5 +1,10 @@
 package functional
 
+import play.api.test.TestBrowser
+import org.openqa.selenium.interactions.Actions
+import org.openqa.selenium.WebElement
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.By
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.support.ui.ExpectedCondition
 import org.openqa.selenium.support.ui.WebDriverWait
@@ -19,9 +24,30 @@ import play.api.i18n.{Lang, Messages}
 import play.api.db.DB
 import helpers.Helper._
 import java.sql.Date.{valueOf => date}
+import org.openqa.selenium.WebDriverException
 
 class ItemQueryAdvancedSpec extends Specification {
   implicit def date2milli(d: java.sql.Date) = d.getTime
+
+  def click(browser: TestBrowser, ele: WebElement) {
+
+    def click(count: Int) {
+      try {
+        (new Actions(browser.webDriver)).moveToElement(ele).click().perform()
+      }
+      catch {
+        case e: WebDriverException =>
+          if (count > 0) {
+            Thread.sleep(1000)
+            click(count - 1)
+          }
+          else throw e
+        case e: Throwable => throw e
+      }
+    }
+
+    click(5)
+  }
 
   def itemNameMatcher(idx: Int, expectedItemName: String): ExpectedCondition[Boolean] = new ExpectedCondition[Boolean] {
     def apply(d: WebDriver): Boolean = try {
@@ -220,7 +246,7 @@ class ItemQueryAdvancedSpec extends Specification {
 
         browser.await().atMost(10, TimeUnit.SECONDS).until("#pagingPaneDestination .pageCount").hasText("1/3")
 
-        browser.find("#categoryCondition .categoryConditionItem[data-category-code='10000000'] input").click()
+        browser.find("#categoryCondition .categoryConditionItem[data-category-code='10000000'] label").click()
         browser.await().atMost(10, TimeUnit.SECONDS).until("#pagingPaneDestination .pageCount").hasText("1/1")
         0 to 9 foreach { i =>
           browser.find("#queryBody .qthumItem", i).find(".qthumItem_name").getText === "item" + (i * 2 + 1)
@@ -228,18 +254,26 @@ class ItemQueryAdvancedSpec extends Specification {
 
         browser.find(".category02").click()
         browser.await().atMost(10, TimeUnit.SECONDS).until(
-          "#categoryCondition .categoryConditionItem[data-category-code='2000000'] input"
+          ".categoryConditionItem[data-category-code='2000000'] label"
         ).areDisplayed
 
-        browser.find("#categoryCondition .categoryConditionItem[data-category-code='2000000'] input").click()
-
+        click(
+          browser, browser.webDriver.findElement(
+            By.cssSelector(".categoryConditionItem[data-category-code='2000000'] label")
+          )
+        )
         new WebDriverWait(browser.webDriver, 10).until(itemNameMatcher(0, "item7"))
         
         browser.find(".category01").click()
         browser.await().atMost(10, TimeUnit.SECONDS).until(
-          "#categoryCondition .categoryConditionItem[data-category-code='10000000'] input"
+          "#categoryCondition .categoryConditionItem[data-category-code='10000000'] label"
         ).areDisplayed
-        browser.find("#categoryCondition .categoryConditionItem[data-category-code='10000000'] input").click()
+        click(
+          browser, browser.webDriver.findElement(
+            By.cssSelector(".categoryConditionItem[data-category-code='10000000'] label")
+          )
+        )
+
         browser.await().atMost(10, TimeUnit.SECONDS).until("#pagingPaneDestination .pageCount").areDisplayed
         browser.await().atMost(10, TimeUnit.SECONDS).until("#pagingPaneDestination .pageCount").hasText("1/2")
 

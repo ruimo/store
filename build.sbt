@@ -30,6 +30,3 @@ libraryDependencies ++= Seq(
   filters
 )
 
-val buildSettings = Defaults.defaultSettings ++ Seq(
-   javaOptions += "-Xmx1G"
-)

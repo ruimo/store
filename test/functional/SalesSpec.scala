@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 import helpers.Helper.disableMailer
 import helpers.UrlHelper
 import helpers.UrlHelper._
+import org.openqa.selenium.interactions.Actions
 import org.openqa.selenium.By
 import org.openqa.selenium.By._
 import play.api.test.Helpers._
@@ -341,9 +342,16 @@ class SalesSpec extends Specification with SalesSpecBase  {
 
         browser.goTo("http://localhost:3333" + itemQueryUrl())
         browser.await().atMost(5, TimeUnit.SECONDS).until(".addToCartButton").areDisplayed()
-        browser.find(".addToCartButton").click()
+
+        (new Actions(browser.webDriver)).moveToElement(
+          browser.webDriver.findElement(By.cssSelector(".addToCartButton"))
+        ).click().perform()
         browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
-        browser.find(".addToCartButton", 1).click()
+        browser.find(".ui-dialog-buttonset button", 0).click()
+
+        (new Actions(browser.webDriver)).moveToElement(
+          browser.webDriver.findElements(By.cssSelector(".addToCartButton")).get(1)
+        ).click().perform()
         browser.await().atMost(30, TimeUnit.SECONDS).until(".ui-dialog-buttonset button").areDisplayed()
 
         // Expire price history.
