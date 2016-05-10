@@ -137,9 +137,13 @@
     <input type="hidden" name="tel3" value="">
 
     <p>@Messages("agreementToUseTitle")</p>
-    <iframe id="agreementToUse" src='@routes.Assets.at("html/agreementToUse.html")'></iframe><br>
+    <div class="iframe-wrap">
+      <iframe id="agreementToUse" src='@routes.Assets.at("html/agreementToUse.html")'></iframe>
+    </div>
     <p>@Messages("agreementForPrivacyTitle")</p>
-    <iframe id="agreementForPrivacy" src='@routes.Assets.at("html/agreeentForPrivacy.html")'></iframe><br>
+    <div class="iframe-wrap">
+      <iframe id="agreementForPrivacy" src='@routes.Assets.at("html/agreeentForPrivacy.html")'></iframe>
+    </div>
     <input type="checkbox" id="agreeCheck">
     <label id="agreeCheckLabel" for="agreeCheck">@Messages("agreementCheckTitle")</label><br>
 
