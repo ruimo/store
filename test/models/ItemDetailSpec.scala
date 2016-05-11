@@ -9,10 +9,12 @@ import play.api.test.Helpers._
 import play.api.db.DB
 import play.api.Play.current
 import java.util.Locale
-
 import java.sql.Date.{valueOf => date}
+import com.ruimo.scoins.Scoping._
 
 class ItemDetailSpec extends Specification {
+  implicit def date2milli(d: java.sql.Date) = d.getTime
+
   "ItemDetail" should {
     "Get simple case." in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
@@ -28,8 +30,6 @@ class ItemDetailSpec extends Specification {
           val desc1 = ItemDescription.createNew(item1, site1, "杉説明")
           val price1 = ItemPrice.createNew(item1, site1)
 
-          import java.sql.Date.{valueOf => date}
-          implicit def date2milli(d: java.sql.Date) = d.getTime
           val tax = Tax.createNew
 
           ItemPriceHistory.createNew(
@@ -76,6 +76,61 @@ class ItemDetailSpec extends Specification {
           detail3.price === BigDecimal(200)
           detail3.siteName === "商店1"
         }}
+      }
+    }
+
+    "More than one store can sell the same item." in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        TestHelper.removePreloadedRecords()
+        DB.withConnection { implicit conn =>
+          val site1 = Site.createNew(LocaleInfo.Ja, "商店1")
+          val site2 = Site.createNew(LocaleInfo.Ja, "商店2")
+          val cat1 = Category.createNew(
+            Map(LocaleInfo.Ja -> "植木", LocaleInfo.En -> "Plant")
+          )
+          val item1 = Item.createNew(cat1)
+          val names = ItemName.createNew(item1, Map(LocaleInfo.Ja -> "杉", LocaleInfo.En -> "Cedar"))
+          val desc1 = ItemDescription.createNew(item1, site1, "杉説明1")
+          val desc2 = ItemDescription.createNew(item1, site2, "杉説明2")
+          val price1 = ItemPrice.createNew(item1, site1)
+          val price2 = ItemPrice.createNew(item1, site2)
+
+          val tax = Tax.createNew
+          ItemPriceHistory.createNew(
+            price1, tax, CurrencyInfo.Jpy, BigDecimal(200), None, BigDecimal(190), date("9999-12-31")
+          )
+          ItemPriceHistory.createNew(
+            price2, tax, CurrencyInfo.Jpy, BigDecimal(300), None, BigDecimal(290), date("9999-12-31")
+          )
+
+          doWith(
+            ItemDetail.show(
+              site1.id.get, item1.id.get.id, LocaleInfo.Ja, date("2013-01-01"),
+              UnitPriceStrategy
+            ).get
+          ) { detail =>
+            detail.name === "杉"
+            detail.description === "杉説明1"
+            detail.itemNumericMetadata.isEmpty === true
+            detail.siteItemNumericMetadata.isEmpty == true
+            detail.price === BigDecimal(200)
+            detail.siteName === "商店1"
+          }
+
+          doWith(
+            ItemDetail.show(
+              site2.id.get, item1.id.get.id, LocaleInfo.Ja, date("2013-01-01"),
+              UnitPriceStrategy
+            ).get
+          ) { detail =>
+            detail.name === "杉"
+            detail.description === "杉説明2"
+            detail.itemNumericMetadata.isEmpty === true
+            detail.siteItemNumericMetadata.isEmpty == true
+            detail.price === BigDecimal(300)
+            detail.siteName === "商店2"
+          }
+        }
       }
     }
   }

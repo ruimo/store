@@ -23,7 +23,9 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         "anonymousUserPurchase" -> true
       ))
 
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(
+        TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
+      ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         logoff(browser)
@@ -43,6 +45,8 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         )
 
         browser.goTo("http://localhost:3333" + itemQueryUrl())
+        // List price should be shown.
+        browser.find(".queryItemTableBody .queryItemUnitPrice").getText === "999円"
         browser.find(".purchaseButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).until("#registerAsEntryUserButton").areDisplayed()
 
@@ -105,6 +109,10 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
           addr.comment === ""
           addr.email === "null@ruimo.com"
         }
+
+        browser.goTo("http://localhost:3333" + itemQueryUrl())
+        // List price should be shown.
+        browser.find(".queryItemTableBody .queryItemUnitPrice").getText === "999円"
       }}
     }
   }

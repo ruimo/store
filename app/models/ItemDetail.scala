@@ -43,11 +43,13 @@ object ItemDetail {
         and item_name.locale_id = {localeId}
       inner join item_description
         on item_description.item_id = {itemId}
+        and site_id = {siteId}
         and item_description.locale_id = {localeId}
       where item.item_id = {itemId}
       """
     ).on(
       'itemId -> itemId,
+      'siteId -> siteId,
       'localeId -> locale.id
     ).as(
       nameDesc.singleOpt

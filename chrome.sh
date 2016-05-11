@@ -1,0 +1,1 @@
+./activator -DdefaultWebDriverFactory=helpers.SimpleChromeWebDriverFactory
