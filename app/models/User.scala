@@ -50,7 +50,8 @@ case class StoreUser(
         user_name = {userName},
          password_hash = {passwordHash},
          salt = {salt},
-         stretch_count = {stretchCount}
+         stretch_count = {stretchCount},
+         user_role = {userRole}
       where store_user_id = {id}
       """
     ).on(
@@ -58,7 +59,8 @@ case class StoreUser(
       'passwordHash -> hash,
       'salt -> salt,
       'stretchCount -> stretchCount,
-      'id -> id.get
+      'id -> id.get,
+      'userRole -> UserRole.ENTRY_USER.ordinal
     ).executeUpdate()
 
     updateCount != 0

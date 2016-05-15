@@ -9,9 +9,9 @@ myForm: Form[PromoteAnonymousUser]
 @import helper._
 @import views.fieldctors.FieldConstructors.showOnlyRequired
 
-@main(Messages("promoteAnonymousUserTitle"), None) {
+@main(Messages("registerAsEntryUser"), None) {
 } {
-  <h1 class="title">@Messages("promoteAnonymousUserTitle")</h1>
+  <h1 class="title">@Messages("registerAsEntryUser")</h1>
 
   @if(myForm.hasErrors) {
     <div class="globalErrorMessage">

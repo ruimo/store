@@ -11,5 +11,7 @@ case class PromoteAnonymousUser(
     PasswordDictionary.isNaivePassword(passwords._1)
 
   def update(login: LoginSession)(implicit conn: Connection): Boolean =
-    login.storeUser.promoteAnonymousUser(userName, passwords._1)
+    ExceptionMapper.mapException(
+      login.storeUser.promoteAnonymousUser(userName, passwords._1)
+    )
 }
