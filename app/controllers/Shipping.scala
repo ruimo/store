@@ -325,7 +325,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
           NotificationMail.orderCompleted(loginSession.get, tran, None)
           RecommendEngine.onSales(loginSession.get, tran, None)
           Future.successful(
-            Ok(views.html.showTransactionJa(tran, None, textMetadata(tran), siteItemMetadata(tran)))
+            Ok(
+              views.html.showTransactionJa(
+                tran, None, textMetadata(tran), siteItemMetadata(tran),
+                Admin.AnonymousCanPurchase() && login.isAnonymousBuyer
+              )
+            )
           )
         }
         else {
@@ -363,7 +368,12 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
       val address = Address.byId(tran.shippingTable.head._2.head.addressId)
       NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
       RecommendEngine.onSales(loginSession.get, tran, Some(address))
-      Ok(views.html.showTransactionJa(tran, Some(address), textMetadata(tran), siteItemMetadata(tran)))
+      Ok(
+        views.html.showTransactionJa(
+          tran, Some(address), textMetadata(tran), siteItemMetadata(tran),
+          Admin.AnonymousCanPurchase() && login.isAnonymousBuyer
+        )
+      )
     }
     catch {
       case e: CannotShippingException => {

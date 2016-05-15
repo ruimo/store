@@ -2,7 +2,8 @@
   tran: PersistedTransaction, 
   addr: Option[Address],
   textMetadata: Map[Long, Map[ItemTextMetadataType, ItemTextMetadata]],
-  siteItemMetadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]]
+  siteItemMetadata: Map[(Long, Long), Map[SiteItemNumericMetadataType, SiteItemNumericMetadata]],
+  anonymousCanPurchase: Boolean = false
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -28,6 +29,14 @@
     内容確認のためお控えください。<br>
   }
   </div>
+
+  @if(anonymousCanPurchase) {
+    <div id="anonymousRegistration">
+      <button onclick="location.href='@routes.EntryUserEntry.startRegisterCurrentUserAsEntryUser';" id="anonymousRegistrationBtn">
+        @Messages("anonymousRegistration")
+      </button>
+    </div>
+  }
 
   <h1 class="items">ご注文商品</h1>
   <table class="itemTable" border="0">

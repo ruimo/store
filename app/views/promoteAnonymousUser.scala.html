@@ -1,0 +1,49 @@
+@(
+myForm: Form[PromoteAnonymousUser]
+)(
+  implicit lang: Lang,
+  flash: play.api.mvc.Flash,
+  request: RequestHeader
+)
+
+@import helper._
+@import views.fieldctors.FieldConstructors.showOnlyRequired
+
+@main(Messages("promoteAnonymousUserTitle"), None) {
+} {
+  <h1 class="title">@Messages("promoteAnonymousUserTitle")</h1>
+
+  @if(myForm.hasErrors) {
+    <div class="globalErrorMessage">
+      @Messages("inputError")
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @form(action = CSRF(routes.EntryUserEntry.promoteAnonymousUser()), 'id -> "promoteAnonymousUserForm") {
+    @inputText(
+    myForm("userName"),
+    '_label -> Messages("userName"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.main"),
+      '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24
+    )
+
+    @helper.inputPassword(
+      myForm("password.confirm"),
+      '_label -> (Messages("password.confirm")), 'size -> 24, 'maxlength -> 24,
+      '_error -> myForm.error("password")
+    )
+
+    <input type="submit" value="@Messages("register")" id="submitUserEntry">
+  }
+}
+
+

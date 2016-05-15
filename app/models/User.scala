@@ -1,5 +1,6 @@
 package models
 
+import helpers.Cache
 import scala.concurrent.duration._
 import play.api.data.validation.Invalid
 import constraints.FormConstraints
@@ -36,6 +37,32 @@ case class StoreUser(
   lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
   lazy val fullName = firstName + middleName.map(n => " " + n).getOrElse("") + " " + lastName
   def isEmployeeOf(siteId: Long) = userName.startsWith(siteId + "-")
+  def promoteAnonymousUser(
+    userName: String, password: String
+  )(implicit conn: Connection): Boolean = {
+    val salt = StoreUser.tokenGenerator.next
+    val stretchCount = StoreUser.PasswordHashStretchCount()
+    val hash = PasswordHash.generate(password, salt, stretchCount)
+
+    val updateCount = SQL(
+      """
+      update store_user set
+        user_name = {userName},
+         password_hash = {passwordHash},
+         salt = {salt},
+         stretch_count = {stretchCount}
+      where store_user_id = {id}
+      """
+    ).on(
+      'userName -> userName,
+      'passwordHash -> hash,
+      'salt -> salt,
+      'stretchCount -> stretchCount,
+      'id -> id.get
+    ).executeUpdate()
+
+    updateCount != 0
+  }
 }
 
 case class SiteUser(id: Option[Long] = None, siteId: Long, storeUserId: Long)
@@ -72,6 +99,9 @@ case class SupplementalUserEmail(
 )
 
 object StoreUser {
+  val PasswordHashStretchCount: () => Int = Cache.config(
+    _.getInt("passwordHashStretchCount").getOrElse(1000)
+  )
   val EmployeeUserNamePattern = """(\d+)-(.+)""".r
 
   val logger = Logger(getClass)

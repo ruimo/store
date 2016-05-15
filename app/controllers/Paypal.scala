@@ -31,7 +31,12 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
         val address = Address.byId(tran.shippingTable.head._2.head.addressId)
         NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
         RecommendEngine.onSales(loginSession.get, tran, Some(address))
-        Ok(views.html.showTransactionJa(tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran)))
+        Ok(
+          views.html.showTransactionJa(
+            tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran),
+            Admin.AnonymousCanPurchase() && login.isAnonymousBuyer
+          )
+        )
       }
     }
   }
@@ -70,7 +75,12 @@ object Paypal extends Controller with NeedLogin with HasLogger with I18nAware {
         val address = Address.byId(tran.shippingTable.head._2.head.addressId)
         NotificationMail.orderCompleted(loginSession.get, tran, Some(address))
         RecommendEngine.onSales(loginSession.get, tran, Some(address))
-        Ok(views.html.showTransactionJa(tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran)))
+        Ok(
+          views.html.showTransactionJa(
+            tran, Some(address), Shipping.textMetadata(tran), Shipping.siteItemMetadata(tran),
+            Admin.AnonymousCanPurchase() && login.isAnonymousBuyer
+          )
+        )
       }
     }
   }

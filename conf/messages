@@ -494,3 +494,5 @@ agreementCheckTitle=Accept these agreement
 paypalNotCompleted=Paypal transaction not completed
 registerAsEntryUser=Register
 userNameIsTaken=This user name is already taken
+anonymousRegistration=Register as an user
+anonymousUserPromoted=Thanks, you are registered
