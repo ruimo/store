@@ -84,7 +84,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
           createdUser.deleted === false
           createdUser.userRole === UserRole.ENTRY_USER
           createdUser.companyName === None
-          createdUser.stretchCount === EntryUserEntry.PasswordHashStretchCount()
+          createdUser.stretchCount === StoreUser.PasswordHashStretchCount()
 
           val ua: UserAddress = UserAddress.getByUserId(createdUser.id.get).get
           val addr: Address = Address.byId(ua.addressId)
