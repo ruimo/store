@@ -73,6 +73,7 @@ case class User(storeUser: StoreUser, siteUser: Option[SiteUser]) {
   lazy val userType: UserType = storeUser.userRole match {
     case UserRole.ADMIN => SuperUser
     case UserRole.ANONYMOUS => AnonymousBuyer
+    case UserRole.ENTRY_USER => EntryUserBuyer
     case _ => siteUser match {
       case None => Buyer
       case Some(u) => SiteOwner(u)
