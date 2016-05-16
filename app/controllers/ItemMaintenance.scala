@@ -205,6 +205,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         login.role match {
           case Buyer => throw new Error("Logic error.")
           case AnonymousBuyer => throw new Error("Logic error.")
+          case EntryUserBuyer => throw new Error("Logic error.")
 
           case SuperUser =>
             val list = Item.listForMaintenance(
