@@ -187,7 +187,7 @@ object Shipping extends Controller with NeedLogin with HasLogger with I18nAware 
     implicit val login = request.user
     jaForm.bindFromRequest.fold(
       formWithErrors => {
-        logger.error("Validation error in Shipping.enterShippingAddress.")
+        logger.error("Validation error in Shipping.enterShippingAddress. " + formWithErrors)
         DB.withConnection { implicit conn =>
           BadRequest(views.html.shippingAddressJa(formWithErrors, Address.JapanPrefectures))
         }
