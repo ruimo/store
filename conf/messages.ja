@@ -188,6 +188,7 @@ createSuperUserTitle=管理ユーザの追加
 role=ロール
 admin.user=管理ユーザ
 normal.user=一般ユーザ
+entry.user=エントリーユーザ
 site.owner=店舗管理者
 createNewSiteOwnerMenu=店舗管理者の追加
 createNormalUserTitle=一般ユーザの追加

@@ -157,6 +157,7 @@ createSuperUserTitle=Create new super user
 role=Role
 admin.user=Admin user
 normal.user=Normal user
+entry.user=Entry user
 site.owner=SiteOwner
 createNewSiteOwnerMenu=Create new store owner
 createNewNormalUserMenu=Create normal user

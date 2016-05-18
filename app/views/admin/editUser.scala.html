@@ -103,6 +103,8 @@
         @{
           if (user.user.userRole == UserRole.ADMIN) {
             Messages("admin.user")
+          } else if (user.user.userRole == UserRole.ENTRY_USER) {
+            Messages("entry.user")
           } else {
             user.site match {
               case None => Messages("normal.user")
