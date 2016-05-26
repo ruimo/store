@@ -1,0 +1,32 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession,
+  flash: Flash
+)
+
+@main(Messages("profileMaintenanceTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("profileMaintenanceTitle")</h1>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  <div class="menuItem">
+    <a href="@routes.ProfileMaintenance.changeProfile()">
+      @Messages("changeProfileTitle")
+    </a>
+  </div>
+
+  <br>
+  <a href="/">@Messages("gotoTop")</a>
+}
