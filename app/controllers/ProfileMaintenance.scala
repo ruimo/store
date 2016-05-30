@@ -1,5 +1,7 @@
 package controllers
 
+import models.LoginSession
+import java.util.Locale
 import scala.collection.immutable
 import play.api.i18n.{Lang, Messages}
 import play.api.Play.current
@@ -29,7 +31,41 @@ object ProfileMaintenance extends Controller with NeedLogin with HasLogger with 
   }
 
   def changeProfile() = NeedAuthenticated { implicit request =>
-    implicit val login = request.user
-    Ok(views.html.changeUserProfile(changeProfileForm))
+    implicit val login: LoginSession = request.user
+    val form = changeProfileForm.fill(ModifyUserProfile(login))
+    
+    request2lang.toLocale match {
+      case Locale.JAPANESE | Locale.JAPAN =>
+        Ok(views.html.changeUserProfileJa(form))
+      case _ =>
+        Ok(views.html.changeUserProfileJa(form))
+    }
+  }
+
+  def doChangeProfile() = NeedAuthenticated { implicit request =>
+    implicit val login: LoginSession = request.user
+
+    changeProfileForm.bindFromRequest.fold(
+      formWithErrors => {
+        BadRequest(views.html.changeUserProfileJa(formWithErrors))
+      },
+      updated => {
+        if (login.storeUser.passwordMatch(updated.password)) {
+          DB.withConnection { implicit conn =>
+            updated.save(login)
+          }
+          Redirect(routes.Application.index).flashing("message" -> Messages("userProfileUpdated"))
+        }
+        else {
+          BadRequest(
+            views.html.changeUserProfileJa(
+              changeProfileForm.fill(updated).withError(
+                "password", "currentPasswordNotMatch"
+              )
+            )
+          )
+        }
+      }
+    )
   }
 }

@@ -530,4 +530,5 @@ userNameIsTaken=このユーザ名は既に使用されています。
 anonymousRegistration=ユーザ登録する
 anonymousUserPromoted=ユーザ登録ありがとうございます
 profileMaintenanceTitle=マイ・ページ
-changeProfileTitle=ユーザ情報変更
+changeUserProfileTitle=ユーザ情報変更
+userProfileUpdated=ユーザ情報が更新されました

@@ -498,4 +498,5 @@ userNameIsTaken=This user name is already taken
 anonymousRegistration=Register as an user
 anonymousUserPromoted=Thanks, you are registered
 profileMaintenanceTitle=Profile maintenance
-changeProfileTitle=Change your profile
+changeUserProfileTitle=Change your profile
+userProfileUpdated=Your profile has been updated

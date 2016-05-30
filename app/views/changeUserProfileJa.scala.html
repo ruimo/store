@@ -1,0 +1,54 @@
+@(
+  myForm: Form[ModifyUserProfile]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession,
+  flash: Flash
+)
+
+@import helper._
+
+@main(Messages("changeUserProfileTitle"), Some(loginSession)) {
+} {
+  <h1 class="title">@Messages("changeUserProfileTitle")</h1>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @form(action = CSRF(routes.ProfileMaintenance.doChangeProfile()), 'id -> "changeProfileForm") {
+    @inputText(
+      myForm("firstName"),
+      '_label -> Messages("firstName"), 'size -> 16, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("lastName"),
+      '_label -> Messages("lastName"), 'size -> 16, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 16, 'maxlength -> 128
+    )
+
+    @helper.inputPassword(
+      myForm("password"),
+      '_label -> (Messages("currentPassword")), 'size -> 24, 'maxlength -> 24
+    )
+
+    <input type="submit" value="@Messages("update")" id="updateButton">
+  }
+
+  <br>
+  <a href="/">@Messages("gotoTop")</a>
+}

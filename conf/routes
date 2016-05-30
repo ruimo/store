@@ -254,6 +254,7 @@ GET     /paypalWebPaymentCancel/:tid/:token controllers.Paypal.onWebPaymentPlusC
 
 GET     /profile                         controllers.ProfileMaintenance.index()
 GET     /changeProfile                   controllers.ProfileMaintenance.changeProfile()
+POST    /doChangeProfile                 controllers.ProfileMaintenance.doChangeProfile()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

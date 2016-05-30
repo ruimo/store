@@ -253,6 +253,37 @@ object StoreUser {
     ).executeUpdate()
   }
 
+  def update(user: StoreUser)(implicit conn: Connection): Int = SQL(
+    """
+    update store_user set
+      user_name = {userName},
+      first_name = {firstName},
+      middle_name = {middleName},
+      last_name = {lastName},
+      email = {email},
+      password_hash = {passwordHash},
+      salt = {salt},
+      deleted = {deleted},
+      user_role = {userRole},
+      company_name = {companyName},
+      stretch_count = {stretchCount}
+    where store_user_id = {userId}
+    """
+  ).on(
+    'userName -> user.userName,
+    'firstName -> user.firstName,
+    'middleName -> user.middleName,
+    'lastName -> user.lastName,
+    'email -> user.email,
+    'passwordHash -> user.passwordHash,
+    'salt -> user.salt,
+    'deleted -> user.deleted,
+    'userRole -> user.userRole.ordinal,
+    'companyName -> user.companyName,
+    'stretchCount -> user.stretchCount,
+    'userId -> user.id.get
+  ).executeUpdate()
+
   def update(
     userId: Long,
     userName: String, firstName: String, middleName: Option[String], lastName: String,
