@@ -67,7 +67,6 @@ class UserProfileMaintenanceSpec extends Specification {
         browser.find("#updateButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
-        browser.title === Messages("commonTitle", Messages("company.name"))
         browser.find(".message").getText === Messages("userInfoIsUpdated")
 
         val newUser = StoreUser.findByUserName("user001").get
