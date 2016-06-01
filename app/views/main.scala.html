@@ -30,7 +30,7 @@
             @Messages("shopping.cart") @loginSession.map("(" + _.quantityInShoppingCart + ")").getOrElse("")
           </a></li>
           @if(! login.isAnonymousBuyer) {
-            <li><a class="orderHistoryLink" href="@routes.OrderHistory.index()">@Messages("query.order.history")</a></li>
+            <li><a class="myPageLink" href="@routes.MyPage.index()">@Messages("myPageTitle")</a></li>
           }
         }
       }

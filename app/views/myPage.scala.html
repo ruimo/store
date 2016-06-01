@@ -1,0 +1,25 @@
+@(
+)(
+  implicit lang: Lang,
+  request: RequestHeader
+)
+
+@main(Messages("myPageTitle"), None) {
+} {
+  <h1 class="title">@Messages("myPageTitle")</h1>
+
+  <div class="menuItem">
+    <a href="@routes.OrderHistory.index()">
+      @Messages("query.order.history")
+    </a>
+  </div>
+
+  <div class="menuItem">
+    <a href="@routes.ProfileMaintenance.changeProfile()">
+      @Messages("changeUserProfileTitle")
+    </a>
+  </div>
+
+  <br>
+  <a href="/">@Messages("gotoTop")</a>
+}
