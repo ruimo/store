@@ -31,6 +31,21 @@ myForm: Form[PromoteAnonymousUser]
     '_label -> Messages("userName"), 'size -> 24, 'maxlength -> 24
     )
 
+    @inputText(
+      myForm("firstName"),
+      '_label -> Messages("firstName"), 'size -> 16, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("lastName"),
+      '_label -> Messages("lastName"), 'size -> 16, 'maxlength -> 64
+    )
+
+    @inputText(
+      myForm("email"),
+      '_label -> Messages("email"), 'size -> 16, 'maxlength -> 128
+    )
+
     @helper.inputPassword(
       myForm("password.main"),
       '_label -> Messages("password"), 'size -> 24, 'maxlength -> 24

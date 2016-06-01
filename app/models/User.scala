@@ -37,8 +37,9 @@ case class StoreUser(
   lazy val isRegistrationIncomplete: Boolean = firstName.isEmpty
   lazy val fullName = firstName + middleName.map(n => " " + n).getOrElse("") + " " + lastName
   def isEmployeeOf(siteId: Long) = userName.startsWith(siteId + "-")
+
   def promoteAnonymousUser(
-    userName: String, password: String
+    userName: String, password: String, firstName: String, middleName: Option[String], lastName: String, email: String
   )(implicit conn: Connection): Boolean = {
     val salt = StoreUser.tokenGenerator.next
     val stretchCount = StoreUser.PasswordHashStretchCount()
@@ -48,14 +49,22 @@ case class StoreUser(
       """
       update store_user set
         user_name = {userName},
-         password_hash = {passwordHash},
-         salt = {salt},
-         stretch_count = {stretchCount},
-         user_role = {userRole}
+        first_name = {firstName},
+        middle_name = {middleName},
+        last_name = {lastName},
+        email = {email},
+        password_hash = {passwordHash},
+        salt = {salt},
+        stretch_count = {stretchCount},
+        user_role = {userRole}
       where store_user_id = {id}
       """
     ).on(
       'userName -> userName,
+      'firstName -> firstName,
+      'middleName -> middleName,
+      'lastName -> lastName,
+      'email -> email,
       'passwordHash -> hash,
       'salt -> salt,
       'stretchCount -> stretchCount,

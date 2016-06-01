@@ -5,6 +5,10 @@ import play.api.Play.current
 
 case class PromoteAnonymousUser(
   userName: String,
+  firstName: String,
+  middleName: Option[String],
+  lastName: String,
+  email: String,
   passwords: (String, String)
 ) {
   def isNaivePassword(implicit conn: Connection): Boolean =
@@ -12,6 +16,6 @@ case class PromoteAnonymousUser(
 
   def update(login: LoginSession)(implicit conn: Connection): Boolean =
     ExceptionMapper.mapException(
-      login.storeUser.promoteAnonymousUser(userName, passwords._1)
+      login.storeUser.promoteAnonymousUser(userName, passwords._1, firstName, middleName, lastName, email)
     )
 }

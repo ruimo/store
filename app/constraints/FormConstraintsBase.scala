@@ -21,6 +21,7 @@ trait FormConstraintsBase {
 
   val passwordConstraint = List(minLength(passwordMinLength()), maxLength(24), passwordCharConstraint)
   val firstNameConstraint = List(nonEmpty, maxLength(64))
+  val middleNameConstraint = List(maxLength(64))
   val lastNameConstraint = List(nonEmpty, maxLength(64))
   val emailConstraint = List(nonEmpty, maxLength(255))
   val optionalEmailConstraint = maxLength(255)

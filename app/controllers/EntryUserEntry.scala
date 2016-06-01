@@ -74,6 +74,10 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
   def userForm(implicit lang: Lang) = Form(
     mapping(
       "userName" -> text.verifying(normalUserNameConstraint(): _*),
+      "firstName" -> text.verifying(firstNameConstraint: _*),
+      "middleName" -> optional(text.verifying(middleNameConstraint: _*)),
+      "lastName" -> text.verifying(lastNameConstraint: _*),
+      "email" -> text.verifying(emailConstraint: _*),
       "password" -> tuple(
         "main" -> text.verifying(passwordConstraint: _*),
         "confirm" -> text
@@ -152,7 +156,20 @@ object EntryUserEntry extends Controller with HasLogger with I18nAware with Need
   def startRegisterCurrentUserAsEntryUser = NeedAuthenticated { implicit request =>
     retrieveLoginSession(request) match {
       case Some(login) =>
-        if (login.isAnonymousBuyer) Ok(views.html.promoteAnonymousUser(userForm))
+        if (login.isAnonymousBuyer) Ok(
+          views.html.promoteAnonymousUser(
+            userForm.fill(
+              PromoteAnonymousUser(
+                "",
+                login.storeUser.firstName,
+                login.storeUser.middleName,
+                login.storeUser.lastName,
+                login.storeUser.email,
+                ("", "")
+              )
+            ).discardingErrors
+          )
+        )
         else Redirect(routes.Application.index.url)
       case None =>
         Redirect(routes.Application.index.url)

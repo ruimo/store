@@ -198,6 +198,15 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
 
         browser.await().atMost(5, TimeUnit.SECONDS).until("#anonymousRegistrationBtn").areDisplayed()
         browser.find("#anonymousRegistrationBtn").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find("#firstName").getAttribute("value") === "firstName1"
+        browser.find("#lastName").getAttribute("value") === "lastName1"
+        browser.find("#email").getAttribute("value") === "null@ruimo.com"
+
+        browser.fill("#firstName").`with`("firstName2")
+        browser.fill("#lastName").`with`("lastName2")
+        browser.fill("#email").`with`("null2@ruimo.com")
 
         browser.await().atMost(5, TimeUnit.SECONDS).until("#submitUserEntry").areDisplayed()
         browser.find("#submitUserEntry").click()
@@ -246,9 +255,9 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
 
         DB.withConnection { implicit conn =>
           val user = StoreUser.findByUserName("user0001").get
-          user.email === "null@ruimo.com"
-          user.firstName === "firstName1"
-          user.lastName === "lastName1"
+          user.email === "null2@ruimo.com"
+          user.firstName === "firstName2"
+          user.lastName === "lastName2"
           user.userRole === UserRole.ENTRY_USER
         }
       }}
