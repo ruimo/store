@@ -40,10 +40,10 @@ class UserProfileMaintenanceSpec extends Specification {
         val adminUser = loginWithTestUser(browser)
         val user = createNormalUser(
           browser,
-          "user001", "password0987", "null@ruimo.com", "firstname", "lastname", "company001"
+          "12345678", "password0987", "null@ruimo.com", "firstname", "lastname", "company001"
         )
         logoff(browser)
-        login(browser, "user001", "password0987")
+        login(browser, "12345678", "password0987")
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.ProfileMaintenance.changeProfile() + "?lang=" + lang.code
@@ -69,7 +69,7 @@ class UserProfileMaintenanceSpec extends Specification {
 
         browser.find(".message").getText === Messages("userInfoIsUpdated")
 
-        val newUser = StoreUser.findByUserName("user001").get
+        val newUser = StoreUser.findByUserName("12345678").get
         newUser.firstName === "firstName2"
         newUser.lastName === "lastName2"
         newUser.middleName === None
