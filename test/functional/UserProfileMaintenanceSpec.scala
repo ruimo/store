@@ -38,6 +38,7 @@ class UserProfileMaintenanceSpec extends Specification {
       SeleniumHelpers.running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "company001")
         val user = createNormalUser(
           browser,
           "12345678", "password0987", "null@ruimo.com", "firstname", "lastname", "company001"
