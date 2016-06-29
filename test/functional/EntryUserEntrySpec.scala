@@ -119,7 +119,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
     // }
 
     "Anonymous user can be promoted to normal user after transaction end." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ disableMailer + (
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ defaultConf ++ disableMailer + (
         "anonymousUserPurchase" -> true
       ))
 

@@ -23,7 +23,9 @@ class AnonymousBuyerSpec extends Specification with SalesSpecBase {
 
   "Anonymous buyer" should {
     "If anonymousUserPurchase is false, purchase by anonymous should not be shown." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() + ("anonymousUserPurchase" -> false))
+      val app = FakeApplication(
+        additionalConfiguration = inMemoryDatabase() ++ defaultConf + ("anonymousUserPurchase" -> false)
+      )
       running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
@@ -55,7 +57,7 @@ class AnonymousBuyerSpec extends Specification with SalesSpecBase {
 
     "If anonymousUserPurchase is true, purchase by anonymous is permitted." in {
       val app = FakeApplication(
-        additionalConfiguration = inMemoryDatabase() +
+        additionalConfiguration = inMemoryDatabase() ++ defaultConf +
           ("anonymousUserPurchase" -> true) +
           ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL"))
       )

@@ -28,7 +28,7 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
     "Normal paypal transaction." in {
       val app = FakeApplication(
         additionalConfiguration =
-          inMemoryDatabase() ++ disableMailer +
+          inMemoryDatabase() ++ defaultConf ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL_WEB_PAYMENT_PLUS")) +
           ("paypalWebPaymentPlus.debug" -> true) +
@@ -189,7 +189,7 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
     "Paypal cancel transaction." in {
       val app = FakeApplication(
         additionalConfiguration =
-          inMemoryDatabase() ++ disableMailer +
+          inMemoryDatabase() ++ defaultConf ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL_WEB_PAYMENT_PLUS")) +
           ("paypalWebPaymentPlus.debug" -> true) +
