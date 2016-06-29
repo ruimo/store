@@ -119,9 +119,11 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
     // }
 
     "Anonymous user can be promoted to normal user after transaction end." in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ defaultConf ++ disableMailer + (
-        "anonymousUserPurchase" -> true
-      ))
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ defaultConf ++ disableMailer +
+        ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL_WEB_PAYMENT_PLUS")) +
+        ("paypalWebPaymentPlus.paypalId" -> "paypal_id") +
+        ("anonymousUserPurchase" -> true)
+      )
 
       running(
         TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
@@ -219,7 +221,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         browser.find("#userName_field.error input").size !== 0
         browser.find("#password_main_field.error input").size !== 0
 
-        browser.fill("#userName").`with`("user0001")
+        browser.fill("#userName").`with`("12345678")
         browser.find("#submitUserEntry").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
@@ -228,7 +230,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         browser.find("#userName_field.error input").size === 0
         browser.find("#password_main_field.error input").size !== 0
 
-        browser.fill("#userName").`with`("user0001")
+        browser.fill("#userName").`with`("12345678")
         browser.fill("#password_main").`with`("password1234")
         browser.find("#submitUserEntry").click()
 
@@ -248,7 +250,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#userName_field .help-inline").getText === Messages("userNameIsTaken")
 
-        browser.fill("#userName").`with`("user0001")
+        browser.fill("#userName").`with`("12345678")
         browser.fill("#password_main").`with`("password1234")
         browser.fill("#password_confirm").`with`("password1234")
         browser.find("#submitUserEntry").click()
@@ -256,7 +258,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         DB.withConnection { implicit conn =>
-          val user = StoreUser.findByUserName("user0001").get
+          val user = StoreUser.findByUserName("12345678").get
           user.email === "null2@ruimo.com"
           user.firstName === "firstName2"
           user.lastName === "lastName2"

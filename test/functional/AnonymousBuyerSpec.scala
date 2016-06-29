@@ -133,7 +133,7 @@ class AnonymousBuyerSpec extends Specification with SalesSpecBase {
         if (browser.find("#agreeCheck").size != 0) {
           browser.find("#agreeCheck").click()
         }
-        browser.find("input[type='submit']").click()
+        browser.find("#submitBtn").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
