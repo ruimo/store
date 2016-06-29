@@ -20,7 +20,9 @@ class UserProfileMaintenanceSpec extends Specification {
   "User profile maintenaces" should {
     "Not logged in user cannot change profile." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(
+        TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
+      ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         logoff(browser)
@@ -35,7 +37,9 @@ class UserProfileMaintenanceSpec extends Specification {
 
     "Logged in user can change profile." in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase())
-      SeleniumHelpers.running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
+      SeleniumHelpers.running(
+        TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
+      ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         val site1 = Site.createNew(LocaleInfo.Ja, "company001")
