@@ -130,8 +130,11 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
       ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
-        logoff(browser)
         val site = Site.createNew(Ja, "店舗1")
+        createNormalUser(
+          browser, "11111111", "password01", "user01@mail.xxx", "firstName01", "lastName01", "company01"
+        )
+        logoff(browser)
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
         val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "内税")
@@ -241,7 +244,7 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         browser.find("#password_main_field.error input").size === 0
         browser.find("#password_confirm_field.error .help-inline").getText === Messages("confirmPasswordDoesNotMatch")
 
-        browser.fill("#userName").`with`("administrator")
+        browser.fill("#userName").`with`("11111111")
         browser.fill("#password_main").`with`("password1234")
         browser.fill("#password_confirm").`with`("password1234")
         browser.find("#submitUserEntry").click()
