@@ -28,7 +28,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
     "Normal paypal transaction." in {
       val app = FakeApplication(
         additionalConfiguration =
-          inMemoryDatabase() ++ disableMailer +
+          inMemoryDatabase() ++ defaultConf ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("fakePaypalRespons.enabled" -> true) +
           ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL")) +
@@ -187,7 +187,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
     "Paypal transaction error." in {
       val app = FakeApplication(
         additionalConfiguration =
-          inMemoryDatabase() ++ disableMailer +
+          inMemoryDatabase() ++ defaultConf ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("fakePaypalRespons.enabled" -> true) +
           ("acceptableTenders.ANONYMOUS_BUYER" -> List("PAYPAL")) +
@@ -296,7 +296,7 @@ class PaypalSpec extends Specification with SalesSpecBase {
     "Paypal cancel transaction." in {
       val app = FakeApplication(
         additionalConfiguration =
-          inMemoryDatabase() ++ disableMailer +
+          inMemoryDatabase() ++ defaultConf ++ disableMailer +
           ("anonymousUserPurchase" -> true) +
           ("fakePaypalRespons.enabled" -> true) +
           ("fakePaypalRespons.body" -> "TOKEN=PAYPALTOKEN&CORRELATIONID=AAA&ACK=Success&VERSION=124.0&BUILD=18316154") +
