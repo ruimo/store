@@ -170,7 +170,9 @@ class EntryUserEntrySpec extends Specification with SalesSpecBase {
         browser.fill("#address2").`with`("address2")
         browser.fill("#address3").`with`("address3")
         browser.fill("#tel1").`with`("11111111")
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#submitBtn").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).until("#doPaypalWebPayment").areDisplayed()

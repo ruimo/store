@@ -97,7 +97,9 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
         browser.fill("#address2").`with`("address02")
         browser.fill("#tel1").`with`("11111111")
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -253,7 +255,9 @@ class PaypalWebPaymentPlusSpec extends Specification with SalesSpecBase {
         browser.fill("#address2").`with`("address02")
         browser.fill("#tel1").`with`("11111111")
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 

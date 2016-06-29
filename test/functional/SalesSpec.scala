@@ -84,7 +84,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.fill("#address1").`with`("address01")
         browser.fill("#address2").`with`("address02")
         browser.fill("#tel1").`with`("11111111")
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
 
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
@@ -105,7 +107,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
           browser.fill("#shippingDateTextBox").`with`(formattedShippingDate)
         }
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("commonTitle", Messages("confirm.shipping.address"))
@@ -115,7 +119,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
           browser.find("#shippingDateTextBox").getAttribute("value") === (formattedShippingDate)
         }
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("commonTitle", Messages("confirm.shipping.address"))
@@ -438,7 +444,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
           new DateTime(System.currentTimeMillis - 10000)
         )
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.title === Messages("commonTitle", Messages("itemExpiredTitle"))
@@ -509,7 +517,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.fill("#address2").`with`("address02")
         browser.fill("#tel1").`with`("11111111")
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -595,7 +605,9 @@ class SalesSpec extends Specification with SalesSpecBase  {
         browser.fill("#address2").`with`("address02")
         browser.fill("#tel1").`with`("11111111")
 
-        browser.find("#agreeCheck").click()
+        if (browser.find("#agreeCheck").size != 0) {
+          browser.find("#agreeCheck").click()
+        }
         browser.find("#enterShippingAddressForm input[type='submit']").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
