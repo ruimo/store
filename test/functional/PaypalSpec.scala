@@ -40,7 +40,9 @@ class PaypalSpec extends Specification with SalesSpecBase {
             )
           )
       )
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(
+        TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
+      ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         logoff(browser)
@@ -197,7 +199,9 @@ class PaypalSpec extends Specification with SalesSpecBase {
             )
           )
       )
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(
+        TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
+      ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         logoff(browser)
@@ -304,7 +308,9 @@ class PaypalSpec extends Specification with SalesSpecBase {
             )
           )
       )
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(
+        TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)
+      ) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         logoff(browser)
