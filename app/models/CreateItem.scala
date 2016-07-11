@@ -9,8 +9,8 @@ case class CreateItem(
   currencyId: Long, price: BigDecimal, listPrice: Option[BigDecimal], costPrice: BigDecimal, description: String,
   isCoupon: Boolean
 ) {
-  def save()(implicit conn: Connection) {
-    Item.createItem(this)
+  def save(hide: Boolean)(implicit conn: Connection) {
+    Item.createItem(this, hide)
   }
 
   def site(implicit conn: Connection) = Site(siteId)

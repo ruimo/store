@@ -115,6 +115,10 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     supplementalCategories
   )
 
+  val HideNewlyCreatedItem: () => Boolean = Cache.config(
+    _.getBoolean("hideNewlyCreatedItem").getOrElse(false)
+  )
+
   val ItemDescriptionSize: () => Int = Cache.config(
     _.getInt("itemDescription.size").getOrElse(2048)
   )
@@ -185,7 +189,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
         },
         newItem => {
           DB.withConnection { implicit conn =>
-            newItem.save()
+            newItem.save(HideNewlyCreatedItem())
           }
           Redirect(
             routes.ItemMaintenance.startCreateNewItem
