@@ -25,7 +25,7 @@ object Employee {
       "select * from employee where employee_id = {id}"
     ).on(
       'id -> id
-    ).as(simple.single)
+    ).executeQuery.as(simple.single)
 
   def createNew(siteId: Long, userId: Long)(implicit conn: Connection): Employee = {
     SQL(

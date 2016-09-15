@@ -23,9 +23,45 @@ object News {
     }
   }
 
+  def apply(id: NewsId)(implicit conn: Connection): News = SQL(
+    """
+    select * from news where news_id = {id}
+    """
+  ).on(
+    'id -> id.id
+  ).as(simple.single)
+
+  val withSite = simple ~ (Site.simple ?) map {
+    case news~site => (news, site)
+  }
+
+  def list(page: Int = 0, pageSize: Int = 10, orderBy: OrderBy = OrderBy("news.release_time desc"))(
+    implicit conn: Connection
+  ): PagedRecords[(News, Option[Site])] = {
+    val records: Seq[(News, Option[Site])] = SQL(
+      """
+      select * from news
+      left join site s on s.site_id = news.site_id
+      order by """ + orderBy + """
+      limit {pageSize} offset{offset}
+      """
+    ).on(
+      'pageSize -> pageSize,
+      'offset -> page * pageSize
+    ).as(
+      withSite *
+    )
+
+    val count = SQL(
+      "select count(*) from news"
+    ).as(SqlParser.scalar[Long].single)
+
+    PagedRecords(page, pageSize, (count + pageSize - 1) / pageSize, orderBy, records)
+  }
+
   def createNew(
-    siteId: Option[Long], contents: String, releaseTime: Long, updatedTime: Long
-  )(implicit conn: Connection) {
+    siteId: Option[Long], contents: String, releaseTime: Long, updatedTime: Long = System.currentTimeMillis
+  )(implicit conn: Connection): News = {
     SQL(
       """
       insert into news (news_id, site_id, contents, release_time, updated_time) values (
@@ -43,6 +79,23 @@ object News {
 
     News(Some(NewsId(newsId)), siteId, contents, releaseTime, updatedTime)
   }
+
+  def update(
+    id: NewsId, siteId: Option[Long], contents: String, releaseTime: Long, updatedTime: Long = System.currentTimeMillis
+  )(implicit conn: Connection): Int =
+    SQL(
+      """
+      update news (site_id, contents, release_time, updated_time) values (
+        {siteId}, {content}, {releaseTime}, {updatedTime}
+      ) where news_id = {newsId}
+      """
+    ).on(
+      'newsId -> id.id,
+      'siteId -> siteId,
+      'contents -> contents,
+      'releaseTime -> releaseTime,
+      'updatedTime -> updatedTime
+    ).executeUpdate()
 
   def delete(newsId: NewsId)(implicit conn: Connection): Int =
     SQL(
