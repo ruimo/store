@@ -6,6 +6,7 @@ create table news (
   news_id bigint not null,
   site_id bigint references site on delete cascade,
   contents text not null,
+  release_time timestamp not null,
   updated_time timestamp not null,
   constraint pk_news primary key (news_id)
 );
