@@ -94,17 +94,21 @@ object News {
   )(implicit conn: Connection): Int =
     SQL(
       """
-      update news (site_id, title, contents, release_time, updated_time) values (
-        {siteId}, {title}, {content}, {releaseTime}, {updatedTime}
-      ) where news_id = {newsId}
+      update news set
+        site_id = {siteId},
+        title = {title},
+        contents = {contents},
+        release_time = {releaseTime},
+        updated_time = {updatedTime}
+      where news_id = {newsId}
       """
     ).on(
       'newsId -> id.id,
       'siteId -> siteId,
       'title -> title,
       'contents -> contents,
-      'releaseTime -> releaseTime,
-      'updatedTime -> updatedTime
+      'releaseTime -> java.time.Instant.ofEpochMilli(releaseTime),
+      'updatedTime -> java.time.Instant.ofEpochMilli(updatedTime)
     ).executeUpdate()
 
   def delete(newsId: NewsId)(implicit conn: Connection): Int =

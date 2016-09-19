@@ -47,20 +47,25 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
   def uploadPicture(
     id: Long, no: Int, retreat: Long => Call
   ) = Action(parse.multipartFormData) { implicit request =>
+println("*** uploadPicture")
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
         if (user.isBuyer) onUnauthorized(request)
         else {
+println("*** uploadPicture 2")
           request.body.file("picture").map { picture =>
             val filename = picture.filename
+println("*** filename = " + filename)
             val contentType = picture.contentType
+println("*** contentType = " + contentType)
             if (contentType != Some("image/jpeg")) {
               Redirect(
                 retreat(id)
               ).flashing("errorMessage" -> Messages("jpeg.needed"))
             }
             else {
+println("*** toPath = " + toPath(id, no).toAbsolutePath)
               picture.ref.moveTo(toPath(id, no).toFile, true)
               Redirect(
                 retreat(id)

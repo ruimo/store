@@ -9,7 +9,8 @@ import play.api.db.DB
 import play.api.i18n.Messages
 import play.api.Play.current
 import play.api.i18n.Lang
-import models.{CreateNews, News, OrderBy}
+import models.{CreateNews, News, OrderBy, NewsId}
+import org.joda.time.DateTime
 
 object NewsMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
   val createForm = Form(
@@ -66,14 +67,37 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
   def modifyNewsStart(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
-      Ok("")
+      DB.withConnection { implicit conn =>
+        val news = News(NewsId(id))
+        Ok(
+          views.html.admin.modifyNews(
+            id,
+            createForm.fill(
+              CreateNews(
+                news.title, news.contents, new DateTime(news.releaseTime)
+              )
+            )
+          )
+        )
+      }
     }
   }
 
   def modifyNews(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
-      Ok("")
+      createForm.bindFromRequest.fold(
+        formWithErrors => {
+          logger.error("Validation error in NewsMaintenance.modifyNews.")
+          BadRequest(views.html.admin.modifyNews(id, formWithErrors))
+        },
+        news => DB.withConnection { implicit conn =>
+          news.update(id)
+          Redirect(
+            routes.NewsMaintenance.editNews()
+          ).flashing("message" -> Messages("newsIsUpdated"))
+        }
+      )
     }
   }
 

@@ -544,3 +544,6 @@ newsTitle=タイトル
 releaseDate=配信日
 newsContents=本文
 editNewsTitle=ニュースの編集
+modifyNewsTitle=ニュースの変更
+newsIsUpdated=ニュースが変更されました
+newsPicture=ニュース用イメージ

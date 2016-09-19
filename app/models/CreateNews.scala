@@ -16,5 +16,13 @@ case class CreateNews(
     contents = contents,
     releaseTime = releaseTime.getMillis
   )
+
+  def update(id: Long)(implicit conn: Connection): Int = News.update(
+    id = NewsId(id),
+    siteId = None,
+    title = title,
+    contents = contents,
+    releaseTime = releaseTime.getMillis
+  )
 }
 

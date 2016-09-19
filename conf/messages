@@ -512,3 +512,6 @@ newsTitle=Title
 releaseDate=Release date
 newsContents=News content
 editNewsTitle=Edit news
+modifyNewsTitle=Modify news
+newsIsUpdated=News updated.
+newsPicture=News pictures
