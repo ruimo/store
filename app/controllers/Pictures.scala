@@ -1,10 +1,11 @@
 package controllers
 
+import io.Source
 import java.text.{ParseException, SimpleDateFormat}
 import java.util.{TimeZone, Locale}
 import play.api.Configuration
 import java.nio.file.{Path, Files, NoSuchFileException}
-import play.api.mvc.{Action, Controller, Call, RequestHeader}
+import play.api.mvc.{Action, Controller, Call, RequestHeader, Result}
 import play.api.i18n.Messages
 
 trait Pictures extends Controller with NeedLogin with HasLogger {
@@ -109,4 +110,58 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
       retreat(id)
     ).flashing("message" -> Messages("itemIsUpdated"))
   }
+
+  def getPath(itemId: Long, no: Int): Path = {
+    val path = toPath(itemId, no)
+    if (Files.isReadable(path)) path
+    else notfoundPath
+  }
+
+  def readFile(path: Path, contentType: String = "image/jpeg", fileName: Option[String] = None): Result = {
+    val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
+    val byteArray = try {
+      source.map(_.toByte).toArray
+    }
+    finally {
+      try {
+        source.close()
+      }
+      catch {
+        case t: Throwable => logger.error("Cannot close stream.", t)
+      }
+    }
+
+    bytesResult(byteArray, contentType, fileName)
+  }
+
+  def bytesResult(byteArray: Array[Byte], contentType: String, fileName: Option[String]): Result = {
+    fileName match {
+      case None =>
+        Ok(byteArray).as(contentType).withHeaders(
+          CACHE_CONTROL -> "max-age=0",
+          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
+          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
+        )
+
+      case Some(fname) =>
+        Ok(byteArray).as(contentType).withHeaders(
+          CACHE_CONTROL -> "max-age=0",
+          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
+          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis)),
+          CONTENT_DISPOSITION -> ("attachment; filename=" + fname)
+        )
+    }
+  }
+
+  def getPicture(id: Long, no: Int) = optIsAuthenticated { implicit optLogin => request =>
+    val path = getPath(id, no)
+    if (Files.isReadable(path)) {
+      if (isModified(path, request)) readFile(path) else NotModified
+    }
+    else {
+      onPictureNotFound(id, no)
+    }
+  }
+
+  def onPictureNotFound(id: Long, no: Int): Result
 }

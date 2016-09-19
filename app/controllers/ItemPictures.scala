@@ -89,38 +89,7 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
-  def getPicture(itemId: Long, no: Int) = optIsAuthenticated { implicit optLogin => request =>
-    val path = getPath(itemId, no)
-    if (Files.isReadable(path)) {
-      if (isModified(path, request)) readFile(path) else NotModified
-    }
-    else {
-      readPictureFromClasspath(itemId, no)
-    }
-  }
-
-  def getPath(itemId: Long, no: Int): Path = {
-    val path = toPath(itemId, no)
-    if (Files.isReadable(path)) path
-    else notfoundPath
-  }
-
-  def readFile(path: Path, contentType: String = "image/jpeg", fileName: Option[String] = None): Result = {
-    val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
-    val byteArray = try {
-      source.map(_.toByte).toArray
-    }
-    finally {
-      try {
-        source.close()
-      }
-      catch {
-        case t: Throwable => logger.error("Cannot close stream.", t)
-      }
-    }
-
-    bytesResult(byteArray, contentType, fileName)
-  }
+  def onPictureNotFound(id: Long, no: Int): Result = readPictureFromClasspath(id, no)
 
   def readPictureFromClasspath(itemId: Long, no: Int, contentType: String = "image/jpeg"): Result = {
     val result = if (config.getBoolean("item.picture.for.demo").getOrElse(false)) {
@@ -191,25 +160,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
 
     readFully(0, immutable.Vector[(Int, Array[Byte])]())
-  }
-
-  def bytesResult(byteArray: Array[Byte], contentType: String, fileName: Option[String]): Result = {
-    fileName match {
-      case None =>
-        Ok(byteArray).as(contentType).withHeaders(
-          CACHE_CONTROL -> "max-age=0",
-          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
-          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
-        )
-
-      case Some(fname) =>
-        Ok(byteArray).as(contentType).withHeaders(
-          CACHE_CONTROL -> "max-age=0",
-          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
-          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis)),
-          CONTENT_DISPOSITION -> ("attachment; filename=" + fname)
-        )
-    }
   }
 
   def detailPictureExists(itemId: Long): Boolean = Files.isReadable(toDetailPath(itemId))
