@@ -15,25 +15,11 @@ import java.util.{TimeZone, Locale}
 import java.util
 import scala.collection.JavaConversions._
 import collection.immutable.IntMap
+import play.api.Configuration
 
-object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger {
-  val CacheDateFormat = new ThreadLocal[SimpleDateFormat]() {
-    override def initialValue: SimpleDateFormat = {
-      val f = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
-      f.setTimeZone(TimeZone.getTimeZone("GMT"))
-      f
-    }
-  }
-
+object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger with Pictures {
   def isTesting = configForTesting.getBoolean("item.picture.fortest").getOrElse(false)
-  def config = if (isTesting) configForTesting else configForProduction
-  def configForTesting = play.api.Play.maybeApplication.map(_.configuration).get
-  // Cache config
-  lazy val configForProduction = configForTesting
-  def picturePath = if (isTesting) picturePathForTesting else picturePathForProduction
-  // Cache path
-  lazy val picturePathForProduction = picturePathForTesting
-  def picturePathForTesting = {
+  def picturePathForTesting: Path = {
     val ret = config.getString("item.picture.path").map {
       s => Paths.get(s)
     }.getOrElse {
@@ -42,22 +28,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
 
     logger.info("Using item.picture.path = '" + ret + "'")
     ret
-  }
-  def attachmentPath = {
-    val path = picturePath.resolve("attachments")
-    if (! Files.exists(path)) {
-      Files.createDirectories(path)
-    }
-    path
-  }
-  def notfoundPath =
-    if (isTesting) notfoundPathForTesting else notfoundPathForProduction
-  // Cache path
-  lazy val notfoundPathForProduction = notfoundPathForTesting
-  def notfoundPathForTesting = {
-    val path = picturePath.resolve("notfound.jpg")
-    logger.info("Not found picture '" + path.toAbsolutePath + "' will be used.")
-    path
   }
   def detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
   lazy val attachmentCount = config.getInt("item.attached.file.count").getOrElse(5)

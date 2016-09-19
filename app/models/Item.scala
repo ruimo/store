@@ -445,7 +445,7 @@ object Item {
       (e._1, e._2, e._3, e._4, priceHistory, metadata)
     }}
 
-  def createItem(prototype: CreateItem)(implicit conn: Connection) {
+  def createItem(prototype: CreateItem, hide: Boolean)(implicit conn: Connection) {
     val item = Item.createNew(prototype.categoryId)
     val name = ItemName.createNew(item, Map(LocaleInfo(prototype.localeId) -> prototype.itemName))
     val site = Site(prototype.siteId)
@@ -456,6 +456,9 @@ object Item {
     val siteItem = SiteItem.createNew(site, item)
     if (prototype.isCoupon)
       Coupon.updateAsCoupon(item.id.get)
+    if (hide) {
+      SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.HIDE, 1)
+    }
   }
 
   def changeCategory(itemId: ItemId, categoryId: Long)(implicit conn: Connection) {

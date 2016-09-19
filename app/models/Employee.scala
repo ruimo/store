@@ -5,7 +5,7 @@ import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
 import collection.immutable.{HashMap, IntMap}
-import java.sql.{Timestamp, Connection}
+import java.sql.{Connection}
 
 case class EmployeeId(id: Long) extends AnyVal
 
@@ -25,7 +25,7 @@ object Employee {
       "select * from employee where employee_id = {id}"
     ).on(
       'id -> id
-    ).as(simple.single)
+    ).executeQuery.as(simple.single)
 
   def createNew(siteId: Long, userId: Long)(implicit conn: Connection): Employee = {
     SQL(
