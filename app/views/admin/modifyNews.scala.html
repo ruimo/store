@@ -14,7 +14,7 @@
 @fileUpload(id: Long, idx: Int) = {
   <table class="fileUploadTable">
     <tr>
-      <td class="pictureUrl">URL: @routes.NewsPictures.getPicture(id, idx)</td>
+      <td class="pictureUrl" colspan="3">URL: @routes.NewsPictures.getPicture(id, idx)</td>
     </tr>
     <tr>
       <td class="picture"><img src="@routes.NewsPictures.getPicture(id, idx)"></td>
@@ -73,7 +73,7 @@
   @helper.form(action = helper.CSRF(routes.NewsMaintenance.modifyNews(id)), 'id -> "modifyNewsForm") {
     @helper.inputText(
       myForm("title"),
-      '_label -> Messages("newsTitle"), 'size -> 255, 'maxlength -> 255
+      '_label -> Messages("newsTitle"), 'size -> 80, 'maxlength -> 255
     )
 
     @textarea(

@@ -39,7 +39,7 @@
   @helper.form(action = helper.CSRF(routes.NewsMaintenance.createNews()), 'id -> "createNewsForm") {
     @helper.inputText(
       myForm("title"),
-      '_label -> Messages("newsTitle"), 'size -> 255, 'maxlength -> 255
+      '_label -> Messages("newsTitle"), 'size -> 80, 'maxlength -> 255
     )
 
     @textarea(
