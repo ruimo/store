@@ -15,25 +15,11 @@ import java.util.{TimeZone, Locale}
 import java.util
 import scala.collection.JavaConversions._
 import collection.immutable.IntMap
+import play.api.Configuration
 
-object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger {
-  val CacheDateFormat = new ThreadLocal[SimpleDateFormat]() {
-    override def initialValue: SimpleDateFormat = {
-      val f = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
-      f.setTimeZone(TimeZone.getTimeZone("GMT"))
-      f
-    }
-  }
-
+object ItemPictures extends Controller with I18nAware with NeedLogin with HasLogger with Pictures {
   def isTesting = configForTesting.getBoolean("item.picture.fortest").getOrElse(false)
-  def config = if (isTesting) configForTesting else configForProduction
-  def configForTesting = play.api.Play.maybeApplication.map(_.configuration).get
-  // Cache config
-  lazy val configForProduction = configForTesting
-  def picturePath = if (isTesting) picturePathForTesting else picturePathForProduction
-  // Cache path
-  lazy val picturePathForProduction = picturePathForTesting
-  def picturePathForTesting = {
+  def picturePathForTesting: Path = {
     val ret = config.getString("item.picture.path").map {
       s => Paths.get(s)
     }.getOrElse {
@@ -43,55 +29,10 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     logger.info("Using item.picture.path = '" + ret + "'")
     ret
   }
-  def attachmentPath = {
-    val path = picturePath.resolve("attachments")
-    if (! Files.exists(path)) {
-      Files.createDirectories(path)
-    }
-    path
-  }
-  def notfoundPath =
-    if (isTesting) notfoundPathForTesting else notfoundPathForProduction
-  // Cache path
-  lazy val notfoundPathForProduction = notfoundPathForTesting
-  def notfoundPathForTesting = {
-    val path = picturePath.resolve("notfound.jpg")
-    logger.info("Not found picture '" + path.toAbsolutePath + "' will be used.")
-    path
-  }
   def detailNotfoundPath = picturePath.resolve("detailnotfound.jpg")
   lazy val attachmentCount = config.getInt("item.attached.file.count").getOrElse(5)
 
-  def upload(itemId: Long, no: Int) = Action(parse.multipartFormData) { implicit request =>
-    retrieveLoginSession(request) match {
-      case None => onUnauthorized(request)
-      case Some(user) =>
-        if (user.isBuyer) onUnauthorized(request)
-        else {
-          request.body.file("picture").map { picture =>
-            val filename = picture.filename
-            val contentType = picture.contentType
-            if (contentType != Some("image/jpeg")) {
-              Redirect(
-                routes.ItemMaintenance.startChangeItem(itemId)
-              ).flashing("errorMessage" -> Messages("jpeg.needed"))
-            }
-            else {
-              picture.ref.moveTo(toPath(itemId, no).toFile, true)
-              Redirect(
-                routes.ItemMaintenance.startChangeItem(itemId)
-              ).flashing("message" -> Messages("itemIsUpdated"))
-            }
-          }.getOrElse {
-            Redirect(routes.ItemMaintenance.startChangeItem(itemId)).flashing(
-              "errorMessage" -> Messages("file.not.found")
-            )
-          }.withSession(
-            request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
-          )
-        }
-    }
-  }
+  def upload(itemId: Long, no: Int) = uploadPicture(itemId, no, routes.ItemMaintenance.startChangeItem(_))
 
   def uploadDetail(itemId: Long) = Action(parse.multipartFormData) { implicit request =>
     retrieveLoginSession(request) match {
@@ -148,59 +89,11 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
-  def getPicture(itemId: Long, no: Int) = optIsAuthenticated { implicit optLogin => request =>
-    val path = getPath(itemId, no)
-    if (Files.isReadable(path)) {
-      if (isModified(path, request)) readFile(path) else NotModified
-    }
-    else {
-      readPictureFromClasspath(itemId, no)
-    }
-  }
-
-  def getPath(itemId: Long, no: Int): Path = {
-    val path = toPath(itemId, no)
-    if (Files.isReadable(path)) path
-    else notfoundPath
-  }
-
-  def isModified(path: Path, request: RequestHeader): Boolean =
-    request.headers.get("If-Modified-Since").flatMap { value =>
-      try {
-        Some(CacheDateFormat.get.parse(value))
-      }
-      catch {
-        case e: ParseException => {
-          logger.error("Invalid date format '" + value + "'")
-          None
-        }
-      }
-    } match {
-      case Some(t) =>
-        t.getTime < path.toFile.lastModified
-      case None => true
-    }
-
-  def readFile(path: Path, contentType: String = "image/jpeg", fileName: Option[String] = None): Result = {
-    val source = Source.fromFile(path.toFile)(scala.io.Codec.ISO8859)
-    val byteArray = try {
-      source.map(_.toByte).toArray
-    }
-    finally {
-      try {
-        source.close()
-      }
-      catch {
-        case t: Throwable => logger.error("Cannot close stream.", t)
-      }
-    }
-
-    bytesResult(byteArray, contentType, fileName)
-  }
+  def onPictureNotFound(id: Long, no: Int): Result = readPictureFromClasspath(id, no)
 
   def readPictureFromClasspath(itemId: Long, no: Int, contentType: String = "image/jpeg"): Result = {
     val result = if (config.getBoolean("item.picture.for.demo").getOrElse(false)) {
-      val fileName = "public/images/itemPictures/" + itemPictureName(itemId, no)
+      val fileName = "public/images/itemPictures/" + pictureName(itemId, no)
       readFileFromClasspath(fileName, contentType)
     }
     else Results.NotFound
@@ -269,25 +162,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     readFully(0, immutable.Vector[(Int, Array[Byte])]())
   }
 
-  def bytesResult(byteArray: Array[Byte], contentType: String, fileName: Option[String]): Result = {
-    fileName match {
-      case None =>
-        Ok(byteArray).as(contentType).withHeaders(
-          CACHE_CONTROL -> "max-age=0",
-          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
-          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis))
-        )
-
-      case Some(fname) =>
-        Ok(byteArray).as(contentType).withHeaders(
-          CACHE_CONTROL -> "max-age=0",
-          EXPIRES -> "Mon, 26 Jul 1997 05:00:00 GMT",
-          LAST_MODIFIED -> CacheDateFormat.get.format(new java.util.Date(System.currentTimeMillis)),
-          CONTENT_DISPOSITION -> ("attachment; filename=" + fname)
-        )
-    }
-  }
-
   def detailPictureExists(itemId: Long): Boolean = Files.isReadable(toDetailPath(itemId))
 
   def getDetailPicture(itemId: Long) = optIsAuthenticated { implicit optLogin => request =>
@@ -304,20 +178,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     val path = toDetailPath(itemId)
     if (Files.isReadable(path)) path
     else detailNotfoundPath
-  }
-
-  def remove(itemId: Long, no: Int) = optIsAuthenticated { implicit optLogin => implicit request =>
-    try {
-      Files.delete(toPath(itemId, no))
-      notfoundPath.toFile.setLastModified(System.currentTimeMillis)
-    }
-    catch {
-      case e: NoSuchFileException =>
-      case e: Throwable => throw e
-    }
-    Redirect(
-      routes.ItemMaintenance.startChangeItem(itemId)
-    ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
   def removeDetail(itemId: Long) = optIsAuthenticated { implicit optLogin => implicit request =>
@@ -347,8 +207,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
-  def toPath(itemId: Long, no: Int) = picturePath.resolve(itemPictureName(itemId, no))
-  def itemPictureName(itemId: Long, no: Int) = itemId + "_" + no + ".jpg"
   def detailPictureName(itemId: Long) = "detail" + itemId + ".jpg"
   def toDetailPath(itemId: Long) = picturePath.resolve(detailPictureName(itemId))
   def toAttachmentPath(itemId: Long, idx: Int, fileName: String) = attachmentPath.resolve(itemId + "_" + idx + "_" + fileName)
@@ -384,4 +242,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
       }
     }
   }
+
+  def remove(id: Long, no: Int) = removePicture(id, no, routes.ItemMaintenance.startChangeItem(_), Messages("itemIsUpdated"))
 }

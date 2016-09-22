@@ -1,0 +1,118 @@
+@(
+  news: PagedRecords[(News, Option[Site])]
+)(
+  implicit token: play.filters.csrf.CSRF.Token,
+  flash: play.api.mvc.Flash,
+  lang: Lang,
+  request: RequestHeader,
+  loginSession: LoginSession
+)
+
+@import helper._
+@import org.joda.time.format.DateTimeFormat
+
+@implicitLoginSessionOpt = @{Some(loginSession)}
+
+@main(Messages("editNewsTitle"), Some(loginSession), contentCssClass = "adminContents") {
+  <script>
+    $(function() {
+      $(".deleteButton").each(function(idx, b) {
+        $(b).click(function(e) {
+          var formId = "deleteNews" + $(b).data("news-id");
+          var dlg = $('<div>@Messages("deleteConfirm") ' + $(b).data("news-title") + '</div>');
+          dlg.dialog({
+            modal: true,
+            buttons: [
+              {
+                text: '@Messages("yes")',
+                class: 'yes-button',
+                click: function() {
+                  $('#' + formId).submit();
+                }
+              },    
+              {
+                text: '@Messages("no")',
+                class: 'no-button',
+                click: function() {
+                  $(this).dialog('close');
+                }
+              }
+            ]
+          });
+          dlg.dialog('open');
+        });
+      });
+    });
+  </script>
+} {
+<h1 class="title">@Messages("editNewsTitle")</h1>
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+<table class="newsTable">
+  <tr class="newsTableHeader">
+    <th class="id">
+      @orderMark(
+        "id",
+        routes.NewsMaintenance.editNews,
+        "news.news_id", news
+      )
+    </th>
+    <th class="title">
+      @orderMark(
+        Messages("newsTitle"),
+        routes.NewsMaintenance.editNews,
+        "news.title", news
+      )
+    </th>
+    <th class="releaseTime">
+      @orderMark(
+        Messages("releaseDate"),
+        routes.NewsMaintenance.editNews,
+        "news.release_time", news
+      )
+    </th>
+    <th class="action"></th>
+  </tr>
+  @news.records.map { n =>
+    <tr class="newsTableBody">
+      <td class="id">
+        <a href="@routes.NewsMaintenance.modifyNewsStart(n._1.id.get.id)">
+          @n._1.id.get.id
+        </a>
+      </td>
+      <td class="title">@n._1.title</td>
+      <td class="releaseTime">@DateTimeFormat.forPattern(Messages("news.date.format")).print(n._1.releaseTime)</td>
+      <td class="action">
+        @form(action = CSRF(routes.NewsMaintenance.deleteNews(n._1.id.get.id)), 'id -> ("deleteNews" + n._1.id.get.id)) {
+        }
+        <button type="button" style="float: left;"
+                data-news-id="@n._1.id.get.id" data-news-title="@n._1.title" class="deleteButton">
+          @Messages("remove")
+        </button>
+      </td>
+    </tr>
+  }
+</table>
+
+<br>
+@pagingPanel(
+  news,
+  routes.NewsMaintenance.editNews,
+  10, 25, 50
+)
+
+<div class="menuPanel">
+  <br>
+  <a class="backLink" href="@routes.NewsMaintenance.index">
+    @Messages("backTo", Messages("newsMaintenanceTitle"))
+  </a>
+
+  <br>
+  @admin.backToAdminTop()
+</div>
+}

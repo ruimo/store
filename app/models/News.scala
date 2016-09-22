@@ -9,17 +9,25 @@ import java.sql.{Timestamp, Connection}
 
 case class NewsId(id: Long) extends AnyVal
 
-case class News(id: Option[NewsId] = None, siteId: Option[Long], contents: String, releaseTime: Long, updatedTime: Long)
+case class News(
+  id: Option[NewsId] = None,
+  siteId: Option[Long],
+  title: String,
+  contents: String,
+  releaseTime: Long,
+  updatedTime: Long
+)
 
 object News {
   val simple = {
     SqlParser.get[Option[Long]]("news_id") ~
     SqlParser.get[Option[Long]]("site_id") ~
+    SqlParser.get[String]("title") ~
     SqlParser.get[String]("contents") ~
     SqlParser.get[java.time.Instant]("release_time") ~
     SqlParser.get[java.time.Instant]("updated_time") map {
-      case id~siteId~contents~releaseTime~updatedTime =>
-        News(id.map(NewsId.apply), siteId, contents, releaseTime.toEpochMilli, updatedTime.toEpochMilli)
+      case id~siteId~title~contents~releaseTime~updatedTime =>
+        News(id.map(NewsId.apply), siteId, title, contents, releaseTime.toEpochMilli, updatedTime.toEpochMilli)
     }
   }
 
@@ -43,7 +51,7 @@ object News {
       select * from news
       left join site s on s.site_id = news.site_id
       order by """ + orderBy + """
-      limit {pageSize} offset{offset}
+      limit {pageSize} offset {offset}
       """
     ).on(
       'pageSize -> pageSize,
@@ -60,16 +68,17 @@ object News {
   }
 
   def createNew(
-    siteId: Option[Long], contents: String, releaseTime: Long, updatedTime: Long = System.currentTimeMillis
+    siteId: Option[Long], title: String, contents: String, releaseTime: Long, updatedTime: Long = System.currentTimeMillis
   )(implicit conn: Connection): News = {
     SQL(
       """
-      insert into news (news_id, site_id, contents, release_time, updated_time) values (
-        (select nextval('news_seq')), {siteId}, {contents}, {releaseTime}, {updatedTime}
+      insert into news (news_id, site_id, title, contents, release_time, updated_time) values (
+        (select nextval('news_seq')), {siteId}, {title}, {contents}, {releaseTime}, {updatedTime}
       )
       """
     ).on(
       'siteId -> siteId,
+      'title -> title,
       'contents -> contents,
       'releaseTime -> java.time.Instant.ofEpochMilli(releaseTime),
       'updatedTime -> java.time.Instant.ofEpochMilli(updatedTime)
@@ -77,24 +86,29 @@ object News {
 
     val newsId = SQL("select currval('news_seq')").as(SqlParser.scalar[Long].single)
 
-    News(Some(NewsId(newsId)), siteId, contents, releaseTime, updatedTime)
+    News(Some(NewsId(newsId)), siteId, title, contents, releaseTime, updatedTime)
   }
 
   def update(
-    id: NewsId, siteId: Option[Long], contents: String, releaseTime: Long, updatedTime: Long = System.currentTimeMillis
+    id: NewsId, siteId: Option[Long], title: String, contents: String, releaseTime: Long, updatedTime: Long = System.currentTimeMillis
   )(implicit conn: Connection): Int =
     SQL(
       """
-      update news (site_id, contents, release_time, updated_time) values (
-        {siteId}, {content}, {releaseTime}, {updatedTime}
-      ) where news_id = {newsId}
+      update news set
+        site_id = {siteId},
+        title = {title},
+        contents = {contents},
+        release_time = {releaseTime},
+        updated_time = {updatedTime}
+      where news_id = {newsId}
       """
     ).on(
       'newsId -> id.id,
       'siteId -> siteId,
+      'title -> title,
       'contents -> contents,
-      'releaseTime -> releaseTime,
-      'updatedTime -> updatedTime
+      'releaseTime -> java.time.Instant.ofEpochMilli(releaseTime),
+      'updatedTime -> java.time.Instant.ofEpochMilli(updatedTime)
     ).executeUpdate()
 
   def delete(newsId: NewsId)(implicit conn: Connection): Int =
