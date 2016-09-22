@@ -104,7 +104,13 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
   def deleteNews(id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeSuperUser(login) {
-      Ok("")
+      NewsPictures.removeAllPictures(id)
+      DB.withConnection { implicit conn =>
+        News.delete(NewsId(id))
+        Redirect(
+          routes.NewsMaintenance.editNews()
+        ).flashing("message" -> Messages("newsIsRemoved"))
+      }
     }
   }
 }

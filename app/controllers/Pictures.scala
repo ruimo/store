@@ -1,5 +1,7 @@
 package controllers
 
+import scala.collection.Iterable
+import scala.collection.JavaConversions._
 import io.Source
 import java.text.{ParseException, SimpleDateFormat}
 import java.util.{TimeZone, Locale}
@@ -47,25 +49,20 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
   def uploadPicture(
     id: Long, no: Int, retreat: Long => Call
   ) = Action(parse.multipartFormData) { implicit request =>
-println("*** uploadPicture")
     retrieveLoginSession(request) match {
       case None => onUnauthorized(request)
       case Some(user) =>
         if (user.isBuyer) onUnauthorized(request)
         else {
-println("*** uploadPicture 2")
           request.body.file("picture").map { picture =>
             val filename = picture.filename
-println("*** filename = " + filename)
             val contentType = picture.contentType
-println("*** contentType = " + contentType)
             if (contentType != Some("image/jpeg")) {
               Redirect(
                 retreat(id)
               ).flashing("errorMessage" -> Messages("jpeg.needed"))
             }
             else {
-println("*** toPath = " + toPath(id, no).toAbsolutePath)
               picture.ref.moveTo(toPath(id, no).toFile, true)
               Redirect(
                 retreat(id)
@@ -84,6 +81,7 @@ println("*** toPath = " + toPath(id, no).toAbsolutePath)
 
   def toPath(id: Long, no: Int) = picturePath.resolve(pictureName(id, no))
   def pictureName(id: Long, no: Int) = id + "_" + no + ".jpg"
+  def allPicturePaths(id: Long): Iterable[Path] = Files.newDirectoryStream(picturePath, id + "_*.jpg")
 
   def isModified(path: Path, request: RequestHeader): Boolean =
     request.headers.get("If-Modified-Since").flatMap { value =>
@@ -102,18 +100,34 @@ println("*** toPath = " + toPath(id, no).toAbsolutePath)
       case None => true
     }
 
-  def removePicture(id: Long, no: Int, retreat: Long => Call) = optIsAuthenticated { implicit optLogin => implicit request =>
-    try {
-      Files.delete(toPath(id, no))
-      notfoundPath.toFile.setLastModified(System.currentTimeMillis)
+  def removeAllPictures(id: Long) {
+    allPicturePaths(id).foreach { path =>
+      try {
+        Files.delete(path)
+        notfoundPath.toFile.setLastModified(System.currentTimeMillis)
+      }
+      catch {
+        case e: NoSuchFileException =>
+        case e: Throwable => throw e
+      }
     }
-    catch {
-      case e: NoSuchFileException =>
-      case e: Throwable => throw e
+  }
+
+  def removePicture(id: Long, no: Int, retreat: Long => Call, message: String) = NeedAuthenticated { implicit request =>
+    implicit val login = request.user
+    assumeSuperUser(login) {
+      try {
+        Files.delete(toPath(id, no))
+        notfoundPath.toFile.setLastModified(System.currentTimeMillis)
+      }
+      catch {
+        case e: NoSuchFileException =>
+        case e: Throwable => throw e
+      }
+      Redirect(
+        retreat(id)
+      ).flashing("message" -> message)
     }
-    Redirect(
-      retreat(id)
-    ).flashing("message" -> Messages("itemIsUpdated"))
   }
 
   def getPath(itemId: Long, no: Int): Path = {

@@ -514,4 +514,5 @@ newsContents=News content
 editNewsTitle=Edit news
 modifyNewsTitle=Modify news
 newsIsUpdated=News updated.
+newsIsRemoved=News removed.
 newsPicture=News pictures
