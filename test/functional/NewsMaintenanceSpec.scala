@@ -126,7 +126,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.find(".deleteButton").click()
         browser.await().atMost(10, TimeUnit.SECONDS).until(".yes-button").isPresent
         browser.find(".yes-button").click()
-        browser.await().atMost(10, TimeUnit.SECONDS).until(".no-button").isPresent
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.editNews().url.addParm("lang", lang.code)
