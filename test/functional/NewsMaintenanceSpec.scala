@@ -51,6 +51,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("createNewsTitle"))
+        browser.find(".globalErrorMessage").size === 0
         browser.find(".message").getText === Messages("newsIsCreated")
 
         browser.goTo(
