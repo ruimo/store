@@ -40,7 +40,7 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
     assumeSuperUser(login) {
       createForm.bindFromRequest.fold(
         formWithErrors => {
-          logger.error("Validation error in NewsMaintenance.createNews.")
+          logger.error("Validation error in NewsMaintenance.createNews. " + formWithErrors)
           BadRequest(views.html.admin.createNews(formWithErrors))
         },
         news => DB.withConnection { implicit conn =>
