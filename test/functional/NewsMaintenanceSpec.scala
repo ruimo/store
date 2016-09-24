@@ -47,6 +47,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title01")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents01');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月02日")
+println("--------")
         browser.find("input[type='submit']").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
