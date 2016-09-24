@@ -1,5 +1,6 @@
 package functional
 
+import SeleniumHelpers.FirefoxJa
 import play.api.http.Status
 import org.openqa.selenium.By
 import java.nio.file.{Paths, Files}
@@ -30,7 +31,7 @@ class NewsMaintenanceSpec extends Specification {
   "News maintenace" should {
     "Create news" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
-      running(TestServer(3333, app), Helpers.FIREFOX) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         browser.goTo(
