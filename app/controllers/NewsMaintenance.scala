@@ -13,7 +13,7 @@ import models.{CreateNews, News, OrderBy, NewsId}
 import org.joda.time.DateTime
 
 object NewsMaintenance extends Controller with I18nAware with NeedLogin with HasLogger {
-  val createForm = Form(
+  def createForm(implicit lang: Lang) = Form(
     mapping(
       "title" -> text.verifying(nonEmpty, maxLength(255)),
       "contents" ->  text.verifying(nonEmpty, maxLength(65535)),
