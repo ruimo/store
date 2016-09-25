@@ -59,7 +59,7 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
     implicit val login = request.user
     assumeSuperUser(login) {
       DB.withConnection { implicit conn =>
-        Ok(views.html.admin.editNews(News.list(page, pageSize, OrderBy(orderBySpec))))
+        Ok(views.html.admin.editNews(News.list(page, pageSize, OrderBy(orderBySpec), News.MaxDate)))
       }
     }
   }

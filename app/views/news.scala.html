@@ -1,0 +1,20 @@
+@(
+  news: News
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  optLoginSession: Option[LoginSession]
+)
+
+@import helper._
+
+@main(Messages("news"), optLoginSession) {
+} {
+  <h1 class="newsTitle">@news.title</h1>
+  <h2 class="newsReleaseDate">@publishedDate(news.releaseTime)</h2>
+  <div class="newsContents">
+    @Html(news.contents)
+  </div>
+}
+
+

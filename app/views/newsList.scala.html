@@ -1,0 +1,27 @@
+@(
+  news: PagedRecords[(News, Option[Site])]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  optLoginSession: Option[LoginSession]
+)
+
+@import helper._
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <link rel="stylesheet" media="all" href="@routes.Assets.at("stylesheets/main.css")">
+  </head>
+  <body>
+    <table class="newsList">
+      @news.records.map { rec =>
+        <tr>
+          <td class="newsReleaseDate">@publishedDate(rec._1.releaseTime)</td>
+          <td class="newsTitle"><a>@rec._1.title</td>
+        </tr>
+      }
+    </table>
+  </body>
+</html>

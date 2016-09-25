@@ -19,6 +19,7 @@ case class News(
 )
 
 object News {
+  val MaxDate: Long = java.sql.Date.valueOf("9999-12-31").getTime
   val simple = {
     SqlParser.get[Option[Long]]("news_id") ~
     SqlParser.get[Option[Long]]("site_id") ~
@@ -43,19 +44,26 @@ object News {
     case news~site => (news, site)
   }
 
-  def list(page: Int = 0, pageSize: Int = 10, orderBy: OrderBy = OrderBy("news.release_time desc"))(
+  def list(
+    page: Int = 0,
+    pageSize: Int = 10,
+    orderBy: OrderBy = OrderBy("news.release_time desc"),
+    now: Long = MaxDate
+  )(
     implicit conn: Connection
   ): PagedRecords[(News, Option[Site])] = {
     val records: Seq[(News, Option[Site])] = SQL(
       """
       select * from news
       left join site s on s.site_id = news.site_id
+      where release_time <= {now}
       order by """ + orderBy + """
       limit {pageSize} offset {offset}
       """
     ).on(
       'pageSize -> pageSize,
-      'offset -> page * pageSize
+      'offset -> page * pageSize,
+      'now -> java.time.Instant.ofEpochMilli(now)
     ).as(
       withSite *
     )

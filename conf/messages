@@ -516,3 +516,4 @@ modifyNewsTitle=Modify news
 newsIsUpdated=News updated.
 newsIsRemoved=News removed.
 newsPicture=News pictures
+news = News

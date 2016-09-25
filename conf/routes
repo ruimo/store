@@ -267,7 +267,9 @@ POST    /admin/modifyNews                controllers.NewsMaintenance.modifyNews(
 POST    /admin/deleteNews                controllers.NewsMaintenance.deleteNews(id: Long)
 POST    /admin/uploadNewsPicture         controllers.NewsPictures.upload(id: Long, no: Int)
 POST    /admin/removeNewsPicture         controllers.NewsPictures.remove(id: Long, no: Int)
-GET     /admin/getNewsPicture            controllers.NewsPictures.getPicture(id: Long, no: Int)
+GET     /getNewsPicture                  controllers.NewsPictures.getPicture(id: Long, no: Int)
+GET     /newsList                        controllers.NewsQuery.list(page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "news.release_time desc")
+GET     /showNews                        controllers.NewsQuery.show(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)
