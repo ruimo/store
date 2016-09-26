@@ -79,13 +79,13 @@ class NewsMaintenanceSpec extends Specification {
 
         val id = browser.find("#idValue").getAttribute("value").toLong
         testDir.resolve(id + "_0.jpg").toFile.exists === true
-println("*** case01 " + testDir.resolve(id + "_0.jpg").toAbsolutePath)
+System.err.println("*** case01 " + testDir.resolve(id + "_0.jpg").toAbsolutePath)
         downloadBytes(
           Some(now - 1000),
           "http://localhost:3333" + controllers.routes.NewsPictures.getPicture(id, 0).url
         )._1 === Status.OK
 
-println("*** case02 " + testDir.resolve(id + "_0.jpg").toAbsolutePath)
+System.err.println("*** case02 " + testDir.resolve(id + "_0.jpg").toAbsolutePath)
         downloadBytes(
           Some(now + 10000),
           "http://localhost:3333" + controllers.routes.NewsPictures.getPicture(id, 0).url
