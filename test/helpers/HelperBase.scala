@@ -89,7 +89,6 @@ class HelperBase {
   def downloadBytes(urlString: String): (Int, Array[Byte]) = downloadBytes(None, urlString)
 
   def download[T](ifModifiedSince: Option[Long], urlString: String)(f: InputStream => T): (Int, T) = {
-println("download url = " + urlString)
     val url = new URL(urlString)
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     try {

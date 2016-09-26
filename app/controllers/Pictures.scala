@@ -84,7 +84,6 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
   def allPicturePaths(id: Long): Iterable[Path] = Files.newDirectoryStream(picturePath, id + "_*.jpg")
 
   def isModified(path: Path, request: RequestHeader): Boolean = {
-System.err.println("*** isModified " + request.headers.get("If-Modified-Since"))
     request.headers.get("If-Modified-Since").flatMap { value =>
       try {
         Some(CacheDateFormat.get.parse(value))
@@ -97,7 +96,6 @@ System.err.println("*** isModified " + request.headers.get("If-Modified-Since"))
       }
     } match {
       case Some(t) =>
-System.err.println("t.getTime = " + t.getTime + ", path.toFile.lastModified = " + path.toFile.lastModified)
         t.getTime < path.toFile.lastModified
       case None => true
     }
@@ -176,15 +174,11 @@ System.err.println("t.getTime = " + t.getTime + ", path.toFile.lastModified = " 
   }
 
   def getPicture(id: Long, no: Int) = optIsAuthenticated { implicit optLogin => request =>
-System.err.println("*** getPicture(" + id + ", " + no + ")")
     val path = getPath(id, no)
-System.err.println("*** path " + path.toAbsolutePath)
     if (Files.isReadable(path)) {
-System.err.println("*** readable")
       if (isModified(path, request)) readFile(path) else NotModified
     }
     else {
-System.err.println("*** not readable")
       onPictureNotFound(id, no)
     }
   }
