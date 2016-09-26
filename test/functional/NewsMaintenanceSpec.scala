@@ -85,7 +85,7 @@ class NewsMaintenanceSpec extends Specification {
         )._1 === Status.OK
 
         downloadBytes(
-          Some(now + 5000),
+          Some(now + 10000),
           "http://localhost:3333" + controllers.routes.NewsPictures.getPicture(id, 0).url
         )._1 === Status.NOT_MODIFIED
 
