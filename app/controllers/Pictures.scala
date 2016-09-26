@@ -96,6 +96,7 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
       }
     } match {
       case Some(t) =>
+println("t.getTime = " + t.getTime + ", path.toFile.lastModified = " + path.toFile.lastModified)
         t.getTime < path.toFile.lastModified
       case None => true
     }
