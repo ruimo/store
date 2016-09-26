@@ -176,11 +176,15 @@ println("t.getTime = " + t.getTime + ", path.toFile.lastModified = " + path.toFi
   }
 
   def getPicture(id: Long, no: Int) = optIsAuthenticated { implicit optLogin => request =>
+println("*** getPicture(" + id + ", " + no + ")")
     val path = getPath(id, no)
+println("*** path " + path.toAbsolutePath)
     if (Files.isReadable(path)) {
+println("*** readable")
       if (isModified(path, request)) readFile(path) else NotModified
     }
     else {
+println("*** not readable")
       onPictureNotFound(id, no)
     }
   }
