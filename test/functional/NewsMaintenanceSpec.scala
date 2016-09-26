@@ -32,16 +32,20 @@ class NewsMaintenanceSpec extends Specification {
     "Create news" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
       running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
+System.err.println("*** phase00")
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+System.err.println("*** phase01")
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
         )
 
+System.err.println("*** phase02")
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
+System.err.println("*** phase03")
         browser.find(".globalErrorMessage").getText === Messages("inputError")
         browser.find("#title_field dd.error").getText === Messages("error.required")
         browser.find("#newsContents_field dd.error").getText === Messages("error.required")
@@ -53,6 +57,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
+System.err.println("*** phase04")
         browser.title === Messages("commonTitle", Messages("createNewsTitle"))
         browser.find(".globalErrorMessage").size === 0
         browser.find(".message").getText === Messages("newsIsCreated")
@@ -60,23 +65,27 @@ class NewsMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.editNews().url.addParm("lang", lang.code)
         )
+System.err.println("*** phase05")
         browser.title === Messages("commonTitle", Messages("newsMaintenanceTitle"))
         browser.find(".newsTableBody .title").getText === "title01"
         browser.find(".newsTableBody .releaseTime").getText === "2016年01月02日"
         browser.find(".newsTableBody .id a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+System.err.println("*** phase06")
 
         browser.title === Messages("commonTitle", Messages("modifyNewsTitle"))
         browser.find("#title").getAttribute("value") === "title01"
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("return tinyMCE.activeEditor.getContent();") === "<p>Contents01</p>"
         browser.find("#releaseDateTextBox").getAttribute("value") === "2016年01月02日"
 
+System.err.println("*** phase07")
         browser.webDriver
           .findElement(By.id("newsPictureUpload0"))
           .sendKeys(Paths.get("testdata/kinseimaruIdx.jpg").toFile.getAbsolutePath)
         val now = System.currentTimeMillis
         browser.click("#newsPictureUploadSubmit0")
 
+System.err.println("*** phase08")
         val id = browser.find("#idValue").getAttribute("value").toLong
         testDir.resolve(id + "_0.jpg").toFile.exists === true
 System.err.println("*** case01 " + testDir.resolve(id + "_0.jpg").toAbsolutePath)
