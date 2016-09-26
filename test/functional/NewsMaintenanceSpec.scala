@@ -37,8 +37,9 @@ class NewsMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
         )
-        browser.await().atMost(123, TimeUnit.SECONDS).until("input[type='submit']").isPresent
-        browser.find("input[type='submit']").click
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".globalErrorMessage").getText === Messages("inputError")
@@ -49,7 +50,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title01")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents01');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月02日")
-        browser.find("input[type='submit']").click
+        browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("createNewsTitle"))
