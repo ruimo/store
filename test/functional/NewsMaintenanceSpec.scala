@@ -37,7 +37,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
         )
-        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+        browser.await().atMost(10, TimeUnit.SECONDS).until("input[type='submit']").isPresent
         browser.find("input[type='submit']").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
