@@ -1,5 +1,6 @@
 package functional
 
+import org.joda.time.format.DateTimeFormat
 import SeleniumHelpers.FirefoxJa
 import play.api.http.Status
 import org.openqa.selenium.By
@@ -34,7 +35,7 @@ class NewsMaintenanceSpec extends Specification {
 
   "News maintenace" should {
     "Create news" in {
-      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir ++ avoidLogin)
       running(TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
@@ -141,6 +142,104 @@ class NewsMaintenanceSpec extends Specification {
         )
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
         browser.find(".deleteButton").size === 0
+      }}
+    }
+
+    "Browse news" in {
+      val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
+      running(TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)) { browser => DB.withConnection { implicit conn =>
+        implicit val lang = Lang("ja")
+        val adminUser = loginWithTestUser(browser)
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
+        )
+
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        // rec01
+        browser.fill("#title").`with`("title01")
+        browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents01');")
+        browser.fill("#releaseDateTextBox").`with`("2016年01月02日")
+        browser.find(".createNewsButton").click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("createNewsTitle"))
+        browser.find(".globalErrorMessage").size === 0
+        browser.find(".message").getText === Messages("newsIsCreated")
+
+        // rec02
+        browser.fill("#title").`with`("title02")
+        browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents02');")
+        browser.fill("#releaseDateTextBox").`with`("2016年01月04日")
+        browser.find(".createNewsButton").click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("createNewsTitle"))
+        browser.find(".globalErrorMessage").size === 0
+        browser.find(".message").getText === Messages("newsIsCreated")
+
+        // rec03
+        browser.fill("#title").`with`("title03")
+        browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents03');")
+        browser.fill("#releaseDateTextBox").`with`("2016年01月03日")
+        browser.find(".createNewsButton").click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("createNewsTitle"))
+        browser.find(".globalErrorMessage").size === 0
+        browser.find(".message").getText === Messages("newsIsCreated")
+
+        // rec04(Future date)
+        val futureDate: String = DateTimeFormat.forPattern("yyyy年MM月dd日").print(
+          System.currentTimeMillis + 1000 * 60 * 60 * 24 * 2
+        )
+
+        browser.fill("#title").`with`("title04")
+        browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents03');")
+        browser.fill("#releaseDateTextBox").`with`(futureDate)
+        browser.find(".createNewsButton").click
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("createNewsTitle"))
+        browser.find(".globalErrorMessage").size === 0
+        browser.find(".message").getText === Messages("newsIsCreated")
+
+        // In admin console, all news should be shown.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.NewsMaintenance.editNews().url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("editNewsTitle"))
+        browser.find(".newsTableBody .title", 0).getText === "title04"
+        browser.find(".newsTableBody .releaseTime", 0).getText === futureDate
+        browser.find(".newsTableBody .title", 1).getText === "title02"
+        browser.find(".newsTableBody .releaseTime", 1).getText === "2016年01月04日"
+        browser.find(".newsTableBody .title", 2).getText === "title03"
+        browser.find(".newsTableBody .releaseTime", 2).getText === "2016年01月03日"
+        browser.find(".newsTableBody .title", 3).getText === "title01"
+        browser.find(".newsTableBody .releaseTime", 3).getText === "2016年01月02日"
+
+        // In normal console, future news should be hidden.
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.NewsQuery.list().url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".newsTitle a", 0).getText === "title02"
+        browser.find(".newsReleaseDate", 0).getText === "2016年01月04日"
+        browser.find(".newsTitle a", 1).getText === "title03"
+        browser.find(".newsReleaseDate", 1).getText === "2016年01月03日"
+        browser.find(".newsTitle a", 2).getText === "title01"
+        browser.find(".newsReleaseDate", 2).getText === "2016年01月02日"
+
+        browser.find(".newsTitle a", 2).click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.title === Messages("commonTitle", Messages("news"))
+        browser.find(".newsTitle").getText === "title01"
+        browser.find(".newsReleaseDate").getText === "2016年01月02日"
+        browser.find(".newsContents").getText === ""
       }}
     }
   }
