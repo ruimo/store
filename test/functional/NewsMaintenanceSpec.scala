@@ -64,7 +64,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.editNews().url.addParm("lang", lang.code)
         )
-        browser.title === Messages("commonTitle", Messages("newsMaintenanceTitle"))
+        browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title").getText === "title01"
         browser.find(".newsTableBody .releaseTime").getText === "2016年01月02日"
         browser.find(".newsTableBody .id a").click()
