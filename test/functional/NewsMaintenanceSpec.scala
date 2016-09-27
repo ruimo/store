@@ -236,10 +236,15 @@ class NewsMaintenanceSpec extends Specification {
         browser.find(".newsTitle a", 2).click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
+        val currentWindow = browser.webDriver.getWindowHandle
+        val allWindows = browser.webDriver.getWindowHandles
+        allWindows.remove(currentWindow)
+        browser.webDriver.switchTo().window(allWindows.iterator.next)
+
         browser.title === Messages("commonTitle", Messages("news"))
         browser.find(".newsTitle").getText === "title01"
         browser.find(".newsReleaseDate").getText === "2016年01月02日"
-        browser.find(".newsContents").getText === ""
+        browser.find(".newsContents").getText === "Contents01"
       }}
     }
   }
