@@ -31,7 +31,7 @@ class NewsMaintenanceSpec extends Specification {
   "News maintenace" should {
     "Create news" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
-      running(TestServer(3333, app), FirefoxJa) { browser => DB.withConnection { implicit conn =>
+      running(TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
         browser.goTo(
