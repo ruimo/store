@@ -92,6 +92,7 @@ class HelperBase {
     val url = new URL(urlString)
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     try {
+      conn.setUseCaches(false)
       if (ifModifiedSince.isDefined) conn.setIfModifiedSince(ifModifiedSince.get)
       (conn.getResponseCode, f(conn.getInputStream))
     }

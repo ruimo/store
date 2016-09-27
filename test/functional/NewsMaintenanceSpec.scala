@@ -28,6 +28,10 @@ class NewsMaintenanceSpec extends Specification {
     "news.picture.fortest" -> true
   )
 
+  lazy val avoidLogin = Map(
+    "need.authentication.entirely" -> false
+  )
+
   "News maintenace" should {
     "Create news" in {
       val app = FakeApplication(additionalConfiguration = inMemoryDatabase() ++ withTempDir)
@@ -37,8 +41,9 @@ class NewsMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
         )
+
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
-        browser.find("input[type='submit']").click
+        browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".globalErrorMessage").getText === Messages("inputError")
@@ -49,7 +54,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title01")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents01');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月02日")
-        browser.find("input[type='submit']").click
+        browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("createNewsTitle"))
@@ -59,7 +64,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.editNews().url.addParm("lang", lang.code)
         )
-        browser.title === Messages("commonTitle", Messages("newsMaintenanceTitle"))
+        browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title").getText === "title01"
         browser.find(".newsTableBody .releaseTime").getText === "2016年01月02日"
         browser.find(".newsTableBody .id a").click()
@@ -84,7 +89,7 @@ class NewsMaintenanceSpec extends Specification {
         )._1 === Status.OK
 
         downloadBytes(
-          Some(now + 5000),
+          Some(now + 10000),
           "http://localhost:3333" + controllers.routes.NewsPictures.getPicture(id, 0).url
         )._1 === Status.NOT_MODIFIED
 
@@ -100,7 +105,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".message").getText === Messages("newsIsUpdated")
-        browser.title === Messages("commonTitle", Messages("newsMaintenanceTitle"))
+        browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title").getText === "title02"
         browser.find(".newsTableBody .releaseTime").getText === "2016年02月02日"
         browser.find(".newsTableBody .id a").click()

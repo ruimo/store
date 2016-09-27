@@ -83,7 +83,7 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
   def pictureName(id: Long, no: Int) = id + "_" + no + ".jpg"
   def allPicturePaths(id: Long): Iterable[Path] = Files.newDirectoryStream(picturePath, id + "_*.jpg")
 
-  def isModified(path: Path, request: RequestHeader): Boolean =
+  def isModified(path: Path, request: RequestHeader): Boolean = {
     request.headers.get("If-Modified-Since").flatMap { value =>
       try {
         Some(CacheDateFormat.get.parse(value))
@@ -99,6 +99,7 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
         t.getTime < path.toFile.lastModified
       case None => true
     }
+  }
 
   def removeAllPictures(id: Long) {
     allPicturePaths(id).foreach { path =>

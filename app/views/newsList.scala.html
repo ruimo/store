@@ -19,7 +19,7 @@
       @news.records.map { rec =>
         <tr>
           <td class="newsReleaseDate">@publishedDate(rec._1.releaseTime)</td>
-          <td class="newsTitle"><a>@rec._1.title</td>
+          <td class="newsTitle"><a target="_blank" href="@routes.NewsQuery.show(rec._1.id.get.id)">@rec._1.title</a></td>
         </tr>
       }
     </table>

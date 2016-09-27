@@ -25,4 +25,3 @@ object NewsPictures extends Controller with NeedLogin with HasLogger with Pictur
   def upload(id: Long, no: Int) = uploadPicture(id, no, routes.NewsMaintenance.modifyNewsStart(_))
   def remove(id: Long, no: Int) = removePicture(id, no, routes.NewsMaintenance.modifyNewsStart(_), Messages("newsIsUpdated"))
 }
-

@@ -106,13 +106,16 @@ trait NeedLogin extends Controller with HasLogger {
 
   def optIsAuthenticated(f: => Option[LoginSession] => Request[AnyContent] => Result) = 
     if (needAuthenticationEntirely) {
+      logger.info("Login is needed entierly.")
       Authenticated(retrieveLoginSession, onUnauthorized) { user =>
+        logger.info("Login user is " + user)
         Action(request => f(Some(user))(request).withSession(
           request.session + (LoginUserKey -> user.withExpireTime(System.currentTimeMillis + SessionTimeout).toSessionString)
         ))
       }
     }
     else {
+      logger.info("Login is optional.")
       Action(request => {
         val optLogin: Option[LoginSession] = DB.withConnection { conn => loginSession(request, conn) }
         val result = f(optLogin)(request)
