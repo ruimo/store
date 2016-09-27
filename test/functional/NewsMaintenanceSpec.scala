@@ -105,7 +105,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".message").getText === Messages("newsIsUpdated")
-        browser.title === Messages("commonTitle", Messages("newsMaintenanceTitle"))
+        browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title").getText === "title02"
         browser.find(".newsTableBody .releaseTime").getText === "2016年02月02日"
         browser.find(".newsTableBody .id a").click()
