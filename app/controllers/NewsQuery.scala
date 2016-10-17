@@ -21,6 +21,14 @@ object NewsQuery extends Controller with I18nAware with NeedLogin with HasLogger
     }
   }
 
+  def pagedList(
+    page:Int, pageSize:Int, orderBySpec: String
+  ) = optIsAuthenticated { implicit optLogin => implicit request =>
+    DB.withConnection { implicit conn =>
+      Ok(views.html.newsPagedList(News.list(page, pageSize, OrderBy(orderBySpec), System.currentTimeMillis)))
+    }
+  }
+
   def show(id: Long) = optIsAuthenticated { implicit optLogin => implicit request =>
     DB.withConnection { implicit conn =>
       Ok(views.html.news(News(NewsId(id))))
