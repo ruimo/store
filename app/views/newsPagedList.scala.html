@@ -1,0 +1,33 @@
+@(
+  news: PagedRecords[(News, Option[Site])]
+)(
+  implicit lang: Lang,
+  request: RequestHeader,
+  optLoginSession: Option[LoginSession]
+)
+
+@import helper._
+
+@main(Messages("news"), optLoginSession) {
+} {
+  <h1 class="title">@Messages("news")</h1>
+
+  <table class="newsTable">
+    <tr class="header">
+      <th class="date">@Messages("releaseDate")</th>
+      <th class="site">@Messages("site")</th>
+      <th class="title">@Messages("newsTitle")</th>
+    </tr>
+    @news.records.map { rec =>
+      <tr> class="body">
+        <td class="date">@publishedDate(rec._1.releaseTime)</td>
+        <td class="site">@rec._2.map(_.name).getOrElse("")</td>
+        <td class="title"><a target="_blank" href="@routes.NewsQuery.show(rec._1.id.get.id)">@rec._1.title</a></td>
+      </tr>
+    }    
+  </table>
+
+  <a href="/">@Messages("backTo", Messages("top"))</a>
+}
+  
+
