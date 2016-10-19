@@ -9,6 +9,7 @@ import play.api.Configuration
 import java.nio.file.{Path, Files, NoSuchFileException}
 import play.api.mvc.{Action, Controller, Call, RequestHeader, Result}
 import play.api.i18n.Messages
+import models.LoginSession
 
 trait Pictures extends Controller with NeedLogin with HasLogger {
   val CacheDateFormat = new ThreadLocal[SimpleDateFormat]() {
@@ -114,9 +115,12 @@ trait Pictures extends Controller with NeedLogin with HasLogger {
     }
   }
 
-  def removePicture(id: Long, no: Int, retreat: Long => Call, message: String) = NeedAuthenticated { implicit request =>
+  def removePicture(
+    id: Long, no: Int, retreat: Long => Call, message: String,
+    assumeOperator: LoginSession => (=> Result) => Result
+  ) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
+    assumeOperator(login) {
       try {
         Files.delete(toPath(id, no))
         notfoundPath.toFile.setLastModified(System.currentTimeMillis)

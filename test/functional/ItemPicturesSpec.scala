@@ -151,6 +151,15 @@ class ItemPicturesSpec extends Specification {
         implicit val lang = Lang("ja")
         val user = loginWithTestUser(browser)
         val site = Site.createNew(LocaleInfo.Ja, "Store01")
+
+        val user01 = StoreUser.create(
+          "user01", "Admin", None, "Manager", "admin@abc.com",
+          4151208325021896473L, -1106301469931443100L, UserRole.NORMAL, Some("Company1")
+        )
+        val siteOwner = SiteUser.createNew(user01.id.get, site.id.get)
+        logoff(browser)
+        login(browser, "user01", "password")
+
         val cat = Category.createNew(Map(LocaleInfo.Ja -> "Cat01"))
         val tax = Tax.createNew
         val taxName = TaxName.createNew(tax, LocaleInfo.Ja, "tax01")

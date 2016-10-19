@@ -243,5 +243,6 @@ object ItemPictures extends Controller with I18nAware with NeedLogin with HasLog
     }
   }
 
-  def remove(id: Long, no: Int) = removePicture(id, no, routes.ItemMaintenance.startChangeItem(_), Messages("itemIsUpdated"))
+  def remove(id: Long, no: Int) =
+    removePicture(id, no, routes.ItemMaintenance.startChangeItem(_), Messages("itemIsUpdated"), assumeAdmin)
 }
