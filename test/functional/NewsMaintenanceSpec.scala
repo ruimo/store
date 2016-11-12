@@ -245,8 +245,56 @@ class NewsMaintenanceSpec extends Specification {
         browser.find(".newsTitle").getText === "title01"
         browser.find(".newsReleaseDate").getText === "2016年01月02日"
         browser.find(".newsContents").getText === "Contents01"
+
+        // Paging
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.NewsQuery.pagedList().url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".newsTable .body").size === 3
+
+        browser.find(".newsTable .body .date", 0).getText === "2016年01月04日"
+        browser.find(".newsTable .body .title", 0).getText === "title02"
+
+        browser.find(".newsTable .body .date", 1).getText === "2016年01月03日"
+        browser.find(".newsTable .body .title", 1).getText === "title03"
+
+        browser.find(".newsTable .body .date", 2).getText === "2016年01月02日"
+        browser.find(".newsTable .body .title", 2).getText === "title01"
+
+        browser.goTo(
+          "http://localhost:3333" + controllers.routes.NewsQuery.pagedList(page = 0, pageSize = 2).url.addParm("lang", lang.code)
+        )
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".newsTable .body").size === 2
+
+        browser.find(".newsTable .body .date", 0).getText === "2016年01月04日"
+        browser.find(".newsTable .body .title", 0).getText === "title02"
+
+        browser.find(".newsTable .body .date", 1).getText === "2016年01月03日"
+        browser.find(".newsTable .body .title", 1).getText === "title03"
+
+        browser.find(".nextPageButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".newsTable .body").size === 1
+
+        browser.find(".newsTable .body .date", 0).getText === "2016年01月02日"
+        browser.find(".newsTable .body .title", 0).getText === "title01"
+
+        browser.find(".prevPageButton").click()
+        browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
+
+        browser.find(".newsTable .body").size === 2
+
+        browser.find(".newsTable .body .date", 0).getText === "2016年01月04日"
+        browser.find(".newsTable .body .title", 0).getText === "title02"
+
+        browser.find(".newsTable .body .date", 1).getText === "2016年01月03日"
+        browser.find(".newsTable .body .title", 1).getText === "title03"
       }}
     }
   }
 }
-
