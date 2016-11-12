@@ -11,4 +11,8 @@ object Application extends Controller with I18nAware with NeedLogin {
   def index = optIsAuthenticated { implicit optLogin => implicit request =>
     Ok(views.html.index())
   }
+
+  def notFound(path: String) = Action {
+    Results.NotFound
+  }
 }
