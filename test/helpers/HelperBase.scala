@@ -1,5 +1,6 @@
 package helpers
 
+import java.util.concurrent.TimeUnit
 import play.api.db.DB
 import models.{UserRole, StoreUser, SiteUser}
 import play.api.Play.current
@@ -44,6 +45,7 @@ class HelperBase {
     browser.fill("#userName").`with`("administrator")
     browser.fill("#password").`with`("password")
     browser.click("#doLoginButton")
+    browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
     user
   }
@@ -53,10 +55,12 @@ class HelperBase {
     browser.fill("#userName").`with`(userName)
     browser.fill("#password").`with`(password)
     browser.click("#doLoginButton")
+    browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
   }
 
   def logoff(browser: TestBrowser) {
     browser.goTo("http://localhost:3333" + controllers.routes.Admin.logoff("/").url)
+    browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
   }
 
   def createNormalUser(
@@ -77,6 +81,7 @@ class HelperBase {
     browser.fill("#password_main").`with`(password)
     browser.fill("#password_confirm").`with`(password)
     browser.click("#registerNormalUser")
+    browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
   }
 
   def takeScreenShot(browser: TestBrowser) {
