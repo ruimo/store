@@ -1,3 +1,5 @@
+import play.api.i18n.{Lang, Messages}
+import scala.concurrent.Future
 import controllers.I18n.I18nFilter
 import play.api.mvc._
 import play.api._
@@ -43,6 +45,13 @@ object Global extends WithFilters(CSRFFilter(), I18nFilter) with GlobalSettings 
       }
     }
   }
+
+  override def onHandlerNotFound(request: RequestHeader) = {
+    logger.error("Handler not found.")
+    Future.successful(
+      Results.Redirect(
+        controllers.routes.Application.index
+      ).flashing("message" -> Messages("unknownError"))
+    )
+  }
 }
-
-
