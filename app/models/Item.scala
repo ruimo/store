@@ -2,7 +2,6 @@ package models
 
 import anorm._
 import anorm.SqlParser
-import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
@@ -47,7 +46,8 @@ case class ItemTextMetadata(
 case class SiteItem(itemId: ItemId, siteId: Long, created: Long)
 
 case class SiteItemNumericMetadata(
-  id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
+  id: Option[Long] = None, itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long,
+  validUntil: Long
 )
 
 case class SiteItemTextMetadata(
@@ -1095,98 +1095,94 @@ object SiteItemNumericMetadata {
     SqlParser.get[Long]("site_item_numeric_metadata.item_id") ~
     SqlParser.get[Long]("site_item_numeric_metadata.site_id") ~
     SqlParser.get[Int]("site_item_numeric_metadata.metadata_type") ~
-    SqlParser.get[Long]("site_item_numeric_metadata.metadata") map {
-      case id~itemId~siteId~metadataType~metadata =>
-        SiteItemNumericMetadata(id, ItemId(itemId), siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
+    SqlParser.get[Long]("site_item_numeric_metadata.metadata") ~
+    SqlParser.get[java.util.Date]("site_item_numeric_metadata.valid_until") map {
+      case id~itemId~siteId~metadataType~metadata~validUntil =>
+        SiteItemNumericMetadata(id, ItemId(itemId), siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata, validUntil.getTime)
     }
   }
 
   def createNew(
-    siteId: Long, itemId: ItemId, metadataType: SiteItemNumericMetadataType, metadata: Long
+    siteId: Long, itemId: ItemId, metadataType: SiteItemNumericMetadataType, metadata: Long,
+    validUntil: Long = Until.Ever
   )(implicit conn: Connection): SiteItemNumericMetadata = {
     SQL(
       """
       insert into site_item_numeric_metadata(
-        site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata
+        site_item_numeric_metadata_id, site_id, item_id, metadata_type, metadata, valid_until
       ) values (
         (select nextval('site_item_numeric_metadata_seq')),
-        {siteId}, {itemId}, {metadataType}, {metadata}
+        {siteId}, {itemId}, {metadataType}, {metadata}, {validUntil}
       )
       """
     ).on(
       'siteId -> siteId,
       'itemId -> itemId.id,
       'metadataType -> metadataType.ordinal,
-      'metadata -> metadata
+      'metadata -> metadata,
+      'validUntil -> new java.util.Date(validUntil)
     ).executeUpdate()
 
     val id = SQL("select currval('site_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
 
-    SiteItemNumericMetadata(Some(id), itemId, siteId, metadataType, metadata)
+    SiteItemNumericMetadata(Some(id), itemId, siteId, metadataType, metadata, validUntil)
   }
 
-  def add(
-    itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long
-  )(implicit conn: Connection): SiteItemNumericMetadata = {
-    SQL(
-      """
-      insert into site_item_numeric_metadata(
-        site_item_numeric_metadata_id, item_id, site_id, metadata_type, metadata
-      ) values (
-        (select nextval('site_item_numeric_metadata_seq')),
-        {itemId}, {siteId}, {metadataType}, {metadata}
-      )
-      """
-    ).on(
-      'itemId -> itemId.id,
-      'siteId -> siteId,
-      'metadataType -> metadataType.ordinal,
-      'metadata -> metadata
-    ).executeUpdate()
-
-    val id = SQL("select currval('site_item_numeric_metadata_seq')").as(SqlParser.scalar[Long].single)
-
-    SiteItemNumericMetadata(Some(id), itemId, siteId, SiteItemNumericMetadataType.byIndex(metadataType.ordinal), metadata)
-  }
-
-  def apply(
-    siteId: Long, itemId: ItemId, metadataType: SiteItemNumericMetadataType
+  def at(
+    siteId: Long, itemId: ItemId, metadataType: SiteItemNumericMetadataType, now: Long = System.currentTimeMillis
   )(implicit conn: Connection): SiteItemNumericMetadata = SQL(
     """
     select * from site_item_numeric_metadata
     where site_id = {siteId} and item_id = {itemId}
     and metadata_type = {metadataType}
+    and {now} < valid_until
+    order by valid_until
+    limit 1
     """
   ).on(
     'siteId -> siteId,
     'itemId -> itemId.id,
-    'metadataType -> metadataType.ordinal
+    'metadataType -> metadataType.ordinal,
+    'now -> new java.sql.Timestamp(now)
   ).as(
     SiteItemNumericMetadata.simple.single
   )
 
-  def all(siteId: Long, itemId: ItemId)(implicit conn: Connection): Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = SQL(
-    "select * from site_item_numeric_metadata where site_id = {siteId} and item_id = {itemId}"
+  def all(
+    siteId: Long, itemId: ItemId, now: Long = System.currentTimeMillis
+  )(implicit conn: Connection): Map[SiteItemNumericMetadataType, SiteItemNumericMetadata] = SQL(
+    """
+    select * from site_item_numeric_metadata t1
+    where site_id = {siteId} and item_id = {itemId} and
+    valid_until = (
+      select valid_until from site_item_numeric_metadata t2
+      where t2.site_id = {siteId} and t2.item_id = {itemId} and t2.metadata_type = t1.metadata_type
+      and {now} < t2.valid_until
+      limit 1
+    )
+    """
   ).on(
     'siteId -> siteId,
-    'itemId -> itemId.id
+    'itemId -> itemId.id,
+    'now -> new java.sql.Timestamp(now)
   ).as(
     SiteItemNumericMetadata.simple *
   ).foldLeft(new HashMap[SiteItemNumericMetadataType, SiteItemNumericMetadata]) {
     (map, e) => map.updated(e.metadataType, e)
   }
 
-  def update(itemId: ItemId, siteId: Long, metadataType: SiteItemNumericMetadataType, metadata: Long)(implicit conn: Connection) {
+  def update(
+    id: Long, metadata: Long, validUntil: Long
+  )(implicit conn: Connection) {
     SQL(
       """
-      update site_item_numeric_metadata set metadata = {metadata}
-      where item_id = {itemId} and site_id = {siteId} and metadata_type = {metadataType}
+      update site_item_numeric_metadata set metadata = {metadata} and valid_until = {validUntil}
+      where site_item_numeric_metadata_id = {id}
       """
     ).on(
+      'id -> id,
       'metadata -> metadata,
-      'itemId -> itemId.id,
-      'siteId -> siteId,
-      'metadataType -> metadataType.ordinal
+      'validUntil -> validUntil
     ).executeUpdate()
   }
 

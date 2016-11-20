@@ -1,5 +1,6 @@
 package models
 
+import org.joda.time.DateTime
 import play.api.db.DB
 import play.api.Play.current
 import java.sql.Connection
@@ -15,15 +16,9 @@ case class ChangeSiteItemMetadataTable(
 }
 
 case class ChangeSiteItemMetadata(
-  siteId: Long, metadataType: Int, metadata: Long
+  id: Long, siteId: Long, metadataType: Int, metadata: Long, validUntil: DateTime
 ) {
   def update(itemId: Long)(implicit conn: Connection) {
-    SiteItemNumericMetadata.update(ItemId(itemId), siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
-  }
-
-  def add(itemId: Long)(implicit conn: Connection) {
-    ExceptionMapper.mapException {
-      SiteItemNumericMetadata.add(ItemId(itemId), siteId, SiteItemNumericMetadataType.byIndex(metadataType), metadata)
-    }
+    SiteItemNumericMetadata.update(id, metadata, validUntil.getMillis)
   }
 }

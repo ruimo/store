@@ -182,6 +182,11 @@
           FieldConstructor(simpleField.f), implicitly
         )
       </td>
+      <td>
+        @inputText(field("validUntil"))(
+          FieldConstructor(simpleField.f), implicitly
+        )
+      </td>
     </tr>
   }
 }
@@ -601,6 +606,7 @@
           <th>@Messages("site")</th>
           <th>@Messages("itemMetadataType")</th>
           <th>@Messages("itemMetadata")</th>
+          <th>@Messages("validUntil")</th>
         </tr>
   
         @repeat(c.siteItemMetadataTableForm("siteItemMetadatas")) { metadata => @siteItemMetadataForm(metadata) }
@@ -622,6 +628,7 @@
         <th>@Messages("site")</th>
         <th>@Messages("itemMetadataType")</th>
         <th>@Messages("itemMetadata")</th>
+        <th>@Messages("validUntil")</th>
       </tr>
       <tr>
         <td>
@@ -644,7 +651,14 @@
         </td>
         <td>
           @inputText(
-            c.newItemNameForm("metadata"), '_label -> ""
+            c.newSiteItemMetadataForm("metadata"), '_label -> ""
+          )(
+            FieldConstructor(simpleField.f), implicitly
+          )
+        </td>
+        <td>
+          @inputText(
+            c.newSiteItemMetadataForm("validUntil")
           )(
             FieldConstructor(simpleField.f), implicitly
           )
@@ -704,7 +718,7 @@
         </td>
         <td>
           @select(
-            c.newSiteItemMetadataForm("metadataType"), 
+            c.newSiteItemTextMetadataForm("metadataType"), 
             ItemMaintenance.siteItemTextMetadataTable,
             '_showConstraints -> false
           )(
@@ -713,7 +727,7 @@
         </td>
         <td>
           @inputText(
-            c.newItemNameForm("metadata"), '_label -> ""
+            c.newSiteItemTextMetadataForm("metadata"), '_label -> ""
           )(
             FieldConstructor(simpleField.f), implicitly
           )

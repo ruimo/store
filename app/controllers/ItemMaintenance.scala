@@ -38,7 +38,7 @@ class ChangeItem(
   val itemMetadataTableForm: Form[ChangeItemMetadataTable],
   val newItemMetadataForm: Form[ChangeItemMetadata],
   val siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable],
-  val newSiteItemMetadataForm: Form[ChangeSiteItemMetadata],
+  val newSiteItemMetadataForm: Form[CreateSiteItemMetadata],
   val siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable],
   val newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata],
   val itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable],
@@ -74,7 +74,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     itemMetadataTableForm: Form[ChangeItemMetadataTable] = ItemMaintenance.createItemMetadataTable(id),
     newItemMetadataForm: Form[ChangeItemMetadata] = ItemMaintenance.addItemMetadataForm,
     siteItemMetadataTableForm: Form[ChangeSiteItemMetadataTable] = ItemMaintenance.createSiteItemMetadataTable(id),
-    newSiteItemMetadataForm: Form[ChangeSiteItemMetadata] = ItemMaintenance.addSiteItemMetadataForm,
+    newSiteItemMetadataForm: Form[CreateSiteItemMetadata] = ItemMaintenance.addSiteItemMetadataForm,
     siteItemTextMetadataTableForm: Form[ChangeSiteItemTextMetadataTable] = ItemMaintenance.createSiteItemTextMetadataTable(id),
     newSiteItemTextMetadataForm: Form[ChangeSiteItemTextMetadata] = ItemMaintenance.addSiteItemTextMetadataForm,
     itemTextMetadataTableForm: Form[ChangeItemTextMetadataTable] = ItemMaintenance.createItemTextMetadataTable(id),
@@ -306,9 +306,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "siteItemMetadatas" -> seq(
         mapping(
+          "id" -> longNumber,
           "siteId" -> longNumber,
           "metadataType" -> number,
-          "metadata" -> longNumber
+          "metadata" -> longNumber,
+          "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
         ) (ChangeSiteItemMetadata.apply)(ChangeSiteItemMetadata.unapply)
       )
     ) (ChangeSiteItemMetadataTable.apply)(ChangeSiteItemMetadataTable.unapply)
@@ -351,9 +353,14 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "siteId" -> longNumber,
       "metadataType" -> number,
-      "metadata" -> longNumber
-    ) (ChangeSiteItemMetadata.apply)(ChangeSiteItemMetadata.unapply)
-  )
+      "metadata" -> longNumber,
+      "validUntil" -> jodaDate("yyyy-MM-dd HH:mm:ss")
+    ) (CreateSiteItemMetadata.apply)(CreateSiteItemMetadata.unapply)
+  ).bind(
+    Map(
+      "validUntil" -> Until.EverStr
+    )
+  ).discardingErrors
 
   val addSiteItemTextMetadataForm = Form(
     mapping(
@@ -408,9 +415,8 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
   def createSiteItemMetadataTable(id: Long): Form[ChangeSiteItemMetadataTable] = {
     DB.withConnection { implicit conn => {
       val itemMetadata = SiteItemNumericMetadata.allById(ItemId(id)).values.map {
-        n => ChangeSiteItemMetadata(n.siteId, n.metadataType.ordinal, n.metadata)
+        n => ChangeSiteItemMetadata(n.id.get, n.siteId, n.metadataType.ordinal, n.metadata, new DateTime(n.validUntil))
       }.toSeq
-
       changeSiteItemMetadataForm.fill(ChangeSiteItemMetadataTable(itemMetadata))
     }}
   }
@@ -1215,6 +1221,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
                     newSiteItemMetadataForm = addSiteItemMetadataForm
                       .fill(newMetadata)
                       .withError("metadataType", "unique.constraint.violation")
+                      .withError("validUntil", "unique.constraint.violation")
                   )
                 )
               )

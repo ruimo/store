@@ -44,7 +44,7 @@ class ShowCouponSpec extends Specification {
           val itemPriceHistory = ItemPriceHistory.createNew(
             itemPrice, tax, CurrencyInfo.Jpy, BigDecimal(999), None, BigDecimal("888"), date("9999-12-31")
           )
-          SiteItemNumericMetadata.add(item.id.get, site.id.get, SiteItemNumericMetadataType.INSTANT_COUPON, 1)
+          SiteItemNumericMetadata.createNew(site.id.get, item.id.get, SiteItemNumericMetadataType.INSTANT_COUPON, 1)
 
           browser.goTo(
             "http://localhost:3333" + 
