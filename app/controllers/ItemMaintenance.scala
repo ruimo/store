@@ -414,7 +414,7 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def createSiteItemMetadataTable(id: Long): Form[ChangeSiteItemMetadataTable] = {
     DB.withConnection { implicit conn => {
-      val itemMetadata = SiteItemNumericMetadata.allById(ItemId(id)).values.map {
+      val itemMetadata = SiteItemNumericMetadata.allById(ItemId(id)).map {
         n => ChangeSiteItemMetadata(n.id.get, n.siteId, n.metadataType.ordinal, n.metadata, new DateTime(n.validUntil))
       }.toSeq
       changeSiteItemMetadataForm.fill(ChangeSiteItemMetadataTable(itemMetadata))
@@ -540,13 +540,11 @@ object ItemMaintenance extends Controller with I18nAware with NeedLogin with Has
     }
   }
 
-  def removeSiteItemMetadata(
-    itemId: Long, siteId: Long, metadataType: Int
-  ) = NeedAuthenticated { implicit request =>
+  def removeSiteItemMetadata(itemId: Long, id: Long) = NeedAuthenticated { implicit request =>
     implicit val login = request.user
     assumeAdmin(login) {
       DB.withConnection { implicit conn =>
-        SiteItemNumericMetadata.remove(ItemId(itemId), siteId, metadataType)
+        SiteItemNumericMetadata.remove(id)
       }
 
       Redirect(

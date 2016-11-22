@@ -157,17 +157,20 @@
 @siteItemMetadataForm(field: Field) = {
   @if(field("siteId").value.isDefined && field("metadataType").value.isDefined) {
     <tr>
-      <td>
+      <td class="siteId">
         <button type="button"
-                onclick="location.href='@routes.ItemMaintenance.removeSiteItemMetadata(c.id, field("siteId").value.get.toLong, field("metadataType").value.get.toInt)';">
+                onclick="location.href='@routes.ItemMaintenance.removeSiteItemMetadata(c.id, field("id").value.get.toLong)';">
           @Messages("remove")
         </button>
+        @inputText(field("id"), 'type -> "hidden")(
+          FieldConstructor(simpleField.f), implicitly
+        )
         @c.siteMap(field("siteId").value.get.toLong).name
         @inputText(field("siteId"), 'type -> "hidden")(
           FieldConstructor(simpleField.f), implicitly
         )
       </td>
-      <td>
+      <td class="metadataType">
         @Messages("siteItemMetadata" + SiteItemNumericMetadataType.byIndex(field("metadataType").value.get.toInt))
         <div style="display: none;">
         @inputText(field("metadataType"), 'type -> "hidden")(
@@ -175,14 +178,14 @@
         )
         </div>
       </td>
-      <td>
+      <td class="metadata">
         @inputText(
           field("metadata")
         )(
           FieldConstructor(simpleField.f), implicitly
         )
       </td>
-      <td>
+      <td class="validUntil">
         @inputText(field("validUntil"))(
           FieldConstructor(simpleField.f), implicitly
         )
@@ -613,8 +616,8 @@
   
         @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
           <tr>
-            <td colspan="3">
-              <input style="float: right;" type="submit" value='@Messages("update")'>
+            <td colspan="4">
+              <input style="float: right;" class="updateSiteItemNumericMetadata" type="submit" value='@Messages("update")'>
             </td>
           </tr>
         }
@@ -631,7 +634,7 @@
         <th>@Messages("validUntil")</th>
       </tr>
       <tr>
-        <td>
+        <td class="siteId">
           @select(
             c.newSiteItemMetadataForm("siteId"), 
             c.siteNameTable,
@@ -640,7 +643,7 @@
             FieldConstructor(simpleField.f), implicitly
           )
         </td>
-        <td>
+        <td class="metadataType">
           @select(
             c.newSiteItemMetadataForm("metadataType"), 
             ItemMaintenance.siteItemMetadataTable,
@@ -649,14 +652,14 @@
             FieldConstructor(simpleField.f), implicitly
           )
         </td>
-        <td>
+        <td class="metadata">
           @inputText(
             c.newSiteItemMetadataForm("metadata"), '_label -> ""
           )(
             FieldConstructor(simpleField.f), implicitly
           )
         </td>
-        <td>
+        <td class="validUntil">
           @inputText(
             c.newSiteItemMetadataForm("validUntil")
           )(
@@ -666,7 +669,7 @@
       </tr>
 
       <tr>
-        <td colspan="3">
+        <td colspan="4">
           <input style="float: right;" type="submit" value='@Messages("add")'>
         </td>
       </tr>

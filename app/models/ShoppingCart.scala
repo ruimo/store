@@ -4,7 +4,6 @@ import java.time.Instant
 
 import anorm._
 import anorm.SqlParser
-import model.Until
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
