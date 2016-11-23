@@ -553,9 +553,9 @@
           <th>@Messages("itemMetadataType")</th>
           <th>@Messages("itemMetadata")</th>
         </tr>
-  
+
         @repeat(c.itemTextMetadataTableForm("itemMetadatas")) { metadata => @itemTextMetadataForm(metadata) }
-  
+
         @if(! c.itemTextMetadataTableForm("itemMetadatas").indexes.isEmpty) {
           <tr>
             <td colspan="2">
@@ -611,9 +611,9 @@
           <th>@Messages("itemMetadata")</th>
           <th>@Messages("validUntil")</th>
         </tr>
-  
+
         @repeat(c.siteItemMetadataTableForm("siteItemMetadatas")) { metadata => @siteItemMetadataForm(metadata) }
-  
+
         @if(! c.siteItemMetadataTableForm("siteItemMetadatas").indexes.isEmpty) {
           <tr>
             <td colspan="4">
@@ -623,7 +623,7 @@
         }
       </table>
     }
-  }       
+  }
 
   @form(action = CSRF(routes.ItemMaintenance.addSiteItemMetadata(c.id)), 'id -> "addSiteItemMetadataForm") {
     <table style="margin-left: 20px; width: 70%;">

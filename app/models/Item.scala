@@ -1178,7 +1178,7 @@ object SiteItemNumericMetadata {
   }
 
   def update(
-    id: Long, metadata: Long, validUntil: Long
+    id: Long, metadata: Long, validUntil: Long = Until.Ever
   )(implicit conn: Connection) {
     SQL(
       """
