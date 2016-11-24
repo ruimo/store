@@ -47,11 +47,10 @@ object Global extends WithFilters(CSRFFilter(), I18nFilter) with GlobalSettings 
   }
 
   override def onHandlerNotFound(request: RequestHeader) = {
-    logger.error("Handler not found.")
+    logger.error("Handler not found. " + request)
+    implicit val req = request
     Future.successful(
-      Results.Redirect(
-        controllers.routes.Application.index
-      ).flashing("message" -> Messages("unknownError"))
+      Results.NotFound(views.html.notFound())
     )
   }
 }
