@@ -549,3 +549,5 @@ newsIsUpdated=ニュースが変更されました
 newsIsRemoved=ニュースが削除されました
 newsPicture=ニュース用イメージ
 news=ニュース
+notFound=お探しのページは見つかりませんでした。申し訳ありませんがやり直してみてください。
+

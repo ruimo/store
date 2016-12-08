@@ -68,6 +68,9 @@ class SiteItemNumericMetadataSpec extends Specification {
           val rec2 = SiteItemNumericMetadata.createNew(
             site1.id.get, item1.id.get, SiteItemNumericMetadataType.HIDE, 2, 4L
           )
+          val rec3 = SiteItemNumericMetadata.createNew(
+            site1.id.get, item1.id.get, SiteItemNumericMetadataType.STOCK, 0, 3L
+          )
 
           SiteItemNumericMetadata.all(
             site1.id.get, item1.id.get
@@ -78,8 +81,9 @@ class SiteItemNumericMetadataSpec extends Specification {
               site1.id.get, item1.id.get, 1L
             )
           ) { map =>
-            map.size === 1
+            map.size === 2
             map(SiteItemNumericMetadataType.HIDE) === rec1
+            map(SiteItemNumericMetadataType.STOCK) === rec3
           }
 
           doWith(
@@ -87,8 +91,9 @@ class SiteItemNumericMetadataSpec extends Specification {
               site1.id.get, item1.id.get, 2L
             )
           ) { map =>
-            map.size === 1
+            map.size === 2
             map(SiteItemNumericMetadataType.HIDE) === rec2
+            map(SiteItemNumericMetadataType.STOCK) === rec3
           }
 
           doWith(

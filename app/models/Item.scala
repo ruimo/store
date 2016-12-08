@@ -5,7 +5,7 @@ import anorm.SqlParser
 import play.api.Play.current
 import play.api.db._
 import scala.language.postfixOps
-import collection.immutable.{HashMap, IntMap}
+import collection.immutable
 import java.sql.{Timestamp, Connection}
 import play.api.data.Form
 import org.joda.time.DateTime
@@ -253,14 +253,19 @@ object Item {
     """ + 
     siteUser.map { "  and site.site_id = " + _.siteId }.getOrElse("") +
     """
-      and not exists (
-        select coalesce(metadata, 0) from site_item_numeric_metadata
-        where item.item_id = site_item_numeric_metadata.item_id
-        and site.site_id = site_item_numeric_metadata.site_id
-        and site_item_numeric_metadata.metadata_type = 
-      """ + SiteItemNumericMetadataType.HIDE.ordinal +
-      """
-        and site_item_numeric_metadata.metadata = 1
+      and 0 = (case
+        (
+          select metadata
+          from site_item_numeric_metadata as sinm
+          where item.item_id = sinm.item_id
+          and site.site_id = sinm.site_id
+          and sinm.metadata_type = 
+          """ + SiteItemNumericMetadataType.HIDE.ordinal +
+          """
+          and sinm.valid_until > {now}
+          order by sinm.valid_until
+          limit 1
+        ) when 1 then 1 when 0 then 0 else 0 end
       )
       and item_description.locale_id = {localeId}
       and item_price_history.item_price_history_id = (
@@ -967,7 +972,7 @@ object ItemNumericMetadata {
     'itemId -> itemId.id
   ).as(
     ItemNumericMetadata.simple *
-  ).foldLeft(new HashMap[ItemNumericMetadataType, ItemNumericMetadata]) {
+  ).foldLeft(new immutable.HashMap[ItemNumericMetadataType, ItemNumericMetadata]) {
     (map, e) => map.updated(e.metadataType, e)
   }
 
@@ -1058,7 +1063,7 @@ object ItemTextMetadata {
     'itemId -> itemId.id
   ).as(
     ItemTextMetadata.simple *
-  ).foldLeft(new HashMap[ItemTextMetadataType, ItemTextMetadata]) {
+  ).foldLeft(new immutable.HashMap[ItemTextMetadataType, ItemTextMetadata]) {
     (map, e) => map.updated(e.metadataType, e)
   }
 
@@ -1158,6 +1163,7 @@ object SiteItemNumericMetadata {
       select valid_until from site_item_numeric_metadata t2
       where t2.site_id = {siteId} and t2.item_id = {itemId} and t2.metadata_type = t1.metadata_type
       and {now} < t2.valid_until
+      order by t2.valid_until
       limit 1
     )
     """
@@ -1167,49 +1173,45 @@ object SiteItemNumericMetadata {
     'now -> new java.sql.Timestamp(now)
   ).as(
     SiteItemNumericMetadata.simple *
-  ).foldLeft(new HashMap[SiteItemNumericMetadataType, SiteItemNumericMetadata]) {
+  ).foldLeft(new immutable.HashMap[SiteItemNumericMetadataType, SiteItemNumericMetadata]) {
     (map, e) => map.updated(e.metadataType, e)
   }
 
   def update(
-    id: Long, metadata: Long, validUntil: Long
+    id: Long, metadata: Long, validUntil: Long = Until.Ever
   )(implicit conn: Connection) {
     SQL(
       """
-      update site_item_numeric_metadata set metadata = {metadata} and valid_until = {validUntil}
+      update site_item_numeric_metadata set metadata = {metadata}, valid_until = {validUntil}
       where site_item_numeric_metadata_id = {id}
       """
     ).on(
       'id -> id,
       'metadata -> metadata,
-      'validUntil -> validUntil
+      'validUntil -> new java.util.Date(validUntil)
     ).executeUpdate()
   }
 
-  def remove(itemId: ItemId, siteId: Long, metadataType: Int)(implicit conn: Connection) {
+  def remove(id: Long)(implicit conn: Connection) {
     SQL(
       """
       delete from site_item_numeric_metadata
-      where item_id = {itemId} and site_id = {siteId} and metadata_type = {metadataType}
+      where site_item_numeric_metadata_id = {id}
       """
     ).on(
-      'itemId -> itemId.id,
-      'siteId -> siteId,
-      'metadataType -> metadataType
+      'id -> id
     ).executeUpdate()
   }
 
   def allById(
     itemId: ItemId
-  )(implicit conn: Connection): Map[(Long, SiteItemNumericMetadataType), SiteItemNumericMetadata] = SQL(
-    "select * from site_item_numeric_metadata where item_id = {itemId} "
+  )(implicit conn: Connection): immutable.Seq[SiteItemNumericMetadata] = SQL(
+    "select * from site_item_numeric_metadata where item_id = {itemId} order by metadata_type, valid_until"
   ).on(
     'itemId -> itemId.id
   ).as(
     SiteItemNumericMetadata.simple *
-  ).foldLeft(new HashMap[(Long, SiteItemNumericMetadataType), SiteItemNumericMetadata]) {
-    (map, e) => map.updated((e.siteId, e.metadataType), e)
-  }
+  )
 }
 
 object SiteItemTextMetadata {
@@ -1297,7 +1299,7 @@ object SiteItemTextMetadata {
     'itemId -> itemId.id
   ).as(
     SiteItemTextMetadata.simple *
-  ).foldLeft(new HashMap[SiteItemTextMetadataType, SiteItemTextMetadata]) {
+  ).foldLeft(new immutable.HashMap[SiteItemTextMetadataType, SiteItemTextMetadata]) {
     (map, e) => map.updated(e.metadataType, e)
   }
 
@@ -1338,7 +1340,7 @@ object SiteItemTextMetadata {
     'itemId -> itemId.id
   ).as(
     SiteItemTextMetadata.simple *
-  ).foldLeft(new HashMap[(Long, SiteItemTextMetadataType), SiteItemTextMetadata]) {
+  ).foldLeft(new immutable.HashMap[(Long, SiteItemTextMetadataType), SiteItemTextMetadata]) {
     (map, e) => map.updated((e.siteId, e.metadataType), e)
   }
 }

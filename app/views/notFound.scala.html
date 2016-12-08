@@ -1,0 +1,15 @@
+@(
+)(
+  implicit lang: Lang,
+  request: RequestHeader
+)
+
+@main(Messages("company.name"), None) {
+} {
+  <div class="error">
+    @Messages("notFound")
+  </div>
+
+  <br>
+  <a href="/">@Messages("gotoTop")</a>
+}
