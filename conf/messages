@@ -528,4 +528,4 @@ itemcsv.invalid.locale=Invalid locale. (line {0})
 itemcsv.invalid.tax=Invalid tax. (line {0})
 itemcsv.invalid.currency=Invalid currency. (line {0})
 uploadItemCsvTitle=Upload item by csv
-itemCsvSuccess={0} record(s) processed.
+itemCsvSuccess={0} line(s) processed.

@@ -131,7 +131,7 @@ object ItemMaintenanceByCsv extends Controller with I18nAware with NeedLogin wit
 
         persist(None, 1, 0)
       } (_.close())
-      processedCount.get
+      processedCount.get - 1
     }.get
   }
 }
