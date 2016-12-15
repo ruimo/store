@@ -1,0 +1,40 @@
+@()(
+  implicit lang: Lang,
+  request: RequestHeader,
+  flash: play.api.mvc.Flash,
+  loginSession: LoginSession
+)
+
+@import helper._
+
+@main(Messages("uploadItemCsvTitle"), Some(loginSession), contentCssClass = "adminContents") {
+} {
+  <h1 class="title">@Messages("uploadItemCsvTitle")</h1>
+
+  @flash.get("errorMessage").map { message =>
+    <div class="globalErrorMessage">
+      @message
+    </div>
+  }
+
+  @flash.get("message").map { message =>
+    <div class="message">
+      @message
+    </div>
+  }
+
+  @form(action = CSRF(routes.ItemMaintenanceByCsv.uploadZip()), 'enctype -> "multipart/form-data") {
+    <input id="itemCsvFile" type="file" name="zipFile">
+    <input id="itemCsvSubmit" type="submit" value='@Messages("register")'>
+  }
+
+  <div class="menuPanel">
+    <br>
+    <a class="backLink" href="@routes.ItemMaintenance.index()">
+      @Messages("backTo", Messages("itemMaintenanceTitle"))
+    </a>
+
+    <br>
+    @admin.backToAdminTop()
+  </div>
+}

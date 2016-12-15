@@ -272,5 +272,8 @@ GET     /newsList                        controllers.NewsQuery.list(page:Int ?= 
 GET     /showNews                        controllers.NewsQuery.show(id: Long)
 GET     /pagedNewsList                   controllers.NewsQuery.pagedList(page:Int ?= 0, pageSize:Int ?= 10, orderBySpec ?= "news.release_time desc")
 
+GET     /itemzip                         controllers.ItemMaintenanceByCsv.index
+POST    /itemzip/upload                  controllers.ItemMaintenanceByCsv.uploadZip()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                    controllers.Assets.at(path="/public", file)

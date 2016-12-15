@@ -550,4 +550,14 @@ newsIsRemoved=ニュースが削除されました
 newsPicture=ニュース用イメージ
 news=ニュース
 notFound=お探しのページは見つかりませんでした。申し訳ありませんがやり直してみてください。
-
+zip.needed=zipファイルを指定してください。
+itemMaintenanceByCsvMenu=CSVアップロード
+itemcsv.invalid.column=カラム内容が不正です。(行{0}, カラム{1}) [{2}]
+itemcsv.invalid.nolang=言語が指定されていません。(行{0})
+itemcsv.invalid.site=サイトの指定が不正です。(line {0})
+itemcsv.invalid.category=カテゴリの指定が不正です。(line {0})
+itemcsv.invalid.locale=言語の指定が不正です。(line {0})
+itemcsv.invalid.tax=税金の指定が不正です。(line {0})
+itemcsv.invalid.currency=通過の指定が不正です。(line {0})
+uploadItemCsvTitle=CSVによる商品情報のアップロード
+itemCsvSuccess={0} 件処理されました。

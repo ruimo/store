@@ -44,13 +44,15 @@ object Tax {
     case tax~name => (tax, name)
   }
 
-  def apply(id: Long)(implicit conn: Connection): Tax =
+  def apply(id: Long)(implicit conn: Connection): Tax = get(id).get
+
+  def get(id: Long)(implicit conn: Connection): Option[Tax] =
     SQL(
       "select * from tax where tax_id = {id}"
     ).on(
       'id -> id
     ).as(
-      simple.single
+      simple.singleOpt
     )
 
   def createNew(implicit conn: Connection): Tax = {
