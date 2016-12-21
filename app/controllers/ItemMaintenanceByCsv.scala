@@ -42,7 +42,7 @@ object ItemMaintenanceByCsv extends Controller with I18nAware with NeedLogin wit
         else {
           request.body.file("zipFile").map { zipFile =>
             val filename = zipFile.filename
-            if (zipFile.contentType.map(isZip).getOrElse(false)) {
+            if (! zipFile.contentType.map(isZip).getOrElse(false)) {
               Logger.error("Zip file '" + filename + "' has content type '" + zipFile.contentType.getOrElse("") + "'")
               Redirect(
                 routes.ItemMaintenanceByCsv.index
