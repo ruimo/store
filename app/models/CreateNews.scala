@@ -8,10 +8,11 @@ import java.sql.Connection
 case class CreateNews(
   title: String,
   contents: String,
-  releaseTime: DateTime
+  releaseTime: DateTime,
+  siteId: Option[Long]
 ) {
   def save()(implicit conn: Connection): News = News.createNew(
-    siteId = None,
+    siteId = siteId,
     title = title,
     contents = contents,
     releaseTime = releaseTime.getMillis
@@ -19,7 +20,7 @@ case class CreateNews(
 
   def update(id: Long)(implicit conn: Connection): Int = News.update(
     id = NewsId(id),
-    siteId = None,
+    siteId = siteId,
     title = title,
     contents = contents,
     releaseTime = releaseTime.getMillis

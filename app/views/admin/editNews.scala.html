@@ -76,6 +76,13 @@
         "news.release_time", news
       )
     </th>
+    <th class="site">
+      @orderMark(
+        Messages("site"),
+        routes.NewsMaintenance.editNews,
+        "s.site_name", news
+      )
+    </th>
     <th class="action"></th>
   </tr>
   @news.records.map { n =>
@@ -87,6 +94,7 @@
       </td>
       <td class="title">@n._1.title</td>
       <td class="releaseTime">@DateTimeFormat.forPattern(Messages("news.date.format")).print(n._1.releaseTime)</td>
+      <td class="site">@n._2.map(_.name).getOrElse("")</td>
       <td class="action">
         @form(action = CSRF(routes.NewsMaintenance.deleteNews(n._1.id.get.id)), 'id -> ("deleteNews" + n._1.id.get.id)) {
         }

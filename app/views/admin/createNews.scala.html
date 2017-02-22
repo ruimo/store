@@ -1,5 +1,6 @@
 @(
-  myForm: Form[CreateNews]
+  myForm: Form[CreateNews],
+  siteDropDown: Seq[(String, String)]
 )(
   implicit token: play.filters.csrf.CSRF.Token,
   lang: Lang,
@@ -56,6 +57,10 @@
     @inputText(
       myForm("releaseDate"),
       '_label -> Messages("releaseDate"), 'id-> "releaseDateTextBox"
+    )
+
+    @select(
+      myForm("site"), siteDropDown, '_showConstraints -> false, 'id -> "siteDropDown"
     )
     <input type="submit" class="createNewsButton" value=@Messages("register")>
   }

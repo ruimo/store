@@ -20,6 +20,7 @@
         <tr>
           <td class="newsReleaseDate">@publishedDate(rec._1.releaseTime)</td>
           <td class="newsTitle"><a target="_blank" href="@routes.NewsQuery.show(rec._1.id.get.id)">@rec._1.title</a></td>
+          <td class="newsSite">@rec._2.map(_.name).getOrElse("")</td>
         </tr>
       }
     </table>

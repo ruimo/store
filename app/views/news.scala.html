@@ -1,5 +1,5 @@
 @(
-  news: News
+  news: (News, Option[Site])
 )(
   implicit lang: Lang,
   request: RequestHeader,
@@ -10,10 +10,11 @@
 
 @main(Messages("news"), optLoginSession) {
 } {
-  <h1 class="newsTitle">@news.title</h1>
-  <h2 class="newsReleaseDate">@publishedDate(news.releaseTime)</h2>
+  <h1 class="newsTitle">@news._1.title</h1>
+  <h2 class="newsReleaseDate">@publishedDate(news._1.releaseTime)</h2>
+  <h2 class="newsSite">@news._2.map(_.name).getOrElse("")</h2>
   <div class="newsContents">
-    @Html(news.contents)
+    @Html(news._1.contents)
   </div>
 }
 

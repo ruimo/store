@@ -32,17 +32,19 @@ object News {
     }
   }
 
-  def apply(id: NewsId)(implicit conn: Connection): News = SQL(
-    """
-    select * from news where news_id = {id}
-    """
-  ).on(
-    'id -> id.id
-  ).as(simple.single)
-
   val withSite = simple ~ (Site.simple ?) map {
     case news~site => (news, site)
   }
+
+  def apply(id: NewsId)(implicit conn: Connection): (News, Option[Site]) = SQL(
+    """
+    select * from news n
+    left join site s on s.site_id = n.site_id
+    where n.news_id = {id}
+    """
+  ).on(
+    'id -> id.id
+  ).as(withSite.single)
 
   def list(
     page: Int = 0,

@@ -39,6 +39,9 @@ class NewsMaintenanceSpec extends Specification {
       running(TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店222")
+
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
         )
@@ -55,6 +58,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title01")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents01');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月02日")
+        browser.find("#siteDropDown option[value='1001']").click()
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -68,12 +72,14 @@ class NewsMaintenanceSpec extends Specification {
         browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title").getText === "title01"
         browser.find(".newsTableBody .releaseTime").getText === "2016年01月02日"
+        browser.find(".newsTableBody .site").getText === "商店222"
         browser.find(".newsTableBody .id a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.title === Messages("commonTitle", Messages("modifyNewsTitle"))
         browser.find("#title").getAttribute("value") === "title01"
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("return tinyMCE.activeEditor.getContent();") === "<p>Contents01</p>"
+        browser.find("#siteDropDown option[selected='selected']").getText === "商店222"
         browser.find("#releaseDateTextBox").getAttribute("value") === "2016年01月02日"
 
         browser.webDriver
@@ -100,6 +106,7 @@ class NewsMaintenanceSpec extends Specification {
         testDir.resolve(id + "_0.jpg").toFile.exists === false
 
         browser.fill("#title").`with`("title02")
+        browser.find("#siteDropDown option[value='1000']").click()
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents02');")
         browser.fill("#releaseDateTextBox").`with`("2016年02月02日")
         browser.find(".updateButton").click
@@ -109,6 +116,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title").getText === "title02"
         browser.find(".newsTableBody .releaseTime").getText === "2016年02月02日"
+        browser.find(".newsTableBody .site").getText === "商店111"
         browser.find(".newsTableBody .id a").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -116,6 +124,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.find("#title").getAttribute("value") === "title02"
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("return tinyMCE.activeEditor.getContent();") === "<p>Contents02</p>"
         browser.find("#releaseDateTextBox").getAttribute("value") === "2016年02月02日"
+        browser.find("#siteDropDown option[selected='selected']").getText === "商店111"
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.editNews().url.addParm("lang", lang.code)
@@ -150,6 +159,10 @@ class NewsMaintenanceSpec extends Specification {
       running(TestServer(3333, app), SeleniumHelpers.webDriver(Helpers.FIREFOX)) { browser => DB.withConnection { implicit conn =>
         implicit val lang = Lang("ja")
         val adminUser = loginWithTestUser(browser)
+        val site1 = Site.createNew(LocaleInfo.Ja, "商店111")
+        val site2 = Site.createNew(LocaleInfo.Ja, "商店222")
+        val site3 = Site.createNew(LocaleInfo.Ja, "商店333")
+        val site4 = Site.createNew(LocaleInfo.Ja, "商店444")
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsMaintenance.startCreateNews().url.addParm("lang", lang.code)
         )
@@ -160,6 +173,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title01")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents01');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月02日")
+        browser.find("#siteDropDown option[value='1000']").click()
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -171,6 +185,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title02")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents02');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月04日")
+        browser.find("#siteDropDown option[value='1001']").click()
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -182,6 +197,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title03")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents03');")
         browser.fill("#releaseDateTextBox").`with`("2016年01月03日")
+        browser.find("#siteDropDown option[value='1002']").click()
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -197,6 +213,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.fill("#title").`with`("title04")
         browser.webDriver.asInstanceOf[JavascriptExecutor].executeScript("tinyMCE.activeEditor.setContent('Contents03');")
         browser.fill("#releaseDateTextBox").`with`(futureDate)
+        browser.find("#siteDropDown option[value='1003']").click()
         browser.find(".createNewsButton").click
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
@@ -212,12 +229,16 @@ class NewsMaintenanceSpec extends Specification {
 
         browser.title === Messages("commonTitle", Messages("editNewsTitle"))
         browser.find(".newsTableBody .title", 0).getText === "title04"
+        browser.find(".newsTableBody .site", 0).getText === "商店444"
         browser.find(".newsTableBody .releaseTime", 0).getText === futureDate
         browser.find(".newsTableBody .title", 1).getText === "title02"
+        browser.find(".newsTableBody .site", 1).getText === "商店222"
         browser.find(".newsTableBody .releaseTime", 1).getText === "2016年01月04日"
         browser.find(".newsTableBody .title", 2).getText === "title03"
+        browser.find(".newsTableBody .site", 2).getText === "商店333"
         browser.find(".newsTableBody .releaseTime", 2).getText === "2016年01月03日"
         browser.find(".newsTableBody .title", 3).getText === "title01"
+        browser.find(".newsTableBody .site", 3).getText === "商店111"
         browser.find(".newsTableBody .releaseTime", 3).getText === "2016年01月02日"
 
         // In normal console, future news should be hidden.
@@ -227,10 +248,13 @@ class NewsMaintenanceSpec extends Specification {
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
 
         browser.find(".newsTitle a", 0).getText === "title02"
+        browser.find(".newsSite", 0).getText === "商店222"
         browser.find(".newsReleaseDate", 0).getText === "2016年01月04日"
         browser.find(".newsTitle a", 1).getText === "title03"
+        browser.find(".newsSite", 1).getText === "商店333"
         browser.find(".newsReleaseDate", 1).getText === "2016年01月03日"
         browser.find(".newsTitle a", 2).getText === "title01"
+        browser.find(".newsSite", 2).getText === "商店111"
         browser.find(".newsReleaseDate", 2).getText === "2016年01月02日"
 
         browser.find(".newsTitle a", 2).click()
@@ -244,6 +268,7 @@ class NewsMaintenanceSpec extends Specification {
         browser.title === Messages("commonTitle", Messages("news"))
         browser.find(".newsTitle").getText === "title01"
         browser.find(".newsReleaseDate").getText === "2016年01月02日"
+        browser.find(".newsSite").getText === "商店111"
         browser.find(".newsContents").getText === "Contents01"
 
         // Paging
@@ -256,12 +281,15 @@ class NewsMaintenanceSpec extends Specification {
 
         browser.find(".newsTable .body .date", 0).getText === "2016年01月04日"
         browser.find(".newsTable .body .title", 0).getText === "title02"
+        browser.find(".newsTable .body .site", 0).getText === "商店222"
 
         browser.find(".newsTable .body .date", 1).getText === "2016年01月03日"
         browser.find(".newsTable .body .title", 1).getText === "title03"
+        browser.find(".newsTable .body .site", 1).getText === "商店333"
 
         browser.find(".newsTable .body .date", 2).getText === "2016年01月02日"
         browser.find(".newsTable .body .title", 2).getText === "title01"
+        browser.find(".newsTable .body .site", 2).getText === "商店111"
 
         browser.goTo(
           "http://localhost:3333" + controllers.routes.NewsQuery.pagedList(page = 0, pageSize = 2).url.addParm("lang", lang.code)
@@ -272,9 +300,11 @@ class NewsMaintenanceSpec extends Specification {
 
         browser.find(".newsTable .body .date", 0).getText === "2016年01月04日"
         browser.find(".newsTable .body .title", 0).getText === "title02"
+        browser.find(".newsTable .body .site", 0).getText === "商店222"
 
         browser.find(".newsTable .body .date", 1).getText === "2016年01月03日"
         browser.find(".newsTable .body .title", 1).getText === "title03"
+        browser.find(".newsTable .body .site", 1).getText === "商店333"
 
         browser.find(".nextPageButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
@@ -283,6 +313,7 @@ class NewsMaintenanceSpec extends Specification {
 
         browser.find(".newsTable .body .date", 0).getText === "2016年01月02日"
         browser.find(".newsTable .body .title", 0).getText === "title01"
+        browser.find(".newsTable .body .site", 0).getText === "商店111"
 
         browser.find(".prevPageButton").click()
         browser.await().atMost(5, TimeUnit.SECONDS).untilPage().isLoaded()
@@ -291,9 +322,11 @@ class NewsMaintenanceSpec extends Specification {
 
         browser.find(".newsTable .body .date", 0).getText === "2016年01月04日"
         browser.find(".newsTable .body .title", 0).getText === "title02"
+        browser.find(".newsTable .body .site", 0).getText === "商店222"
 
         browser.find(".newsTable .body .date", 1).getText === "2016年01月03日"
         browser.find(".newsTable .body .title", 1).getText === "title03"
+        browser.find(".newsTable .body .site", 1).getText === "商店333"
       }}
     }
   }

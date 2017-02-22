@@ -1,5 +1,6 @@
 package controllers
 
+import models.Site
 import play.api.data.validation.Constraints._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -17,7 +18,8 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
     mapping(
       "title" -> text.verifying(nonEmpty, maxLength(255)),
       "contents" ->  text.verifying(nonEmpty, maxLength(65535)),
-      "releaseDate" -> jodaDate(Messages("news.date.format"))
+      "releaseDate" -> jodaDate(Messages("news.date.format")),
+      "site" -> optional(longNumber)
     )(CreateNews.apply)(CreateNews.unapply)
   )
 
@@ -30,8 +32,10 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
 
   def startCreateNews = NeedAuthenticated { implicit request =>
     implicit val login = request.user
-    assumeSuperUser(login) {
-      Ok(views.html.admin.createNews(createForm))
+    DB.withConnection { implicit conn =>
+      assumeSuperUser(login) {
+        Ok(views.html.admin.createNews(createForm, Site.tableForDropDown))
+      }
     }
   }
 
@@ -41,7 +45,9 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
       createForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in NewsMaintenance.createNews. " + formWithErrors)
-          BadRequest(views.html.admin.createNews(formWithErrors))
+          DB.withConnection { implicit conn =>
+            BadRequest(views.html.admin.createNews(formWithErrors, Site.tableForDropDown))
+          }
         },
         news => DB.withConnection { implicit conn =>
           news.save()
@@ -74,9 +80,10 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
             id,
             createForm.fill(
               CreateNews(
-                news.title, news.contents, new DateTime(news.releaseTime)
+                news._1.title, news._1.contents, new DateTime(news._1.releaseTime), news._1.siteId
               )
-            )
+            ),
+            Site.tableForDropDown
           )
         )
       }
@@ -89,7 +96,14 @@ object NewsMaintenance extends Controller with I18nAware with NeedLogin with Has
       createForm.bindFromRequest.fold(
         formWithErrors => {
           logger.error("Validation error in NewsMaintenance.modifyNews.")
-          BadRequest(views.html.admin.modifyNews(id, formWithErrors))
+          BadRequest(
+            views.html.admin.modifyNews(
+              id, formWithErrors,
+              DB.withConnection { implicit conn =>
+                Site.tableForDropDown
+              }
+            )
+          )
         },
         news => DB.withConnection { implicit conn =>
           news.update(id)
