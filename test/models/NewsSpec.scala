@@ -19,7 +19,8 @@ class NewsSpec extends Specification {
         DB.withConnection { implicit conn =>
           val site = Site.createNew(LocaleInfo.Ja, "商店1")
           val news = News.createNew(Some(site.id.get), "title01", "contents01", 123L, 234L)
-          news === News(news.id.get)
+          news === News(news.id.get)._1
+          site === News(news.id.get)._2.get
           val list = News.list()
           list.records.size === 1
           list.records(0)._1 === news
@@ -34,7 +35,7 @@ class NewsSpec extends Specification {
 
         DB.withConnection { implicit conn =>
           val news = News.createNew(None, "title01", "contents01", 123L, 234L)
-          news === News(news.id.get)
+          news === News(news.id.get)._1
           val list = News.list()
           list.records.size === 1
           list.records(0)._1 === news
@@ -72,7 +73,7 @@ class NewsSpec extends Specification {
 
         DB.withConnection { implicit conn =>
           val news = News.createNew(None, "title01", "contents01", 123L, 234L)
-          news === News(news.id.get)
+          news === News(news.id.get)._1
           val site = Site.createNew(LocaleInfo.Ja, "商店1")
           News.update(news.id.get, Some(site.id.get), "title02", "contents02", 111L, 222L) === 1
           val list = News.list()
@@ -95,7 +96,7 @@ class NewsSpec extends Specification {
 
         DB.withConnection { implicit conn =>
           val news = News.createNew(None, "title01", "contents01", 123L, 234L)
-          news === News(news.id.get)
+          news === News(news.id.get)._1
           News.delete(news.id.get)
 
           val list = News.list()
